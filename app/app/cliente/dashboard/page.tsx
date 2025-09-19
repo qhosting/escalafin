@@ -1,15 +1,15 @@
 
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+'use client';
+
 import { ClienteDashboard } from '@/components/dashboards/cliente-dashboard';
+import { AuthWrapper } from '@/components/auth-wrapper';
 
-export default async function ClienteDashboardPage() {
-  const session = await getServerSession(authOptions);
+export const dynamic = 'force-dynamic';
 
-  if (!session?.user || !['CLIENTE', 'ADMIN'].includes(session.user.role)) {
-    redirect('/auth/login');
-  }
-
-  return <ClienteDashboard />;
+export default function ClienteDashboardPage() {
+  return (
+    <AuthWrapper allowedRoles={['CLIENTE', 'ADMIN']}>
+      <ClienteDashboard />
+    </AuthWrapper>
+  );
 }

@@ -8,7 +8,7 @@ import { Building2, CreditCard, Calendar, DollarSign, AlertCircle, CheckCircle, 
 import { toast } from 'sonner';
 
 export function ClienteDashboard() {
-  const { data: session } = useSession() || {};
+  const { data: session } = useSession() || { data: null };
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: '/auth/login' });

@@ -1,15 +1,15 @@
 
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+'use client';
+
 import { AdminDashboard } from '@/components/dashboards/admin-dashboard';
+import { AuthWrapper } from '@/components/auth-wrapper';
 
-export default async function AdminDashboardPage() {
-  const session = await getServerSession(authOptions);
+export const dynamic = 'force-dynamic';
 
-  if (!session?.user || session.user.role !== 'ADMIN') {
-    redirect('/auth/login');
-  }
-
-  return <AdminDashboard />;
+export default function AdminDashboardPage() {
+  return (
+    <AuthWrapper allowedRoles={['ADMIN']}>
+      <AdminDashboard />
+    </AuthWrapper>
+  );
 }

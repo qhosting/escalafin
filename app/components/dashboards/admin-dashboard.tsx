@@ -8,7 +8,7 @@ import { Building2, Users, CreditCard, DollarSign, TrendingUp, FileText, LogOut 
 import { toast } from 'sonner';
 
 export function AdminDashboard() {
-  const { data: session } = useSession() || {};
+  const { data: session } = useSession() || { data: null };
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: '/auth/login' });

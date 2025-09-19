@@ -1,15 +1,15 @@
 
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+'use client';
+
 import { AsesorDashboard } from '@/components/dashboards/asesor-dashboard';
+import { AuthWrapper } from '@/components/auth-wrapper';
 
-export default async function AsesorDashboardPage() {
-  const session = await getServerSession(authOptions);
+export const dynamic = 'force-dynamic';
 
-  if (!session?.user || !['ASESOR', 'ADMIN'].includes(session.user.role)) {
-    redirect('/auth/login');
-  }
-
-  return <AsesorDashboard />;
+export default function AsesorDashboardPage() {
+  return (
+    <AuthWrapper allowedRoles={['ASESOR', 'ADMIN']}>
+      <AsesorDashboard />
+    </AuthWrapper>
+  );
 }
