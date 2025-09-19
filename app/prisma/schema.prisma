@@ -1,0 +1,284 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/escalafin_mvp/app/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// NextAuth Schema
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// User Management
+enum UserRole {
+  ADMIN
+  ASESOR
+  CLIENTE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String?
+  firstName     String
+  lastName      String
+  phone         String?
+  role          UserRole  @default(CLIENTE)
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  emailVerified DateTime?
+
+  // NextAuth relations
+  accounts Account[]
+  sessions Session[]
+
+  // EscalaFin relations
+  clientsAssigned   Client[] @relation("AsesorClients")
+  creditApplicationsCreated CreditApplication[] @relation("CreatedByAsesor")
+  creditApplicationsReviewed CreditApplication[] @relation("ReviewedByAdmin")
+  paymentsProcessed Payment[] @relation("ProcessedBy")
+  
+  // If user is a client
+  clientProfile Client? @relation("UserClient")
+
+  @@map("users")
+}
+
+// Client Management (CRM)
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  BLACKLISTED
+}
+
+enum EmploymentType {
+  EMPLOYED
+  SELF_EMPLOYED
+  UNEMPLOYED
+  RETIRED
+  STUDENT
+}
+
+model Client {
+  id                String          @id @default(cuid())
+  userId            String?         @unique
+  firstName         String
+  lastName          String
+  email             String?         @unique
+  phone             String
+  dateOfBirth       DateTime?
+  address           String?
+  city              String?
+  state             String?
+  postalCode        String?
+  
+  // Financial Information
+  monthlyIncome     Decimal?        @db.Decimal(12, 2)
+  employmentType    EmploymentType?
+  employerName      String?
+  workAddress       String?
+  yearsEmployed     Int?
+  
+  // Credit Information
+  creditScore       Int?
+  bankName          String?
+  accountNumber     String?
+  
+  // Status and Assignment
+  status            ClientStatus    @default(ACTIVE)
+  asesorId          String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  // Relations
+  user              User?           @relation("UserClient", fields: [userId], references: [id])
+  asesor            User?           @relation("AsesorClients", fields: [asesorId], references: [id])
+  creditApplications CreditApplication[]
+  loans             Loan[]
+
+  @@map("clients")
+}
+
+// Credit Application Workflow
+enum ApplicationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum LoanType {
+  PERSONAL
+  BUSINESS
+  MORTGAGE
+  AUTO
+  EDUCATION
+}
+
+model CreditApplication {
+  id                String            @id @default(cuid())
+  clientId          String
+  asesorId          String
+  loanType          LoanType
+  requestedAmount   Decimal           @db.Decimal(12, 2)
+  requestedTerm     Int               // months
+  purpose           String
+  status            ApplicationStatus @default(PENDING)
+  
+  // Review Information
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  reviewComments    String?
+  approvedAmount    Decimal?          @db.Decimal(12, 2)
+  approvedTerm      Int?              // months
+  interestRate      Decimal?          @db.Decimal(5, 4)
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  client            Client            @relation(fields: [clientId], references: [id])
+  createdBy         User              @relation("CreatedByAsesor", fields: [asesorId], references: [id])
+  reviewedByUser    User?             @relation("ReviewedByAdmin", fields: [reviewedBy], references: [id])
+  loan              Loan?
+
+  @@map("credit_applications")
+}
+
+// Loan Management
+enum LoanStatus {
+  ACTIVE
+  PAID_OFF
+  DEFAULTED
+  CANCELLED
+}
+
+model Loan {
+  id                      String                @id @default(cuid())
+  clientId                String
+  creditApplicationId     String?               @unique
+  loanNumber              String                @unique
+  loanType                LoanType
+  principalAmount         Decimal               @db.Decimal(12, 2)
+  interestRate            Decimal               @db.Decimal(5, 4)
+  termMonths              Int
+  monthlyPayment          Decimal               @db.Decimal(12, 2)
+  totalAmount             Decimal               @db.Decimal(12, 2)
+  balanceRemaining        Decimal               @db.Decimal(12, 2)
+  status                  LoanStatus            @default(ACTIVE)
+  startDate               DateTime
+  endDate                 DateTime
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  // Relations
+  client                  Client                @relation(fields: [clientId], references: [id])
+  creditApplication       CreditApplication?    @relation(fields: [creditApplicationId], references: [id])
+  amortizationSchedule    AmortizationSchedule[]
+  payments                Payment[]
+
+  @@map("loans")
+}
+
+// Amortization Schedule
+model AmortizationSchedule {
+  id                String      @id @default(cuid())
+  loanId            String
+  paymentNumber     Int
+  paymentDate       DateTime
+  principalPayment  Decimal     @db.Decimal(12, 2)
+  interestPayment   Decimal     @db.Decimal(12, 2)
+  totalPayment      Decimal     @db.Decimal(12, 2)
+  remainingBalance  Decimal     @db.Decimal(12, 2)
+  isPaid            Boolean     @default(false)
+
+  // Relations
+  loan              Loan        @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  payment           Payment?
+
+  @@unique([loanId, paymentNumber])
+  @@map("amortization_schedule")
+}
+
+// Payment Management
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CHECK
+  DEBIT_CARD
+  CREDIT_CARD
+  ONLINE
+}
+
+model Payment {
+  id                      String                @id @default(cuid())
+  loanId                  String
+  amortizationScheduleId  String?               @unique
+  amount                  Decimal               @db.Decimal(12, 2)
+  paymentDate             DateTime
+  paymentMethod           PaymentMethod
+  status                  PaymentStatus         @default(COMPLETED)
+  reference               String?
+  notes                   String?
+  processedBy             String?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  // Relations
+  loan                    Loan                  @relation(fields: [loanId], references: [id])
+  amortizationSchedule    AmortizationSchedule? @relation(fields: [amortizationScheduleId], references: [id])
+  processedByUser         User?                 @relation("ProcessedBy", fields: [processedBy], references: [id])
+
+  @@map("payments")
+}
