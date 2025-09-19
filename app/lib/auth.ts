@@ -74,4 +74,18 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/login',
   },
+  debug: process.env.NODE_ENV === 'development',
+  secret: process.env.NEXTAUTH_SECRET,
+  useSecureCookies: false,
+  cookies: {
+    sessionToken: {
+      name: 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: false,
+      },
+    },
+  },
 };
