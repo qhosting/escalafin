@@ -1,0 +1,75 @@
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: escalafin_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'yarn'
+        cache-dependency-path: app/yarn.lock
+    
+    - name: Install dependencies
+      run: |
+        cd app
+        yarn install --frozen-lockfile
+    
+    - name: Generate Prisma Client
+      run: |
+        cd app
+        yarn prisma generate
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/escalafin_test
+    
+    - name: Run TypeScript Check
+      run: |
+        cd app
+        yarn tsc --noEmit
+    
+    - name: Run Linting
+      run: |
+        cd app
+        yarn lint
+    
+    - name: Build Application
+      run: |
+        cd app
+        yarn build
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/escalafin_test
+        NEXTAUTH_SECRET: test_secret_for_ci_min_32_characters
+        NEXTAUTH_URL: http://localhost:3000
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run Security Audit
+      run: |
+        cd app
+        npm audit --audit-level=moderate
