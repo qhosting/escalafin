@@ -83,6 +83,14 @@ model User {
   
   // If user is a client
   clientProfile Client? @relation("UserClient")
+  
+  // Fase 3 relations
+  auditLogs       AuditLog[] @relation("AuditLogs")
+  notifications   Notification[] @relation("UserNotifications")
+  files           FileUpload[] @relation("UserFiles")
+  verifiedFiles   FileUpload[] @relation("VerifiedFiles")
+  generatedReports ReportGeneration[] @relation("GeneratedReports")
+  configUpdates   SystemConfig[] @relation("ConfigUpdates")
 
   @@map("users")
 }
@@ -138,6 +146,10 @@ model Client {
   asesor            User?           @relation("AsesorClients", fields: [asesorId], references: [id])
   creditApplications CreditApplication[]
   loans             Loan[]
+  
+  // Fase 3 relations
+  creditScores      CreditScore[]   @relation("ClientScoring")
+  files             FileUpload[]    @relation("ClientFiles")
 
   @@map("clients")
 }
@@ -185,6 +197,9 @@ model CreditApplication {
   createdBy         User              @relation("CreatedByAsesor", fields: [asesorId], references: [id])
   reviewedByUser    User?             @relation("ReviewedByAdmin", fields: [reviewedBy], references: [id])
   loan              Loan?
+  
+  // Fase 3 relations
+  creditScores      CreditScore[]     @relation("ApplicationScoring")
 
   @@map("credit_applications")
 }
@@ -220,6 +235,10 @@ model Loan {
   creditApplication       CreditApplication?    @relation(fields: [creditApplicationId], references: [id])
   amortizationSchedule    AmortizationSchedule[]
   payments                Payment[]
+  
+  // Fase 3 relations
+  creditScores            CreditScore[]         @relation("LoanScoring")
+  files                   FileUpload[]          @relation("LoanFiles")
 
   @@map("loans")
 }
@@ -279,6 +298,271 @@ model Payment {
   loan                    Loan                  @relation(fields: [loanId], references: [id])
   amortizationSchedule    AmortizationSchedule? @relation(fields: [amortizationScheduleId], references: [id])
   processedByUser         User?                 @relation("ProcessedBy", fields: [processedBy], references: [id])
+  
+  // Fase 3 relations
+  transactions            PaymentTransaction[]  @relation("PaymentTransactions")
 
   @@map("payments")
 }
+
+// Sistema de Auditoría - Fase 3
+model AuditLog {
+  id          String      @id @default(cuid())
+  userId      String?
+  userEmail   String?
+  action      String
+  resource    String?
+  resourceId  String?
+  details     String?     @db.Text // JSON string
+  ipAddress   String?
+  userAgent   String?     @db.Text
+  metadata    String?     @db.Text // JSON string
+  timestamp   DateTime    @default(now())
+
+  // Relations
+  user        User?       @relation("AuditLogs", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+// Sistema de Scoring Crediticio - Fase 3
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+}
+
+enum ScoringRecommendation {
+  APPROVE
+  REVIEW  
+  REJECT
+}
+
+model CreditScore {
+  id                String                  @id @default(cuid())
+  loanId            String?
+  clientId          String?
+  applicationId     String?
+  score             Int
+  risk              RiskLevel
+  recommendation    ScoringRecommendation
+  maxAmount         Decimal?                @db.Decimal(12, 2)
+  recommendedRate   Decimal?                @db.Decimal(5, 4)
+  factors           String                  @db.Text // JSON string
+  calculatedAt      DateTime                @default(now())
+  validUntil        DateTime?
+  createdAt         DateTime                @default(now())
+
+  // Relations (optional, can link to different entities)
+  loan              Loan?                   @relation("LoanScoring", fields: [loanId], references: [id], onDelete: SetNull)
+  client            Client?                 @relation("ClientScoring", fields: [clientId], references: [id], onDelete: SetNull)
+  application       CreditApplication?      @relation("ApplicationScoring", fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@map("credit_scores")
+}
+
+// Sistema de Notificaciones Mejorado - Fase 3
+enum NotificationType {
+  PAYMENT_DUE
+  PAYMENT_OVERDUE
+  LOAN_APPROVED
+  LOAN_REJECTED
+  SYSTEM_ALERT
+  MARKETING
+  REMINDER
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  READ
+  FAILED
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  PUSH
+}
+
+model Notification {
+  id            String                @id @default(cuid())
+  userId        String
+  type          NotificationType
+  channel       NotificationChannel
+  status        NotificationStatus    @default(PENDING)
+  title         String
+  message       String                @db.Text
+  data          String?               @db.Text // JSON string for additional data
+  scheduledFor  DateTime?
+  sentAt        DateTime?
+  readAt        DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  // Relations
+  user          User                  @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([scheduledFor])
+  @@map("notifications")
+}
+
+// Gestión de Archivos - Fase 3
+enum FileCategory {
+  IDENTITY_DOCUMENT
+  INCOME_PROOF
+  BANK_STATEMENT
+  CONTRACT
+  SIGNATURE
+  PHOTO
+  OTHER
+}
+
+enum FileStatus {
+  UPLOADED
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+model FileUpload {
+  id              String        @id @default(cuid())
+  userId          String
+  clientId        String?
+  loanId          String?
+  filename        String
+  originalName    String
+  mimeType        String
+  size            Int
+  category        FileCategory
+  status          FileStatus    @default(UPLOADED)
+  cloudStoragePath String       // S3 key or cloud storage path
+  description     String?
+  uploadedAt      DateTime      @default(now())
+  verifiedAt      DateTime?
+  verifiedBy      String?
+  expiresAt       DateTime?
+
+  // Relations
+  user            User          @relation("UserFiles", fields: [userId], references: [id], onDelete: Cascade)
+  client          Client?       @relation("ClientFiles", fields: [clientId], references: [id], onDelete: SetNull)
+  loan            Loan?         @relation("LoanFiles", fields: [loanId], references: [id], onDelete: SetNull)
+  verifierUser    User?         @relation("VerifiedFiles", fields: [verifiedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([loanId])
+  @@map("file_uploads")
+}
+
+// Integración de Pagos - Fase 3
+enum PaymentProviderType {
+  OPENPAY
+  STRIPE
+  PAYPAL
+  BANK_TRANSFER
+  MANUAL
+}
+
+enum PaymentTransactionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+model PaymentTransaction {
+  id                  String                    @id @default(cuid())
+  paymentId           String
+  provider            PaymentProviderType
+  providerTransactionId String?
+  amount              Decimal                   @db.Decimal(12, 2)
+  currency            String                    @default("MXN")
+  status              PaymentTransactionStatus  @default(PENDING)
+  providerResponse    String?                   @db.Text // JSON string
+  errorMessage        String?
+  processedAt         DateTime?
+  webhookData         String?                   @db.Text // JSON string
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+
+  // Relations
+  payment             Payment                   @relation("PaymentTransactions", fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerTransactionId])
+  @@index([status])
+  @@map("payment_transactions")
+}
+
+// Configuración del Sistema - Fase 3
+model SystemConfig {
+  id          String    @id @default(cuid())
+  key         String    @unique
+  value       String    @db.Text
+  description String?
+  category    String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  updatedBy   String?
+
+  // Relations
+  updatedByUser User?   @relation("ConfigUpdates", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@index([key])
+  @@map("system_config")
+}
+
+// Reportes y Analytics - Fase 3  
+enum ReportType {
+  LOAN_PORTFOLIO
+  PAYMENT_ANALYSIS
+  CLIENT_DEMOGRAPHICS
+  FINANCIAL_SUMMARY
+  RISK_ASSESSMENT
+  AUDIT_TRAIL
+  CUSTOM
+}
+
+enum ReportStatus {
+  PENDING
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+model ReportGeneration {
+  id            String        @id @default(cuid())
+  userId        String
+  type          ReportType
+  status        ReportStatus  @default(PENDING)
+  title         String
+  description   String?
+  parameters    String?       @db.Text // JSON string
+  filePath      String?       // Path to generated file
+  fileSize      Int?
+  generatedAt   DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime      @default(now())
+  
+  // Relations
+  user          User          @relation("GeneratedReports", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@map("report_generations")
+}
+
+// Actualizar relaciones existentes
+// Agregar nuevas relaciones a los modelos existentes

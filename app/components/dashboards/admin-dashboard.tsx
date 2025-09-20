@@ -4,8 +4,27 @@
 import { useSession, signOut } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, Users, CreditCard, DollarSign, TrendingUp, FileText, LogOut } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Building2, 
+  Users, 
+  CreditCard, 
+  DollarSign, 
+  TrendingUp, 
+  FileText, 
+  LogOut, 
+  BarChart3,
+  Calculator,
+  Shield,
+  CreditCard as PaymentIcon,
+  ArrowRight,
+  Activity,
+  AlertTriangle,
+  CheckCircle
+} from 'lucide-react';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 export function AdminDashboard() {
   const { data: session, status } = useSession() || {};
@@ -90,12 +109,20 @@ export function AdminDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Bienvenido, {session?.user?.name?.split(' ')[0]}
-          </h2>
-          <p className="text-gray-600">
-            Supervisa las operaciones diarias y gestiona la cartera de préstamos
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Bienvenido, {session?.user?.name?.split(' ')[0]}
+              </h2>
+              <p className="text-gray-600">
+                Supervisa las operaciones diarias y gestiona la cartera de préstamos
+              </p>
+            </div>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              <Activity className="h-3 w-3 mr-1" />
+              Fase 3 - Funcionalidades Avanzadas
+            </Badge>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -133,7 +160,98 @@ export function AdminDashboard() {
           })}
         </div>
 
-        {/* Quick Actions Grid */}
+        {/* Funcionalidades Avanzadas - Fase 3 */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Activity className="h-5 w-5 text-blue-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Funcionalidades Empresariales</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Link href="/admin/analytics">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <BarChart3 className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Analytics Avanzado</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    KPIs, métricas financieras y dashboards interactivos
+                  </p>
+                  <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                    Nuevo
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/scoring">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-purple-100 rounded-lg">
+                      <Calculator className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Scoring Crediticio</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Evaluación automática de riesgo crediticio
+                  </p>
+                  <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                    Nuevo
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/payments">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-green-100 rounded-lg">
+                      <PaymentIcon className="h-6 w-6 text-green-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Pagos Openpay</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Procesamiento de pagos integrado
+                  </p>
+                  <Badge variant="secondary" className="bg-green-50 text-green-700">
+                    Nuevo
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/audit">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-orange-100 rounded-lg">
+                      <Shield className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Sistema de Auditoría</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Logs y trazabilidad completa del sistema
+                  </p>
+                  <Badge variant="secondary" className="bg-orange-50 text-orange-700">
+                    Nuevo
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+
+        <Separator className="my-8" />
+
+        {/* Solicitudes Pendientes */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <Card className="lg:col-span-2">
             <CardHeader>
@@ -148,10 +266,20 @@ export function AdminDashboard() {
                   <div>
                     <p className="font-medium text-gray-900">Patricia Hernández</p>
                     <p className="text-sm text-gray-600">Préstamo Empresarial - $200,000</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="outline" className="text-xs">Score: 78</Badge>
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">Bajo Riesgo</Badge>
+                    </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline">Ver Detalles</Button>
+                    <Link href="/admin/scoring">
+                      <Button size="sm" variant="outline">
+                        <Calculator className="h-3 w-3 mr-1" />
+                        Evaluar
+                      </Button>
+                    </Link>
                     <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                      <CheckCircle className="h-3 w-3 mr-1" />
                       Aprobar
                     </Button>
                   </div>
@@ -160,11 +288,20 @@ export function AdminDashboard() {
                   <div>
                     <p className="font-medium text-gray-900">Miguel Torres</p>
                     <p className="text-sm text-gray-600">Préstamo Automotriz - $300,000</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="outline" className="text-xs">Score: 62</Badge>
+                      <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">Riesgo Medio</Badge>
+                    </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline">Ver Detalles</Button>
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                      Aprobar
+                    <Link href="/admin/scoring">
+                      <Button size="sm" variant="outline">
+                        <Calculator className="h-3 w-3 mr-1" />
+                        Evaluar
+                      </Button>
+                    </Link>
+                    <Button size="sm" variant="outline">
+                      Revisar
                     </Button>
                   </div>
                 </div>
