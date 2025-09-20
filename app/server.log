@@ -26,3 +26,4 @@ https://next-auth.js.org/warnings#debug_enabled
  GET /api/auth/session 200 in 19ms
  GET /api/auth/session 200 in 20ms
  POST /api/auth/callback/credentials 302 in 26ms
+[?25h

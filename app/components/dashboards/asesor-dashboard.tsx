@@ -8,7 +8,9 @@ import { Building2, Users, FileText, DollarSign, TrendingUp, Plus, LogOut } from
 import { toast } from 'sonner';
 
 export function AsesorDashboard() {
-  const { data: session } = useSession() || { data: null };
+  const { data: session, status } = useSession() || {};
+
+
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: '/auth/login' });
