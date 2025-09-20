@@ -141,7 +141,27 @@ export function AsesorDashboard() {
             <CreditCard className="h-5 w-5 text-green-600" />
             <h3 className="text-lg font-semibold text-gray-900">Gestión de Préstamos</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Link href="/asesor/credit-applications">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-orange-100 rounded-lg">
+                      <FileText className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Solicitudes de Crédito</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Crear y gestionar solicitudes de mis clientes
+                  </p>
+                  <Badge variant="secondary" className="bg-orange-50 text-orange-700">
+                    Workflow
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
             <Link href="/asesor/loans">
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">

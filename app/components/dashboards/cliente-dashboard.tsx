@@ -98,6 +98,63 @@ export function ClienteDashboard() {
           </p>
         </div>
 
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Link href="/client/credit-applications">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-orange-100 rounded-lg">
+                      <DollarSign className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Mis Solicitudes</h4>
+                  <p className="text-sm text-gray-600">
+                    Ver el estado de mis solicitudes de crédito
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/client/loans">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <CreditCard className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Mis Préstamos</h4>
+                  <p className="text-sm text-gray-600">
+                    Administrar mis préstamos activos
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/client/payments">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-green-100 rounded-lg">
+                      <Calendar className="h-6 w-6 text-green-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Mis Pagos</h4>
+                  <p className="text-sm text-gray-600">
+                    Historial y próximos pagos
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+
         {/* Loan Overview */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <Card className="lg:col-span-2">
