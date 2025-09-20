@@ -3,7 +3,8 @@
 
 import React from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { Bell, LogOut, Settings, User, Menu } from 'lucide-react'
+import { Bell, LogOut, Settings, User, Menu, Smartphone } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -102,6 +103,20 @@ export function EnhancedHeader({
 
         {/* Right side - Actions and user menu */}
         <div className="flex items-center gap-2">
+          {/* Mobile Collection Module - Only for ADMIN and ADVISOR */}
+          {session?.user && ['ADMIN', 'ADVISOR'].includes((session as any).user?.role) && (
+            <Link href="/mobile/cobranza">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="hidden sm:flex items-center gap-2"
+              >
+                <Smartphone className="h-4 w-4" />
+                Cobranza Móvil
+              </Button>
+            </Link>
+          )}
+          
           {/* Theme Toggle */}
           <ThemeToggle />
 
@@ -146,6 +161,15 @@ export function EnhancedHeader({
                   <User className="mr-2 h-4 w-4" />
                   <span>Perfil</span>
                 </DropdownMenuItem>
+                
+                {['ADMIN', 'ADVISOR'].includes((session as any).user?.role) && (
+                  <Link href="/mobile/cobranza">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Smartphone className="mr-2 h-4 w-4" />
+                      <span>Cobranza Móvil</span>
+                    </DropdownMenuItem>
+                  </Link>
+                )}
                 
                 <DropdownMenuItem className="cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />

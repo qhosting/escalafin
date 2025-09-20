@@ -91,6 +91,7 @@ model User {
   verifiedFiles   FileUpload[] @relation("VerifiedFiles")
   generatedReports ReportGeneration[] @relation("GeneratedReports")
   configUpdates   SystemConfig[] @relation("ConfigUpdates")
+  cashCollections CashCollection[] @relation("CashCollector")
 
   @@map("users")
 }
@@ -309,6 +310,7 @@ model Payment {
   
   // Fase 3 relations
   transactions            PaymentTransaction[]  @relation("PaymentTransactions")
+  cashCollection          CashCollection?       @relation("CashCollections")
 
   @@map("payments")
 }
@@ -509,6 +511,28 @@ model PaymentTransaction {
   @@unique([provider, providerTransactionId])
   @@index([status])
   @@map("payment_transactions")
+}
+
+// Cash Collections for Mobile Collection Module
+model CashCollection {
+  id                  String      @id @default(cuid())
+  paymentId           String      @unique
+  collectorId         String
+  collectionMethod    String      // 'home', 'office', 'field'
+  collectorLocation   String      // GPS coordinates or address
+  photoEvidence       String?     // Path to photo file
+  deviceInfo          String?     // Mobile device information
+  collectionNotes     String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  // Relations
+  payment             Payment     @relation("CashCollections", fields: [paymentId], references: [id], onDelete: Cascade)
+  collector           User        @relation("CashCollector", fields: [collectorId], references: [id])
+
+  @@index([collectorId])
+  @@index([collectionMethod])
+  @@map("cash_collections")
 }
 
 // Configuración del Sistema - Fase 3
