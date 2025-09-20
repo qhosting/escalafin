@@ -56,10 +56,10 @@ interface LoanListProps {
 }
 
 const statusConfig = {
-  ACTIVE: { label: 'Activo', color: 'bg-green-100 text-green-800' },
-  PAID_OFF: { label: 'Liquidado', color: 'bg-blue-100 text-blue-800' },
-  DEFAULTED: { label: 'En Mora', color: 'bg-red-100 text-red-800' },
-  CANCELLED: { label: 'Cancelado', color: 'bg-gray-100 text-gray-800' }
+  ACTIVE: { label: 'Activo', color: 'status-badge-active' },
+  PAID_OFF: { label: 'Liquidado', color: 'status-badge-completed' },
+  DEFAULTED: { label: 'En Mora', color: 'status-badge-failed' },
+  CANCELLED: { label: 'Cancelado', color: 'status-badge-cancelled' }
 };
 
 const loanTypeConfig = {
@@ -136,7 +136,7 @@ export function LoanList({ userRole }: LoanListProps) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 bg-gray-100 animate-pulse rounded-lg" />
+          <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
         ))}
       </div>
     );
@@ -147,8 +147,8 @@ export function LoanList({ userRole }: LoanListProps) {
       {/* Header y Filtros */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Gestión de Préstamos</h2>
-          <p className="text-gray-600">
+          <h2 className="text-2xl font-bold text-foreground">Gestión de Préstamos</h2>
+          <p className="text-muted-foreground">
             {pagination.totalCount} préstamo{pagination.totalCount !== 1 ? 's' : ''} encontrado{pagination.totalCount !== 1 ? 's' : ''}
           </p>
         </div>
@@ -168,7 +168,7 @@ export function LoanList({ userRole }: LoanListProps) {
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder="Buscar por número de préstamo, cliente o email..."
                 className="pl-10"
@@ -202,10 +202,10 @@ export function LoanList({ userRole }: LoanListProps) {
                 <div className="space-y-3 flex-1">
                   <div className="flex items-center gap-3">
                     <div>
-                      <h3 className="font-semibold text-lg text-gray-900">
+                      <h3 className="font-semibold text-lg text-foreground">
                         {loan.loanNumber}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted-foreground">
                         {loanTypeConfig[loan.loanType as keyof typeof loanTypeConfig] || loan.loanType}
                       </p>
                     </div>
@@ -216,27 +216,27 @@ export function LoanList({ userRole }: LoanListProps) {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-400" />
-                      <span>
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">
                         {loan.client.firstName} {loan.client.lastName}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-gray-400" />
-                      <span>Saldo: {formatCurrency(loan.balanceRemaining)}</span>
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">Saldo: {formatCurrency(loan.balanceRemaining)}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-gray-400" />
-                      <span>Pago: {formatCurrency(loan.monthlyPayment)}</span>
+                      <CreditCard className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">Pago: {formatCurrency(loan.monthlyPayment)}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-gray-400" />
-                      <span>Vence: {formatDate(loan.endDate)}</span>
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">Vence: {formatDate(loan.endDate)}</span>
                     </div>
                   </div>
 
                   {loan.payments.length > 0 && (
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       Último pago: {formatDate(loan.payments[0].paymentDate)} - {formatCurrency(loan.payments[0].amount)}
                     </div>
                   )}
@@ -266,11 +266,11 @@ export function LoanList({ userRole }: LoanListProps) {
         {filteredLoans.length === 0 && (
           <Card>
             <CardContent className="p-12 text-center">
-              <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 No se encontraron préstamos
               </h3>
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 {searchTerm || statusFilter
                   ? 'Intenta ajustar tus filtros de búsqueda'
                   : 'Aún no hay préstamos registrados'}
@@ -283,7 +283,7 @@ export function LoanList({ userRole }: LoanListProps) {
       {/* Paginación */}
       {pagination.totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Mostrando {((pagination.page - 1) * pagination.limit) + 1} a{' '}
             {Math.min(pagination.page * pagination.limit, pagination.totalCount)} de{' '}
             {pagination.totalCount} resultados

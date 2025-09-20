@@ -39,10 +39,10 @@
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
  
-    --card: 222.2 84% 4.9%;
+    --card: 217.2 32.6% 17.5%;
     --card-foreground: 210 40% 98%;
  
-    --popover: 222.2 84% 4.9%;
+    --popover: 217.2 32.6% 17.5%;
     --popover-foreground: 210 40% 98%;
  
     --primary: 210 40% 98%;
@@ -52,12 +52,12 @@
     --secondary-foreground: 210 40% 98%;
  
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215 20.2% 75.1%; /* Mejorado contraste */
  
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
  
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 210 40% 98%;
  
     --border: 217.2 32.6% 17.5%;
@@ -72,5 +72,28 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Estilos mejorados para componentes específicos */
+@layer components {
+  .status-badge-active {
+    @apply bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100;
+  }
+  
+  .status-badge-completed {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100;
+  }
+  
+  .status-badge-pending {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100;
+  }
+  
+  .status-badge-failed {
+    @apply bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100;
+  }
+  
+  .status-badge-cancelled {
+    @apply bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200;
   }
 }

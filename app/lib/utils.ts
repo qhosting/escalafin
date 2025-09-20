@@ -12,3 +12,10 @@ export function formatDuration(seconds: number): string {
 
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
 }
+
+export async function generateLoanNumber(): Promise<string> {
+  const prefix = 'EF';
+  const timestamp = Date.now().toString().slice(-8);
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `${prefix}-${timestamp}-${random}`;
+}
