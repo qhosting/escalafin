@@ -141,6 +141,13 @@ model Client {
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 
+  // WhatsApp Notification Settings
+  whatsappNotificationsEnabled Boolean @default(true)
+  whatsappPaymentReceived      Boolean @default(true)
+  whatsappPaymentReminder      Boolean @default(true)
+  whatsappLoanUpdates          Boolean @default(true)
+  whatsappMarketingMessages    Boolean @default(false)
+
   // Relations
   user              User?           @relation("UserClient", fields: [userId], references: [id])
   asesor            User?           @relation("AsesorClients", fields: [asesorId], references: [id])
@@ -150,6 +157,7 @@ model Client {
   // Fase 3 relations
   creditScores      CreditScore[]   @relation("ClientScoring")
   files             FileUpload[]    @relation("ClientFiles")
+  whatsappMessages  WhatsAppMessage[] @relation("ClientMessages")
 
   @@map("clients")
 }
@@ -562,6 +570,82 @@ model ReportGeneration {
   @@index([status])
   @@index([type])
   @@map("report_generations")
+}
+
+// WhatsApp Messaging System - EvolutionAPI Integration
+enum WhatsAppMessageStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum WhatsAppMessageType {
+  PAYMENT_RECEIVED
+  PAYMENT_REMINDER
+  LOAN_APPROVED
+  LOAN_UPDATE
+  MARKETING
+  CUSTOM
+}
+
+model WhatsAppMessage {
+  id              String                @id @default(cuid())
+  clientId        String
+  phone           String
+  messageType     WhatsAppMessageType
+  status          WhatsAppMessageStatus @default(PENDING)
+  message         String                @db.Text
+  mediaUrl        String?               // Para enviar imágenes/documentos
+  scheduledFor    DateTime?
+  sentAt          DateTime?
+  deliveredAt     DateTime?
+  readAt          DateTime?
+  errorMessage    String?
+  
+  // EvolutionAPI response data
+  evolutionMessageId String?
+  evolutionResponse  String?            @db.Text // JSON response from EvolutionAPI
+  
+  // Metadata
+  paymentId       String?               // Link to payment that triggered message
+  loanId          String?               // Link to loan for loan-related messages
+  metadata        String?               @db.Text // Additional JSON data
+  
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  // Relations
+  client          Client                @relation("ClientMessages", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([status])
+  @@index([scheduledFor])
+  @@index([paymentId])
+  @@map("whatsapp_messages")
+}
+
+// EvolutionAPI Configuration
+model EvolutionAPIConfig {
+  id                String    @id @default(cuid())
+  instanceName      String    @unique
+  apiKey            String
+  baseUrl           String
+  webhookUrl        String?
+  isActive          Boolean   @default(true)
+  
+  // Message templates
+  paymentReceivedTemplate   String? @db.Text
+  paymentReminderTemplate   String? @db.Text
+  loanApprovedTemplate      String? @db.Text
+  loanUpdateTemplate        String? @db.Text
+  marketingTemplate         String? @db.Text
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("evolution_api_config")
 }
 
 // Actualizar relaciones existentes

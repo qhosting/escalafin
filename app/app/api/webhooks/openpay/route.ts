@@ -1,7 +1,9 @@
+export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { AuditLogger } from '@/lib/audit';
+import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
 
 const prisma = new PrismaClient();
 
@@ -90,6 +92,31 @@ export async function POST(request: NextRequest) {
             paymentDate: new Date(transaction.operation_date || Date.now()),
           },
         });
+
+        // Enviar notificación por WhatsApp
+        try {
+          const whatsappService = new WhatsAppNotificationService();
+          await whatsappService.sendPaymentReceivedNotification(payment.id);
+          console.log(`Notificación WhatsApp enviada para pago ${payment.id}`);
+        } catch (whatsappError) {
+          // No fallar el webhook si falla WhatsApp, solo loguear el error
+          console.error('Error enviando notificación WhatsApp:', whatsappError);
+          
+          // Log de auditoría para el error de WhatsApp
+          const auditLogger = new AuditLogger(prisma);
+          await auditLogger.log({
+            action: 'WHATSAPP_NOTIFICATION_ERROR',
+            resource: 'Payment',
+            resourceId: payment.id,
+            details: {
+              error: whatsappError instanceof Error ? whatsappError.message : 'Unknown error',
+              paymentId: payment.id,
+              amount: payment.amount,
+            },
+            ipAddress: request.headers.get('x-forwarded-for') || 'openpay-webhook',
+            userAgent: request.headers.get('user-agent') || 'openpay-webhook',
+          });
+        }
       }
     }
 
