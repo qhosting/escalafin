@@ -4,8 +4,10 @@
 import { useSession, signOut } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, Users, FileText, DollarSign, TrendingUp, Plus, LogOut } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Building2, Users, FileText, DollarSign, TrendingUp, Plus, LogOut, CreditCard, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 export function AsesorDashboard() {
   const { data: session, status } = useSession() || {};
@@ -131,6 +133,75 @@ export function AsesorDashboard() {
               </Card>
             );
           })}
+        </div>
+
+        {/* Gestión de Préstamos - Acceso Rápido */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <CreditCard className="h-5 w-5 text-green-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Gestión de Préstamos</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Link href="/asesor/loans">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-green-100 rounded-lg">
+                      <CreditCard className="h-6 w-6 text-green-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Mis Préstamos</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Ver y gestionar préstamos de mis clientes
+                  </p>
+                  <Badge variant="secondary" className="bg-green-50 text-green-700">
+                    Gestión
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/asesor/loans/new">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <DollarSign className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Nuevo Préstamo</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Crear préstamo para un cliente asignado
+                  </p>
+                  <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                    Crear
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/asesor/clients">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-purple-100 rounded-lg">
+                      <Users className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Mis Clientes</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Gestionar mis clientes asignados
+                  </p>
+                  <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                    CRM
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
         </div>
 
         {/* Client and Applications Grid */}

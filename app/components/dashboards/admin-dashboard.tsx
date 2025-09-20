@@ -160,6 +160,75 @@ export function AdminDashboard() {
           })}
         </div>
 
+        {/* Gestión de Préstamos - Core Business */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <CreditCard className="h-5 w-5 text-green-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Gestión de Préstamos</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Link href="/admin/loans">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-green-100 rounded-lg">
+                      <CreditCard className="h-6 w-6 text-green-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Gestionar Préstamos</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Ver, crear y administrar todos los préstamos
+                  </p>
+                  <Badge variant="secondary" className="bg-green-50 text-green-700">
+                    Core
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/loans/new">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <DollarSign className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Nuevo Préstamo</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Crear un nuevo préstamo con tabla de amortización
+                  </p>
+                  <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                    Acción rápida
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/clients">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-purple-100 rounded-lg">
+                      <Users className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Gestión de Clientes</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    CRM completo para gestión de clientes
+                  </p>
+                  <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                    CRM
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+
         {/* Funcionalidades Avanzadas - Fase 3 */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-6">

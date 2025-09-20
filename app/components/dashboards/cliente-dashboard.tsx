@@ -4,8 +4,9 @@
 import { useSession, signOut } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, CreditCard, Calendar, DollarSign, AlertCircle, CheckCircle, LogOut } from 'lucide-react';
+import { Building2, CreditCard, Calendar, DollarSign, AlertCircle, CheckCircle, LogOut, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 export function ClienteDashboard() {
   const { data: session, status } = useSession() || {};
@@ -135,9 +136,12 @@ export function ClienteDashboard() {
                       <p className="text-xs text-gray-500">Pago Mensual</p>
                       <p className="font-medium">${loan.monthlyPayment.toLocaleString()}</p>
                     </div>
-                    <Button size="sm" variant="outline">
-                      Ver Tabla de Amortización
-                    </Button>
+                    <Link href="/cliente/loans">
+                      <Button size="sm" variant="outline" className="flex items-center gap-1">
+                        Ver Préstamos
+                        <ArrowRight className="w-3 h-3" />
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               ))}
