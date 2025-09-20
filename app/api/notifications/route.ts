@@ -2,7 +2,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 // Simulación de notificaciones para el MVP - En producción esto vendría de la BD
 const generateMockNotifications = async (userId: string, userRole: string) => {
@@ -102,7 +104,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Obtener el usuario para conocer su rol
-    const user = await db.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email: session.user.email }
     })
 

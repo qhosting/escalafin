@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuHeader,
+  DropdownMenuLabel,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -70,7 +70,7 @@ export function NotificationCenter() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80" align="end">
-        <DropdownMenuHeader className="font-semibold flex items-center justify-between">
+        <DropdownMenuLabel className="font-semibold flex items-center justify-between">
           <span>Notificaciones</span>
           {unreadCount > 0 && (
             <Button
@@ -83,7 +83,7 @@ export function NotificationCenter() {
               Marcar todas
             </Button>
           )}
-        </DropdownMenuHeader>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         
         {notifications.length === 0 ? (

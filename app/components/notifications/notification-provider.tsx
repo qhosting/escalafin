@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, { createContext, useContext, useEffect } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useNotifications } from '@/lib/notifications'
 import { toast } from 'sonner'
@@ -16,18 +16,24 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
   const { notifications, fetchNotifications } = useNotifications()
-  const [showToast, setShowToast] = React.useState(true)
+  const [showToast, setShowToast] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  // Ensure component is mounted on client before using session
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Fetch notifications when user session is available
   useEffect(() => {
-    if (session?.user?.email) {
+    if (mounted && session?.user?.email) {
       fetchNotifications(session.user.email)
     }
-  }, [session?.user?.email, fetchNotifications])
+  }, [session?.user?.email, fetchNotifications, mounted])
 
   // Show toast for new notifications
   useEffect(() => {
-    if (showToast && notifications.length > 0) {
+    if (mounted && showToast && notifications.length > 0) {
       const latestUnread = notifications.filter(n => !n.read)[0]
       if (latestUnread) {
         toast(latestUnread.title, {
@@ -43,7 +49,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         })
       }
     }
-  }, [notifications, showToast])
+  }, [notifications, showToast, mounted])
+
+  // Don't render anything until mounted on client
+  if (!mounted) {
+    return <>{children}</>
+  }
 
   return (
     <NotificationContext.Provider value={{ showToast, setShowToast }}>
