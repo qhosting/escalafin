@@ -24,8 +24,16 @@ export async function GET(
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
     }
 
-    const client = await prisma.client.findUnique({
-      where: { id: params.id },
+    const clientId = params.id;
+
+    // Verificar permisos
+    let whereClause: any = { id: clientId };
+    if (user.role === 'ASESOR') {
+      whereClause.asesorId = user.id;
+    }
+
+    const client = await prisma.client.findFirst({
+      where: whereClause,
       include: {
         user: {
           select: {
@@ -44,15 +52,15 @@ export async function GET(
           }
         },
         loans: {
-          include: {
-            amortizationSchedule: {
-              select: {
-                id: true,
-                paymentNumber: true,
-                paymentDate: true,
-                isPaid: true
-              }
-            },
+          select: {
+            id: true,
+            loanNumber: true,
+            principalAmount: true,
+            balanceRemaining: true,
+            interestRate: true,
+            status: true,
+            startDate: true,
+            endDate: true,
             payments: {
               select: {
                 id: true,
@@ -66,30 +74,20 @@ export async function GET(
           }
         },
         creditApplications: {
+          select: {
+            id: true,
+            requestedAmount: true,
+            status: true,
+            createdAt: true,
+            reviewedAt: true
+          },
           orderBy: { createdAt: 'desc' }
-        },
-        creditScores: {
-          orderBy: { createdAt: 'desc' },
-          take: 5
         }
       }
     });
 
     if (!client) {
       return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 });
-    }
-
-    // Verificar permisos
-    if (user.role === 'ASESOR' && client.asesorId !== user.id) {
-      return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
-    } else if (user.role === 'CLIENTE') {
-      const clientProfile = await prisma.client.findFirst({
-        where: { userId: user.id }
-      });
-      
-      if (client.id !== clientProfile?.id) {
-        return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
-      }
     }
 
     return NextResponse.json(client);
@@ -100,7 +98,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
+export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
@@ -119,20 +117,23 @@ export async function PUT(
       return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
     }
 
-    const client = await prisma.client.findUnique({
-      where: { id: params.id }
+    const clientId = params.id;
+    const body = await request.json();
+
+    // Verificar que el cliente existe y el usuario tiene permisos
+    let whereClause: any = { id: clientId };
+    if (user.role === 'ASESOR') {
+      whereClause.asesorId = user.id;
+    }
+
+    const existingClient = await prisma.client.findFirst({
+      where: whereClause
     });
 
-    if (!client) {
+    if (!existingClient) {
       return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 });
     }
 
-    // Verificar permisos de asesor
-    if (user.role === 'ASESOR' && client.asesorId !== user.id) {
-      return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
-    }
-
-    const body = await request.json();
     const {
       firstName,
       lastName,
@@ -156,47 +157,42 @@ export async function PUT(
     } = body;
 
     // Verificar email único si se está actualizando
-    if (email && email !== client.email) {
-      const existingClient = await prisma.client.findUnique({
+    if (email && email !== existingClient.email) {
+      const emailExists = await prisma.client.findUnique({
         where: { email }
       });
       
-      if (existingClient) {
+      if (emailExists) {
         return NextResponse.json({ error: 'El email ya está registrado' }, { status: 400 });
       }
     }
 
-    const updateData: any = {};
-    
-    if (firstName !== undefined) updateData.firstName = firstName;
-    if (lastName !== undefined) updateData.lastName = lastName;
-    if (email !== undefined) updateData.email = email;
-    if (phone !== undefined) updateData.phone = phone;
-    if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
-    if (address !== undefined) updateData.address = address;
-    if (city !== undefined) updateData.city = city;
-    if (state !== undefined) updateData.state = state;
-    if (postalCode !== undefined) updateData.postalCode = postalCode;
-    if (monthlyIncome !== undefined) updateData.monthlyIncome = monthlyIncome ? parseFloat(monthlyIncome) : null;
-    if (employmentType !== undefined) updateData.employmentType = employmentType as EmploymentType || null;
-    if (employerName !== undefined) updateData.employerName = employerName;
-    if (workAddress !== undefined) updateData.workAddress = workAddress;
-    if (yearsEmployed !== undefined) updateData.yearsEmployed = yearsEmployed ? parseInt(yearsEmployed) : null;
-    if (creditScore !== undefined) updateData.creditScore = creditScore ? parseInt(creditScore) : null;
-    if (bankName !== undefined) updateData.bankName = bankName;
-    if (accountNumber !== undefined) updateData.accountNumber = accountNumber;
-    
-    // Solo admin puede cambiar status y asesor asignado
-    if (user.role === 'ADMIN') {
-      if (status && Object.values(ClientStatus).includes(status as ClientStatus)) {
-        updateData.status = status as ClientStatus;
-      }
-      if (asesorId !== undefined) updateData.asesorId = asesorId;
-    }
+    // Solo admin puede cambiar el asesor asignado
+    const finalAsesorId = user.role === 'ADMIN' && asesorId ? asesorId : existingClient.asesorId;
 
     const updatedClient = await prisma.client.update({
-      where: { id: params.id },
-      data: updateData,
+      where: { id: clientId },
+      data: {
+        firstName: firstName || existingClient.firstName,
+        lastName: lastName || existingClient.lastName,
+        email: email || existingClient.email,
+        phone: phone || existingClient.phone,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : existingClient.dateOfBirth,
+        address: address || existingClient.address,
+        city: city || existingClient.city,
+        state: state || existingClient.state,
+        postalCode: postalCode || existingClient.postalCode,
+        monthlyIncome: monthlyIncome ? parseFloat(monthlyIncome) : existingClient.monthlyIncome,
+        employmentType: employmentType as EmploymentType || existingClient.employmentType,
+        employerName: employerName || existingClient.employerName,
+        workAddress: workAddress || existingClient.workAddress,
+        yearsEmployed: yearsEmployed ? parseInt(yearsEmployed) : existingClient.yearsEmployed,
+        creditScore: creditScore ? parseInt(creditScore) : existingClient.creditScore,
+        bankName: bankName || existingClient.bankName,
+        accountNumber: accountNumber || existingClient.accountNumber,
+        status: status as ClientStatus || existingClient.status,
+        asesorId: finalAsesorId
+      },
       include: {
         asesor: {
           select: {
@@ -235,28 +231,24 @@ export async function DELETE(
       return NextResponse.json({ error: 'Solo administradores pueden eliminar clientes' }, { status: 403 });
     }
 
-    const client = await prisma.client.findUnique({
-      where: { id: params.id },
-      include: {
-        loans: true,
-        creditApplications: true
+    const clientId = params.id;
+
+    // Verificar que el cliente no tenga préstamos activos
+    const activeLoans = await prisma.loan.findMany({
+      where: {
+        clientId,
+        status: 'ACTIVE'
       }
     });
 
-    if (!client) {
-      return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 });
-    }
-
-    // No permitir eliminar clientes con préstamos activos
-    if (client.loans.length > 0) {
+    if (activeLoans.length > 0) {
       return NextResponse.json({ 
-        error: 'No se puede eliminar un cliente con préstamos registrados' 
+        error: 'No se puede eliminar un cliente con préstamos activos' 
       }, { status: 400 });
     }
 
-    // Eliminar cliente (esto también eliminará las solicitudes de crédito por CASCADE)
     await prisma.client.delete({
-      where: { id: params.id }
+      where: { id: clientId }
     });
 
     return NextResponse.json({ message: 'Cliente eliminado exitosamente' });
