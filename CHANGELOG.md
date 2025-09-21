@@ -1,106 +1,133 @@
 
-# Changelog - EscalaFin
+# Changelog
 
-Todos los cambios importantes de este proyecto serán documentados en este archivo.
+All notable changes to EscalaFin MVP will be documented in this file.
 
-El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-y este proyecto sigue [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.0.0] - 2025-09-20
+## [2.1.0] - 2024-09-21
 
-### ✨ Agregado - Funcionalidades Principales
-- Sistema completo de autenticación con NextAuth
-- Portal multi-rol (Admin, Asesor, Cliente)
-- Gestión completa de clientes con documentos
-- Sistema integral de préstamos y amortización
-- Módulo de pagos con integración Openpay
-- Sistema de pagos en efectivo para cobro móvil
-- Notificaciones automáticas por WhatsApp (EvolutionAPI)
-- Dashboard de analytics con métricas avanzadas
-- Gestión de archivos con AWS S3
-- Sistema de auditoría y logs completos
+### Added
+- ✅ Corrección de navegación en dashboards de Cliente y Asesor
+- ✅ Páginas faltantes para rutas de Cliente y Asesor
+- ✅ Componente ClientList para gestión de clientes por asesor
+- ✅ Componente PaymentHistory para historial de pagos
+- ✅ Botones funcionales en dashboard de Asesor
+- ✅ Rutas corregidas para consistencia (/cliente/ en lugar de /client/)
+- ✅ Documentación completa del proyecto
+- ✅ Preparación para GitHub con .gitignore y README
 
-### 🎨 Agregado - Experiencia de Usuario
-- Modo oscuro/claro personalizable
-- Interfaz responsive 100% móvil
-- Notificaciones in-app en tiempo real
-- Exportación de reportes (PDF, Excel)
-- Búsqueda y filtros avanzados
-- Dashboard personalizable por rol
+### Fixed
+- 🐛 Enlaces rotos en dashboards de Cliente y Asesor
+- 🐛 Botones no funcionales en dashboard de Asesor
+- 🐛 Inconsistencias entre rutas /client/ y /cliente/
+- 🐛 Componentes faltantes para navegación
+- 🐛 Errores de TypeScript en páginas de Cliente
 
-### 🔧 Agregado - Funcionalidades Técnicas
-- API RESTful completa (43 endpoints)
-- Validación completa con Zod y React Hook Form
-- Gestión de estado con Zustand y SWR
-- Optimizaciones de performance
-- Manejo de errores robusto
-- Rate limiting implementado
+### Changed
+- 🔄 Estandarización de rutas para Cliente (/cliente/)
+- 🔄 Mejora en la navegación entre módulos
+- 🔄 Actualización de documentación técnica
 
-### 🏦 Agregado - Funcionalidades Financieras
-- Cálculo automático de amortización
-- Credit scoring automatizado
-- Reportes financieros avanzados
-- Integración completa con Openpay
-- Webhooks para confirmación de pagos
-- Gestión de mora y cobranza
+## [2.0.0] - 2024-09-21
 
-### 📱 Agregado - Módulo Móvil
-- Cobro móvil con GPS
-- Generación de recibos digitales
-- Sincronización en tiempo real
-- Interfaz optimizada para tablets
+### Added
+- ✅ Sistema de Notificaciones WhatsApp con EvolutionAPI
+- ✅ Módulo Móvil de Cobranza con geolocalización
+- ✅ Sistema de Pagos en Efectivo
+- ✅ Workflow Completo de Solicitudes de Crédito
+- ✅ Dashboard de Análisis de Solicitudes
+- ✅ Sistema de Scoring Crediticio Automatizado
+- ✅ Gestión de Documentos Requeridos
+- ✅ Comentarios y Seguimiento de Solicitudes
 
-## [2.0.0] - 2025-09-19
+### Enhanced
+- 🔄 Dashboards optimizados para Admin, Asesor y Cliente
+- 🔄 API mejorada para gestión de préstamos
+- 🔄 Sistema de autenticación robusto
+- 🔄 Validaciones mejoradas en formularios
 
-### ✨ Agregado - Fase 2B
-- Sistema de notificaciones in-app
-- Modo oscuro implementado
-- Exportación de reportes
-- Validaciones mejoradas en formularios
-- Gestión de archivos básica
+### Fixed
+- 🐛 Errores de hidratación en componentes
+- 🐛 Problemas de build para producción
+- 🐛 Configuración de NextAuth optimizada
 
-### 🔧 Mejorado
-- Performance de la aplicación
-- Interfaz de usuario refinada
-- Validaciones de formularios
+## [1.2.0] - 2024-09-20
 
-## [1.0.0] - 2025-09-18
+### Added
+- ✅ Sistema de Notificaciones In-App
+- ✅ Modo Oscuro con persistencia
+- ✅ Exportación de Reportes (PDF/Excel)
+- ✅ Validaciones Mejoradas en Formularios
+- ✅ Gestión de Archivos con AWS S3
+- ✅ Toggle de Tema en Header
+- ✅ Notificaciones Toast mejoradas
 
-### ✨ Agregado - MVP Inicial
-- Autenticación básica
-- Gestión básica de usuarios
-- CRUD de clientes
-- Gestión básica de préstamos
-- Portal del cliente básico
+### Enhanced
+- 🔄 Layout actualizado con nuevas funcionalidades
+- 🔄 Componentes UI optimizados
+- 🔄 Experiencia de usuario mejorada
 
-### 🏗️ Infraestructura
-- Base de datos PostgreSQL con Prisma
-- Next.js 14 con TypeScript
-- TailwindCSS para estilos
-- Configuración de desarrollo
+## [1.1.0] - 2024-09-19
+
+### Added
+- ✅ Workflow de Solicitudes de Crédito
+- ✅ Sistema de Evaluación Crediticia
+- ✅ Formulario de Solicitud con Validaciones
+- ✅ Dashboard de Revisión para Administradores
+- ✅ Estados de Solicitud (Pendiente, En Revisión, Aprobada, Rechazada)
+- ✅ Comentarios en Evaluaciones
+- ✅ Sistema de Scoring Automático
+
+### Enhanced
+- 🔄 API extendida para solicitudes de crédito
+- 🔄 Base de datos actualizada con nuevas tablas
+- 🔄 Interfaz mejorada para evaluación
+
+## [1.0.0] - 2024-09-18
+
+### Added
+- ✅ Sistema base de autenticación con NextAuth.js
+- ✅ Roles de usuario: ADMIN, ASESOR, CLIENTE
+- ✅ Dashboard principal para cada rol
+- ✅ Gestión básica de clientes
+- ✅ Gestión básica de préstamos
+- ✅ Sistema de pagos con Openpay
+- ✅ Base de datos con Prisma y PostgreSQL
+- ✅ API REST completa
+- ✅ Interfaz responsiva con Tailwind CSS
+- ✅ Componentes UI con Shadcn/ui
+
+### Technical
+- 🏗️ Arquitectura Next.js 14 con App Router
+- 🏗️ TypeScript para tipado estático
+- 🏗️ Configuración inicial de desarrollo
+- 🏗️ Seeding de datos de prueba
+- 🏗️ Configuración de linting y formatting
+
+## [Unreleased]
+
+### Planned
+- 📱 App móvil nativa (React Native)
+- 🤖 IA para evaluación crediticia
+- 🔗 Integración con bureaus de crédito
+- 📊 Analytics avanzados
+- 🏢 Sistema multi-tenant
+- 🔔 Notificaciones push
+- 📈 Reportes avanzados con visualizaciones
+- 💳 Más métodos de pago
+- 🌍 Internacionalización
 
 ---
 
-## Tipos de Cambios
+## Tipos de cambios
+- **Added** ✅ para nuevas funcionalidades
+- **Changed** 🔄 para cambios en funcionalidades existentes
+- **Deprecated** ⚠️ para funcionalidades que serán removidas
+- **Removed** ❌ para funcionalidades removidas
+- **Fixed** 🐛 para corrección de bugs
+- **Security** 🔒 para mejoras de seguridad
+- **Technical** 🏗️ para cambios técnicos internos
+- **Enhanced** 🔄 para mejoras generales
 
-- `✨ Agregado` para nuevas funcionalidades
-- `🔧 Cambiado` para cambios en funcionalidad existente
-- `⚠️ Deprecado` para funcionalidades que serán removidas
-- `🗑️ Removido` para funcionalidades removidas
-- `🐛 Arreglado` para corrección de bugs
-- `🔒 Seguridad` para vulnerabilidades
-
----
-
-## Próximas Versiones
-
-### [3.1.0] - Planificado
-- Integración con Buró de Crédito
-- API pública para terceros
-- Machine Learning para scoring
-- Aplicación móvil nativa
-
-### [4.0.0] - Futuro
-- Multi-tenancy
-- Microservicios
-- Escalabilidad avanzada

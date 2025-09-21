@@ -1,121 +1,181 @@
 
-# 🏦 EscalaFin - Sistema de Gestión Integral de Préstamos y Créditos
+# EscalaFin MVP - Sistema de Gestión de Préstamos y Créditos
 
-[![Next.js](https://i.ytimg.com/vi/f53RvUpUA8w/sddefault.jpg)
-[![TypeScript](https://i.ytimg.com/vi/4cgpu9L2AE8/maxresdefault.jpg)
-[![PostgreSQL](https://i.ytimg.com/vi/XdCV1WxG1Ug/hqdefault.jpg)
-[![License](https://img.shields.io/badge/License-Private-red)](LICENSE)
+![EscalaFin Logo](https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Delfin_logo_2020.png/330px-Delfin_logo_2020.png)
 
-Sistema completo de gestión de préstamos y créditos con funcionalidades avanzadas para instituciones financieras, cooperativas y empresas de microfinanzas.
+## 📋 Descripción
 
-## 🚀 Características Principales
+EscalaFin es un sistema integral de gestión de préstamos y créditos diseñado para instituciones financieras. Proporciona herramientas completas para la administración de clientes, evaluación crediticia, gestión de préstamos, cobros y notificaciones.
 
-- ✅ **Gestión Multi-Rol**: Admin, Asesor, Cliente
-- ✅ **Sistema de Préstamos Completo**: Solicitudes, aprobaciones, amortización
-- ✅ **Integración de Pagos**: Openpay API + Pagos en efectivo
-- ✅ **Notificaciones WhatsApp**: EvolutionAPI integrada
-- ✅ **Cobro Móvil**: GPS, recibos digitales
-- ✅ **Analytics Avanzados**: Dashboard ejecutivo con métricas
-- ✅ **Gestión de Archivos**: AWS S3 integrado
-- ✅ **Auditoría Completa**: Logs y trazabilidad
-- ✅ **Responsive Design**: Modo oscuro incluido
+### ✨ Características Principales
 
-## 🏗️ Arquitectura
+- 🏢 **Gestión Multi-rol**: Admin, Asesor y Cliente
+- 📊 **Dashboard Inteligente**: Métricas y KPIs en tiempo real
+- 💳 **Workflow de Solicitudes**: Proceso completo de evaluación crediticia
+- 💰 **Gestión de Préstamos**: Control completo del ciclo de vida
+- 📱 **Módulo Móvil de Cobranza**: Herramientas para gestores de cobranza
+- 🔔 **Notificaciones WhatsApp**: Integración con EvolutionAPI
+- 💳 **Pagos en Línea**: Integración con Openpay
+- 📄 **Exportación de Reportes**: PDF y Excel
+- 🌙 **Modo Oscuro**: Experiencia de usuario personalizable
+- 📁 **Gestión de Archivos**: Almacenamiento en la nube
 
-### Stack Tecnológico
-- **Frontend**: Next.js 14 + React 18 + TypeScript
-- **Backend**: Next.js API Routes + Prisma ORM
-- **Base de Datos**: PostgreSQL
-- **Autenticación**: NextAuth.js
-- **UI**: TailwindCSS + Radix UI + Shadcn/ui
-- **Pagos**: Openpay API
-- **Notificaciones**: EvolutionAPI (WhatsApp)
-- **Almacenamiento**: AWS S3
-- **Estado**: Zustand + SWR
+## 🚀 Tecnologías Utilizadas
 
-### Estructura del Proyecto
+### Frontend
+- **Next.js 14** - Framework React con App Router
+- **TypeScript** - Tipado estático
+- **Tailwind CSS** - Framework de estilos
+- **Shadcn/ui** - Biblioteca de componentes
+- **Framer Motion** - Animaciones
+- **React Hook Form** - Manejo de formularios
+- **Zod** - Validación de esquemas
+
+### Backend
+- **Node.js** - Runtime de JavaScript
+- **Prisma ORM** - Gestor de base de datos
+- **PostgreSQL** - Base de datos principal
+- **NextAuth.js** - Autenticación
+- **JWT** - Tokens de sesión
+
+### Integraciones
+- **Openpay** - Procesamiento de pagos
+- **EvolutionAPI** - Notificaciones WhatsApp
+- **AWS S3** - Almacenamiento de archivos
+- **Chart.js/Recharts** - Gráficos y visualizaciones
+
+## 🏗️ Arquitectura del Sistema
+
 ```
-escalafin_mvp/
-├── app/                          # Aplicación Next.js
-│   ├── api/                      # API Routes
-│   │   ├── auth/                 # Autenticación
-│   │   ├── clients/              # Gestión de clientes
-│   │   ├── loans/                # Gestión de préstamos
-│   │   ├── payments/             # Procesamiento de pagos
-│   │   ├── analytics/            # Métricas y reportes
-│   │   └── webhooks/             # Webhooks externos
-│   ├── admin/                    # Portal Administrador
-│   ├── asesor/                   # Portal Asesor
-│   ├── cliente/                  # Portal Cliente
-│   ├── mobile/                   # Módulo cobro móvil
-│   ├── components/               # Componentes React
-│   ├── lib/                      # Utilidades y configuraciones
-│   ├── prisma/                   # Esquema de base de datos
-│   └── public/                   # Archivos estáticos
-├── docs/                         # Documentación
-└── README.md                     # Este archivo
+EscalaFin MVP/
+├── app/                    # Next.js App Router
+│   ├── api/               # API Routes
+│   ├── auth/              # Páginas de autenticación
+│   ├── admin/             # Dashboard Administrativo
+│   ├── asesor/            # Dashboard Asesor
+│   ├── cliente/           # Portal del Cliente
+│   └── mobile/            # Módulo Móvil
+├── components/            # Componentes React
+│   ├── ui/               # Componentes base (Shadcn)
+│   ├── dashboards/       # Dashboards específicos
+│   ├── loans/            # Gestión de préstamos
+│   ├── clients/          # Gestión de clientes
+│   └── payments/         # Sistema de pagos
+├── lib/                  # Utilidades y configuración
+│   ├── api/              # Funciones API
+│   ├── auth.ts           # Configuración NextAuth
+│   ├── db.ts             # Cliente Prisma
+│   └── utils.ts          # Utilidades generales
+├── prisma/               # Esquema y migraciones
+└── public/               # Recursos estáticos
 ```
 
-## 📦 Instalación y Configuración
+## 📊 Base de Datos
 
-### Pre-requisitos
+### Esquema Principal
+
+```prisma
+model User {
+  id          String     @id @default(cuid())
+  name        String?
+  email       String     @unique
+  role        UserRole   @default(CLIENTE)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Client {
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  phone           String?
+  documentType    DocumentType
+  documentNumber  String           @unique
+  address         String?
+  city            String?
+  occupation      String?
+  monthlyIncome   Float?
+  creditScore     Int?
+  status          ClientStatus     @default(ACTIVO)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model Loan {
+  id                  String         @id @default(cuid())
+  loanNumber          String         @unique
+  clientId            String
+  advisorId           String?
+  loanType            LoanType
+  amount              Float
+  interestRate        Float
+  termMonths          Int
+  monthlyPayment      Float
+  startDate           DateTime
+  endDate             DateTime
+  status              LoanStatus     @default(PENDING)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+}
+```
+
+## ⚡ Instalación y Configuración
+
+### Prerrequisitos
+
 - Node.js 18+ 
 - PostgreSQL 14+
-- Yarn (recomendado)
-- Cuenta AWS (para S3)
-- Cuenta Openpay (para pagos)
-- EvolutionAPI (para WhatsApp)
+- Yarn package manager
 
 ### 1. Clonar el Repositorio
+
 ```bash
-git clone <repository-url>
-cd escalafin_mvp/app
+git clone https://github.com/tu-usuario/escalafin-mvp.git
+cd escalafin-mvp/app
 ```
 
 ### 2. Instalar Dependencias
+
 ```bash
 yarn install
 ```
 
 ### 3. Configurar Variables de Entorno
-Crear archivo `.env` en la raíz del proyecto:
+
+Crea un archivo `.env` en la carpeta `app/`:
 
 ```env
 # Base de Datos
-DATABASE_URL="postgresql://usuario:password@host:5432/database_name"
+DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/escalafin_db"
 
-# Autenticación
-NEXTAUTH_SECRET="tu_secreto_super_seguro_aqui"
+# NextAuth
 NEXTAUTH_URL="http://localhost:3000"
-
-# Ambiente
-NODE_ENV="development"
-NEXTAUTH_DEBUG=false
+NEXTAUTH_SECRET="tu-secret-key-aqui"
 
 # Openpay (Pagos)
-OPENPAY_MERCHANT_ID="tu_merchant_id"
-OPENPAY_PRIVATE_KEY="tu_private_key"
-OPENPAY_PUBLIC_KEY="tu_public_key"
-OPENPAY_BASE_URL="https://sandbox-api.openpay.mx/v1"  # Sandbox
-# OPENPAY_BASE_URL="https://api.openpay.mx/v1"        # Producción
-
-# AWS S3 (Archivos)
-AWS_ACCESS_KEY_ID="tu_access_key"
-AWS_SECRET_ACCESS_KEY="tu_secret_key"
-AWS_BUCKET_NAME="tu_bucket_name"
-AWS_REGION="us-east-1"
-AWS_FOLDER_PREFIX="escalafin/"
+OPENPAY_MERCHANT_ID="tu-merchant-id"
+OPENPAY_PRIVATE_KEY="tu-private-key"
+OPENPAY_PUBLIC_KEY="tu-public-key"
+OPENPAY_SANDBOX="true"
 
 # WhatsApp (EvolutionAPI)
-EVOLUTION_API_URL="https://tu-evolution-api.com"
-EVOLUTION_API_TOKEN="tu_token_evolution"
-EVOLUTION_INSTANCE_NAME="escalafin"
+EVOLUTIONAPI_BASE_URL="https://tu-evolution-api.com"
+EVOLUTIONAPI_API_KEY="tu-api-key"
+EVOLUTIONAPI_INSTANCE_NAME="EscalaFin"
 
-# URLs de Producción (cuando deploys)
-# NEXTAUTH_URL="https://tu-dominio.com"
+# Almacenamiento (AWS S3)
+AWS_BUCKET_NAME="escalafin-files"
+AWS_FOLDER_PREFIX="uploads/"
+AWS_ACCESS_KEY_ID="tu-access-key"
+AWS_SECRET_ACCESS_KEY="tu-secret-key"
+AWS_REGION="us-east-1"
+
+# LLM APIs (Opcional)
+ABACUSAI_API_KEY="tu-api-key"
 ```
 
 ### 4. Configurar Base de Datos
+
 ```bash
 # Generar cliente Prisma
 yarn prisma generate
@@ -123,11 +183,12 @@ yarn prisma generate
 # Ejecutar migraciones
 yarn prisma db push
 
-# Poblar con datos de prueba
+# Poblar datos de prueba
 yarn prisma db seed
 ```
 
 ### 5. Ejecutar en Desarrollo
+
 ```bash
 yarn dev
 ```
@@ -136,252 +197,288 @@ La aplicación estará disponible en `http://localhost:3000`
 
 ## 👥 Usuarios de Prueba
 
-### Credenciales de Acceso
-```
-Admin:
-- Email: admin@escalafin.com
-- Password: admin123
+Una vez ejecutado el seeding, tendrás acceso a estos usuarios:
 
-Asesor:
-- Email: asesor@escalafin.com  
-- Password: asesor123
+### Administrador
+- **Email**: `admin@escalafin.com`
+- **Contraseña**: `admin123`
 
-Cliente:
-- Email: cliente@escalafin.com
-- Password: cliente123
-```
+### Asesor
+- **Email**: `asesor@escalafin.com`
+- **Contraseña**: `asesor123`
 
-## 🚀 Despliegue en Producción
+### Cliente
+- **Email**: `cliente@escalafin.com`
+- **Contraseña**: `cliente123`
 
-### Variables de Entorno para Producción
-```env
-NODE_ENV="production"
-NEXTAUTH_URL="https://tu-dominio.com"
-DATABASE_URL="postgresql://prod_user:prod_pass@prod_host:5432/prod_db"
-# ... resto de variables con valores de producción
-```
+## 🔧 Configuraciones Adicionales
 
-### Despliegue con Easypanel
+### Configurar Openpay
 
-#### 1. Preparar el Proyecto
-```bash
-# Build de producción
-yarn build
+1. Regístrate en [Openpay](https://www.openpay.mx)
+2. Obtén tus credenciales de Sandbox/Producción
+3. Configura el webhook: `https://tu-dominio.com/api/webhooks/openpay`
 
-# Test del build
-yarn start
-```
+### Configurar EvolutionAPI (WhatsApp)
 
-#### 2. Configurar Easypanel
+1. Instala EvolutionAPI en tu servidor
+2. Crea una instancia para EscalaFin
+3. Obtén el API Key y configura las variables de entorno
 
-**Dockerfile** (crear en la raíz si no existe):
+### Configurar AWS S3
+
+1. Crea un bucket en AWS S3
+2. Configura las políticas de acceso
+3. Obtén las credenciales de acceso
+
+## 📱 Funcionalidades por Rol
+
+### 👨‍💼 Administrador
+- Dashboard con métricas generales
+- Gestión completa de usuarios
+- Configuración de parámetros del sistema
+- Reportes y analytics
+- Configuración de notificaciones WhatsApp
+- Gestión de asesores y clientes
+
+### 👨‍💻 Asesor
+- Dashboard personalizado con su cartera
+- Gestión de sus clientes asignados
+- Workflow de solicitudes de crédito
+- Creación y seguimiento de préstamos
+- Módulo de cobranza móvil
+- Reportes de su cartera
+
+### 👤 Cliente
+- Portal personal con información de préstamos
+- Historial de pagos
+- Solicitudes de crédito
+- Estado de cuenta
+- Pagos en línea
+- Notificaciones automáticas
+
+## 📊 Módulos Principales
+
+### 1. Gestión de Clientes
+- Registro y actualización de información
+- Evaluación crediticia automatizada
+- Historial crediticio
+- Referencias personales y comerciales
+
+### 2. Workflow de Solicitudes
+- Proceso estructurado de solicitud
+- Evaluación automática con scoring
+- Documentación requerida
+- Aprobación/rechazo con comentarios
+
+### 3. Gestión de Préstamos
+- Configuración de productos financieros
+- Cálculo automático de cuotas
+- Generación de tabla de amortización
+- Seguimiento del estado del préstamo
+
+### 4. Sistema de Pagos
+- Integración con Openpay
+- Múltiples métodos de pago
+- Reconciliación automática
+- Historial detallado
+
+### 5. Módulo de Cobranza
+- Gestión de cartera vencida
+- Herramientas móviles para gestores
+- Registro de gestiones
+- Planes de pago personalizados
+
+### 6. Notificaciones WhatsApp
+- Confirmaciones de pago
+- Recordatorios de vencimiento
+- Notificaciones de estado
+- Mensajes personalizados
+
+## 🚀 Deploy en Producción
+
+### Con Vercel (Recomendado)
+
+1. Conecta tu repositorio a Vercel
+2. Configura las variables de entorno
+3. Deploy automático desde main branch
+
+### Con Docker
+
 ```dockerfile
+# Usa la imagen base de Node.js
 FROM node:18-alpine
 
+# Establece el directorio de trabajo
 WORKDIR /app
-COPY package*.json ./
+
+# Copia package.json y yarn.lock
+COPY package.json yarn.lock ./
+
+# Instala dependencias
 RUN yarn install --frozen-lockfile
 
+# Copia el código fuente
 COPY . .
+
+# Genera el cliente Prisma
+RUN yarn prisma generate
+
+# Construye la aplicación
 RUN yarn build
 
+# Expone el puerto
 EXPOSE 3000
+
+# Comando de inicio
 CMD ["yarn", "start"]
 ```
 
-**docker-compose.yml** para desarrollo local:
-```yaml
-version: '3.8'
-services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-    env_file:
-      - .env
-  
-  db:
-    image: postgres:14
-    environment:
-      POSTGRES_DB: escalafin
-      POSTGRES_USER: escalafin_user
-      POSTGRES_PASSWORD: escalafin_pass
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+### Variables de Entorno en Producción
 
-volumes:
-  postgres_data:
-```
+Asegúrate de configurar todas las variables de entorno necesarias:
 
-#### 3. Configuración en Easypanel
-1. Crear nueva aplicación
-2. Conectar repositorio GitHub
-3. Configurar variables de entorno
-4. Configurar base de datos PostgreSQL
-5. Configurar dominio personalizado
-6. Activar SSL automático
+- `DATABASE_URL` - URL de PostgreSQL en producción
+- `NEXTAUTH_URL` - URL de tu aplicación en producción
+- `NEXTAUTH_SECRET` - Secret key segura para producción
+- Todas las claves de APIs externas
 
-### Comandos de Build
-```bash
-# Instalación
-yarn install
+## 📈 Métricas y Monitoreo
 
-# Build
-yarn build
+### Dashboard Analytics
+- Total de clientes activos
+- Cartera total
+- Pagos del mes
+- Índice de morosidad
+- Conversión de solicitudes
 
-# Inicio
-yarn start
-```
+### KPIs Principales
+- Tasa de aprobación
+- Tiempo promedio de evaluación
+- ROI por asesor
+- Satisfacción del cliente
+- Eficiencia de cobranza
 
-## 🔧 Scripts Disponibles
+## 🔐 Seguridad
 
-```bash
-yarn dev          # Desarrollo con hot-reload
-yarn build        # Build de producción
-yarn start        # Iniciar producción
-yarn lint         # Linting con ESLint
-yarn prisma:generate   # Generar cliente Prisma
-yarn prisma:migrate    # Ejecutar migraciones
-yarn prisma:seed       # Poblar datos de prueba
-yarn prisma:studio     # Abrir Prisma Studio
-```
+### Medidas Implementadas
+- Autenticación JWT con NextAuth.js
+- Encriptación de contraseñas con bcrypt
+- Validación de inputs con Zod
+- Rate limiting en APIs críticas
+- Logs de auditoría
+- Tokens seguros para APIs externas
 
-## 🗃️ Base de Datos
-
-### Esquema Principal
-- **Users**: Usuarios del sistema (Admin, Asesor, Cliente)
-- **Clients**: Información detallada de clientes
-- **Loans**: Préstamos activos y completados
-- **LoanApplications**: Solicitudes de crédito
-- **Payments**: Historial de pagos
-- **Documents**: Documentos y archivos
-- **Notifications**: Centro de notificaciones
-- **AuditLogs**: Auditoría del sistema
-- **SystemSettings**: Configuraciones globales
-
-### Migraciones
-Las migraciones se ejecutan automáticamente con:
-```bash
-yarn prisma db push
-```
-
-## 🔌 Integraciones
-
-### Openpay (Pagos)
-- Configurar merchant ID y keys
-- Configurar webhook: `/api/webhooks/openpay`
-- Soporta tarjetas de débito/crédito
-- Manejo de 3D Secure
-
-### EvolutionAPI (WhatsApp)
-- Configurar instancia y token
-- Webhook: `/api/webhooks/evolution-api`
-- Templates personalizables
-- Confirmaciones automáticas
-
-### AWS S3 (Archivos)
-- Configurar bucket y credenciales
-- Estructura: `/clients/{id}/documents/`
-- URLs firmadas para seguridad
-
-## 📊 Funcionalidades por Rol
-
-### 🔴 Administrador
-- Dashboard ejecutivo con KPIs
-- Gestión de usuarios y roles
-- Configuración del sistema
-- Reportes avanzados y exportación
-- Auditoría completa
-- Configuración de integraciones
-
-### 🟡 Asesor
-- Gestión de clientes asignados
-- Procesamiento de préstamos
-- Módulo de cobro móvil
-- Reportes de cartera
-- Evaluación crediticia
-
-### 🟢 Cliente
-- Consulta de saldos y pagos
-- Solicitud de nuevos préstamos
-- Descarga de documentos
-- Actualización de datos
-- Historial completo
-
-## 🔒 Seguridad
-
-- Autenticación JWT con NextAuth
-- Roles y permisos granulares
-- Encriptación de datos sensibles
-- Logs de auditoría completos
-- Rate limiting implementado
-- HTTPS obligatorio en producción
-
-## 📱 Características Móviles
-
-- Diseño 100% responsive
-- PWA capabilities
-- Módulo de cobro móvil optimizado
-- GPS para ubicación de cobros
-- Recibos digitales
+### Mejores Prácticas
+- Nunca exponer API keys en el frontend
+- Usar HTTPS en producción
+- Implementar CSP headers
+- Validar todos los inputs del usuario
+- Mantener dependencias actualizadas
 
 ## 🧪 Testing
 
 ```bash
-# Ejecutar tests (cuando estén implementados)
+# Ejecutar tests unitarios
 yarn test
 
-# Coverage
+# Ejecutar tests de integración
+yarn test:integration
+
+# Coverage report
 yarn test:coverage
 ```
 
-## 📈 Monitoreo y Logs
+## 📚 API Documentation
 
-- Logs estructurados con Next.js
-- Métricas de performance
-- Alertas de error automáticas
-- Dashboard de monitoreo interno
+### Endpoints Principales
 
-## 🤝 Contribución
+#### Autenticación
+- `POST /api/auth/login` - Iniciar sesión
+- `POST /api/auth/logout` - Cerrar sesión
+- `GET /api/auth/session` - Obtener sesión actual
 
-### Para Desarrolladores
-1. Fork del proyecto
-2. Crear rama feature: `git checkout -b feature/nueva-funcionalidad`
-3. Commit cambios: `git commit -am 'Agregar nueva funcionalidad'`
-4. Push a la rama: `git push origin feature/nueva-funcionalidad`
-5. Crear Pull Request
+#### Clientes
+- `GET /api/clients` - Listar clientes
+- `POST /api/clients` - Crear cliente
+- `GET /api/clients/[id]` - Obtener cliente
+- `PUT /api/clients/[id]` - Actualizar cliente
+- `DELETE /api/clients/[id]` - Eliminar cliente
 
-### Estándares de Código
-- TypeScript estricto
-- ESLint + Prettier configurados
-- Conventional Commits
-- Documentación de APIs
+#### Préstamos
+- `GET /api/loans` - Listar préstamos
+- `POST /api/loans` - Crear préstamo
+- `GET /api/loans/[id]` - Obtener préstamo
+- `PUT /api/loans/[id]` - Actualizar préstamo
 
-## 📞 Soporte
+#### Pagos
+- `GET /api/payments` - Historial de pagos
+- `POST /api/payments` - Procesar pago
+- `POST /api/webhooks/openpay` - Webhook de Openpay
 
-Para soporte técnico o reportar bugs:
-- Crear issue en GitHub
-- Email: soporte@escalafin.com
-- Documentación: `/docs`
+## 🤝 Contribuir
+
+### Setup para Desarrollo
+
+1. Fork el proyecto
+2. Crea una rama feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit tus cambios (`git commit -am 'Agregar nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Abre un Pull Request
+
+### Convenciones de Código
+- Usar TypeScript para todo el código
+- Seguir las convenciones de ESLint y Prettier
+- Escribir tests para nuevas funcionalidades
+- Documentar cambios en el CHANGELOG
 
 ## 📄 Licencia
 
-Proyecto privado. Todos los derechos reservados.
+Este proyecto está bajo la licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
 
-## 🏆 Estado del Proyecto
+## 📞 Soporte
 
-**✅ PRODUCCIÓN READY**
-- Todas las funcionalidades implementadas
-- Base de datos optimizada
-- Integraciones funcionando
-- Documentación completa
-- Build exitoso sin errores
-- Listo para despliegue
+Para soporte técnico o preguntas:
+
+- 📧 Email: soporte@escalafin.com
+- 🐛 Issues: [GitHub Issues](https://github.com/tu-usuario/escalafin-mvp/issues)
+- 📖 Documentación: [Wiki del Proyecto](https://github.com/tu-usuario/escalafin-mvp/wiki)
+
+## 🗓️ Roadmap
+
+### Fase 1 ✅ (Completada)
+- Sistema base de autenticación
+- Dashboards principales
+- Gestión básica de clientes y préstamos
+- Integración con Openpay
+
+### Fase 2a ✅ (Completada)
+- Workflow de solicitudes de crédito
+- Sistema de scoring crediticio
+- Evaluación automatizada
+- Documentación requerida
+
+### Fase 2b ✅ (Completada)
+- Sistema de notificaciones in-app
+- Modo oscuro
+- Exportación de reportes
+- Validaciones mejoradas
+- Gestión de archivos
+
+### Fase 3 ✅ (Completada)
+- Integración WhatsApp con EvolutionAPI
+- Módulo móvil de cobranza
+- Pagos en efectivo
+- Dashboards optimizados
+
+### Fase 4 (Próximamente)
+- App móvil nativa
+- Inteligencia artificial para scoring
+- Integración con bureaus de crédito
+- Analytics avanzados
+- Multi-tenancy
 
 ---
 
-**© 2025 EscalaFin - Desarrollado con ❤️ usando Next.js**
+**EscalaFin MVP** - Transformando la gestión financiera con tecnología moderna 🚀
+

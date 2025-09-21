@@ -341,33 +341,39 @@ export function AsesorDashboard() {
 
         {/* Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button className="h-16 bg-blue-600 hover:bg-blue-700">
-            <div className="flex items-center gap-3">
-              <Plus className="w-5 h-5" />
-              <div className="text-left">
-                <p className="font-medium">Nuevo Cliente</p>
-                <p className="text-xs opacity-90">Registrar cliente</p>
+          <Link href="/admin/clients/new">
+            <Button className="h-16 w-full bg-blue-600 hover:bg-blue-700">
+              <div className="flex items-center gap-3">
+                <Plus className="w-5 h-5" />
+                <div className="text-left">
+                  <p className="font-medium">Nuevo Cliente</p>
+                  <p className="text-xs opacity-90">Registrar cliente</p>
+                </div>
               </div>
-            </div>
-          </Button>
-          <Button className="h-16 bg-green-600 hover:bg-green-700">
-            <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5" />
-              <div className="text-left">
-                <p className="font-medium">Solicitar Crédito</p>
-                <p className="text-xs opacity-90">Nueva solicitud</p>
+            </Button>
+          </Link>
+          <Link href="/asesor/credit-applications">
+            <Button className="h-16 w-full bg-green-600 hover:bg-green-700">
+              <div className="flex items-center gap-3">
+                <FileText className="w-5 h-5" />
+                <div className="text-left">
+                  <p className="font-medium">Solicitar Crédito</p>
+                  <p className="text-xs opacity-90">Nueva solicitud</p>
+                </div>
               </div>
-            </div>
-          </Button>
-          <Button className="h-16 bg-purple-600 hover:bg-purple-700">
-            <div className="flex items-center gap-3">
-              <DollarSign className="w-5 h-5" />
-              <div className="text-left">
-                <p className="font-medium">Registrar Pago</p>
-                <p className="text-xs opacity-90">Cobros y pagos</p>
+            </Button>
+          </Link>
+          <Link href="/mobile/collection">
+            <Button className="h-16 w-full bg-purple-600 hover:bg-purple-700">
+              <div className="flex items-center gap-3">
+                <DollarSign className="w-5 h-5" />
+                <div className="text-left">
+                  <p className="font-medium">Registrar Pago</p>
+                  <p className="text-xs opacity-90">Cobros y pagos</p>
+                </div>
               </div>
-            </div>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </main>
     </div>

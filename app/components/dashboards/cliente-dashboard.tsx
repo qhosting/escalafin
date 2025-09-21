@@ -102,7 +102,7 @@ export function ClienteDashboard() {
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Link href="/client/credit-applications">
+            <Link href="/cliente/credit-applications">
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -119,7 +119,7 @@ export function ClienteDashboard() {
               </Card>
             </Link>
 
-            <Link href="/client/loans">
+            <Link href="/cliente/loans">
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -136,7 +136,7 @@ export function ClienteDashboard() {
               </Card>
             </Link>
 
-            <Link href="/client/payments">
+            <Link href="/cliente/payments">
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">

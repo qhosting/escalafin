@@ -1,34 +1,23 @@
 
-# Licencia Propietaria - EscalaFin
+MIT License
 
-**Copyright (c) 2025 [Tu Empresa/Nombre]**
+Copyright (c) 2024 EscalaFin MVP
 
-**Todos los derechos reservados.**
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Este software y la documentación asociada son propiedad de [Tu Empresa/Nombre]. 
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-## Términos de Uso
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
-1. **Uso Autorizado**: Este software está licenciado únicamente para uso interno de la organización autorizada.
-
-2. **Restricciones**: 
-   - No está permitida la reproducción, distribución o creación de obras derivadas sin autorización expresa por escrito del propietario.
-   - No se permite la ingeniería inversa, decompilación o desensamblaje del software.
-   - No se permite el uso comercial por parte de terceros no autorizados.
-
-3. **Confidencialidad**: Este software contiene información confidencial y propietaria. El uso está sujeto a acuerdos de confidencialidad.
-
-4. **Garantía**: El software se proporciona "tal como está" sin garantías de ningún tipo.
-
-5. **Responsabilidad**: El propietario no será responsable de ningún daño directo o indirecto derivado del uso de este software.
-
-## Contacto
-
-Para consultas sobre licenciamiento, soporte o autorización de uso:
-- **Email**: contacto@tuempresa.com
-- **Teléfono**: +52 xxx xxx xxxx
-- **Dirección**: [Tu dirección comercial]
-
----
-
-**© 2025 - Desarrollado con tecnologías Next.js, React y PostgreSQL**
