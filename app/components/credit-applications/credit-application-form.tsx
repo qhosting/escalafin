@@ -65,10 +65,11 @@ export function CreditApplicationForm({
       try {
         setLoadingClients(true);
         const clientsData = await getClients({});
-        setClients(clientsData);
+        setClients(Array.isArray(clientsData) ? clientsData : []);
       } catch (error) {
         console.error('Error loading clients:', error);
         toast.error('Error al cargar clientes');
+        setClients([]); // Asegurar que clients sea siempre un array
       } finally {
         setLoadingClients(false);
       }
@@ -110,7 +111,7 @@ export function CreditApplicationForm({
     }
   };
 
-  const selectedClient = clients.find(client => client.id === watchedClientId);
+  const selectedClient = Array.isArray(clients) ? clients.find(client => client.id === watchedClientId) : undefined;
 
   const getLoanTypeOptions = () => [
     { value: LoanType.PERSONAL, label: 'Préstamo Personal' },
@@ -164,7 +165,7 @@ export function CreditApplicationForm({
                   <SelectValue placeholder="Seleccionar cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.map((client) => (
+                  {Array.isArray(clients) && clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {`${client.firstName} ${client.lastName} - ${client.email || client.phone}`}
                     </SelectItem>
