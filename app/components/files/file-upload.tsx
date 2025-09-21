@@ -1,9 +1,9 @@
 
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, File, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { Upload, File, X, CheckCircle, AlertCircle, Loader2, HardDrive, Cloud } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +17,7 @@ interface FileUploadProps {
   acceptedTypes?: string[]
   clientId?: string
   category?: string
+  description?: string
 }
 
 export interface UploadedFile {
@@ -28,6 +29,7 @@ export interface UploadedFile {
   status: 'uploading' | 'success' | 'error'
   progress?: number
   category?: string
+  storageType?: string
 }
 
 export function FileUpload({
@@ -36,10 +38,34 @@ export function FileUpload({
   maxSize = 10,
   acceptedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'],
   clientId,
-  category = 'general'
+  category = 'general',
+  description
 }: FileUploadProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [storageInfo, setStorageInfo] = useState<{
+    type: string
+    maxFileSize: number
+  } | null>(null)
+
+  useEffect(() => {
+    // Obtener información del sistema de almacenamiento
+    loadStorageInfo()
+  }, [])
+
+  const loadStorageInfo = async () => {
+    try {
+      const response = await fetch('/api/files/list?limit=1')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.storageInfo) {
+          setStorageInfo(data.storageInfo)
+        }
+      }
+    } catch (error) {
+      console.error('Error loading storage info:', error)
+    }
+  }
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return
@@ -49,6 +75,8 @@ export function FileUpload({
       toast.error(`Máximo ${maxFiles} archivos permitidos`)
       return
     }
+
+    const effectiveMaxSize = storageInfo?.maxFileSize || maxSize
 
     setIsUploading(true)
 
@@ -60,52 +88,86 @@ export function FileUpload({
       url: '',
       status: 'uploading',
       progress: 0,
-      category
+      category,
+      storageType: storageInfo?.type
     }))
 
     setUploadedFiles(prev => [...prev, ...newFiles])
 
-    // Simulate file upload with progress
-    for (let i = 0; i < newFiles.length; i++) {
-      const file = newFiles[i]
-      const actualFile = acceptedFiles[i]
-
+    // Upload files using real API
+    const uploadPromises = acceptedFiles.map(async (file, index) => {
+      const fileUploadData = newFiles[index]
+      
       try {
-        // Simulate upload progress
-        for (let progress = 0; progress <= 100; progress += 10) {
-          await new Promise(resolve => setTimeout(resolve, 100))
-          setUploadedFiles(prev => 
-            prev.map(f => 
-              f.id === file.id ? { ...f, progress } : f
-            )
-          )
+        // Validar tamaño antes de subir
+        if (file.size > effectiveMaxSize * 1024 * 1024) {
+          throw new Error(`Archivo muy grande. Máximo ${effectiveMaxSize}MB`)
         }
 
-        // Simulate successful upload
-        const uploadedUrl = URL.createObjectURL(actualFile)
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('category', category)
+        if (clientId) formData.append('clientId', clientId)
+        if (description) formData.append('description', description)
+
+        // Simulate progress updates during upload
+        const progressInterval = setInterval(() => {
+          setUploadedFiles(prev => 
+            prev.map(f => 
+              f.id === fileUploadData.id 
+                ? { ...f, progress: Math.min((f.progress || 0) + 10, 90) }
+                : f
+            )
+          )
+        }, 200)
+
+        const response = await fetch('/api/files/upload', {
+          method: 'POST',
+          body: formData
+        })
+
+        clearInterval(progressInterval)
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Error al subir archivo')
+        }
+
+        const result = await response.json()
+        
         setUploadedFiles(prev => 
           prev.map(f => 
-            f.id === file.id 
-              ? { ...f, status: 'success', url: uploadedUrl, progress: 100 }
+            f.id === fileUploadData.id 
+              ? { 
+                  ...f, 
+                  status: 'success', 
+                  url: result.file.url, 
+                  progress: 100,
+                  storageType: result.file.storageType,
+                  id: result.file.id // Usar el ID real del servidor
+                }
               : f
           )
         )
 
-        toast.success(`${file.name} subido exitosamente`)
-      } catch (error) {
+        toast.success(`${file.name} subido exitosamente (${result.file.storageType.toUpperCase()})`)
+
+      } catch (error: any) {
         setUploadedFiles(prev => 
           prev.map(f => 
-            f.id === file.id ? { ...f, status: 'error' } : f
+            f.id === fileUploadData.id ? { ...f, status: 'error' } : f
           )
         )
-        toast.error(`Error al subir ${file.name}`)
+        toast.error(`Error al subir ${file.name}: ${error.message}`)
       }
-    }
+    })
 
+    await Promise.all(uploadPromises)
     setIsUploading(false)
+
     const successfulUploads = uploadedFiles.filter(f => f.status === 'success')
     onUploadComplete?.(successfulUploads)
-  }, [uploadedFiles, maxFiles, category, onUploadComplete])
+  }, [uploadedFiles, maxFiles, category, onUploadComplete, clientId, description, storageInfo, maxSize])
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop,
@@ -160,12 +222,31 @@ export function FileUpload({
             <p className="text-lg font-medium mb-2">
               Arrastre archivos aquí o haga clic para seleccionar
             </p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Máximo {maxFiles} archivos, {maxSize}MB cada uno
+            <p className="text-sm text-muted-foreground mb-2">
+              Máximo {maxFiles} archivos, {storageInfo?.maxFileSize || maxSize}MB cada uno
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mb-2">
               Formatos aceptados: {acceptedTypes.join(', ')}
             </p>
+            {storageInfo && (
+              <div className="flex items-center justify-center gap-2 mt-2">
+                {storageInfo.type === 'local' ? (
+                  <>
+                    <HardDrive className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      Almacenamiento local
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Cloud className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      Almacenamiento en la nube (S3)
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -192,11 +273,21 @@ export function FileUpload({
               <div className="text-2xl">{getFileIcon(file.type)}</div>
               
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-sm font-medium truncate">{file.name}</p>
                   <Badge variant="secondary" className="text-xs">
                     {file.category}
                   </Badge>
+                  {file.storageType && (
+                    <Badge variant="outline" className="text-xs flex items-center gap-1">
+                      {file.storageType === 'local' ? (
+                        <HardDrive className="h-3 w-3" />
+                      ) : (
+                        <Cloud className="h-3 w-3" />
+                      )}
+                      {file.storageType.toUpperCase()}
+                    </Badge>
+                  )}
                 </div>
                 
                 <p className="text-xs text-muted-foreground">

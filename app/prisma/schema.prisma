@@ -92,6 +92,7 @@ model User {
   generatedReports ReportGeneration[] @relation("GeneratedReports")
   configUpdates   SystemConfig[] @relation("ConfigUpdates")
   cashCollections CashCollection[] @relation("CashCollector")
+  filesUploaded   File[] @relation("UserDualFiles")
 
   @@map("users")
 }
@@ -167,6 +168,7 @@ model Client {
   files             FileUpload[]    @relation("ClientFiles")
   whatsappMessages  WhatsAppMessage[] @relation("ClientMessages")
   personalReferences PersonalReference[] @relation("ClientReferences")
+  dualFiles         File[]          @relation("ClientDualFiles")
 
   @@map("clients")
 }
@@ -715,6 +717,33 @@ model EvolutionAPIConfig {
   updatedAt         DateTime  @updatedAt
 
   @@map("evolution_api_config")
+}
+
+// Sistema de Archivos Dual (Local/S3) - Nueva implementación mejorada
+model File {
+  id              String    @id @default(cuid())
+  fileName        String
+  originalName    String
+  filePath        String    // S3 key o path local relativo
+  fileSize        Int
+  mimeType        String
+  category        String    @default("general")
+  description     String?
+  clientId        String?
+  uploadedById    String
+  storageType     String    @default("local") // "local" o "s3"
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  client          Client?   @relation("ClientDualFiles", fields: [clientId], references: [id], onDelete: SetNull)
+  uploadedBy      User      @relation("UserDualFiles", fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@index([clientId])
+  @@index([uploadedById])
+  @@index([category])
+  @@index([createdAt])
+  @@map("files")
 }
 
 // Actualizar relaciones existentes
