@@ -413,15 +413,26 @@ export function NewLoanForm() {
 
               {/* Fecha de Fin (calculada automáticamente) */}
               <div className="space-y-2">
-                <Label htmlFor="endDate">Fecha de Fin</Label>
+                <Label htmlFor="endDate">
+                  Fecha de Fin 
+                  {formData.startDate && formData.termMonths && (
+                    <span className="text-xs text-muted-foreground ml-2">
+                      (Calculada automáticamente)
+                    </span>
+                  )}
+                </Label>
                 <Input
                   id="endDate"
                   type="date"
                   value={formData.endDate}
                   onChange={(e) => handleInputChange('endDate', e.target.value)}
-                  readOnly
-                  className="bg-muted"
+                  placeholder="Fecha de finalización del préstamo"
                 />
+                {formData.startDate && formData.termMonths && (
+                  <p className="text-xs text-muted-foreground">
+                    Fecha calculada: {formData.endDate ? format(new Date(formData.endDate), "dd 'de' MMMM, yyyy", { locale: es }) : 'N/A'}
+                  </p>
+                )}
               </div>
             </div>
 
