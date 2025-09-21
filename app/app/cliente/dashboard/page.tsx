@@ -1,15 +1,15 @@
 
 'use client';
 
-import { ClienteDashboard } from '@/components/dashboards/cliente-dashboard';
+import { EnhancedClientDashboard } from '@/components/dashboards/enhanced-client-dashboard';
 import { AuthWrapper } from '@/components/auth-wrapper';
 
 export const dynamic = 'force-dynamic';
 
-export default function ClienteDashboardPage() {
+export default function ClientDashboardPage() {
   return (
-    <AuthWrapper allowedRoles={['CLIENTE', 'ADMIN']}>
-      <ClienteDashboard />
+    <AuthWrapper allowedRoles={['CLIENTE']}>
+      <EnhancedClientDashboard />
     </AuthWrapper>
   );
 }

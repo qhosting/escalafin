@@ -93,6 +93,11 @@ model User {
   configUpdates   SystemConfig[] @relation("ConfigUpdates")
   cashCollections CashCollection[] @relation("CashCollector")
   filesUploaded   File[] @relation("UserDualFiles")
+  
+  // Module management relations
+  moduleUpdates     PWAModule[]             @relation("ModuleUpdates")
+  rolePermissionUpdates ModuleRolePermission[] @relation("RolePermissionUpdates")
+  moduleChangeLogs  ModuleChangeLog[]       @relation("ModuleChangeLogs")
 
   @@map("users")
 }
@@ -746,5 +751,105 @@ model File {
   @@map("files")
 }
 
-// Actualizar relaciones existentes
-// Agregar nuevas relaciones a los modelos existentes
+// Sistema de Gestión de Módulos PWA
+enum ModuleCategory {
+  DASHBOARD
+  LOANS
+  PAYMENTS
+  CLIENTS
+  REPORTS
+  NOTIFICATIONS
+  INTEGRATIONS
+  TOOLS
+  ANALYTICS
+}
+
+enum ModuleStatus {
+  ENABLED
+  DISABLED
+  BETA
+  MAINTENANCE
+}
+
+model PWAModule {
+  id              String        @id @default(cuid())
+  moduleKey       String        @unique // Identificador único del módulo
+  name            String        // Nombre mostrado
+  description     String?       // Descripción del módulo
+  category        ModuleCategory
+  status          ModuleStatus  @default(ENABLED)
+  isCore          Boolean       @default(false) // Los módulos core no se pueden deshabilitar
+  requiredFor     String[]      // Roles que requieren este módulo: ["ADMIN", "ASESOR"]
+  availableFor    String[]      // Roles que pueden usar este módulo: ["ADMIN", "ASESOR", "CLIENTE"]
+  icon            String?       // Nombre del icono Lucide
+  route           String?       // Ruta del módulo
+  sortOrder       Int           @default(0)
+  
+  // Configuración específica
+  config          String?       @db.Text // JSON con configuración específica del módulo
+  
+  // Control de versiones
+  version         String        @default("1.0.0")
+  minSystemVersion String?      // Versión mínima del sistema requerida
+  
+  // Metadatos
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  updatedBy       String?
+  
+  // Relations
+  updatedByUser   User?         @relation("ModuleUpdates", fields: [updatedBy], references: [id], onDelete: SetNull)
+  rolePermissions ModuleRolePermission[] @relation("ModulePermissions")
+  
+  @@index([category])
+  @@index([status])
+  @@index([sortOrder])
+  @@map("pwa_modules")
+}
+
+// Permisos específicos por rol para cada módulo
+model ModuleRolePermission {
+  id          String    @id @default(cuid())
+  moduleId    String
+  role        UserRole
+  enabled     Boolean   @default(true)
+  permissions String?   @db.Text // JSON con permisos específicos ["read", "write", "delete"]
+  
+  // Configuración específica por rol
+  config      String?   @db.Text // JSON con configuración específica para este rol
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  updatedBy   String?
+  
+  // Relations
+  module      PWAModule @relation("ModulePermissions", fields: [moduleId], references: [id], onDelete: Cascade)
+  updatedByUser User?   @relation("RolePermissionUpdates", fields: [updatedBy], references: [id], onDelete: SetNull)
+  
+  @@unique([moduleId, role])
+  @@index([role])
+  @@map("module_role_permissions")
+}
+
+// Log de cambios en módulos
+model ModuleChangeLog {
+  id          String    @id @default(cuid())
+  moduleId    String
+  action      String    // "ENABLED", "DISABLED", "CONFIG_UPDATED", "PERMISSIONS_CHANGED"
+  role        UserRole? // Si aplica a un rol específico
+  oldValue    String?   @db.Text // JSON del estado anterior
+  newValue    String?   @db.Text // JSON del nuevo estado
+  reason      String?   // Razón del cambio
+  userId      String
+  createdAt   DateTime  @default(now())
+  
+  // Relations
+  user        User      @relation("ModuleChangeLogs", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([moduleId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("module_change_logs")
+}
+
+
