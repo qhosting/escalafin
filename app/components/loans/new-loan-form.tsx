@@ -135,30 +135,58 @@ export function NewLoanForm() {
 
   // Calculate loan payments
   const calculateLoan = () => {
+    console.log('Iniciando cálculo del préstamo', formData);
+    
     const principal = parseFloat(formData.principalAmount);
     const rate = parseFloat(formData.interestRate) / 100 / 12; // monthly rate
     const termMonths = parseInt(formData.termMonths);
 
-    if (!principal || !rate || !termMonths) {
-      toast.error('Por favor completa todos los campos requeridos para el cálculo');
+    console.log('Valores parseados:', {
+      principal,
+      rate: parseFloat(formData.interestRate),
+      termMonths,
+      rateMonthly: rate
+    });
+
+    if (!principal || principal <= 0) {
+      toast.error('Por favor ingresa un monto principal válido');
       return;
     }
 
-    // Monthly payment calculation using PMT formula
-    const monthlyPayment = principal * (rate * Math.pow(1 + rate, termMonths)) / (Math.pow(1 + rate, termMonths) - 1);
-    const totalAmount = monthlyPayment * termMonths;
-    const totalInterest = totalAmount - principal;
+    if (!parseFloat(formData.interestRate) || parseFloat(formData.interestRate) <= 0) {
+      toast.error('Por favor ingresa una tasa de interés válida');
+      return;
+    }
 
-    const calc: LoanCalculation = {
-      monthlyPayment: Math.round(monthlyPayment * 100) / 100,
-      totalInterest: Math.round(totalInterest * 100) / 100,
-      totalAmount: Math.round(totalAmount * 100) / 100,
-      interestRate: parseFloat(formData.interestRate)
-    };
+    if (!termMonths || termMonths <= 0) {
+      toast.error('Por favor ingresa un plazo válido en meses');
+      return;
+    }
 
-    setCalculation(calc);
-    setFormData(prev => ({ ...prev, monthlyPayment: calc.monthlyPayment.toString() }));
-    setShowCalculation(true);
+    try {
+      // Monthly payment calculation using PMT formula
+      const monthlyPayment = principal * (rate * Math.pow(1 + rate, termMonths)) / (Math.pow(1 + rate, termMonths) - 1);
+      const totalAmount = monthlyPayment * termMonths;
+      const totalInterest = totalAmount - principal;
+
+      const calc: LoanCalculation = {
+        monthlyPayment: Math.round(monthlyPayment * 100) / 100,
+        totalInterest: Math.round(totalInterest * 100) / 100,
+        totalAmount: Math.round(totalAmount * 100) / 100,
+        interestRate: parseFloat(formData.interestRate)
+      };
+
+      console.log('Cálculo completado:', calc);
+
+      setCalculation(calc);
+      setFormData(prev => ({ ...prev, monthlyPayment: calc.monthlyPayment.toString() }));
+      setShowCalculation(true);
+      toast.success('¡Préstamo calculado exitosamente!');
+      
+    } catch (error) {
+      console.error('Error en el cálculo:', error);
+      toast.error('Error al calcular el préstamo. Verifica los valores ingresados.');
+    }
   };
 
   const handleClientSelect = (client: Client) => {
@@ -445,7 +473,14 @@ export function NewLoanForm() {
                 variant="outline"
                 className="flex items-center gap-2"
                 onClick={calculateLoan}
-                disabled={!formData.principalAmount || !formData.termMonths || !formData.interestRate}
+                disabled={
+                  !formData.principalAmount?.trim() || 
+                  !formData.termMonths?.trim() || 
+                  !formData.interestRate?.trim() ||
+                  parseFloat(formData.principalAmount || '0') <= 0 ||
+                  parseInt(formData.termMonths || '0') <= 0 ||
+                  parseFloat(formData.interestRate || '0') <= 0
+                }
               >
                 <Calculator className="h-4 w-4" />
                 Calcular Préstamo
