@@ -64,11 +64,24 @@ export function CreditApplicationForm({
     const loadClients = async () => {
       try {
         setLoadingClients(true);
-        const clientsData = await getClients({});
-        setClients(Array.isArray(clientsData) ? clientsData : []);
+        console.log('Iniciando carga de clientes...');
+        console.log('Session:', session?.user);
+        
+        const clientsData = await getClients({ limit: 100 }); // Aumentar límite
+        console.log('Clientes recibidos:', clientsData);
+        
+        const validClients = Array.isArray(clientsData) ? clientsData : [];
+        setClients(validClients);
+        
+        if (validClients.length === 0) {
+          console.warn('No se encontraron clientes');
+          toast.error('No hay clientes disponibles');
+        } else {
+          console.log(`${validClients.length} clientes cargados exitosamente`);
+        }
       } catch (error) {
         console.error('Error loading clients:', error);
-        toast.error('Error al cargar clientes');
+        toast.error(`Error al cargar clientes: ${error instanceof Error ? error.message : 'Error desconocido'}`);
         setClients([]); // Asegurar que clients sea siempre un array
       } finally {
         setLoadingClients(false);
@@ -76,7 +89,11 @@ export function CreditApplicationForm({
     };
 
     if (session?.user?.role === UserRole.ADMIN || session?.user?.role === UserRole.ASESOR) {
+      console.log('Cargando clientes para usuario:', session.user.role);
       loadClients();
+    } else {
+      console.log('Usuario no autorizado para cargar clientes:', session?.user?.role);
+      setLoadingClients(false);
     }
   }, [session]);
 

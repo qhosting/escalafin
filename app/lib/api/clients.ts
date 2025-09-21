@@ -74,11 +74,15 @@ export const getClients = async (filters?: {
   status?: ClientStatus;
   asesorId?: string;
   searchTerm?: string;
+  page?: number;
+  limit?: number;
 }): Promise<ClientWithDetails[]> => {
   const params = new URLSearchParams();
   if (filters?.status) params.append('status', filters.status);
   if (filters?.asesorId) params.append('asesorId', filters.asesorId);
   if (filters?.searchTerm) params.append('search', filters.searchTerm);
+  if (filters?.page) params.append('page', filters.page.toString());
+  if (filters?.limit) params.append('limit', filters.limit.toString());
 
   const response = await fetch(`/api/clients?${params}`);
   
@@ -86,7 +90,9 @@ export const getClients = async (filters?: {
     throw new Error('Error fetching clients');
   }
 
-  return response.json();
+  const data = await response.json();
+  // La API devuelve { clients, pagination }, necesitamos solo el array de clientes
+  return Array.isArray(data) ? data : (data.clients || []);
 };
 
 export const getClientById = async (id: string): Promise<ClientWithDetails> => {
