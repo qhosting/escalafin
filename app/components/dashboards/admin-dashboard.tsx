@@ -501,33 +501,39 @@ export function AdminDashboard() {
 
         {/* Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button className="h-16 bg-blue-600 hover:bg-blue-700">
-            <div className="flex items-center gap-3">
-              <Users className="w-5 h-5" />
-              <div className="text-left">
-                <p className="font-medium">Gestionar Usuarios</p>
-                <p className="text-xs opacity-90">Asesores y Clientes</p>
+          <Link href="/admin/users">
+            <Button className="w-full h-16 bg-blue-600 hover:bg-blue-700">
+              <div className="flex items-center gap-3">
+                <Users className="w-5 h-5" />
+                <div className="text-left">
+                  <p className="font-medium">Gestionar Usuarios</p>
+                  <p className="text-xs opacity-90">Asesores y Clientes</p>
+                </div>
               </div>
-            </div>
-          </Button>
-          <Button className="h-16 bg-green-600 hover:bg-green-700">
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-5 h-5" />
-              <div className="text-left">
-                <p className="font-medium">Ver Préstamos</p>
-                <p className="text-xs opacity-90">Cartera Completa</p>
+            </Button>
+          </Link>
+          <Link href="/admin/loans">
+            <Button className="w-full h-16 bg-green-600 hover:bg-green-700">
+              <div className="flex items-center gap-3">
+                <CreditCard className="w-5 h-5" />
+                <div className="text-left">
+                  <p className="font-medium">Ver Préstamos</p>
+                  <p className="text-xs opacity-90">Cartera Completa</p>
+                </div>
               </div>
-            </div>
-          </Button>
-          <Button className="h-16 bg-purple-600 hover:bg-purple-700">
-            <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5" />
-              <div className="text-left">
-                <p className="font-medium">Generar Reportes</p>
-                <p className="text-xs opacity-90">Análisis y Métricas</p>
+            </Button>
+          </Link>
+          <Link href="/admin/reports">
+            <Button className="w-full h-16 bg-purple-600 hover:bg-purple-700">
+              <div className="flex items-center gap-3">
+                <FileText className="w-5 h-5" />
+                <div className="text-left">
+                  <p className="font-medium">Generar Reportes</p>
+                  <p className="text-xs opacity-90">Análisis y Métricas</p>
+                </div>
               </div>
-            </div>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </main>
     </div>
