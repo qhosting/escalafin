@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { EnhancedInput } from '@/components/ui/enhanced-input';
+import { EnhancedSelect } from '@/components/ui/enhanced-select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -365,86 +367,80 @@ export function NewLoanForm() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Tipo de Préstamo */}
-              <div className="space-y-2">
-                <Label htmlFor="loanType">Tipo de Préstamo *</Label>
-                <Select value={formData.loanType} onValueChange={(value) => handleInputChange('loanType', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el tipo de préstamo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(LOAN_TYPES).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <EnhancedSelect
+                label="Tipo de Préstamo"
+                required
+                placeholder="Selecciona el tipo de préstamo"
+                hint="El tipo determina la tasa de interés automáticamente"
+                value={formData.loanType}
+                onValueChange={(value) => handleInputChange('loanType', value)}
+              >
+                {Object.entries(LOAN_TYPES).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </EnhancedSelect>
 
               {/* Monto Principal */}
               <div className="space-y-2">
-                <Label htmlFor="principalAmount">Monto Principal *</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    id="principalAmount"
-                    type="number"
-                    placeholder="0.00"
-                    className="pl-10"
-                    value={formData.principalAmount}
-                    onChange={(e) => handleInputChange('principalAmount', e.target.value)}
-                    required
-                  />
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <span className="input-label required-field">Monto Principal</span>
                 </div>
+                <EnhancedInput
+                  type="number"
+                  step="0.01"
+                  example="50000.00"
+                  hint="Monto total del préstamo que se otorgará al cliente"
+                  value={formData.principalAmount}
+                  onChange={(e) => handleInputChange('principalAmount', e.target.value)}
+                  required
+                />
               </div>
 
               {/* Plazo en meses */}
               <div className="space-y-2">
-                <Label htmlFor="termMonths">Plazo (meses) *</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    id="termMonths"
-                    type="number"
-                    placeholder="12"
-                    className="pl-10"
-                    value={formData.termMonths}
-                    onChange={(e) => handleInputChange('termMonths', e.target.value)}
-                    required
-                  />
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="input-label required-field">Plazo (meses)</span>
                 </div>
+                <EnhancedInput
+                  type="number"
+                  example="12"
+                  hint="Número de meses para pagar el préstamo (6, 12, 18, 24, 36)"
+                  value={formData.termMonths}
+                  onChange={(e) => handleInputChange('termMonths', e.target.value)}
+                  required
+                />
               </div>
 
               {/* Tasa de Interés */}
-              <div className="space-y-2">
-                <Label htmlFor="interestRate">Tasa de Interés Anual (%) *</Label>
-                <Input
-                  id="interestRate"
-                  type="number"
-                  step="0.01"
-                  placeholder="15.00"
-                  value={formData.interestRate}
-                  onChange={(e) => handleInputChange('interestRate', e.target.value)}
-                  required
-                />
-              </div>
+              <EnhancedInput
+                label="Tasa de Interés Anual (%)"
+                type="number"
+                step="0.01"
+                example="18.50"
+                hint="Tasa anual de interés (se calcula automáticamente según el tipo de préstamo)"
+                value={formData.interestRate}
+                onChange={(e) => handleInputChange('interestRate', e.target.value)}
+                required
+              />
 
               {/* Fecha de Inicio */}
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Fecha de Inicio *</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => handleInputChange('startDate', e.target.value)}
-                  required
-                />
-              </div>
+              <EnhancedInput
+                label="Fecha de Inicio"
+                type="date"
+                required
+                hint="Fecha en que inicia el préstamo y se activa la primera cuota"
+                value={formData.startDate}
+                onChange={(e) => handleInputChange('startDate', e.target.value)}
+              />
 
               {/* Fecha de Fin (calculada automáticamente) */}
               <div className="space-y-2">
-                <Label htmlFor="endDate">
+                <Label htmlFor="endDate" className="input-label">
                   Fecha de Fin 
                   {formData.startDate && formData.termMonths && (
-                    <span className="text-xs text-muted-foreground ml-2">
+                    <span className="system-text ml-2">
                       (Calculada automáticamente)
                     </span>
                   )}
@@ -452,13 +448,14 @@ export function NewLoanForm() {
                 <Input
                   id="endDate"
                   type="date"
+                  className="user-input"
                   value={formData.endDate}
                   onChange={(e) => handleInputChange('endDate', e.target.value)}
                   placeholder="Fecha de finalización del préstamo"
                 />
                 {formData.startDate && formData.termMonths && (
-                  <p className="text-xs text-muted-foreground">
-                    Fecha calculada: {formData.endDate ? format(new Date(formData.endDate), "dd 'de' MMMM, yyyy", { locale: es }) : 'N/A'}
+                  <p className="example-hint">
+                    📅 Fecha calculada: {formData.endDate ? format(new Date(formData.endDate), "dd 'de' MMMM, yyyy", { locale: es }) : 'N/A'}
                   </p>
                 )}
               </div>
@@ -548,14 +545,18 @@ export function NewLoanForm() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="notes">Notas (opcional)</Label>
+              <Label htmlFor="notes" className="input-label">Notas Adicionales (opcional)</Label>
               <Textarea
                 id="notes"
-                placeholder="Agrega notas adicionales sobre el préstamo..."
+                placeholder="Ej: Cliente referido por Juan Pérez, historial crediticio excelente..."
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 rows={3}
+                className="user-input"
               />
+              <p className="example-hint">
+                💡 Incluye información relevante sobre el cliente, garantías, condiciones especiales, etc.
+              </p>
             </div>
           </CardContent>
         </Card>

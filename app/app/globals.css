@@ -96,4 +96,44 @@
   .status-badge-cancelled {
     @apply bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200;
   }
+
+  /* Estilos para diferenciación de texto de usuario vs sistema */
+  .user-input {
+    @apply text-foreground bg-background border-2 border-border;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .user-input:focus {
+    @apply border-primary ring-2 ring-primary/20;
+  }
+
+  .user-input::placeholder {
+    @apply text-muted-foreground italic;
+    opacity: 0.6;
+  }
+
+  .system-example {
+    @apply text-muted-foreground bg-muted/50 border border-dashed border-muted-foreground/30 italic rounded-md p-2;
+  }
+
+  .example-hint {
+    @apply text-muted-foreground text-sm italic mt-1;
+  }
+
+  .user-text {
+    @apply text-foreground font-medium;
+  }
+
+  .system-text {
+    @apply text-muted-foreground italic;
+  }
+
+  .input-label {
+    @apply text-foreground font-medium text-sm;
+  }
+
+  .required-field::after {
+    content: " *";
+    @apply text-destructive;
+  }
 }

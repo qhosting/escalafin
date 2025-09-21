@@ -7,17 +7,64 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting to seed database...');
 
-  // Limpiar datos existentes
-  await prisma.payment.deleteMany();
-  await prisma.amortizationSchedule.deleteMany();
-  await prisma.loan.deleteMany();
-  await prisma.creditApplication.deleteMany();
-  await prisma.client.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.account.deleteMany();
-  await prisma.user.deleteMany();
+  // Limpiar datos existentes (con manejo de errores)
+  try {
+    await prisma.payment.deleteMany();
+    console.log('✅ Cleared payments');
+  } catch (e) {
+    console.log('ℹ️ Payments table does not exist yet');
+  }
+  
+  try {
+    await prisma.amortizationSchedule.deleteMany();
+    console.log('✅ Cleared amortization schedules');
+  } catch (e) {
+    console.log('ℹ️ AmortizationSchedule table does not exist yet');
+  }
+  
+  try {
+    await prisma.loan.deleteMany();
+    console.log('✅ Cleared loans');
+  } catch (e) {
+    console.log('ℹ️ Loans table does not exist yet');
+  }
+  
+  try {
+    await prisma.creditApplication.deleteMany();
+    console.log('✅ Cleared credit applications');
+  } catch (e) {
+    console.log('ℹ️ CreditApplication table does not exist yet');
+  }
+  
+  try {
+    await prisma.client.deleteMany();
+    console.log('✅ Cleared clients');
+  } catch (e) {
+    console.log('ℹ️ Clients table does not exist yet');
+  }
+  
+  try {
+    await prisma.session.deleteMany();
+    console.log('✅ Cleared sessions');
+  } catch (e) {
+    console.log('ℹ️ Sessions table does not exist yet');
+  }
+  
+  try {
+    await prisma.account.deleteMany();
+    console.log('✅ Cleared accounts');
+  } catch (e) {
+    console.log('ℹ️ Accounts table does not exist yet');
+  }
+  
+  try {
+    await prisma.user.deleteMany();
+    console.log('✅ Cleared users');
+  } catch (e) {
+    console.log('ℹ️ Users table does not exist yet');
+  }
 
-  console.log('🗑️ Cleared existing data...');
+  console.log('🗑️ Database cleanup completed...');
 
   // Crear usuarios del sistema
   const hashedPassword = await bcrypt.hash('password123', 10);

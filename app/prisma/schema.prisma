@@ -142,6 +142,13 @@ model Client {
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 
+  // Migration fields for existing clients
+  migratedFrom      String?         // Source system name
+  migrationDate     DateTime?       // When the client was migrated
+  initialBalance    Decimal?        @db.Decimal(12, 2) // Initial balance from previous system
+  lastPaymentDate   DateTime?       // Last payment date from previous system
+  notes             String?         // Additional migration notes
+
   // WhatsApp Notification Settings
   whatsappNotificationsEnabled Boolean @default(true)
   whatsappPaymentReceived      Boolean @default(true)
@@ -324,6 +331,7 @@ enum PaymentMethod {
   DEBIT_CARD
   CREDIT_CARD
   ONLINE
+  MIGRATION
 }
 
 model Payment {

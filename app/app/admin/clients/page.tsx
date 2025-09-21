@@ -34,7 +34,9 @@ import {
   UserCheck,
   UserX,
   Clock,
-  DollarSign
+  DollarSign,
+  Database,
+  Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -185,12 +187,20 @@ export default function ClientsPage() {
             Administra todos los clientes y su información financiera
           </p>
         </div>
-        <Link href="/admin/clients/new">
-          <Button size="lg">
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Cliente
-          </Button>
-        </Link>
+        <div className="flex gap-3">
+          <Link href="/admin/clients/migrate">
+            <Button size="lg" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/50">
+              <Database className="h-4 w-4 mr-2" />
+              Migrar Clientes
+            </Button>
+          </Link>
+          <Link href="/admin/clients/new">
+            <Button size="lg">
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Cliente
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* KPIs */}
