@@ -28,9 +28,11 @@ import {
   DollarSign,
   Calendar,
   FileText,
-  User
+  User,
+  Users
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { PersonalReferencesForm } from '@/components/clients/personal-references-form';
 
 interface ClientData {
   id: string;
@@ -248,6 +250,7 @@ export default function ClientDetailPage() {
       <Tabs defaultValue="info" className="space-y-6">
         <TabsList>
           <TabsTrigger value="info">Información</TabsTrigger>
+          <TabsTrigger value="references">Referencias</TabsTrigger>
           <TabsTrigger value="loans">Préstamos</TabsTrigger>
           <TabsTrigger value="applications">Solicitudes</TabsTrigger>
           <TabsTrigger value="activity">Actividad</TabsTrigger>
@@ -361,6 +364,10 @@ export default function ClientDetailPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="references">
+          <PersonalReferencesForm clientId={client.id} readonly={false} />
         </TabsContent>
 
         <TabsContent value="loans">

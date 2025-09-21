@@ -159,8 +159,45 @@ model Client {
   creditScores      CreditScore[]   @relation("ClientScoring")
   files             FileUpload[]    @relation("ClientFiles")
   whatsappMessages  WhatsAppMessage[] @relation("ClientMessages")
+  personalReferences PersonalReference[] @relation("ClientReferences")
 
   @@map("clients")
+}
+
+// Personal References for Clients
+enum RelationshipType {
+  FAMILY
+  FRIEND
+  COWORKER
+  NEIGHBOR
+  OTHER
+}
+
+enum NotificationPreference {
+  SMS
+  WHATSAPP
+  BOTH
+  NONE
+}
+
+model PersonalReference {
+  id                      String                  @id @default(cuid())
+  clientId                String
+  fullName                String
+  relationship            RelationshipType
+  relationshipOther       String?                 // Para cuando se selecciona OTHER
+  phone                   String
+  address                 String?
+  notificationPreference  NotificationPreference  @default(WHATSAPP)
+  isActive                Boolean                 @default(true)
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  // Relations
+  client                  Client                  @relation("ClientReferences", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("personal_references")
 }
 
 // Credit Application Workflow
