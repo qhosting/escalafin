@@ -108,7 +108,7 @@ export function MobileSidebar() {
         {
           title: 'Clientes',
           icon: Users,
-          href: '/clients',
+          href: '/admin/clients',
           moduleKey: 'client_list',
           roles: ['ADMIN', 'ASESOR']
         },
@@ -276,27 +276,9 @@ export function MobileSidebar() {
 
   const enabledModulesCount = modules.length;
 
-  // Mostrar loading state mientras se cargan los módulos
-  if (loading) {
-    return (
-      <div className="md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-3">
-            <Building2 className="h-6 w-6 text-primary" />
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">EscalaFin</h2>
-              <Badge variant="outline" className="text-xs">
-                Cargando...
-              </Badge>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <ThemeToggle />
-            <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded h-8 w-8"></div>
-          </div>
-        </div>
-      </div>
-    );
+  // Si no hay sesión, no mostrar navegación móvil
+  if (!session) {
+    return null;
   }
 
   return (
@@ -308,7 +290,7 @@ export function MobileSidebar() {
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">EscalaFin</h2>
             <Badge variant="outline" className="text-xs">
-              {enabledModulesCount} módulos
+              {loading ? 'Cargando...' : `${enabledModulesCount} módulos`}
             </Badge>
           </div>
         </div>

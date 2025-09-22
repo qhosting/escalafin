@@ -46,14 +46,17 @@ interface UseModulesReturn {
 }
 
 export function useModules(): UseModulesReturn {
-  const { data: session } = useSession() || {};
+  const { data: session, status } = useSession() || {};
   const [modules, setModules] = useState<PWAModule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchModules = async () => {
+    // Si no hay sesión y el estado no es loading, no mostrar loading
     if (!session?.user?.role) {
-      setLoading(false);
+      if (status !== 'loading') {
+        setLoading(false);
+      }
       return;
     }
 
@@ -71,14 +74,21 @@ export function useModules(): UseModulesReturn {
     } catch (err) {
       console.error('Error fetching modules:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
+      // En caso de error, usar módulos por defecto para no bloquear la UI
+      setModules([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // Solo ejecutar si la sesión está cargada o hay error
+    if (status === 'loading') {
+      return; // Esperar a que la sesión se cargue
+    }
+    
     fetchModules();
-  }, [session?.user?.role]);
+  }, [session?.user?.role, status]);
 
   const isModuleEnabled = (moduleKey: string): boolean => {
     if (!session?.user?.role) return false;
