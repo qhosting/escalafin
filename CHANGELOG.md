@@ -8,6 +8,29 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [2.2.0] - 2025-09-22
+
+### 🎨 Changed - Navegación Desktop Completamente Rediseñada
+- **🧭 Nueva navegación horizontal**: Reemplazado sidebar vertical por barra superior moderna
+- **🚫 Eliminado comportamiento auto-ocultar**: El menú permanece visible durante scroll
+- **📊 Menús desplegables organizados**: Agrupación lógica de funcionalidades (Clientes, Préstamos, Reportes)
+- **📱 Layout responsive mejorado**: Desktop horizontal, móviles con sidebar deslizable
+- **⚡ Performance optimizado**: Sin event listeners de scroll innecesarios
+
+### 🏗️ Refactored
+- `MainLayout` - Arquitectura simplificada y más eficiente
+- `DesktopNavbar` - Nuevo componente de navegación horizontal
+- `MobileSidebar` - Navegación móvil optimizada con Sheet component
+- Limpieza de componentes legacy (header.tsx, sidebar.tsx antiguos)
+
+### ✅ Improved
+- **🎯 Mejor UX**: Navegación más intuitiva y profesional
+- **🔍 Estados activos claros**: Indicadores visuales mejorados
+- **🚀 Carga más rápida**: Menos componentes y mejor estructura
+- **♿ Accesibilidad mejorada**: Navegación keyboard-friendly
+
+---
+
 ## [2.1.0] - 2025-09-22
 
 ### ✨ Added
