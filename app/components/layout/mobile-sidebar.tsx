@@ -27,7 +27,8 @@ import {
   Wrench,
   LogOut,
   User,
-  Home
+  Home,
+  HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -219,6 +220,12 @@ export function MobileSidebar() {
           href: '/mobile/cobranza',
           moduleKey: 'collection_mobile',
           roles: ['ADMIN', 'ASESOR']
+        },
+        {
+          title: 'Soporte Técnico',
+          icon: HelpCircle,
+          href: '/soporte',
+          roles: ['ADMIN', 'ASESOR', 'CLIENTE']
         }
       ]
     },

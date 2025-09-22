@@ -25,7 +25,8 @@ import {
   LogOut,
   User,
   ChevronDown,
-  Home
+  Home,
+  HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -102,6 +103,11 @@ export function DesktopNavbar() {
       href: userRole === 'ADMIN' ? '/admin/dashboard' : 
             userRole === 'ASESOR' ? '/asesor/dashboard' : 
             '/cliente/dashboard',
+    },
+    {
+      title: 'Soporte',
+      icon: HelpCircle,
+      href: '/soporte',
     }
   ];
 
