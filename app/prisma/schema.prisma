@@ -174,6 +174,7 @@ model Client {
   whatsappMessages  WhatsAppMessage[] @relation("ClientMessages")
   personalReferences PersonalReference[] @relation("ClientReferences")
   dualFiles         File[]          @relation("ClientDualFiles")
+  messageRecharges  MessageRecharge[] @relation("ClientMessageRecharges")
 
   @@map("clients")
 }
@@ -850,6 +851,37 @@ model ModuleChangeLog {
   @@index([action])
   @@index([createdAt])
   @@map("module_change_logs")
+}
+
+// Message Recharge Management
+model MessageRecharge {
+  id                String                 @id @default(cuid())
+  clientId          String
+  packageType       String                 // Tipo de paquete (ej: "Paquete Básico")
+  messageCount      Int                    // Cantidad de mensajes
+  amount            Decimal                @db.Decimal(10, 2) // Monto pagado
+  status            MessageRechargeStatus  @default(PENDING)
+  paymentReference  String?                // Referencia de pago SPEI
+  transferDate      DateTime?              // Fecha de transferencia
+  processedAt       DateTime?              // Fecha de procesamiento
+  
+  // Relations
+  client            Client                 @relation("ClientMessageRecharges", fields: [clientId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("message_recharges")
+}
+
+enum MessageRechargeStatus {
+  PENDING     // Pendiente de pago
+  PAID        // Pago confirmado
+  COMPLETED   // Recarga completada
+  CANCELLED   // Cancelada
 }
 
 

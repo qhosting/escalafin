@@ -27,7 +27,8 @@ import {
   Wrench,
   LogOut,
   User,
-  Menu
+  Menu,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -244,6 +245,13 @@ export function Sidebar({ className }: SidebarProps) {
           href: '/whatsapp',
           moduleKey: 'whatsapp_notifications',
           roles: ['ADMIN', 'ASESOR']
+        },
+        {
+          title: 'Recargas de Mensajes',
+          icon: RefreshCw,
+          href: '/admin/message-recharges',
+          moduleKey: 'whatsapp_notifications',
+          roles: ['ADMIN']
         },
         {
           title: 'Notificaciones',

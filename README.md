@@ -10,9 +10,25 @@
 [![Prisma](https://www.shutterstock.com/shutterstock/photos/1754412563/display_1500/stock-photo--d-rendering-of-a-police-badge-on-a-dark-background-1754412563.jpg)
 [![AWS S3](https://i.ytimg.com/vi/yRkueY7Q2U8/maxresdefault.jpg)
 
-## 🆕 **Últimas Actualizaciones**
+## 🆕 **Últimas Actualizaciones - Septiembre 2025**
 
-### 🎨 **Nueva Navegación Optimizada**
+### 🆘 **Sistema de Soporte Técnico**
+- ✅ **Página de soporte dedicada** (`/soporte`)
+- ✅ **Contacto directo**: Email y WhatsApp integrado
+- ✅ **Datos SPEI completos**: Banco KLAR para transferencias
+- ✅ **FAQ contextual**: Preguntas frecuentes integradas
+- ✅ **Horarios de atención**: Lun-Vie 9:00-18:00, Sáb 9:00-14:00
+
+### 🔄 **Gestión de Recargas WhatsApp**
+- ✅ **Dashboard administrativo** (`/admin/message-recharges`)
+- ✅ **Paquetes de mensajes**:
+  - 100 mensajes: $50 MXN
+  - 500 mensajes: $200 MXN
+  - 1000 mensajes: $350 MXN
+- ✅ **Control de estados**: Pendiente → Pagado → Completado
+- ✅ **Referencias SPEI**: Rastreo completo de transferencias
+
+### 🎨 **Navegación Optimizada**
 - ✅ **Sidebar fijo responsive** con control de scroll inteligente
 - ✅ **Página landing profesional** para usuarios no autenticados  
 - ✅ **Login simplificado** con mejor UX
