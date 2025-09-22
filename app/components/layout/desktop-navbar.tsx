@@ -60,7 +60,7 @@ interface NavigationItem {
 export function DesktopNavbar() {
   const pathname = usePathname();
   const { data: session } = useSession() || {};
-  const { modules } = useModules();
+  const { modules, loading, isModuleEnabled } = useModules();
   
   const userRole = (session as any)?.user?.role;
 
@@ -232,7 +232,7 @@ export function DesktopNavbar() {
       
       // Verificar módulo habilitado (si aplica)
       if (item.moduleKey) {
-        return modules.some(module => module.moduleKey === item.moduleKey);
+        return isModuleEnabled(item.moduleKey);
       }
       
       return true;
@@ -247,6 +247,34 @@ export function DesktopNavbar() {
   };
 
   const enabledModulesCount = modules.length;
+
+  // Mostrar loading state mientras se cargan los módulos
+  if (loading) {
+    return (
+      <nav className="hidden md:flex bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto w-full px-4">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-8">
+              <div className="flex items-center space-x-3">
+                <Building2 className="h-8 w-8 text-primary" />
+                <div>
+                  <span className="text-xl font-bold text-gray-900">EscalaFin</span>
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    Cargando...
+                  </Badge>
+                </div>
+              </div>
+              <div className="animate-pulse bg-gray-200 rounded h-8 w-96"></div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <ThemeToggle />
+              <div className="animate-pulse bg-gray-200 rounded-full h-8 w-8"></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="hidden md:flex bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
