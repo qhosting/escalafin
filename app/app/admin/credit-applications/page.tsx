@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default function AdminCreditApplicationsPage() {
   return (
     <AuthWrapper allowedRoles={['ADMIN']}>
-      <div className="container mx-auto py-6">
+      <div>
         <CreditApplicationsList />
       </div>
     </AuthWrapper>

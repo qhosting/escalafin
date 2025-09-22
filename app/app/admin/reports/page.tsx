@@ -134,7 +134,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       <div className="mb-8">
         <div className="flex justify-between items-start mb-4">
           <div>

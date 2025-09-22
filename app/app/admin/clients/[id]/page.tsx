@@ -115,7 +115,7 @@ export default function ClientDetailPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -125,7 +125,7 @@ export default function ClientDetailPage() {
 
   if (!client) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div>
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Cliente no encontrado
@@ -157,7 +157,7 @@ export default function ClientDetailPage() {
   const totalPaid = totalBorrowed - totalBalance;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
