@@ -3,9 +3,8 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { Building2, LogIn, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { Building2, LogIn, Eye, EyeOff } from 'lucide-react';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -13,7 +12,6 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,9 +75,22 @@ export function LoginForm() {
       </div>
 
       {/* Login Form */}
-      <div className="lg:flex-1 flex items-center justify-center px-8 py-12 bg-gray-50">
+      <div className="lg:flex-1 flex items-center justify-center px-8 py-12 bg-gray-50 relative">
+        {/* Botón volver */}
+        <Link 
+          href="/"
+          className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Volver al inicio</span>
+        </Link>
+
         <div className="w-full max-w-md bg-white rounded-xl shadow-lg border-0 p-8">
           <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Building2 className="w-8 h-8 text-blue-600" />
+              <h1 className="text-xl font-bold text-gray-900">EscalaFin</h1>
+            </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Iniciar Sesión</h2>
             <p className="text-gray-600">Ingresa tus credenciales para acceder al sistema</p>
           </div>

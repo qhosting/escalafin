@@ -1,520 +1,343 @@
-# 🏦 EscalaFin - Sistema de Gestión de Créditos
 
-[![Next.js](https://i.ytimg.com/vi/f53RvUpUA8w/sddefault.jpg)
+# 🏢 EscalaFin - Sistema de Gestión de Créditos y Préstamos
+
+> **Plataforma integral PWA para la gestión completa de préstamos, clientes y cobranza con navegación optimizada y diseño responsive**
+
+[![Next.js](https://i.ytimg.com/vi/4cgpu9L2AE8/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLCzedb-c7IZSg8ZCib1APCJvLdWqw)
 [![TypeScript](https://i.ytimg.com/vi/4cgpu9L2AE8/maxresdefault.jpg)
-[![Prisma](https://i.pinimg.com/736x/d7/c9/29/d7c929d0791fc4b844681296158bce06.jpg)
-[![Tailwind CSS](https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1480&q=80)
-[![License](https://i.ytimg.com/vi/QDfLou004iE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAO5coXVtfm5wSC83NDzG-gWbTQwA)
+[![Tailwind CSS](https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Tailwind_CSS_Logo.svg/2560px-Tailwind_CSS_Logo.svg.png)
+[![PostgreSQL](https://i.ytimg.com/vi/uUalQbg-TGA/maxresdefault.jpg)
+[![Prisma](https://www.shutterstock.com/shutterstock/photos/1754412563/display_1500/stock-photo--d-rendering-of-a-police-badge-on-a-dark-background-1754412563.jpg)
+[![AWS S3](https://i.ytimg.com/vi/yRkueY7Q2U8/maxresdefault.jpg)
 
-**EscalaFin** es una plataforma completa para la gestión de préstamos y créditos con **navegación sidebar sticky**, optimizada para desktop y mobile, desarrollada con las tecnologías más modernas.
+## 🆕 **Últimas Actualizaciones**
 
-## 🆕 Novedades v2.1.0
-
-- ✅ **Sidebar Navegacional Sticky** - Navegación fluida y persistente para desktop
-- ✅ **Navegación Móvil Optimizada** - Sheet/Drawer responsive para mobile  
-- ✅ **Sistema de Módulos PWA** - Carga dinámica de funcionalidades por rol
-- ✅ **Dark/Light Theme** - Cambio de tema completo con persistencia
-- ✅ **Layout Provider** - Arquitectura centralizada de UI
-- ✅ **Performance Mejorado** - Cargas más rápidas y UX optimizada
+### 🎨 **Nueva Navegación Optimizada**
+- ✅ **Sidebar fijo responsive** con control de scroll inteligente
+- ✅ **Página landing profesional** para usuarios no autenticados  
+- ✅ **Login simplificado** con mejor UX
+- ✅ **Eliminada duplicación de menús** - Layout reorganizado completamente
+- ✅ **Transiciones suaves** y animaciones CSS
 
 ---
 
-## 🚀 Quick Start
+## 🚀 **Características Principales**
 
+### 💼 **Gestión Integral**
+- **Multi-Rol**: Administradores, Asesores y Clientes
+- **Dashboard Inteligente**: KPIs, gráficos y métricas en tiempo real
+- **Gestión de Clientes**: Perfiles completos con historial crediticio
+- **Portfolio de Préstamos**: Tracking completo del ciclo de vida
+- **Sistema de Pagos**: Openpay + pagos manuales con reconciliación
+
+### 🔧 **Tecnología Avanzada**
+- **PWA Completa**: Instalable, offline-ready, push notifications
+- **Cloud Storage**: AWS S3 para manejo seguro de documentos
+- **WhatsApp Integration**: Notificaciones automáticas via EvolutionAPI
+- **Real-time Updates**: Sincronización automática de datos
+- **Dark/Light Mode**: Soporte completo de temas
+
+### 📱 **Experiencia de Usuario**
+- **Sidebar Fijo Inteligente**: Aparece/desaparece con scroll
+- **100% Responsive**: Mobile-first design approach
+- **Navegación Categorizada**: Módulos organizados por grupos lógicos
+- **Theme Toggle**: Cambio de tema desde el sidebar
+- **Landing Page**: Página de inicio profesional para visitantes
+
+---
+
+## 📋 **Módulos del Sistema**
+
+<details>
+<summary><strong>👥 Gestión de Clientes</strong></summary>
+
+- ✅ CRUD completo de clientes
+- ✅ Perfiles detallados con scoring crediticio
+- ✅ Historial de préstamos y pagos
+- ✅ Sistema de archivos adjuntos
+- ✅ Filtros y búsqueda avanzada
+</details>
+
+<details>
+<summary><strong>💳 Sistema de Préstamos</strong></summary>
+
+- ✅ Creación y gestión de préstamos
+- ✅ Tablas de amortización dinámicas  
+- ✅ Diferentes tipos de interés y modalidades
+- ✅ Workflow de aprobación
+- ✅ Estados y tracking completo
+</details>
+
+<details>
+<summary><strong>💰 Gestión de Pagos</strong></summary>
+
+- ✅ **Openpay Integration**: Pagos en línea seguros
+- ✅ **Pagos Manuales**: Para transacciones en efectivo
+- ✅ Reconciliación automática
+- ✅ Estados de pago en tiempo real
+- ✅ Historial y reportes detallados
+</details>
+
+<details>
+<summary><strong>📊 Reportes y Analytics</strong></summary>
+
+- ✅ Dashboard ejecutivo con KPIs
+- ✅ Reporte de portfolio
+- ✅ Analytics de cobranza
+- ✅ Métricas de performance
+- ✅ Exportación a Excel/PDF
+</details>
+
+<details>
+<summary><strong>📱 Notificaciones WhatsApp</strong></summary>
+
+- ✅ **EvolutionAPI Integration**
+- ✅ Notificaciones automáticas de pagos
+- ✅ Recordatorios de vencimiento
+- ✅ Estados de entrega tracking
+- ✅ Templates personalizables
+</details>
+
+<details>
+<summary><strong>🔐 Sistema de Usuarios</strong></summary>
+
+- ✅ **NextAuth.js** con múltiples roles
+- ✅ **Roles**: ADMIN, ASESOR, CLIENTE
+- ✅ Permisos granulares por módulo
+- ✅ Sistema de sesiones seguro
+- ✅ Gestión de perfiles
+</details>
+
+---
+
+## 🏗️ **Arquitectura Técnica**
+
+### **Frontend**
+```
+Next.js 14 (App Router) + TypeScript
+├── 🎨 Tailwind CSS + Shadcn/ui
+├── 📱 PWA completa con service workers  
+├── 🌙 Dark/Light mode con next-themes
+├── 📊 Charts con Recharts + Chart.js
+└── 🔄 Real-time updates con SWR
+```
+
+### **Backend** 
+```
+Next.js API Routes + Middleware
+├── 🔐 NextAuth.js para autenticación
+├── 🗄️ Prisma ORM + PostgreSQL
+├── ☁️ AWS S3 para cloud storage
+├── 📱 EvolutionAPI para WhatsApp
+└── 💳 Openpay para pagos online
+```
+
+### **Base de Datos**
+```sql
+PostgreSQL con Prisma Schema
+├── 👤 Users (multi-role con permisos)
+├── 👥 Clients (perfiles y scoring) 
+├── 💳 Loans (préstamos y amortización)
+├── 💰 Payments (pagos y transacciones)
+├── 📄 Files (documentos en S3)
+├── 📊 Analytics (métricas y KPIs)
+└── ⚙️ SystemConfig (configuración)
+```
+
+---
+
+## 🚀 **Guías de Instalación**
+
+### **🔧 Setup Local**
 ```bash
-# Clonar repositorio
-git clone https://github.com/tu-usuario/escalafin-mvp.git
-cd escalafin-mvp/app
+# 1. Clonar el repositorio
+git clone [tu-repo-url]
+cd escalafin_mvp
 
-# Instalar dependencias
-yarn install
+# 2. Instalar dependencias
+cd app && yarn install
 
-# Configurar variables de entorno
-cp .env.example .env.local
-# Editar .env.local con tus configuraciones
+# 3. Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus credenciales
 
-# Configurar base de datos
-yarn prisma db push
-yarn prisma db seed
+# 4. Setup base de datos
+npx prisma migrate dev
+npx prisma db seed
 
-# Iniciar aplicación
+# 5. Ejecutar en desarrollo  
 yarn dev
 ```
 
-**🌐 Accede a:** `http://localhost:3000`
-
----
-
-## 🎨 Navegación y UX
-
-### 🖥️ Desktop Experience
-*Sidebar navegacional sticky con categorización de módulos*
-
-**Características:**
-- **Sidebar sticky** colapsible/expandible
-- **Categorización** de módulos por función
-- **Filtrado automático** por rol de usuario
-- **Indicador de página activa** 
-- **Transiciones suaves** entre secciones
-
-### 📱 Mobile Experience  
-*Navegación móvil optimizada con Sheet/Drawer*
-
-**Características:**
-- **Header móvil** con menú hamburguesa
-- **Sheet/Drawer** deslizante con navegación completa
-- **Touch-optimized** para dispositivos móviles
-- **Responsive design** fluido en todos los breakpoints
-
----
-
-## 🏗️ Arquitectura Técnica
-
-### Stack Principal
-```
-Frontend:  Next.js 14 + TypeScript + Tailwind CSS
-Backend:   Next.js API Routes + Prisma ORM  
-Database:  PostgreSQL
-Auth:      NextAuth.js multi-provider
-UI:        Shadcn/ui + Framer Motion
-```
-
-### Servicios Integrados
-```
-Payments:  OpenPay (tarjetas + SPEI)
-Storage:   AWS S3 (archivos y documentos)
-WhatsApp:  EvolutionAPI (notificaciones)
-PWA:       Service Workers + App Manifest
-```
-
-### Navegación Architecture
-```tsx
-<LayoutProvider>
-  {/* Desktop */}
-  <Sidebar /> + <Header />
-  
-  {/* Mobile */}  
-  <HeaderMobile />
-  
-  <MainContent>
-    {children}
-  </MainContent>
-</LayoutProvider>
-```
-
----
-
-## 📋 Módulos del Sistema
-
-| 📊 **Categoría** | 🔧 **Módulos** | 👥 **Roles** | 📱 **Mobile** |
-|------------------|----------------|---------------|---------------|
-| **🎯 Principal** | Dashboard | ALL | ✅ |
-| **👥 Gestión** | Clientes, Préstamos, Pagos, Usuarios | ADMIN, ASESOR | ✅ |
-| **📈 Reportes** | Portfolio, Cobranza, Analíticos | ADMIN, ASESOR | ✅ |  
-| **💬 Comunicación** | WhatsApp, Notificaciones, Cobranza Móvil | ADMIN, ASESOR | ✅ |
-| **⚙️ Configuración** | Módulos PWA, Sistema, APIs | ADMIN | ✅ |
-
-### 🎯 Características por Rol
-
-**🔴 ADMIN** - Control total del sistema
-- Gestión completa de usuarios y configuración
-- Acceso a todos los módulos y reportes
-- Configuración de APIs y servicios externos
-
-**🔵 ASESOR** - Gestión operativa  
-- Manejo de clientes y préstamos asignados
-- Procesamiento de pagos y cobranza
-- Reportes de su cartera
-
-**🟢 CLIENTE** - Portal de autoservicio
-- Vista de sus préstamos y pagos
-- Solicitud de créditos
-- Notificaciones de su cuenta
-
----
-
-## 🔧 Instalación Completa
-
-### 1. Prerrequisitos
+### **🐳 Deploy con Docker**
 ```bash
-Node.js >= 18.17.0
-Yarn >= 4.0.0  
-PostgreSQL >= 15.0
-AWS Account (S3)
-OpenPay Account
+# Build de la imagen
+docker build -t escalafin .
+
+# Ejecutar contenedor
+docker run -p 3000:3000 --env-file .env escalafin
 ```
 
-### 2. Configuración de Servicios
+### **☁️ Deploy en EasyPanel**
+Ver guía completa: [`GUIA_DESPLIEGUE_EASYPANEL.md`](./GUIA_DESPLIEGUE_EASYPANEL.md)
 
-**📊 Base de Datos PostgreSQL**
-```sql
-CREATE DATABASE escalafin_db;
-CREATE USER escalafin_user WITH PASSWORD 'tu_password';
-GRANT ALL PRIVILEGES ON DATABASE escalafin_db TO escalafin_user;
+---
+
+## 📚 **Documentación Completa**
+
+### **🎯 Guías de Usuario**
+- 📖 [`ESCALAFIN_MANUAL_USUARIO.md`](./ESCALAFIN_MANUAL_USUARIO.md) - Manual completo de usuario
+- 🚀 [`QUICK_START.md`](./QUICK_START.md) - Inicio rápido
+- 🔐 [`GUIA_LOGIN_Y_USO.md`](./GUIA_LOGIN_Y_USO.md) - Login y primeros pasos
+
+### **🛠️ Guías Técnicas**
+- 🏗️ [`ESTRUCTURA_PROYECTO.md`](./ESTRUCTURA_PROYECTO.md) - Arquitectura del código
+- 🗄️ [`SCHEMA.md`](./SCHEMA.md) - Esquema de base de datos  
+- 🔒 [`SECURITY.md`](./SECURITY.md) - Políticas de seguridad
+- 📁 [`DOCUMENTACION_SISTEMA_ALMACENAMIENTO.md`](./DOCUMENTACION_SISTEMA_ALMACENAMIENTO.md) - Sistema de archivos
+
+### **☁️ Guías de Deployment**
+- 🚀 [`DEPLOYMENT.md`](./DEPLOYMENT.md) - Deploy general
+- 🎛️ [`GUIA_DESPLIEGUE_EASYPANEL.md`](./GUIA_DESPLIEGUE_EASYPANEL.md) - EasyPanel específico
+- 📱 [`PWA_IMPLEMENTATION_GUIDE.md`](./PWA_IMPLEMENTATION_GUIDE.md) - Configuración PWA
+
+### **🔄 Migración y Continuidad**
+- 🔄 [`DEEPAGENT_MIGRATION_GUIDE.md`](./DEEPAGENT_MIGRATION_GUIDE.md) - Migración entre cuentas
+- 📥 [`GUIA_COMPLETA_IMPORTACION_2025.md`](./GUIA_COMPLETA_IMPORTACION_2025.md) - Importación completa
+- 🐙 [`GITHUB_SETUP_COMPLETO.md`](./GITHUB_SETUP_COMPLETO.md) - Setup de GitHub
+
+---
+
+## 🎮 **Testing de la Aplicación**
+
+### **🧪 Cuentas de Prueba**
+```
+👨‍💼 ADMIN
+Email: admin@escalafin.com
+Password: admin123
+
+👨‍💻 ASESOR  
+Email: carlos.lopez@escalafin.com
+Password: password123
+
+👤 CLIENTE
+Email: juan.perez@email.com
+Password: password123
 ```
 
-**☁️ AWS S3**
-```bash
-# Crear bucket
-aws s3 mb s3://escalafin-storage --region us-east-1
+### **✅ Funcionalidades a Probar**
+1. **🏠 Landing Page** - Navegación no autenticada
+2. **🔐 Login/Logout** - Autenticación y roles
+3. **🏗️ Sidebar Responsive** - Colapso y scroll behavior
+4. **👥 Gestión de Clientes** - CRUD completo
+5. **💳 Creación de Préstamos** - Workflow completo
+6. **💰 Registro de Pagos** - Manual y Openpay
+7. **📊 Dashboards** - Visualización de datos
+8. **📱 PWA Features** - Instalación y offline mode
 
-# Configurar CORS
-aws s3api put-bucket-cors --bucket escalafin-storage --cors-configuration file://cors.json
-```
+---
 
-### 3. Variables de Entorno (.env.local)
+## ⚙️ **Configuración de Servicios**
+
+### **🔐 Variables de Entorno Requeridas**
 ```env
 # Base de datos
-DATABASE_URL="postgresql://escalafin_user:password@localhost:5432/escalafin_db"
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."
 
 # Autenticación  
 NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="super-secret-key-aqui"
+NEXTAUTH_SECRET="tu-secret-key"
 
 # AWS S3
-AWS_ACCESS_KEY_ID="tu-access-key"
-AWS_SECRET_ACCESS_KEY="tu-secret-key"
-AWS_BUCKET_NAME="escalafin-storage"
-AWS_REGION="us-east-1"
+AWS_BUCKET_NAME="tu-bucket"
+AWS_FOLDER_PREFIX="escalafin/"
 
-# OpenPay
-OPENPAY_ID="tu-merchant-id"
-OPENPAY_PRIVATE_KEY="tu-private-key"
-OPENPAY_PUBLIC_KEY="tu-public-key"
-OPENPAY_PRODUCTION=false
-
-# EvolutionAPI
-EVOLUTION_API_URL="https://tu-instancia.evolutionapi.com"
-EVOLUTION_API_TOKEN="tu-api-token"
-EVOLUTION_INSTANCE="escalafin"
+# Openpay
+OPENPAY_API_KEY="tu-api-key"
+OPENPAY_BASE_URL="https://sandbox-api.openpay.mx"
+# ... más variables según necesidades
 ```
+
+### **📱 Servicios Externos**
+- **💳 Openpay**: Pagos en línea (configuración en panel admin)
+- **📱 EvolutionAPI**: WhatsApp notifications
+- **☁️ AWS S3**: Cloud storage para archivos
+- **📧 Email Service**: Para notificaciones (opcional)
 
 ---
 
-## 🧪 Testing y Quality
+## 🛡️ **Seguridad y Compliance**
 
-### Ejecutar Tests
-```bash
-# Tests unitarios
-yarn test
-
-# Tests de navegación específicos  
-yarn test --testPathPattern=navigation
-
-# Coverage completo
-yarn test:coverage
-
-# Visual regression tests
-yarn test:visual
-```
-
-### Code Quality  
-```bash
-# TypeScript check
-yarn tsc --noEmit
-
-# ESLint
-yarn lint
-
-# Prettier
-yarn format
-```
-
-### Performance Audit
-```bash
-# Build analysis
-yarn analyze
-
-# Lighthouse CI
-yarn lighthouse
-
-# Bundle size
-yarn bundlesize
-```
+- ✅ **Autenticación segura** con NextAuth.js
+- ✅ **Roles y permisos** granulares
+- ✅ **Encriptación** de datos sensibles
+- ✅ **Headers de seguridad** configurados
+- ✅ **Rate limiting** en APIs críticas
+- ✅ **Validación** en cliente y servidor
+- ✅ **Logs de auditoría** para acciones críticas
 
 ---
 
-## 🚀 Despliegue
+## 📈 **Performance y Escalabilidad**
 
-### 🖥️ EasyPanel (Recomendado)
-```bash
-# Ver guía completa
-cat GUIA_DESPLIEGUE_EASYPANEL_ACTUALIZADA.md
+### **⚡ Optimizaciones Implementadas**
+- **Static Generation** para páginas públicas
+- **Dynamic Imports** para code splitting
+- **Image Optimization** con Next.js Image
+- **CSS-in-JS** optimizado con Tailwind
+- **Database Indexing** en campos críticos
+- **Caching** estratégico en APIs
 
-# Deploy rápido
-git push origin main  # Auto-deploy configurado
-```
-
-### ☁️ Vercel 
-[![Deploy to Vercel](https://i.ytimg.com/vi/4DbNUJ-9_U4/maxresdefault.jpg)
-
-### 🐳 Docker
-```bash
-# Build
-docker build -t escalafin:latest .
-
-# Run
-docker run -p 3000:3000 --env-file .env.production escalafin:latest
-```
+### **📊 Métricas Objetivo**
+- **First Contentful Paint**: < 2s
+- **Largest Contentful Paint**: < 3s  
+- **Cumulative Layout Shift**: < 0.1
+- **First Input Delay**: < 100ms
 
 ---
 
-## 📚 Documentación Completa
+## 🤝 **Contribución y Soporte**
 
-| 📖 **Guía** | 📋 **Descripción** | 🔗 **Link** |
-|-------------|-------------------|-------------|
-| **🔄 Migración DeepAgent** | Transferir proyecto a nueva cuenta | [DEEPAGENT_MIGRATION_GUIDE_ACTUALIZADA.md](DEEPAGENT_MIGRATION_GUIDE_ACTUALIZADA.md) |
-| **📥 Importación Completa** | Setup desde cero paso a paso | [GUIA_COMPLETA_IMPORTACION_2025_ACTUALIZADA.md](GUIA_COMPLETA_IMPORTACION_2025_ACTUALIZADA.md) |
-| **🚀 Deploy EasyPanel** | Despliegue en producción | [GUIA_DESPLIEGUE_EASYPANEL_ACTUALIZADA.md](GUIA_DESPLIEGUE_EASYPANEL_ACTUALIZADA.md) |
-| **🐙 GitHub Setup** | Configuración completa repositorio | [GITHUB_SETUP_COMPLETO_ACTUALIZADO.md](GITHUB_SETUP_COMPLETO_ACTUALIZADO.md) |
-| **📖 Manual Usuario** | Guía de uso del sistema | [ESCALAFIN_MANUAL_USUARIO.md](ESCALAFIN_MANUAL_USUARIO.md) |
+### **📝 Reportar Issues**
+1. Usa el sistema de issues de GitHub
+2. Proporciona pasos para reproducir
+3. Incluye logs y screenshots
+4. Especifica el navegador/dispositivo
 
-### 📁 Documentación Técnica
-- 🧭 [Navigation Guide](docs/NAVIGATION.md) - Arquitectura de navegación
-- 📋 [Sidebar Guide](docs/SIDEBAR_GUIDE.md) - Implementación del sidebar  
-- 📱 [Mobile UX Guide](docs/MOBILE_UX.md) - Experiencia móvil
-- 🔌 [API Documentation](docs/API.md) - Endpoints y schemas
-- 🗄️ [Database Schema](docs/SCHEMA.md) - Estructura de datos
+### **🚀 Proponer Features**
+1. Abre un discussion de GitHub
+2. Describe el caso de uso
+3. Proporciona mockups si es posible
+4. Considera el impacto en performance
 
 ---
 
-## 🔌 API Endpoints
+## 📄 **Licencia**
 
-### 🔐 Autenticación
-```http
-POST /api/auth/login          # Iniciar sesión
-POST /api/auth/register       # Registrar usuario  
-POST /api/auth/logout         # Cerrar sesión
-GET  /api/auth/session        # Obtener sesión actual
-```
-
-### 👥 Clientes  
-```http
-GET    /api/clients           # Listar clientes
-POST   /api/clients           # Crear cliente
-PUT    /api/clients/[id]      # Actualizar cliente
-DELETE /api/clients/[id]      # Eliminar cliente
-GET    /api/clients/[id]/loans # Préstamos del cliente
-```
-
-### 💰 Préstamos
-```http
-GET  /api/loans               # Listar préstamos
-POST /api/loans               # Crear préstamo
-PUT  /api/loans/[id]          # Actualizar préstamo  
-GET  /api/loans/[id]/amortization # Tabla amortización
-POST /api/loans/[id]/payment  # Registrar pago
-```
-
-### 💳 Pagos
-```http
-GET  /api/payments            # Listar pagos
-POST /api/payments/openpay    # Procesar pago OpenPay
-POST /api/payments/manual     # Pago manual efectivo
-GET  /api/payments/[id]       # Detalle del pago
-```
-
-### 📊 Reportes
-```http
-GET /api/reports/portfolio    # Reporte de cartera
-GET /api/reports/collections  # Reporte de cobranza
-GET /api/reports/analytics    # Métricas del sistema
-```
-
-### ⚙️ Sistema
-```http
-GET /api/modules/permissions  # Módulos por usuario
-PUT /api/admin/modules        # Configurar módulos
-GET /api/health              # Health check
-```
+Este proyecto está bajo la Licencia MIT. Ver [`LICENSE`](./LICENSE) para más detalles.
 
 ---
 
-## 🔄 Flujos de Trabajo
+## 📞 **Contacto y Soporte**
 
-### 🏦 Flujo de Préstamo
-```mermaid
-graph LR
-    A[Solicitud] --> B[Evaluación]
-    B --> C[Aprobación]
-    C --> D[Desembolso]
-    D --> E[Pagos]
-    E --> F[Finalización]
-```
-
-### 💳 Flujo de Pago
-```mermaid
-graph LR
-    A[Generar Pago] --> B[OpenPay/Manual]
-    B --> C[Validación]
-    C --> D[Aplicación]
-    D --> E[Notificación WhatsApp]
-```
-
-### 🔔 Flujo de Notificaciones
-```mermaid
-graph LR
-    A[Evento] --> B[Template]
-    B --> C[EvolutionAPI]
-    C --> D[WhatsApp]
-    D --> E[Confirmación]
-```
-
----
-
-## 📊 Performance y Métricas
-
-### 🚀 Lighthouse Scores
-- **Performance**: 95+ 
-- **Accessibility**: 98+
-- **Best Practices**: 100
-- **SEO**: 95+
-- **PWA**: 100
-
-### 📱 Core Web Vitals
-- **LCP** (Largest Contentful Paint): < 1.5s
-- **FID** (First Input Delay): < 100ms
-- **CLS** (Cumulative Layout Shift): < 0.1
-
-### 🧭 Navigation Performance
-- **Sidebar load time**: < 100ms
-- **Mobile menu open**: < 50ms
-- **Module switch**: < 200ms
-- **Theme toggle**: < 50ms
-
----
-
-## 🤝 Contribuir al Proyecto
-
-### 1. Setup de Desarrollo
-```bash
-# Fork el repositorio
-git fork https://github.com/original/escalafin-mvp.git
-
-# Clonar tu fork
-git clone https://github.com/tu-usuario/escalafin-mvp.git
-cd escalafin-mvp
-
-# Configurar upstream
-git remote add upstream https://github.com/original/escalafin-mvp.git
-
-# Crear rama de feature
-git checkout -b feature/nueva-funcionalidad
-```
-
-### 2. Standards de Código
-- **TypeScript** para todo el código
-- **ESLint + Prettier** para formateo
-- **Conventional Commits** para mensajes
-- **Tests** obligatorios para nuevas features
-- **Documentation** para APIs y componentes
-
-### 3. Pull Request Process
-1. ✅ Tests pasando
-2. 📝 Documentación actualizada
-3. 🎨 Code review aprobado
-4. ✅ Build exitoso
-5. 🚀 Merge a develop/main
-
----
-
-## 🆘 Troubleshooting
-
-### ❌ Problemas Comunes
-
-**Sidebar no aparece:**
-```bash
-# Verificar breakpoints CSS
-# Sidebar solo es visible en >= md (768px)
-# En mobile se usa HeaderMobile
-```
-
-**Módulos no cargan:**
-```sql
--- Verificar módulos PWA en base de datos
-SELECT * FROM "PWAModule" WHERE status = 'ENABLED';
-
--- Verificar permisos por rol
-SELECT * FROM "ModuleRolePermission" WHERE role = 'ADMIN';
-```
-
-**Build falla:**
-```bash
-# Limpiar cache
-rm -rf .next node_modules
-yarn install
-yarn build
-```
-
-**Performance lenta:**
-```bash
-# Analizar bundle
-yarn analyze
-
-# Verificar lighthouse
-yarn lighthouse
-```
-
-### 📞 Obtener Ayuda
-
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/tu-usuario/escalafin-mvp/issues/new?template=bug_report.md)
-- ✨ **Feature Requests**: [GitHub Issues](https://github.com/tu-usuario/escalafin-mvp/issues/new?template=feature_request.md)
-- 🧭 **Navigation Issues**: [GitHub Issues](https://github.com/tu-usuario/escalafin-mvp/issues/new?template=navigation_issue.md)
-- 📧 **Support Email**: soporte@escalafin.com
-- 💬 **Discord**: [Server Invite]
-- 📖 **Docs**: [Documentation Site]
-
----
-
-## 📄 Licencia y Créditos
-
-### 📜 MIT License
-```
-MIT License
-
-Copyright (c) 2025 EscalaFin Team
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction...
-```
-
-Ver [LICENSE](LICENSE) para el texto completo.
-
-### 🙏 Agradecimientos
-
-- **Next.js Team** - Framework increíble
-- **Prisma Team** - ORM excepcional  
-- **Shadcn** - Componentes UI hermosos
-- **Tailwind CSS** - Styling perfecto
-- **DeepAgent** - AI-powered development
-- **OpenPay** - Pagos confiables
-- **AWS** - Infraestructura robusta
-
-### 👥 Contributors
-
-<a href="https://www.visualcinnamon.com/img/blog/2023/github-contributor-network/top_contributor_network_pdfjs.png">
-  <img src="https://contrib.rocks/image?repo=tu-usuario/escalafin-mvp" />
-</a>
-
----
-
-## 📊 Stats del Proyecto
-
-![GitHub stars](https://img.shields.io/github/stars/tu-usuario/escalafin-mvp?style=social)
-![GitHub forks](https://img.shields.io/github/forks/tu-usuario/escalafin-mvp?style=social)
-![GitHub issues](https://img.shields.io/github/issues/tu-usuario/escalafin-mvp)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/tu-usuario/escalafin-mvp)
-![GitHub last commit](https://img.shields.io/github/last-commit/tu-usuario/escalafin-mvp)
+- **📧 Email**: soporte@escalafin.com
+- **💬 Discord**: [Servidor de EscalaFin]
+- **📚 Docs**: [Documentación completa]
+- **🐛 Issues**: [GitHub Issues]
 
 ---
 
 <div align="center">
 
-**🚀 Desarrollado con ❤️ usando Next.js, TypeScript y DeepAgent**
+### 🌟 **¿Te gusta EscalaFin?**
 
-*EscalaFin v2.1.0 - Septiembre 2025*
+**⭐ Dale una estrella al proyecto** • **🍴 Fork para contribuir** • **📢 Comparte con tu equipo**
 
-[⭐ Star este proyecto](https://github.com/tu-usuario/escalafin-mvp) | [🐛 Reportar Bug](https://github.com/tu-usuario/escalafin-mvp/issues) | [💡 Solicitar Feature](https://github.com/tu-usuario/escalafin-mvp/issues)
+---
+
+**Desarrollado con ❤️ para instituciones financieras modernas**
+
+*EscalaFin © 2025 - Sistema de Gestión de Créditos y Préstamos*
 
 </div>
