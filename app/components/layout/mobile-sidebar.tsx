@@ -226,6 +226,13 @@ export function MobileSidebar() {
       category: 'Configuración',
       items: [
         {
+          title: 'Configuración',
+          icon: Settings,
+          href: '/admin/config',
+          moduleKey: 'system_settings',
+          roles: ['ADMIN']
+        },
+        {
           title: 'Módulos PWA',
           icon: Settings,
           href: '/admin/modules',

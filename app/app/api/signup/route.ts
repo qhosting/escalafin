@@ -7,6 +7,20 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Verificar si el registro está habilitado
+    const registrationConfig = await prisma.systemConfig.findUnique({
+      where: { key: 'REGISTRATION_ENABLED' }
+    });
+
+    const isRegistrationEnabled = registrationConfig?.value === 'true';
+    
+    if (!isRegistrationEnabled) {
+      return NextResponse.json(
+        { error: 'El registro de nuevos usuarios está temporalmente deshabilitado. Contacta al administrador.' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { email, password, firstName, lastName, phone, role = 'CLIENTE' } = body;
 

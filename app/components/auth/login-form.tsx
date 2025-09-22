@@ -167,13 +167,6 @@ export function LoginForm() {
                 </Link>
               </p>
             </div>
-
-            <div className="mt-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
-              <p className="font-medium mb-1">Cuentas de prueba:</p>
-              <p>Admin: admin@escalafin.com / admin123</p>
-              <p>Asesor: carlos.lopez@escalafin.com / password123</p>
-              <p>Cliente: juan.perez@email.com / password123</p>
-            </div>
           </form>
         </div>
       </div>

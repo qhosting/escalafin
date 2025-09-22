@@ -512,6 +512,57 @@ async function main() {
 
   console.log('💳 Created payment history...');
   
+  // Configuración inicial del sistema
+  console.log('⚙️ Setting up system configuration...');
+  
+  const systemConfigs = [
+    {
+      key: 'REGISTRATION_ENABLED',
+      value: 'true',
+      description: 'Controla si el registro de nuevos usuarios está habilitado',
+      category: 'AUTHENTICATION'
+    },
+    {
+      key: 'SYSTEM_VERSION',
+      value: '2.0.0',
+      description: 'Versión actual del sistema EscalaFin',
+      category: 'SYSTEM'
+    },
+    {
+      key: 'MAX_LOAN_AMOUNT',
+      value: '1000000',
+      description: 'Monto máximo permitido para préstamos (en pesos mexicanos)',
+      category: 'LENDING'
+    },
+    {
+      key: 'MIN_LOAN_AMOUNT',
+      value: '1000',
+      description: 'Monto mínimo permitido para préstamos (en pesos mexicanos)',
+      category: 'LENDING'
+    }
+  ];
+
+  for (const config of systemConfigs) {
+    await prisma.systemConfig.upsert({
+      where: { key: config.key },
+      update: {
+        value: config.value,
+        description: config.description,
+        category: config.category,
+        updatedBy: admin.id
+      },
+      create: {
+        key: config.key,
+        value: config.value,
+        description: config.description,
+        category: config.category,
+        updatedBy: admin.id
+      }
+    });
+  }
+
+  console.log('⚙️ System configuration completed...');
+  
   console.log('✅ Database seeded successfully!');
   console.log('\n📊 Summary:');
   console.log('- Users created:', await prisma.user.count());
@@ -520,6 +571,7 @@ async function main() {
   console.log('- Active loans:', await prisma.loan.count());
   console.log('- Payment schedules:', await prisma.amortizationSchedule.count());
   console.log('- Payment records:', await prisma.payment.count());
+  console.log('- System configs:', await prisma.systemConfig.count());
 }
 
 main()

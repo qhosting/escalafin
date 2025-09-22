@@ -199,6 +199,13 @@ export function DesktopNavbar() {
         roles: ['ADMIN']
       },
       {
+        title: 'Configuración',
+        icon: Settings,
+        href: '/admin/config',
+        moduleKey: 'system_settings',
+        roles: ['ADMIN']
+      },
+      {
         title: 'Módulos PWA',
         icon: Settings,
         href: '/admin/modules',

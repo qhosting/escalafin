@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Eye, EyeOff, UserPlus, Building2 } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, Building2, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -26,7 +26,27 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [registrationEnabled, setRegistrationEnabled] = useState(true);
+  const [checkingRegistration, setCheckingRegistration] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    checkRegistrationStatus();
+  }, []);
+
+  const checkRegistrationStatus = async () => {
+    try {
+      const response = await fetch('/api/config/registration-status');
+      const data = await response.json();
+      setRegistrationEnabled(data.registrationEnabled);
+    } catch (error) {
+      console.error('Error checking registration status:', error);
+      // En caso de error, permitir el registro por defecto
+      setRegistrationEnabled(true);
+    } finally {
+      setCheckingRegistration(false);
+    }
+  };
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -97,42 +117,101 @@ export default function RegisterPage() {
     }
   };
 
+  if (checkingRegistration) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando disponibilidad del registro...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Hero Section */}
-      <div className="lg:flex-1 bg-gradient-to-br from-indigo-600 via-purple-700 to-blue-800 flex flex-col justify-center px-8 lg:px-12 py-12">
+      <div className="lg:flex-1 bg-gradient-to-br from-indigo-600 via-purple-700 to-blue-800 flex flex-col justify-center px-8 lg:px-12 py-12 relative">
+        {/* Botón volver */}
+        <Link 
+          href="/auth/login"
+          className="absolute top-6 left-6 flex items-center gap-2 text-indigo-100 hover:text-white transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Volver al login</span>
+        </Link>
+
         <div className="max-w-md mx-auto text-white">
           <div className="flex items-center gap-3 mb-8">
             <Building2 className="w-10 h-10" />
             <h1 className="text-3xl font-bold">EscalaFin</h1>
           </div>
           <h2 className="text-2xl font-semibold mb-4">
-            Únete a EscalaFin
+            {registrationEnabled ? 'Únete a EscalaFin' : 'Registro Temporalmente Deshabilitado'}
           </h2>
           <p className="text-blue-100 text-lg leading-relaxed">
-            Crea tu cuenta y accede a la plataforma de gestión financiera más completa. 
-            Administra préstamos, gestiona clientes y optimiza tu flujo de trabajo.
+            {registrationEnabled 
+              ? 'Crea tu cuenta y accede a la plataforma de gestión financiera más completa. Administra préstamos, gestiona clientes y optimiza tu flujo de trabajo.'
+              : 'El registro de nuevos usuarios está temporalmente deshabilitado. Si necesitas acceso a la plataforma, contacta al administrador del sistema.'
+            }
           </p>
-          <div className="mt-8 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
-              <span className="text-blue-100">Acceso inmediato a la plataforma</span>
+          {registrationEnabled && (
+            <div className="mt-8 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                <span className="text-blue-100">Acceso inmediato a la plataforma</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                <span className="text-blue-100">Herramientas avanzadas de gestión</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
+                <span className="text-blue-100">Reportes y análisis en tiempo real</span>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
-              <span className="text-blue-100">Herramientas avanzadas de gestión</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
-              <span className="text-blue-100">Reportes y análisis en tiempo real</span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Register Form */}
+      {/* Register Form or Disabled Message */}
       <div className="lg:flex-1 flex items-center justify-center px-8 py-12 bg-gray-50">
-        <Card className="w-full max-w-md shadow-lg border-0">
+        {!registrationEnabled ? (
+          <Card className="w-full max-w-md shadow-lg border-0">
+            <CardHeader className="text-center pb-2">
+              <div className="flex justify-center mb-4">
+                <AlertTriangle className="h-12 w-12 text-amber-500" />
+              </div>
+              <CardTitle className="text-xl font-bold text-gray-900">
+                Registro No Disponible
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                El registro está temporalmente deshabilitado
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-sm text-gray-600">
+                El administrador ha deshabilitado temporalmente el registro de nuevos usuarios. 
+                Esta medida es temporal y el registro será habilitado nuevamente pronto.
+              </p>
+              <div className="space-y-3">
+                <Button 
+                  asChild 
+                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                >
+                  <Link href="/auth/login">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Volver al Login
+                  </Link>
+                </Button>
+                <p className="text-xs text-gray-500">
+                  Si necesitas una cuenta, contacta al administrador del sistema.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="w-full max-w-md shadow-lg border-0">
           <CardHeader className="space-y-1 pb-6">
             <CardTitle className="text-2xl font-bold text-center">Crear Cuenta</CardTitle>
             <CardDescription className="text-center text-gray-600">
@@ -273,6 +352,7 @@ export default function RegisterPage() {
             </form>
           </CardContent>
         </Card>
+        )}
       </div>
     </div>
   );
