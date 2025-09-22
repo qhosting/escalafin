@@ -251,24 +251,24 @@ export function DesktopNavbar() {
   // Mostrar loading state mientras se cargan los módulos
   if (loading) {
     return (
-      <nav className="hidden md:flex bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+      <nav className="hidden md:flex bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto w-full px-4">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-8">
               <div className="flex items-center space-x-3">
                 <Building2 className="h-8 w-8 text-primary" />
                 <div>
-                  <span className="text-xl font-bold text-gray-900">EscalaFin</span>
+                  <span className="text-xl font-bold text-gray-900 dark:text-white">EscalaFin</span>
                   <Badge variant="outline" className="ml-2 text-xs">
                     Cargando...
                   </Badge>
                 </div>
               </div>
-              <div className="animate-pulse bg-gray-200 rounded h-8 w-96"></div>
+              <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded h-8 w-96"></div>
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
-              <div className="animate-pulse bg-gray-200 rounded-full h-8 w-8"></div>
+              <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-full h-8 w-8"></div>
             </div>
           </div>
         </div>
@@ -277,15 +277,15 @@ export function DesktopNavbar() {
   }
 
   return (
-    <nav className="hidden md:flex bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+    <nav className="hidden md:flex bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto w-full px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo y Brand */}
           <div className="flex items-center space-x-8">
-            <Link href="/" className="flex items-center space-x-3">
+            <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
               <Building2 className="h-8 w-8 text-primary" />
               <div>
-                <span className="text-xl font-bold text-gray-900">EscalaFin</span>
+                <span className="text-xl font-bold text-gray-900 dark:text-white">EscalaFin</span>
                 <Badge variant="outline" className="ml-2 text-xs">
                   {enabledModulesCount} módulos
                 </Badge>

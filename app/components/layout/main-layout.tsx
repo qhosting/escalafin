@@ -14,24 +14,50 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname();
-  const { data: session } = useSession() || {};
+  const { data: session, status } = useSession() || {};
   
-  // No mostrar layout en páginas de autenticación o si no hay sesión
-  if (NO_LAYOUT_PATHS.includes(pathname) || !session) {
+  // No mostrar layout en páginas de autenticación
+  if (NO_LAYOUT_PATHS.includes(pathname)) {
     return <>{children}</>;
   }
   
+  // Para la landing page ('/'), mostrar siempre el contenido sin layout
+  if (pathname === '/') {
+    return <>{children}</>;
+  }
+  
+  // Loading state solo para rutas protegidas
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Si no hay sesión para rutas protegidas, no mostrar el contenido
+  // (el middleware se encargará de redirigir)
+  if (!session) {
+    return <>{children}</>;
+  }
+  
+  // Layout autenticado con navegación
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Navegación Desktop */}
       <DesktopNavbar />
       
       {/* Navegación Mobile */}
       <MobileSidebar />
       
-      {/* Contenido principal */}
-      <main className="max-w-7xl mx-auto p-4 md:p-6">
-        {children}
+      {/* Contenido principal con padding para compensar navbar fijo */}
+      <main className="pt-0 md:pt-0">
+        <div className="max-w-7xl mx-auto p-4 md:p-6">
+          {children}
+        </div>
       </main>
     </div>
   );
