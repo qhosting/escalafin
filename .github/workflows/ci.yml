@@ -1,5 +1,5 @@
 
-name: CI/CD Pipeline
+name: 🚀 CI/CD Pipeline
 
 on:
   push:
@@ -8,68 +8,60 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  lint-and-test:
+    name: 🧹 Lint & Test
     runs-on: ubuntu-latest
     
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: escalafin_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
         cache: 'yarn'
         cache-dependency-path: app/yarn.lock
-    
-    - name: Install dependencies
-      run: |
-        cd app
-        yarn install --frozen-lockfile
-    
-    - name: Generate Prisma Client
-      run: |
-        cd app
-        yarn prisma generate
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/escalafin_test
-    
-    - name: Run TypeScript Check
-      run: |
-        cd app
-        yarn tsc --noEmit
-    
-    - name: Run Linting
-      run: |
-        cd app
-        yarn lint
-    
-    - name: Build Application
-      run: |
-        cd app
-        yarn build
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/escalafin_test
-        NEXTAUTH_SECRET: test_secret_for_ci_min_32_characters
-        NEXTAUTH_URL: http://localhost:3000
+        
+    - name: 📋 Install dependencies
+      working-directory: ./app
+      run: yarn install --frozen-lockfile
+      
+    - name: 🔍 Run ESLint
+      working-directory: ./app
+      run: yarn lint
+      
+    - name: 🔧 Type check
+      working-directory: ./app
+      run: yarn type-check
+      
+    - name: 🏗️ Build application
+      working-directory: ./app
+      run: yarn build
+      
+    - name: 📊 Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-files
+        path: app/.next/
 
   security-scan:
+    name: 🔒 Security Scan
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
     
-    - name: Run Security Audit
-      run: |
-        cd app
-        npm audit --audit-level=moderate
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔍 Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: 📤 Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
