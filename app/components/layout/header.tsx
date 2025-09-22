@@ -2,19 +2,27 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
-import { Building2, Bell, Settings, LogOut, Menu, X } from 'lucide-react';
+import { Bell, Settings, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ModuleWrapper } from '@/components/ui/module-wrapper';
 import { useModules } from '@/hooks/use-modules';
-import { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 
 export function Header() {
   const { data: session } = useSession() || {};
   const { modules } = useModules();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: '/auth/login' });
@@ -30,157 +38,112 @@ export function Header() {
     }
   };
 
+  const userRole = (session as any)?.user?.role;
   const enabledModulesCount = modules.length;
 
+  const getInitials = (name: string, email: string) => {
+    if (name && name.length > 0) {
+      const names = name.split(' ');
+      if (names.length >= 2) {
+        return `${names[0][0]}${names[1][0]}`.toUpperCase();
+      }
+      return name[0].toUpperCase();
+    }
+    return email[0].toUpperCase();
+  };
+
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
-        {/* Logo and Title */}
+    <header className="hidden md:flex bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
+      <div className="flex items-center justify-between w-full">
+        {/* Información de contexto */}
         <div className="flex items-center space-x-4">
-          <Link href="/" className="flex items-center space-x-3">
-            <Building2 className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">EscalaFin</h1>
-              <p className="text-sm text-gray-500">
-                Sistema de Gestión de Créditos
-              </p>
-            </div>
-          </Link>
-          
-          {/* Module Count Indicator */}
-          <div className="hidden lg:flex items-center space-x-2">
-            <Badge variant="outline" className="text-xs">
-              {enabledModulesCount} módulos activos
-            </Badge>
+          <div>
+            <h1 className="text-lg font-semibold text-gray-900">
+              {userRole === 'ADMIN' ? 'Panel de Administración' : 
+               userRole === 'ASESOR' ? 'Panel de Asesor' : 
+               'Mi Cuenta'}
+            </h1>
+            <p className="text-sm text-gray-500">
+              Sistema de Gestión de Créditos • {enabledModulesCount} módulos activos
+            </p>
           </div>
         </div>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-4">
+        {/* Acciones del header */}
+        <div className="flex items-center space-x-3">
+          {/* Toggle de tema */}
+          <ThemeToggle />
+
+          {/* Notificaciones */}
+          <ModuleWrapper moduleKey="notifications_inapp">
+            <Button variant="outline" size="sm">
+              <Bell className="h-4 w-4 mr-2" />
+              Notificaciones
+            </Button>
+          </ModuleWrapper>
+
+          {/* Menú de usuario */}
           {session?.user && (
-            <>
-              {/* Notifications */}
-              <ModuleWrapper moduleKey="notifications_inapp">
-                <Button variant="outline" size="sm">
-                  <Bell className="h-4 w-4 mr-2" />
-                  Notificaciones
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="text-xs">
+                      {getInitials(session.user.name || '', session.user.email || '')}
+                    </AvatarFallback>
+                  </Avatar>
                 </Button>
-              </ModuleWrapper>
-
-              {/* Admin Settings */}
-              {session.user.role === 'ADMIN' && (
-                <ModuleWrapper moduleKey="system_settings">
-                  <Link href="/admin/modules">
-                    <Button variant="outline" size="sm">
-                      <Settings className="h-4 w-4 mr-2" />
-                      Módulos
-                    </Button>
-                  </Link>
-                </ModuleWrapper>
-              )}
-
-              {/* User Info */}
-              <div className="flex items-center space-x-3">
-                <Badge variant="secondary">
-                  {getRoleDisplayName(session.user.role || '')}
-                </Badge>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">
-                    {session.user.name}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {session.user.email}
-                  </p>
-                </div>
-              </div>
-
-              {/* Sign Out */}
-              <Button onClick={handleSignOut} variant="outline" size="sm">
-                <LogOut className="h-4 w-4 mr-2" />
-                Cerrar Sesión
-              </Button>
-            </>
-          )}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="md:hidden">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-4 w-4" />
-            ) : (
-              <Menu className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden mt-4 border-t pt-4">
-          <div className="space-y-3">
-            {session?.user && (
-              <>
-                {/* User Info */}
-                <div className="flex items-center space-x-3 pb-3 border-b">
-                  <Badge variant="secondary">
-                    {getRoleDisplayName(session.user.role || '')}
-                  </Badge>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {session.user.name}
-                    </p>
-                    <p className="text-xs text-gray-500">
+              </DropdownMenuTrigger>
+              
+              <DropdownMenuContent className="w-64" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium leading-none">
+                        {session.user.name || 'Usuario'}
+                      </p>
+                      <Badge variant="secondary" className="text-xs">
+                        {getRoleDisplayName(userRole || 'USER')}
+                      </Badge>
+                    </div>
+                    <p className="text-xs leading-none text-muted-foreground">
                       {session.user.email}
                     </p>
                   </div>
-                </div>
-
-                {/* Module Count */}
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Módulos activos:</span>
-                  <Badge variant="outline">{enabledModulesCount}</Badge>
-                </div>
-
-                {/* Mobile Actions */}
-                <div className="space-y-2">
-                  <ModuleWrapper moduleKey="notifications_inapp">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <Bell className="h-4 w-4 mr-2" />
-                      Notificaciones
-                    </Button>
+                </DropdownMenuLabel>
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Mi Perfil</span>
+                </DropdownMenuItem>
+                
+                {userRole === 'ADMIN' && (
+                  <ModuleWrapper moduleKey="system_settings">
+                    <Link href="/admin/modules">
+                      <DropdownMenuItem className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Gestionar Módulos</span>
+                      </DropdownMenuItem>
+                    </Link>
                   </ModuleWrapper>
-
-                  {session.user.role === 'ADMIN' && (
-                    <ModuleWrapper moduleKey="system_settings">
-                      <Link href="/admin/modules" className="block">
-                        <Button variant="outline" size="sm" className="w-full justify-start">
-                          <Settings className="h-4 w-4 mr-2" />
-                          Gestionar Módulos
-                        </Button>
-                      </Link>
-                    </ModuleWrapper>
-                  )}
-
-                  <Button 
-                    onClick={handleSignOut} 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Cerrar Sesión
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
+                )}
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem 
+                  className="cursor-pointer text-red-600 dark:text-red-400"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Cerrar Sesión</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
-      )}
+      </div>
     </header>
   );
 }

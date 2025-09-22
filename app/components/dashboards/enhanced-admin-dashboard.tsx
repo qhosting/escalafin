@@ -194,41 +194,8 @@ export function EnhancedAdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Building2 className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">EscalaFin</h1>
-              <p className="text-sm text-gray-500">Panel de Administración</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <ModuleWrapper moduleKey="notifications_inapp">
-              <Button variant="outline" size="sm">
-                <Bell className="h-4 w-4 mr-2" />
-                Notificaciones
-              </Button>
-            </ModuleWrapper>
-            <Badge variant="secondary">Admin</Badge>
-            <span className="text-sm text-gray-600">
-              {session?.user?.name}
-            </span>
-            <Button 
-              onClick={handleSignOut} 
-              variant="outline" 
-              size="sm"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Cerrar Sesión
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+      <div className="space-y-6">
         {/* Welcome Message */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
           <h2 className="text-2xl font-bold mb-2">

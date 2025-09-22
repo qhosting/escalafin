@@ -4,7 +4,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { Toaster } from 'sonner'
-import { HeaderWrapper } from '@/components/layout/header-wrapper'
+import { LayoutProvider } from '@/components/layout/layout-provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -33,18 +33,15 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body className={inter.className}>
         <Providers>
-          <div className="min-h-screen bg-background">
-            <HeaderWrapper />
-            <main className="relative">
-              {children}
-            </main>
-            <Toaster 
-              position="top-right" 
-              richColors 
-              closeButton
-              theme="light"
-            />
-          </div>
+          <LayoutProvider>
+            {children}
+          </LayoutProvider>
+          <Toaster 
+            position="top-right" 
+            richColors 
+            closeButton
+            theme="light"
+          />
         </Providers>
       </body>
     </html>
