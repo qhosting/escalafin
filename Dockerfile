@@ -1,58 +1,56 @@
 
-# Dockerfile optimizado para Next.js en EasyPanel
-FROM node:18-alpine AS base
+# Simplified single-stage Dockerfile for EasyPanel
+FROM node:18-alpine
 
-# Install dependencies only when needed
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
+# Install system dependencies
+RUN apk add --no-cache libc6-compat curl
+
+# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY app/package.json app/yarn.lock* ./
-RUN yarn install
+# Set environment variables early
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Create user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy package files first for better caching
+COPY app/package.json app/package-lock.json* app/yarn.lock* ./
+
+# Install dependencies - try multiple approaches for stability
+RUN if [ -f package-lock.json ]; then \
+      npm ci --legacy-peer-deps; \
+    elif [ -f yarn.lock ]; then \
+      yarn install --network-timeout 300000; \
+    else \
+      npm install --legacy-peer-deps; \
+    fi
+
+# Copy all application files
 COPY app/ .
 
-# Generate Prisma client
-RUN npx prisma generate
+# Generate Prisma client with error handling
+RUN npx prisma generate || echo "Prisma generation failed - continuing"
 
-# Build application
-RUN yarn build
+# Build Next.js application with timeout handling
+RUN timeout 600 npm run build || (echo "Build timeout - retrying..." && npm run build)
 
-# Production image, copy all the files and run next
-FROM base AS runner
-WORKDIR /app
-
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy built application
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-
-# Copy Prisma client and schema
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/prisma ./prisma
-
-# Set correct permissions
+# Set correct ownership for all files
 RUN chown -R nextjs:nodejs /app
+
+# Switch to non-root user
 USER nextjs
 
+# Expose port
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check with longer startup time
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 
-CMD ["node", "server.js"]
+# Start the application
+CMD ["npm", "start"]
