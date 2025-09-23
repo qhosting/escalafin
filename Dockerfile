@@ -1,12 +1,12 @@
 
-# ESCALAFIN MVP - DOCKERFILE v5.0 COPIA MEJORADA
-# SOLUCIÓN ESPECÍFICA para estructura app/ de EscalaFin
+# ESCALAFIN MVP - DOCKERFILE v6.0 SOLUCIÓN DEFINITIVA
+# COPIA DIRECTA desde app/ - Simplificado y robusto
 FROM node:18-alpine
 
 # Labels únicos para invalidar cache
 LABEL maintainer="escalafin-build@2025-09-23"
-LABEL version="5.0-copia-mejorada"
-LABEL build-date="2025-09-23T07:15:00Z"
+LABEL version="6.0-solucion-definitiva"
+LABEL build-date="2025-09-23T15:50:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -28,52 +28,22 @@ ENV HOSTNAME=0.0.0.0
 RUN addgroup -g 1001 -S nodejs && \
     adduser -u 1001 -S nextjs -G nodejs
 
-# Copiar todos los archivos del contexto
-COPY . /tmp/source
+# SOLUCIÓN DIRECTA: Copiar específicamente el directorio app/
+COPY app/ /app/
 
-# ESTRATEGIA MEJORADA: Copia robusta desde app/
-RUN echo "=== DEBUGGING BUILD CONTEXT ===" && \
-    echo "Contenido de /tmp/source:" && \
-    ls -la /tmp/source/ && \
-    echo "" && \
-    if [ -d "/tmp/source/app" ]; then \
-      echo "=== ENCONTRADO: /tmp/source/app ===" && \
-      echo "Contenido de /tmp/source/app/:" && \
-      ls -la /tmp/source/app/ && \
-      echo "" && \
-      echo "=== COPIANDO ARCHIVOS ===" && \
-      cp -rv /tmp/source/app/* /app/ 2>/dev/null || echo "Error copiando archivos visibles" && \
-      cp -rv /tmp/source/app/.* /app/ 2>/dev/null || echo "Error copiando archivos ocultos (normal)" && \
-      echo "=== COPIA COMPLETADA ===" && \
-      ls -la /app/ && \
-      echo "" && \
-      echo "=== BUSCANDO package.json ===" && \
-      find /app -name "package.json" -type f && \
-      ls -la /app/package.json 2>/dev/null || echo "package.json no encontrado en /app/" \
-    ; elif [ -f "/tmp/source/package.json" ]; then \
-      echo "=== CONTEXTO DIRECTO ===" && \
-      cp -rv /tmp/source/* /app/ && \
-      cp -rv /tmp/source/.* /app/ 2>/dev/null || true \
-    ; else \
-      echo "=== ERROR: CONFIGURACIÓN NO VÁLIDA ===" && \
-      exit 1 \
-    ; fi
-
-# Limpiar directorio temporal
-RUN rm -rf /tmp/source
-
-# VALIDACIÓN ESPECÍFICA: Buscar package.json
-RUN echo "=== VALIDACIÓN FINAL ===" && \
-    echo "Archivos en /app/:" && \
+# VALIDACIÓN CRÍTICA: Verificar package.json
+RUN echo "=== DOCKERFILE v6.0 - VALIDACIÓN ===" && \
+    echo "Archivos copiados a /app/:" && \
     ls -la /app/ && \
     echo "" && \
     if [ -f "/app/package.json" ]; then \
-      echo "✅ package.json encontrado en /app/package.json" && \
-      head -5 /app/package.json; \
+      echo "✅ package.json encontrado correctamente" && \
+      echo "Contenido (primeras 10 líneas):" && \
+      head -10 /app/package.json; \
     else \
-      echo "❌ package.json NO encontrado" && \
-      echo "Buscando en subdirectorios:" && \
-      find /app -name "package.json" -type f 2>/dev/null || echo "No se encontró package.json en ninguna parte" && \
+      echo "❌ CRÍTICO: package.json no encontrado" && \
+      echo "Estructura completa:" && \
+      find /app -type f -name "*.json" | head -5 && \
       exit 1; \
     fi
 
