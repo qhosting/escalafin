@@ -1,12 +1,12 @@
 
-# ESCALAFIN MVP - DOCKERFILE v6.5 BUILD FORZADO
-# SOLUCION: Build simplificado que debe generar .next exitoso
+# ESCALAFIN MVP - DOCKERFILE v6.6 CAPTURA COMPLETA ERROR
+# DEBUG TOTAL: Dividir build en pasos para capturar error específico
 FROM node:18-alpine
 
 # Labels únicos para invalidar cache
 LABEL maintainer="escalafin-build@2025-09-23"  
-LABEL version="6.5-build-forzado"
-LABEL build-date="2025-09-23T16:30:00Z"
+LABEL version="6.6-debug-completo"
+LABEL build-date="2025-09-23T17:00:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -95,19 +95,37 @@ ENV WHATSAPP_ACCESS_TOKEN="placeholder"
 ENV NEXT_DIST_DIR=".next"
 ENV NEXT_OUTPUT_MODE=""
 
-# Build simplificado con validación
-RUN echo "=== CONSTRUYENDO NEXT.JS SIMPLIFICADO ===" && \
-    echo "Archivos antes del build:" && \
-    ls -la && \
-    echo "Scripts disponibles:" && \
-    npm run --silent 2>/dev/null || echo "Scripts: dev, build, start, lint" && \
-    echo "Iniciando build Next.js..." && \
-    npm run build && \
-    echo "✅ BUILD COMPLETADO - Verificando resultado:" && \
+# PASO 1: Verificación pre-build
+RUN echo "=== PASO 1: PRE-BUILD ===" && \
+    pwd && \
+    echo "Archivos principales:" && \
+    ls -la
+
+# PASO 2: Verificar scripts de package.json  
+RUN echo "=== PASO 2: SCRIPTS ===" && \
+    cat package.json | grep -A 5 '"scripts"' && \
+    echo "Node version:" && node --version && \
+    echo "NPM version:" && npm --version
+
+# PASO 3: Build con captura completa de error
+RUN echo "=== PASO 3: BUILD NEXT.JS ===" && \
+    echo "Iniciando npm run build..." && \
+    npm run build 2>&1 | tee /tmp/build-output.txt || \
+    (echo "❌ BUILD FALLÓ - MOSTRANDO ERROR COMPLETO:" && \
+     echo "=== SALIDA COMPLETA DEL BUILD ===" && \
+     cat /tmp/build-output.txt && \
+     echo "=== FIN DE SALIDA DEL BUILD ===" && \
+     echo "Archivos TypeScript:" && \
+     find . -name "*.ts" -o -name "*.tsx" | head -5 && \
+     echo "package.json dependencies:" && \
+     cat package.json | grep -A 20 '"dependencies"' && \
+     exit 1)
+
+# PASO 4: Verificar resultado
+RUN echo "=== PASO 4: VERIFICACIÓN .NEXT ===" && \
     ls -la .next/ && \
-    echo "Archivos en .next:" && \
-    find .next -name "*.js" -o -name "*.json" | head -10 && \
-    echo "✅ BUILD EXITOSO"
+    echo "Contenido .next/:" && \
+    find .next -type f | head -10
 
 # Limpiar dependencias de desarrollo después del build
 RUN echo "=== LIMPIEZA POST-BUILD ===" && \
