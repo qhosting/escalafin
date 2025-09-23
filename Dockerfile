@@ -1,12 +1,12 @@
 
-# ESCALAFIN MVP - DOCKERFILE v6.4 VERBOSE DEBUG
-# COPIA DIRECTA + Debug completo para identificar error exacto
+# ESCALAFIN MVP - DOCKERFILE v6.5 BUILD FORZADO
+# SOLUCION: Build simplificado que debe generar .next exitoso
 FROM node:18-alpine
 
 # Labels únicos para invalidar cache
-LABEL maintainer="escalafin-build@2025-09-23"
-LABEL version="6.4-verbose-debug"
-LABEL build-date="2025-09-23T16:20:00Z"
+LABEL maintainer="escalafin-build@2025-09-23"  
+LABEL version="6.5-build-forzado"
+LABEL build-date="2025-09-23T16:30:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -91,38 +91,23 @@ ENV OPENPAY_MERCHANT_ID="placeholder"
 ENV OPENPAY_BASE_URL="https://sandbox-api.openpay.mx"
 ENV WHATSAPP_INSTANCE_ID="placeholder"
 ENV WHATSAPP_ACCESS_TOKEN="placeholder"
+# Fix next.config.js problemas
+ENV NEXT_DIST_DIR=".next"
+ENV NEXT_OUTPUT_MODE=""
 
-# Verificar archivos antes del build
-RUN echo "=== PRE-BUILD VERIFICACIÓN ===" && \
-    echo "Archivos principales:" && \
+# Build simplificado con validación
+RUN echo "=== CONSTRUYENDO NEXT.JS SIMPLIFICADO ===" && \
+    echo "Archivos antes del build:" && \
     ls -la && \
-    echo "Package.json scripts:" && \
-    cat package.json | grep -A 10 '"scripts"' || echo "No scripts found" && \
-    echo "Next.js config:" && \
-    ls -la next.config.* 2>/dev/null || echo "No next.config encontrado" && \
-    echo "Dependencias instaladas:" && \
-    ls node_modules/ | wc -l && echo "paquetes en node_modules"
-
-# Construir aplicación Next.js con máximo detalle de debug
-RUN echo "=== CONSTRUYENDO NEXT.JS ===" && \
-    echo "Variables de entorno para build:" && \
-    echo "NODE_ENV=$NODE_ENV" && \
-    echo "NEXT_TELEMETRY_DISABLED=$NEXT_TELEMETRY_DISABLED" && \
-    echo "SKIP_ENV_VALIDATION=$SKIP_ENV_VALIDATION" && \
-    echo "=== INICIANDO BUILD VERBOSE ===" && \
-    npm run build --verbose 2>&1 | tee /tmp/build.log || \
-    (echo "❌ BUILD FALLÓ - ANÁLISIS COMPLETO:" && \
-     echo "=== ÚLTIMAS 50 LÍNEAS DEL BUILD ===" && \
-     tail -n 50 /tmp/build.log 2>/dev/null || echo "No hay log de build" && \
-     echo "=== VERIFICANDO TYPESCRIPT ===" && \
-     npx tsc --noEmit --skipLibCheck 2>&1 | head -20 || echo "TypeScript check falló" && \
-     echo "=== VERIFICANDO NEXT.JS CONFIG ===" && \
-     node -e "try { require('./next.config.js'); console.log('Config OK'); } catch(e) { console.log('Config Error:', e.message); }" 2>&1 && \
-     echo "=== CONTENIDO ACTUAL ===" && \
-     find . -maxdepth 2 -type f -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" | head -10 && \
-     echo "=== ERROR LOGS ===" && \
-     find . -name "*.log" -type f -exec tail -10 {} \; 2>/dev/null || echo "No error logs" && \
-     exit 1)
+    echo "Scripts disponibles:" && \
+    npm run --silent 2>/dev/null || echo "Scripts: dev, build, start, lint" && \
+    echo "Iniciando build Next.js..." && \
+    npm run build && \
+    echo "✅ BUILD COMPLETADO - Verificando resultado:" && \
+    ls -la .next/ && \
+    echo "Archivos en .next:" && \
+    find .next -name "*.js" -o -name "*.json" | head -10 && \
+    echo "✅ BUILD EXITOSO"
 
 # Limpiar dependencias de desarrollo después del build
 RUN echo "=== LIMPIEZA POST-BUILD ===" && \
