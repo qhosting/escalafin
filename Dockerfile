@@ -1,20 +1,27 @@
 
-# ESCALAFIN MVP - DOCKERFILE v6.1 YARN FIX
-# COPIA DIRECTA desde app/ + Yarn preinstalado
+# ESCALAFIN MVP - DOCKERFILE v6.2 NPM FALLBACK
+# COPIA DIRECTA desde app/ + NPM como respaldo robusto
 FROM node:18-alpine
 
 # Labels únicos para invalidar cache
 LABEL maintainer="escalafin-build@2025-09-23"
-LABEL version="6.1-yarn-fix"
-LABEL build-date="2025-09-23T16:00:00Z"
+LABEL version="6.2-npm-fallback"
+LABEL build-date="2025-09-23T16:05:00Z"
 
-# Instalar dependencias del sistema y yarn
+# Instalar dependencias del sistema
 RUN apk add --no-cache \
     libc6-compat \
     curl \
     git \
-    && rm -rf /var/cache/apk/* \
-    && npm install -g yarn@1.22.19
+    && rm -rf /var/cache/apk/*
+
+# Instalar yarn de forma robusta
+RUN npm install -g yarn@1.22.19 --registry https://registry.npmjs.org/ || \
+    (echo "Fallback: instalando yarn con npm cache clean" && \
+     npm cache clean --force && \
+     npm install -g yarn@1.22.19 --registry https://registry.npmjs.org/) || \
+    (echo "Fallback final: usando npm en lugar de yarn" && \
+     echo "yarn_fallback=true" > /tmp/use_npm)
 
 # Directorio de trabajo  
 WORKDIR /app
@@ -48,19 +55,17 @@ RUN echo "=== DOCKERFILE v6.0 - VALIDACIÓN ===" && \
       exit 1; \
     fi
 
-# Instalar dependencias de producción
+# Instalar dependencias de producción (usando npm)
 RUN echo "=== INSTALACIÓN DE DEPENDENCIAS ===" && \
-    echo "Yarn version: $(yarn --version)" && \
-    if [ -f yarn.lock ]; then \
+    echo "Node version: $(node --version)" && \
+    echo "NPM version: $(npm --version)" && \
+    if [ -f yarn.lock ] && [ -x "$(command -v yarn)" ]; then \
       echo "=== USANDO YARN ===" && \
-      yarn config set network-timeout 600000 && \
+      yarn --version && \
       yarn install --production --network-timeout 600000 --ignore-engines; \
-    elif [ -f package-lock.json ]; then \
-      echo "=== USANDO NPM (lockfile) ===" && \
-      npm ci --only=production --legacy-peer-deps; \
     else \
-      echo "=== USANDO NPM (sin lockfile) ===" && \
-      npm install --only=production --legacy-peer-deps; \
+      echo "=== USANDO NPM ===" && \
+      npm install --only=production --legacy-peer-deps --maxsockets 1; \
     fi
 
 # Generar cliente Prisma si existe
