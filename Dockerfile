@@ -113,7 +113,9 @@ const nextConfig = {
 
 module.exports = nextConfig;
 EOF
-    echo "✅ Next.config.js corregido:" && \
+
+# Verificar next.config.js corregido
+RUN echo "✅ Next.config.js corregido:" && \
     cat next.config.js
 
 # PASO 1: Verificación pre-build
