@@ -1,12 +1,12 @@
 
-# ESCALAFIN MVP - DOCKERFILE v4.0 EASYPANEL FIX
-# SOLUCIÓN DEFINITIVA para error "app/ not found" en EasyPanel
+# ESCALAFIN MVP - DOCKERFILE v5.0 COPIA MEJORADA
+# SOLUCIÓN ESPECÍFICA para estructura app/ de EscalaFin
 FROM node:18-alpine
 
 # Labels únicos para invalidar cache
 LABEL maintainer="escalafin-build@2025-09-23"
-LABEL version="4.0-easypanel-fix"
-LABEL build-date="2025-09-23T06:30:00Z"
+LABEL version="5.0-copia-mejorada"
+LABEL build-date="2025-09-23T07:15:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -28,59 +28,78 @@ ENV HOSTNAME=0.0.0.0
 RUN addgroup -g 1001 -S nodejs && \
     adduser -u 1001 -S nextjs -G nodejs
 
-# ESTRATEGIA MULTI-CONTEXTO: Detectar y copiar archivos automáticamente
-RUN echo "Debugging build context..." && \
-    ls -la && \
-    if [ -d "app" ]; then echo "Found app/ directory"; else echo "No app/ directory found"; fi
-
-# Copiar archivos de la aplicación con detección automática
+# Copiar todos los archivos del contexto
 COPY . /tmp/source
 
-# Mover archivos desde el contexto correcto
-RUN if [ -d "/tmp/source/app" ]; then \
-      echo "Copiando desde /tmp/source/app/ (contexto raíz)" && \
-      cp -r /tmp/source/app/* /app/ && \
-      cp -r /tmp/source/app/.* /app/ 2>/dev/null || true; \
-    elif [ -f "/tmp/source/package.json" ]; then \
-      echo "Copiando desde /tmp/source/ (contexto app)" && \
-      cp -r /tmp/source/* /app/ && \
-      cp -r /tmp/source/.* /app/ 2>/dev/null || true; \
-    else \
-      echo "ERROR: No se encontró configuración válida" && \
-      ls -la /tmp/source && \
-      exit 1; \
-    fi
+# ESTRATEGIA MEJORADA: Copia robusta desde app/
+RUN echo "=== DEBUGGING BUILD CONTEXT ===" && \
+    echo "Contenido de /tmp/source:" && \
+    ls -la /tmp/source/ && \
+    echo "" && \
+    if [ -d "/tmp/source/app" ]; then \
+      echo "=== ENCONTRADO: /tmp/source/app ===" && \
+      echo "Contenido de /tmp/source/app/:" && \
+      ls -la /tmp/source/app/ && \
+      echo "" && \
+      echo "=== COPIANDO ARCHIVOS ===" && \
+      cp -rv /tmp/source/app/* /app/ 2>/dev/null || echo "Error copiando archivos visibles" && \
+      cp -rv /tmp/source/app/.* /app/ 2>/dev/null || echo "Error copiando archivos ocultos (normal)" && \
+      echo "=== COPIA COMPLETADA ===" && \
+      ls -la /app/ && \
+      echo "" && \
+      echo "=== BUSCANDO package.json ===" && \
+      find /app -name "package.json" -type f && \
+      ls -la /app/package.json 2>/dev/null || echo "package.json no encontrado en /app/" \
+    ; elif [ -f "/tmp/source/package.json" ]; then \
+      echo "=== CONTEXTO DIRECTO ===" && \
+      cp -rv /tmp/source/* /app/ && \
+      cp -rv /tmp/source/.* /app/ 2>/dev/null || true \
+    ; else \
+      echo "=== ERROR: CONFIGURACIÓN NO VÁLIDA ===" && \
+      exit 1 \
+    ; fi
 
 # Limpiar directorio temporal
 RUN rm -rf /tmp/source
 
-# Verificar que tenemos los archivos necesarios
-RUN echo "Verificando archivos copiados:" && \
+# VALIDACIÓN ESPECÍFICA: Buscar package.json
+RUN echo "=== VALIDACIÓN FINAL ===" && \
+    echo "Archivos en /app/:" && \
     ls -la /app/ && \
-    if [ ! -f "/app/package.json" ]; then echo "ERROR: package.json no encontrado" && exit 1; fi
+    echo "" && \
+    if [ -f "/app/package.json" ]; then \
+      echo "✅ package.json encontrado en /app/package.json" && \
+      head -5 /app/package.json; \
+    else \
+      echo "❌ package.json NO encontrado" && \
+      echo "Buscando en subdirectorios:" && \
+      find /app -name "package.json" -type f 2>/dev/null || echo "No se encontró package.json en ninguna parte" && \
+      exit 1; \
+    fi
 
 # Instalar dependencias de producción
 RUN if [ -f yarn.lock ]; then \
-      echo "Usando Yarn..." && \
+      echo "=== USANDO YARN ===" && \
       yarn install --production --network-timeout 300000 --frozen-lockfile; \
     elif [ -f package-lock.json ]; then \
-      echo "Usando npm con lockfile..." && \
+      echo "=== USANDO NPM (lockfile) ===" && \
       npm ci --only=production --legacy-peer-deps; \
     else \
-      echo "Usando npm sin lockfile..." && \
+      echo "=== USANDO NPM (sin lockfile) ===" && \
       npm install --only=production --legacy-peer-deps; \
     fi
 
 # Generar cliente Prisma si existe
 RUN if [ -f prisma/schema.prisma ]; then \
-      echo "Generando cliente Prisma..." && \
+      echo "=== GENERANDO CLIENTE PRISMA ===" && \
       npx prisma generate; \
     else \
-      echo "No se encontró schema de Prisma, omitiendo..."; \
+      echo "=== NO HAY SCHEMA PRISMA ===" && \
+      ls -la prisma/ 2>/dev/null || echo "No hay directorio prisma/"; \
     fi
 
 # Construir aplicación Next.js
-RUN echo "Iniciando build de Next.js..." && \
+RUN echo "=== CONSTRUYENDO NEXT.JS ===" && \
     npm run build
 
 # Cambiar propietario de archivos
