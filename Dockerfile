@@ -1,19 +1,20 @@
 
-# ESCALAFIN MVP - DOCKERFILE v6.0 SOLUCIÓN DEFINITIVA
-# COPIA DIRECTA desde app/ - Simplificado y robusto
+# ESCALAFIN MVP - DOCKERFILE v6.1 YARN FIX
+# COPIA DIRECTA desde app/ + Yarn preinstalado
 FROM node:18-alpine
 
 # Labels únicos para invalidar cache
 LABEL maintainer="escalafin-build@2025-09-23"
-LABEL version="6.0-solucion-definitiva"
-LABEL build-date="2025-09-23T15:50:00Z"
+LABEL version="6.1-yarn-fix"
+LABEL build-date="2025-09-23T16:00:00Z"
 
-# Instalar dependencias del sistema
+# Instalar dependencias del sistema y yarn
 RUN apk add --no-cache \
     libc6-compat \
     curl \
     git \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/cache/apk/* \
+    && npm install -g yarn@1.22.19
 
 # Directorio de trabajo  
 WORKDIR /app
@@ -48,9 +49,12 @@ RUN echo "=== DOCKERFILE v6.0 - VALIDACIÓN ===" && \
     fi
 
 # Instalar dependencias de producción
-RUN if [ -f yarn.lock ]; then \
+RUN echo "=== INSTALACIÓN DE DEPENDENCIAS ===" && \
+    echo "Yarn version: $(yarn --version)" && \
+    if [ -f yarn.lock ]; then \
       echo "=== USANDO YARN ===" && \
-      yarn install --production --network-timeout 300000 --frozen-lockfile; \
+      yarn config set network-timeout 600000 && \
+      yarn install --production --network-timeout 600000 --ignore-engines; \
     elif [ -f package-lock.json ]; then \
       echo "=== USANDO NPM (lockfile) ===" && \
       npm ci --only=production --legacy-peer-deps; \
