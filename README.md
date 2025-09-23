@@ -357,3 +357,4 @@ Este proyecto está bajo la Licencia MIT. Ver [`LICENSE`](./LICENSE) para más d
 *EscalaFin © 2025 - Sistema de Gestión de Créditos y Préstamos*
 
 </div>
+# Docker Build Ready - Secrets configurados
