@@ -1,12 +1,12 @@
 
-# ESCALAFIN MVP - DOCKERFILE v6.6 CAPTURA COMPLETA ERROR
-# DEBUG TOTAL: Dividir build en pasos para capturar error específico
+# ESCALAFIN MVP - DOCKERFILE v6.7 FIX NEXT.CONFIG
+# SOLUCION: Eliminar variables ENV que causan warning next.config.js
 FROM node:18-alpine
 
 # Labels únicos para invalidar cache
 LABEL maintainer="escalafin-build@2025-09-23"  
-LABEL version="6.6-debug-completo"
-LABEL build-date="2025-09-23T17:00:00Z"
+LABEL version="6.7-next-config-fix"
+LABEL build-date="2025-09-23T17:10:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -91,9 +91,30 @@ ENV OPENPAY_MERCHANT_ID="placeholder"
 ENV OPENPAY_BASE_URL="https://sandbox-api.openpay.mx"
 ENV WHATSAPP_INSTANCE_ID="placeholder"
 ENV WHATSAPP_ACCESS_TOKEN="placeholder"
-# Fix next.config.js problemas
-ENV NEXT_DIST_DIR=".next"
-ENV NEXT_OUTPUT_MODE=""
+
+# PASO 0: Fix next.config.js
+RUN echo "=== PASO 0: FIXING NEXT.CONFIG.JS ===" && \
+    echo "Next.config.js original:" && \
+    cat next.config.js && \
+    echo "Creando next.config.js limpio..." && \
+    cat > next.config.js << 'EOF'
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  images: { 
+    unoptimized: true 
+  },
+};
+
+module.exports = nextConfig;
+EOF
+    echo "✅ Next.config.js corregido:"
+    cat next.config.js
 
 # PASO 1: Verificación pre-build
 RUN echo "=== PASO 1: PRE-BUILD ===" && \
