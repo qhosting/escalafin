@@ -1,5 +1,6 @@
 
 # Simplified single-stage Dockerfile for EasyPanel
+# Force rebuild - $(date)
 FROM node:18-alpine
 
 # Install system dependencies
