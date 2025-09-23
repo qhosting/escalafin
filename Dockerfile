@@ -1,12 +1,12 @@
 
-# ESCALAFIN MVP - DOCKERFILE v6.7 FIX NEXT.CONFIG
-# SOLUCION: Eliminar variables ENV que causan warning next.config.js
+# ESCALAFIN MVP - DOCKERFILE v6.8 SINTAXIS FIX
+# CORRECCION: Error sintaxis RUN line 116 - Dockerfile parse error
 FROM node:18-alpine
 
 # Labels únicos para invalidar cache
 LABEL maintainer="escalafin-build@2025-09-23"  
-LABEL version="6.7-next-config-fix"
-LABEL build-date="2025-09-23T17:10:00Z"
+LABEL version="6.8-sintaxis-fix"
+LABEL build-date="2025-09-23T17:25:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -113,7 +113,7 @@ const nextConfig = {
 
 module.exports = nextConfig;
 EOF
-    echo "✅ Next.config.js corregido:"
+    echo "✅ Next.config.js corregido:" && \
     cat next.config.js
 
 # PASO 1: Verificación pre-build
