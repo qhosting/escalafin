@@ -1,12 +1,12 @@
 
-# ESCALAFIN MVP - DOCKERFILE v6.2 NPM FALLBACK
-# COPIA DIRECTA desde app/ + NPM como respaldo robusto
+# ESCALAFIN MVP - DOCKERFILE v6.3 BUILD FIX
+# COPIA DIRECTA + Full dependencies para Next.js build exitoso
 FROM node:18-alpine
 
 # Labels únicos para invalidar cache
 LABEL maintainer="escalafin-build@2025-09-23"
-LABEL version="6.2-npm-fallback"
-LABEL build-date="2025-09-23T16:05:00Z"
+LABEL version="6.3-build-fix"
+LABEL build-date="2025-09-23T16:15:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -55,17 +55,17 @@ RUN echo "=== DOCKERFILE v6.0 - VALIDACIÓN ===" && \
       exit 1; \
     fi
 
-# Instalar dependencias de producción (usando npm)
+# Instalar TODAS las dependencias (incluyendo dev para build)
 RUN echo "=== INSTALACIÓN DE DEPENDENCIAS ===" && \
     echo "Node version: $(node --version)" && \
     echo "NPM version: $(npm --version)" && \
     if [ -f yarn.lock ] && [ -x "$(command -v yarn)" ]; then \
-      echo "=== USANDO YARN ===" && \
+      echo "=== USANDO YARN (FULL INSTALL) ===" && \
       yarn --version && \
-      yarn install --production --network-timeout 600000 --ignore-engines; \
+      yarn install --network-timeout 600000 --ignore-engines; \
     else \
-      echo "=== USANDO NPM ===" && \
-      npm install --only=production --legacy-peer-deps --maxsockets 1; \
+      echo "=== USANDO NPM (FULL INSTALL) ===" && \
+      npm install --legacy-peer-deps --maxsockets 1; \
     fi
 
 # Generar cliente Prisma si existe
@@ -77,9 +77,40 @@ RUN if [ -f prisma/schema.prisma ]; then \
       ls -la prisma/ 2>/dev/null || echo "No hay directorio prisma/"; \
     fi
 
-# Construir aplicación Next.js
+# Variables de entorno necesarias para el build
+ENV SKIP_ENV_VALIDATION=true
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+# Construir aplicación Next.js con manejo de errores mejorado
 RUN echo "=== CONSTRUYENDO NEXT.JS ===" && \
-    npm run build
+    echo "Variables de entorno para build:" && \
+    echo "NODE_ENV=$NODE_ENV" && \
+    echo "NEXT_TELEMETRY_DISABLED=$NEXT_TELEMETRY_DISABLED" && \
+    echo "SKIP_ENV_VALIDATION=$SKIP_ENV_VALIDATION" && \
+    echo "Iniciando build..." && \
+    npm run build 2>&1 || \
+    (echo "❌ BUILD FALLÓ - Información de debug:" && \
+     echo "Contenido de .next/:" && \
+     ls -la .next/ 2>/dev/null || echo "Directorio .next/ no existe" && \
+     echo "Logs de build disponibles:" && \
+     find . -name "*.log" -type f 2>/dev/null | head -3 && \
+     echo "Verificando configuración Next.js:" && \
+     ls -la next.config.* 2>/dev/null || echo "No hay next.config" && \
+     exit 1)
+
+# Limpiar dependencias de desarrollo después del build
+RUN echo "=== LIMPIEZA POST-BUILD ===" && \
+    if [ -f yarn.lock ] && [ -x "$(command -v yarn)" ]; then \
+      echo "=== LIMPIANDO CON YARN ===" && \
+      yarn install --production --network-timeout 600000 --ignore-engines; \
+    else \
+      echo "=== LIMPIANDO CON NPM ===" && \
+      npm prune --production; \
+    fi && \
+    echo "=== LIMPIEZA DE CACHE ===" && \
+    npm cache clean --force 2>/dev/null || true && \
+    rm -rf /tmp/* /var/tmp/* ~/.npm ~/.yarn-cache 2>/dev/null || true
 
 # Cambiar propietario de archivos
 RUN chown -R nextjs:nodejs /app
