@@ -2,7 +2,8 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Building2, LogIn, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -12,6 +13,8 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const router = useRouter();
+  const { data: session } = useSession();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +35,11 @@ export function LoginForm() {
       }
 
       if (result?.ok) {
-        // Redirigir al dashboard apropiado después del login
-        window.location.href = '/';
+        // Pequeña espera para que NextAuth actualice la sesión
+        setTimeout(() => {
+          // La página principal se encargará de redirigir al dashboard correcto
+          router.push('/');
+        }, 100);
       }
     } catch (err) {
       setError('Error al iniciar sesión');
