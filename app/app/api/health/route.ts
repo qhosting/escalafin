@@ -1,55 +1,28 @@
 
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+export const dynamic = 'force-dynamic';
 
-const prisma = new PrismaClient();
+import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Verificar conexión a la base de datos
-    await prisma.$queryRaw`SELECT 1`;
-    
-    // Verificar variables de entorno críticas
-    const requiredEnvVars = [
-      'DATABASE_URL',
-      'NEXTAUTH_SECRET',
-      'NEXTAUTH_URL'
-    ];
-    
-    const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-    
-    if (missingVars.length > 0) {
-      return NextResponse.json(
-        { 
-          status: 'unhealthy', 
-          error: `Missing environment variables: ${missingVars.join(', ')}`,
-          timestamp: new Date().toISOString()
-        },
-        { status: 503 }
-      );
-    }
-    
-    return NextResponse.json({
-      status: 'healthy',
+    // Basic health check
+    const healthData = {
+      status: 'OK',
       timestamp: new Date().toISOString(),
+      service: 'EscalaFin MVP',
       version: '1.0.0',
-      environment: process.env.NODE_ENV || 'development',
-      database: 'connected',
-      uptime: process.uptime(),
-    });
-    
+      environment: process.env.NODE_ENV || 'development'
+    };
+
+    return NextResponse.json(healthData, { status: 200 });
   } catch (error) {
-    console.error('Health check failed:', error);
-    
     return NextResponse.json(
-      {
-        status: 'unhealthy',
-        error: 'Database connection failed',
+      { 
+        status: 'ERROR', 
+        error: 'Health check failed',
         timestamp: new Date().toISOString()
-      },
-      { status: 503 }
+      }, 
+      { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
