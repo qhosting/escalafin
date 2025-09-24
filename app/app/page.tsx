@@ -34,26 +34,36 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    console.log('Page useEffect - status:', status, 'session:', session);
+    
     // Solo redirigir si hay una sesión válida y está completamente cargada
     if (status === 'authenticated' && session?.user?.role) {
+      console.log('Authenticated user with role:', session.user.role);
+      
       // Pequeño delay para evitar hydration issues
       const timeoutId = setTimeout(() => {
         switch (session.user.role) {
           case 'ADMIN':
+            console.log('Redirecting to admin dashboard');
             router.replace('/admin/dashboard');
             break;
           case 'ASESOR':
+            console.log('Redirecting to asesor dashboard');
             router.replace('/asesor/dashboard');
             break;
           case 'CLIENTE':
+            console.log('Redirecting to cliente dashboard');
             router.replace('/cliente/dashboard');
             break;
           default:
+            console.log('Unknown role, redirecting to login');
             router.replace('/auth/login');
         }
-      }, 50);
+      }, 100);
 
       return () => clearTimeout(timeoutId);
+    } else if (status === 'unauthenticated') {
+      console.log('User is not authenticated');
     }
   }, [session, status, router]);
 

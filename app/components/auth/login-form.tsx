@@ -22,26 +22,35 @@ export function LoginForm() {
     setError('');
 
     try {
+      console.log('Attempting login with email:', email);
+      
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
+        callbackUrl: '/',
       });
 
+      console.log('Login result:', result);
+
       if (result?.error) {
+        console.error('Login error:', result.error);
         setError('Credenciales incorrectas');
         setLoading(false);
         return;
       }
 
       if (result?.ok) {
-        // Pequeña espera para que NextAuth actualice la sesión
-        setTimeout(() => {
-          // La página principal se encargará de redirigir al dashboard correcto
-          router.push('/');
-        }, 100);
+        console.log('Login successful, redirecting...');
+        
+        // Refrescar la sesión antes de redirigir
+        window.location.href = '/';
+      } else {
+        setError('Error desconocido durante el login');
+        setLoading(false);
       }
     } catch (err) {
+      console.error('Login exception:', err);
       setError('Error al iniciar sesión');
       setLoading(false);
     }
