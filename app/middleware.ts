@@ -15,7 +15,8 @@ export default withAuth(
           pathname.startsWith('/auth/') ||
           pathname === '/' ||
           pathname.startsWith('/api/auth/') ||
-          pathname.startsWith('/api/signup')
+          pathname.startsWith('/api/signup') ||
+          pathname.startsWith('/api/') // Permitir que todas las APIs manejen su propia autenticación
         ) {
           return true;
         }
