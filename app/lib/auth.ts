@@ -15,7 +15,10 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
+        console.log('🔍 NextAuth authorize llamado con:', { email: credentials?.email });
+        
         if (!credentials?.email || !credentials?.password) {
+          console.log('❌ Credenciales faltantes');
           return null;
         }
 
@@ -27,18 +30,27 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!user || !user.password) {
+            console.log('❌ Usuario no encontrado o sin password');
             return null;
           }
 
           const passwordMatch = await bcrypt.compare(credentials.password, user.password);
 
           if (!passwordMatch) {
+            console.log('❌ Password no coincide');
             return null;
           }
 
           if (user.status !== 'ACTIVE') {
+            console.log('❌ Usuario no activo:', user.status);
             return null;
           }
+
+          console.log('✅ Usuario autenticado exitosamente:', { 
+            id: user.id, 
+            email: user.email, 
+            role: user.role 
+          });
 
           return {
             id: user.id,
@@ -47,7 +59,7 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
           };
         } catch (error) {
-          console.error('Auth error:', error);
+          console.error('💥 Auth error:', error);
           return null;
         }
       },
@@ -74,9 +86,9 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/login',
   },
-  debug: process.env.NODE_ENV === 'development',
+  debug: true, // Siempre debug para diagnosticar
   secret: process.env.NEXTAUTH_SECRET,
-  useSecureCookies: process.env.NODE_ENV === 'production',
+  useSecureCookies: false, // Deshabilitar cookies seguras para desarrollo
   cookies: {
     sessionToken: {
       name: 'next-auth.session-token',
@@ -84,7 +96,7 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // No usar cookies seguras en desarrollo
       },
     },
   },

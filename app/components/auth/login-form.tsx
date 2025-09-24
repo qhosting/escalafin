@@ -2,21 +2,25 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Building2, LogIn, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@escalafin.com');
+  const [password, setPassword] = useState('admin123');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    console.log('🔄 Iniciando login con:', { email });
 
     try {
       const result = await signIn('credentials', {
@@ -25,17 +29,43 @@ export function LoginForm() {
         redirect: false,
       });
 
+      console.log('📊 Resultado de signIn:', result);
+
       if (result?.error) {
+        console.error('❌ Error de login:', result.error);
         setError('Credenciales incorrectas');
         setLoading(false);
         return;
       }
 
       if (result?.ok) {
-        // Redirigir al dashboard apropiado después del login
-        window.location.href = '/';
+        console.log('✅ Login exitoso, verificando sesión...');
+        
+        // Verificar que la sesión se creó correctamente
+        const session = await getSession();
+        console.log('📊 Sesión creada:', session);
+        
+        if (session?.user?.role === 'ADMIN') {
+          console.log('🔄 Redirigiendo a admin dashboard...');
+          router.push('/admin/dashboard');
+        } else if (session?.user?.role === 'ASESOR') {
+          console.log('🔄 Redirigiendo a asesor dashboard...');
+          router.push('/asesor/dashboard');  
+        } else if (session?.user?.role === 'CLIENTE') {
+          console.log('🔄 Redirigiendo a cliente dashboard...');
+          router.push('/cliente/dashboard');
+        } else {
+          console.log('🔄 Redirigiendo a dashboard genérico...');
+          router.push('/');
+        }
+        return;
+      } else {
+        console.log('⚠️ Login sin error pero no ok:', result);
+        setError('Error inesperado en el login');
+        setLoading(false);
       }
     } catch (err) {
+      console.error('💥 Excepción durante el login:', err);
       setError('Error al iniciar sesión');
       setLoading(false);
     }
