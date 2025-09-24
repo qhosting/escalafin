@@ -133,13 +133,15 @@ export function DesktopNavbar() {
       {
         title: userRole === 'CLIENTE' ? 'Mis Préstamos' : 'Lista de Préstamos',
         icon: CreditCard,
-        href: userRole === 'CLIENTE' ? '/cliente/loans' : '/loans',
+        href: userRole === 'CLIENTE' ? '/cliente/loans' : 
+              userRole === 'ADMIN' ? '/admin/loans' : '/loans',
         moduleKey: 'loan_list'
       },
       {
         title: 'Solicitudes de Crédito',
         icon: ClipboardList,
-        href: userRole === 'CLIENTE' ? '/cliente/credit-applications' : '/credit-applications',
+        href: userRole === 'CLIENTE' ? '/cliente/credit-applications' : 
+              userRole === 'ADMIN' ? '/admin/credit-applications' : '/credit-applications',
         moduleKey: 'credit_workflow'
       }
     ],
@@ -147,23 +149,17 @@ export function DesktopNavbar() {
       {
         title: userRole === 'CLIENTE' ? 'Mis Pagos' : 'Historial de Pagos',
         icon: DollarSign,
-        href: userRole === 'CLIENTE' ? '/cliente/payments' : '/payments',
+        href: userRole === 'CLIENTE' ? '/cliente/payments' : 
+              userRole === 'ADMIN' ? '/admin/payments' : '/payments',
         moduleKey: 'payment_history'
       }
     ],
     'Reportes': [
       {
-        title: 'Portfolio',
-        icon: TrendingUp,
-        href: '/reports/portfolio',
+        title: 'Reportes',
+        icon: FileText,
+        href: userRole === 'ADMIN' ? '/admin/reports' : '/reports',
         moduleKey: 'report_portfolio',
-        roles: ['ADMIN', 'ASESOR']
-      },
-      {
-        title: 'Cobranza',
-        icon: Phone,
-        href: '/reports/collections',
-        moduleKey: 'report_collections',
         roles: ['ADMIN', 'ASESOR']
       },
       {
@@ -176,7 +172,7 @@ export function DesktopNavbar() {
       {
         title: 'Archivos',
         icon: FileText,
-        href: '/files',
+        href: '/admin/files',
         moduleKey: 'file_management',
         roles: ['ADMIN', 'ASESOR']
       }
@@ -185,7 +181,7 @@ export function DesktopNavbar() {
       {
         title: 'WhatsApp',
         icon: MessageSquare,
-        href: '/whatsapp',
+        href: '/admin/whatsapp/messages',
         moduleKey: 'whatsapp_notifications',
         roles: ['ADMIN', 'ASESOR']
       },
