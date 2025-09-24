@@ -1,0 +1,36 @@
+
+{
+  "name": "escalafin-mvp",
+  "description": "Sistema de Gestión de Créditos EscalaFin",
+  "type": "docker-compose",
+  "compose_file": "docker-compose.coolify.yml",
+  "domains": ["escalafin.com", "www.escalafin.com"],
+  "environment": {
+    "production": true,
+    "auto_deploy": true,
+    "health_check": "/api/health"
+  },
+  "services": {
+    "app": {
+      "type": "application",
+      "port": 3000,
+      "health_check": "/api/health",
+      "cpu": "1000m",
+      "memory": "1Gi"
+    },
+    "db": {
+      "type": "database",
+      "image": "postgres:14-alpine",
+      "persistent_storage": ["postgres_data"],
+      "cpu": "500m",
+      "memory": "512Mi"
+    },
+    "redis": {
+      "type": "cache",
+      "image": "redis:7-alpine",
+      "persistent_storage": ["redis_data"],
+      "cpu": "200m",
+      "memory": "256Mi"
+    }
+  }
+}
