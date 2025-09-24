@@ -9,22 +9,20 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-// NextAuth Schema
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -45,7 +43,501 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// User Management
+model User {
+  id                         String                 @id @default(cuid())
+  email                      String                 @unique
+  password                   String?
+  firstName                  String
+  lastName                   String
+  phone                      String?
+  role                       UserRole               @default(CLIENTE)
+  status                     UserStatus             @default(ACTIVE)
+  createdAt                  DateTime               @default(now())
+  updatedAt                  DateTime               @updatedAt
+  emailVerified              DateTime?
+  accounts                   Account[]
+  sessions                   Session[]
+  auditLogs                  AuditLog[]             @relation("AuditLogs")
+  cashCollections            CashCollection[]       @relation("CashCollector")
+  clientsAssigned            Client[]               @relation("AsesorClients")
+  clientProfile              Client?                @relation("UserClient")
+  creditApplicationsCreated  CreditApplication[]    @relation("CreatedByAsesor")
+  creditApplicationsReviewed CreditApplication[]    @relation("ReviewedByAdmin")
+  files                      FileUpload[]           @relation("UserFiles")
+  verifiedFiles              FileUpload[]           @relation("VerifiedFiles")
+  filesUploaded              File[]                 @relation("UserDualFiles")
+  moduleChangeLogs           ModuleChangeLog[]      @relation("ModuleChangeLogs")
+  rolePermissionUpdates      ModuleRolePermission[] @relation("RolePermissionUpdates")
+  notifications              Notification[]         @relation("UserNotifications")
+  paymentsProcessed          Payment[]              @relation("ProcessedBy")
+  moduleUpdates              PWAModule[]            @relation("ModuleUpdates")
+  generatedReports           ReportGeneration[]     @relation("GeneratedReports")
+  configUpdates              SystemConfig[]         @relation("ConfigUpdates")
+
+  @@map("users")
+}
+
+model Client {
+  id                           String              @id @default(cuid())
+  userId                       String?             @unique
+  firstName                    String
+  lastName                     String
+  email                        String?             @unique
+  phone                        String
+  dateOfBirth                  DateTime?
+  address                      String?
+  city                         String?
+  state                        String?
+  postalCode                   String?
+  monthlyIncome                Decimal?            @db.Decimal(12, 2)
+  employmentType               EmploymentType?
+  employerName                 String?
+  workAddress                  String?
+  yearsEmployed                Int?
+  creditScore                  Int?
+  bankName                     String?
+  accountNumber                String?
+  status                       ClientStatus        @default(ACTIVE)
+  asesorId                     String?
+  createdAt                    DateTime            @default(now())
+  updatedAt                    DateTime            @updatedAt
+  migratedFrom                 String?
+  migrationDate                DateTime?
+  initialBalance               Decimal?            @db.Decimal(12, 2)
+  lastPaymentDate              DateTime?
+  notes                        String?
+  whatsappNotificationsEnabled Boolean             @default(true)
+  whatsappPaymentReceived      Boolean             @default(true)
+  whatsappPaymentReminder      Boolean             @default(true)
+  whatsappLoanUpdates          Boolean             @default(true)
+  whatsappMarketingMessages    Boolean             @default(false)
+  asesor                       User?               @relation("AsesorClients", fields: [asesorId], references: [id])
+  user                         User?               @relation("UserClient", fields: [userId], references: [id])
+  creditApplications           CreditApplication[]
+  creditScores                 CreditScore[]       @relation("ClientScoring")
+  files                        FileUpload[]        @relation("ClientFiles")
+  dualFiles                    File[]              @relation("ClientDualFiles")
+  loans                        Loan[]
+  personalReferences           PersonalReference[] @relation("ClientReferences")
+  whatsappMessages             WhatsAppMessage[]   @relation("ClientMessages")
+
+  @@map("clients")
+}
+
+model PersonalReference {
+  id                     String                 @id @default(cuid())
+  clientId               String
+  fullName               String
+  relationship           RelationshipType
+  relationshipOther      String?
+  phone                  String
+  address                String?
+  notificationPreference NotificationPreference @default(WHATSAPP)
+  isActive               Boolean                @default(true)
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  client                 Client                 @relation("ClientReferences", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("personal_references")
+}
+
+model CreditApplication {
+  id              String            @id @default(cuid())
+  clientId        String
+  asesorId        String
+  loanType        LoanType
+  requestedAmount Decimal           @db.Decimal(12, 2)
+  requestedTerm   Int
+  purpose         String
+  status          ApplicationStatus @default(PENDING)
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  reviewComments  String?
+  approvedAmount  Decimal?          @db.Decimal(12, 2)
+  approvedTerm    Int?
+  interestRate    Decimal?          @db.Decimal(5, 4)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdBy       User              @relation("CreatedByAsesor", fields: [asesorId], references: [id])
+  client          Client            @relation(fields: [clientId], references: [id])
+  reviewedByUser  User?             @relation("ReviewedByAdmin", fields: [reviewedBy], references: [id])
+  creditScores    CreditScore[]     @relation("ApplicationScoring")
+  loan            Loan?
+
+  @@map("credit_applications")
+}
+
+model Loan {
+  id                   String                 @id @default(cuid())
+  clientId             String
+  creditApplicationId  String?                @unique
+  loanNumber           String                 @unique
+  loanType             LoanType
+  principalAmount      Decimal                @db.Decimal(12, 2)
+  interestRate         Decimal                @db.Decimal(5, 4)
+  termMonths           Int
+  monthlyPayment       Decimal                @db.Decimal(12, 2)
+  totalAmount          Decimal                @db.Decimal(12, 2)
+  balanceRemaining     Decimal                @db.Decimal(12, 2)
+  status               LoanStatus             @default(ACTIVE)
+  startDate            DateTime
+  endDate              DateTime
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  amortizationSchedule AmortizationSchedule[]
+  creditScores         CreditScore[]          @relation("LoanScoring")
+  files                FileUpload[]           @relation("LoanFiles")
+  client               Client                 @relation(fields: [clientId], references: [id])
+  creditApplication    CreditApplication?     @relation(fields: [creditApplicationId], references: [id])
+  payments             Payment[]
+
+  @@map("loans")
+}
+
+model AmortizationSchedule {
+  id               String   @id @default(cuid())
+  loanId           String
+  paymentNumber    Int
+  paymentDate      DateTime
+  principalPayment Decimal  @db.Decimal(12, 2)
+  interestPayment  Decimal  @db.Decimal(12, 2)
+  totalPayment     Decimal  @db.Decimal(12, 2)
+  remainingBalance Decimal  @db.Decimal(12, 2)
+  isPaid           Boolean  @default(false)
+  loan             Loan     @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  payment          Payment?
+
+  @@unique([loanId, paymentNumber])
+  @@map("amortization_schedule")
+}
+
+model Payment {
+  id                     String                @id @default(cuid())
+  loanId                 String
+  amortizationScheduleId String?               @unique
+  amount                 Decimal               @db.Decimal(12, 2)
+  paymentDate            DateTime
+  paymentMethod          PaymentMethod
+  status                 PaymentStatus         @default(COMPLETED)
+  reference              String?
+  notes                  String?
+  processedBy            String?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  cashCollection         CashCollection?       @relation("CashCollections")
+  transactions           PaymentTransaction[]  @relation("PaymentTransactions")
+  amortizationSchedule   AmortizationSchedule? @relation(fields: [amortizationScheduleId], references: [id])
+  loan                   Loan                  @relation(fields: [loanId], references: [id])
+  processedByUser        User?                 @relation("ProcessedBy", fields: [processedBy], references: [id])
+
+  @@map("payments")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  userEmail  String?
+  action     String
+  resource   String?
+  resourceId String?
+  details    String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   String?
+  timestamp  DateTime @default(now())
+  user       User?    @relation("AuditLogs", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+model CreditScore {
+  id              String                @id @default(cuid())
+  loanId          String?
+  clientId        String?
+  applicationId   String?
+  score           Int
+  risk            RiskLevel
+  recommendation  ScoringRecommendation
+  maxAmount       Decimal?              @db.Decimal(12, 2)
+  recommendedRate Decimal?              @db.Decimal(5, 4)
+  factors         String
+  calculatedAt    DateTime              @default(now())
+  validUntil      DateTime?
+  createdAt       DateTime              @default(now())
+  application     CreditApplication?    @relation("ApplicationScoring", fields: [applicationId], references: [id])
+  client          Client?               @relation("ClientScoring", fields: [clientId], references: [id])
+  loan            Loan?                 @relation("LoanScoring", fields: [loanId], references: [id])
+
+  @@map("credit_scores")
+}
+
+model Notification {
+  id           String              @id @default(cuid())
+  userId       String
+  type         NotificationType
+  channel      NotificationChannel
+  status       NotificationStatus  @default(PENDING)
+  title        String
+  message      String
+  data         String?
+  scheduledFor DateTime?
+  sentAt       DateTime?
+  readAt       DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  user         User                @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([scheduledFor])
+  @@map("notifications")
+}
+
+model FileUpload {
+  id               String       @id @default(cuid())
+  userId           String
+  clientId         String?
+  loanId           String?
+  filename         String
+  originalName     String
+  mimeType         String
+  size             Int
+  category         FileCategory
+  status           FileStatus   @default(UPLOADED)
+  cloudStoragePath String
+  description      String?
+  uploadedAt       DateTime     @default(now())
+  verifiedAt       DateTime?
+  verifiedBy       String?
+  expiresAt        DateTime?
+  client           Client?      @relation("ClientFiles", fields: [clientId], references: [id])
+  loan             Loan?        @relation("LoanFiles", fields: [loanId], references: [id])
+  user             User         @relation("UserFiles", fields: [userId], references: [id], onDelete: Cascade)
+  verifierUser     User?        @relation("VerifiedFiles", fields: [verifiedBy], references: [id])
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([loanId])
+  @@map("file_uploads")
+}
+
+model PaymentTransaction {
+  id                    String                   @id @default(cuid())
+  paymentId             String
+  provider              PaymentProviderType
+  providerTransactionId String?
+  amount                Decimal                  @db.Decimal(12, 2)
+  currency              String                   @default("MXN")
+  status                PaymentTransactionStatus @default(PENDING)
+  providerResponse      String?
+  errorMessage          String?
+  processedAt           DateTime?
+  webhookData           String?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+  payment               Payment                  @relation("PaymentTransactions", fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerTransactionId])
+  @@index([status])
+  @@map("payment_transactions")
+}
+
+model CashCollection {
+  id                String   @id @default(cuid())
+  paymentId         String   @unique
+  collectorId       String
+  collectionMethod  String
+  collectorLocation String
+  photoEvidence     String?
+  deviceInfo        String?
+  collectionNotes   String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  collector         User     @relation("CashCollector", fields: [collectorId], references: [id])
+  payment           Payment  @relation("CashCollections", fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([collectorId])
+  @@index([collectionMethod])
+  @@map("cash_collections")
+}
+
+model SystemConfig {
+  id            String   @id @default(cuid())
+  key           String   @unique
+  value         String
+  description   String?
+  category      String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  updatedBy     String?
+  updatedByUser User?    @relation("ConfigUpdates", fields: [updatedBy], references: [id])
+
+  @@index([category])
+  @@index([key])
+  @@map("system_config")
+}
+
+model ReportGeneration {
+  id          String       @id @default(cuid())
+  userId      String
+  type        ReportType
+  status      ReportStatus @default(PENDING)
+  title       String
+  description String?
+  parameters  String?
+  filePath    String?
+  fileSize    Int?
+  generatedAt DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime     @default(now())
+  user        User         @relation("GeneratedReports", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@map("report_generations")
+}
+
+model WhatsAppMessage {
+  id                 String                @id @default(cuid())
+  clientId           String
+  phone              String
+  messageType        WhatsAppMessageType
+  status             WhatsAppMessageStatus @default(PENDING)
+  message            String
+  mediaUrl           String?
+  scheduledFor       DateTime?
+  sentAt             DateTime?
+  deliveredAt        DateTime?
+  readAt             DateTime?
+  errorMessage       String?
+  evolutionMessageId String?
+  evolutionResponse  String?
+  paymentId          String?
+  loanId             String?
+  metadata           String?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  client             Client                @relation("ClientMessages", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([status])
+  @@index([scheduledFor])
+  @@index([paymentId])
+  @@map("whatsapp_messages")
+}
+
+model EvolutionAPIConfig {
+  id                      String   @id @default(cuid())
+  instanceName            String   @unique
+  apiKey                  String
+  baseUrl                 String
+  webhookUrl              String?
+  isActive                Boolean  @default(true)
+  paymentReceivedTemplate String?
+  paymentReminderTemplate String?
+  loanApprovedTemplate    String?
+  loanUpdateTemplate      String?
+  marketingTemplate       String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@map("evolution_api_config")
+}
+
+model File {
+  id           String   @id @default(cuid())
+  fileName     String
+  originalName String
+  filePath     String
+  fileSize     Int
+  mimeType     String
+  category     String   @default("general")
+  description  String?
+  clientId     String?
+  uploadedById String
+  storageType  String   @default("local")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  client       Client?  @relation("ClientDualFiles", fields: [clientId], references: [id])
+  uploadedBy   User     @relation("UserDualFiles", fields: [uploadedById], references: [id])
+
+  @@index([clientId])
+  @@index([uploadedById])
+  @@index([category])
+  @@index([createdAt])
+  @@map("files")
+}
+
+model PWAModule {
+  id               String                 @id @default(cuid())
+  moduleKey        String                 @unique
+  name             String
+  description      String?
+  category         ModuleCategory
+  status           ModuleStatus           @default(ENABLED)
+  isCore           Boolean                @default(false)
+  requiredFor      String[]
+  availableFor     String[]
+  icon             String?
+  route            String?
+  sortOrder        Int                    @default(0)
+  config           String?
+  version          String                 @default("1.0.0")
+  minSystemVersion String?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  updatedBy        String?
+  rolePermissions  ModuleRolePermission[] @relation("ModulePermissions")
+  updatedByUser    User?                  @relation("ModuleUpdates", fields: [updatedBy], references: [id])
+
+  @@index([category])
+  @@index([status])
+  @@index([sortOrder])
+  @@map("pwa_modules")
+}
+
+model ModuleRolePermission {
+  id            String    @id @default(cuid())
+  moduleId      String
+  role          UserRole
+  enabled       Boolean   @default(true)
+  permissions   String?
+  config        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  updatedBy     String?
+  module        PWAModule @relation("ModulePermissions", fields: [moduleId], references: [id], onDelete: Cascade)
+  updatedByUser User?     @relation("RolePermissionUpdates", fields: [updatedBy], references: [id])
+
+  @@unique([moduleId, role])
+  @@index([role])
+  @@map("module_role_permissions")
+}
+
+model ModuleChangeLog {
+  id        String    @id @default(cuid())
+  moduleId  String
+  action    String
+  role      UserRole?
+  oldValue  String?
+  newValue  String?
+  reason    String?
+  userId    String
+  createdAt DateTime  @default(now())
+  user      User      @relation("ModuleChangeLogs", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([moduleId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("module_change_logs")
+}
+
 enum UserRole {
   ADMIN
   ASESOR
@@ -58,51 +550,6 @@ enum UserStatus {
   SUSPENDED
 }
 
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String?
-  firstName     String
-  lastName      String
-  phone         String?
-  role          UserRole  @default(CLIENTE)
-  status        UserStatus @default(ACTIVE)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  emailVerified DateTime?
-
-  // NextAuth relations
-  accounts Account[]
-  sessions Session[]
-
-  // EscalaFin relations
-  clientsAssigned   Client[] @relation("AsesorClients")
-  creditApplicationsCreated CreditApplication[] @relation("CreatedByAsesor")
-  creditApplicationsReviewed CreditApplication[] @relation("ReviewedByAdmin")
-  paymentsProcessed Payment[] @relation("ProcessedBy")
-  
-  // If user is a client
-  clientProfile Client? @relation("UserClient")
-  
-  // Fase 3 relations
-  auditLogs       AuditLog[] @relation("AuditLogs")
-  notifications   Notification[] @relation("UserNotifications")
-  files           FileUpload[] @relation("UserFiles")
-  verifiedFiles   FileUpload[] @relation("VerifiedFiles")
-  generatedReports ReportGeneration[] @relation("GeneratedReports")
-  configUpdates   SystemConfig[] @relation("ConfigUpdates")
-  cashCollections CashCollection[] @relation("CashCollector")
-  filesUploaded   File[] @relation("UserDualFiles")
-  
-  // Module management relations
-  moduleUpdates     PWAModule[]             @relation("ModuleUpdates")
-  rolePermissionUpdates ModuleRolePermission[] @relation("RolePermissionUpdates")
-  moduleChangeLogs  ModuleChangeLog[]       @relation("ModuleChangeLogs")
-
-  @@map("users")
-}
-
-// Client Management (CRM)
 enum ClientStatus {
   ACTIVE
   INACTIVE
@@ -117,69 +564,6 @@ enum EmploymentType {
   STUDENT
 }
 
-model Client {
-  id                String          @id @default(cuid())
-  userId            String?         @unique
-  firstName         String
-  lastName          String
-  email             String?         @unique
-  phone             String
-  dateOfBirth       DateTime?
-  address           String?
-  city              String?
-  state             String?
-  postalCode        String?
-  
-  // Financial Information
-  monthlyIncome     Decimal?        @db.Decimal(12, 2)
-  employmentType    EmploymentType?
-  employerName      String?
-  workAddress       String?
-  yearsEmployed     Int?
-  
-  // Credit Information
-  creditScore       Int?
-  bankName          String?
-  accountNumber     String?
-  
-  // Status and Assignment
-  status            ClientStatus    @default(ACTIVE)
-  asesorId          String?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-
-  // Migration fields for existing clients
-  migratedFrom      String?         // Source system name
-  migrationDate     DateTime?       // When the client was migrated
-  initialBalance    Decimal?        @db.Decimal(12, 2) // Initial balance from previous system
-  lastPaymentDate   DateTime?       // Last payment date from previous system
-  notes             String?         // Additional migration notes
-
-  // WhatsApp Notification Settings
-  whatsappNotificationsEnabled Boolean @default(true)
-  whatsappPaymentReceived      Boolean @default(true)
-  whatsappPaymentReminder      Boolean @default(true)
-  whatsappLoanUpdates          Boolean @default(true)
-  whatsappMarketingMessages    Boolean @default(false)
-
-  // Relations
-  user              User?           @relation("UserClient", fields: [userId], references: [id])
-  asesor            User?           @relation("AsesorClients", fields: [asesorId], references: [id])
-  creditApplications CreditApplication[]
-  loans             Loan[]
-  
-  // Fase 3 relations
-  creditScores      CreditScore[]   @relation("ClientScoring")
-  files             FileUpload[]    @relation("ClientFiles")
-  whatsappMessages  WhatsAppMessage[] @relation("ClientMessages")
-  personalReferences PersonalReference[] @relation("ClientReferences")
-  dualFiles         File[]          @relation("ClientDualFiles")
-  messageRecharges  MessageRecharge[] @relation("ClientMessageRecharges")
-
-  @@map("clients")
-}
-
-// Personal References for Clients
 enum RelationshipType {
   FAMILY
   FRIEND
@@ -195,27 +579,6 @@ enum NotificationPreference {
   NONE
 }
 
-model PersonalReference {
-  id                      String                  @id @default(cuid())
-  clientId                String
-  fullName                String
-  relationship            RelationshipType
-  relationshipOther       String?                 // Para cuando se selecciona OTHER
-  phone                   String
-  address                 String?
-  notificationPreference  NotificationPreference  @default(WHATSAPP)
-  isActive                Boolean                 @default(true)
-  createdAt               DateTime                @default(now())
-  updatedAt               DateTime                @updatedAt
-
-  // Relations
-  client                  Client                  @relation("ClientReferences", fields: [clientId], references: [id], onDelete: Cascade)
-
-  @@index([clientId])
-  @@map("personal_references")
-}
-
-// Credit Application Workflow
 enum ApplicationStatus {
   PENDING
   UNDER_REVIEW
@@ -232,40 +595,6 @@ enum LoanType {
   EDUCATION
 }
 
-model CreditApplication {
-  id                String            @id @default(cuid())
-  clientId          String
-  asesorId          String
-  loanType          LoanType
-  requestedAmount   Decimal           @db.Decimal(12, 2)
-  requestedTerm     Int               // months
-  purpose           String
-  status            ApplicationStatus @default(PENDING)
-  
-  // Review Information
-  reviewedBy        String?
-  reviewedAt        DateTime?
-  reviewComments    String?
-  approvedAmount    Decimal?          @db.Decimal(12, 2)
-  approvedTerm      Int?              // months
-  interestRate      Decimal?          @db.Decimal(5, 4)
-  
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-
-  // Relations
-  client            Client            @relation(fields: [clientId], references: [id])
-  createdBy         User              @relation("CreatedByAsesor", fields: [asesorId], references: [id])
-  reviewedByUser    User?             @relation("ReviewedByAdmin", fields: [reviewedBy], references: [id])
-  loan              Loan?
-  
-  // Fase 3 relations
-  creditScores      CreditScore[]     @relation("ApplicationScoring")
-
-  @@map("credit_applications")
-}
-
-// Loan Management
 enum LoanStatus {
   ACTIVE
   PAID_OFF
@@ -273,58 +602,6 @@ enum LoanStatus {
   CANCELLED
 }
 
-model Loan {
-  id                      String                @id @default(cuid())
-  clientId                String
-  creditApplicationId     String?               @unique
-  loanNumber              String                @unique
-  loanType                LoanType
-  principalAmount         Decimal               @db.Decimal(12, 2)
-  interestRate            Decimal               @db.Decimal(5, 4)
-  termMonths              Int
-  monthlyPayment          Decimal               @db.Decimal(12, 2)
-  totalAmount             Decimal               @db.Decimal(12, 2)
-  balanceRemaining        Decimal               @db.Decimal(12, 2)
-  status                  LoanStatus            @default(ACTIVE)
-  startDate               DateTime
-  endDate                 DateTime
-  createdAt               DateTime              @default(now())
-  updatedAt               DateTime              @updatedAt
-
-  // Relations
-  client                  Client                @relation(fields: [clientId], references: [id])
-  creditApplication       CreditApplication?    @relation(fields: [creditApplicationId], references: [id])
-  amortizationSchedule    AmortizationSchedule[]
-  payments                Payment[]
-  
-  // Fase 3 relations
-  creditScores            CreditScore[]         @relation("LoanScoring")
-  files                   FileUpload[]          @relation("LoanFiles")
-
-  @@map("loans")
-}
-
-// Amortization Schedule
-model AmortizationSchedule {
-  id                String      @id @default(cuid())
-  loanId            String
-  paymentNumber     Int
-  paymentDate       DateTime
-  principalPayment  Decimal     @db.Decimal(12, 2)
-  interestPayment   Decimal     @db.Decimal(12, 2)
-  totalPayment      Decimal     @db.Decimal(12, 2)
-  remainingBalance  Decimal     @db.Decimal(12, 2)
-  isPaid            Boolean     @default(false)
-
-  // Relations
-  loan              Loan        @relation(fields: [loanId], references: [id], onDelete: Cascade)
-  payment           Payment?
-
-  @@unique([loanId, paymentNumber])
-  @@map("amortization_schedule")
-}
-
-// Payment Management
 enum PaymentStatus {
   PENDING
   COMPLETED
@@ -342,56 +619,6 @@ enum PaymentMethod {
   MIGRATION
 }
 
-model Payment {
-  id                      String                @id @default(cuid())
-  loanId                  String
-  amortizationScheduleId  String?               @unique
-  amount                  Decimal               @db.Decimal(12, 2)
-  paymentDate             DateTime
-  paymentMethod           PaymentMethod
-  status                  PaymentStatus         @default(COMPLETED)
-  reference               String?
-  notes                   String?
-  processedBy             String?
-  createdAt               DateTime              @default(now())
-  updatedAt               DateTime              @updatedAt
-
-  // Relations
-  loan                    Loan                  @relation(fields: [loanId], references: [id])
-  amortizationSchedule    AmortizationSchedule? @relation(fields: [amortizationScheduleId], references: [id])
-  processedByUser         User?                 @relation("ProcessedBy", fields: [processedBy], references: [id])
-  
-  // Fase 3 relations
-  transactions            PaymentTransaction[]  @relation("PaymentTransactions")
-  cashCollection          CashCollection?       @relation("CashCollections")
-
-  @@map("payments")
-}
-
-// Sistema de Auditoría - Fase 3
-model AuditLog {
-  id          String      @id @default(cuid())
-  userId      String?
-  userEmail   String?
-  action      String
-  resource    String?
-  resourceId  String?
-  details     String?     @db.Text // JSON string
-  ipAddress   String?
-  userAgent   String?     @db.Text
-  metadata    String?     @db.Text // JSON string
-  timestamp   DateTime    @default(now())
-
-  // Relations
-  user        User?       @relation("AuditLogs", fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([action])
-  @@index([timestamp])
-  @@map("audit_logs")
-}
-
-// Sistema de Scoring Crediticio - Fase 3
 enum RiskLevel {
   LOW
   MEDIUM
@@ -401,34 +628,10 @@ enum RiskLevel {
 
 enum ScoringRecommendation {
   APPROVE
-  REVIEW  
+  REVIEW
   REJECT
 }
 
-model CreditScore {
-  id                String                  @id @default(cuid())
-  loanId            String?
-  clientId          String?
-  applicationId     String?
-  score             Int
-  risk              RiskLevel
-  recommendation    ScoringRecommendation
-  maxAmount         Decimal?                @db.Decimal(12, 2)
-  recommendedRate   Decimal?                @db.Decimal(5, 4)
-  factors           String                  @db.Text // JSON string
-  calculatedAt      DateTime                @default(now())
-  validUntil        DateTime?
-  createdAt         DateTime                @default(now())
-
-  // Relations (optional, can link to different entities)
-  loan              Loan?                   @relation("LoanScoring", fields: [loanId], references: [id], onDelete: SetNull)
-  client            Client?                 @relation("ClientScoring", fields: [clientId], references: [id], onDelete: SetNull)
-  application       CreditApplication?      @relation("ApplicationScoring", fields: [applicationId], references: [id], onDelete: SetNull)
-
-  @@map("credit_scores")
-}
-
-// Sistema de Notificaciones Mejorado - Fase 3
 enum NotificationType {
   PAYMENT_DUE
   PAYMENT_OVERDUE
@@ -453,31 +656,6 @@ enum NotificationChannel {
   PUSH
 }
 
-model Notification {
-  id            String                @id @default(cuid())
-  userId        String
-  type          NotificationType
-  channel       NotificationChannel
-  status        NotificationStatus    @default(PENDING)
-  title         String
-  message       String                @db.Text
-  data          String?               @db.Text // JSON string for additional data
-  scheduledFor  DateTime?
-  sentAt        DateTime?
-  readAt        DateTime?
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
-
-  // Relations
-  user          User                  @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-  @@index([scheduledFor])
-  @@map("notifications")
-}
-
-// Gestión de Archivos - Fase 3
 enum FileCategory {
   IDENTITY_DOCUMENT
   INCOME_PROOF
@@ -495,37 +673,6 @@ enum FileStatus {
   EXPIRED
 }
 
-model FileUpload {
-  id              String        @id @default(cuid())
-  userId          String
-  clientId        String?
-  loanId          String?
-  filename        String
-  originalName    String
-  mimeType        String
-  size            Int
-  category        FileCategory
-  status          FileStatus    @default(UPLOADED)
-  cloudStoragePath String       // S3 key or cloud storage path
-  description     String?
-  uploadedAt      DateTime      @default(now())
-  verifiedAt      DateTime?
-  verifiedBy      String?
-  expiresAt       DateTime?
-
-  // Relations
-  user            User          @relation("UserFiles", fields: [userId], references: [id], onDelete: Cascade)
-  client          Client?       @relation("ClientFiles", fields: [clientId], references: [id], onDelete: SetNull)
-  loan            Loan?         @relation("LoanFiles", fields: [loanId], references: [id], onDelete: SetNull)
-  verifierUser    User?         @relation("VerifiedFiles", fields: [verifiedBy], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([clientId])
-  @@index([loanId])
-  @@map("file_uploads")
-}
-
-// Integración de Pagos - Fase 3
 enum PaymentProviderType {
   OPENPAY
   STRIPE
@@ -543,72 +690,6 @@ enum PaymentTransactionStatus {
   REFUNDED
 }
 
-model PaymentTransaction {
-  id                  String                    @id @default(cuid())
-  paymentId           String
-  provider            PaymentProviderType
-  providerTransactionId String?
-  amount              Decimal                   @db.Decimal(12, 2)
-  currency            String                    @default("MXN")
-  status              PaymentTransactionStatus  @default(PENDING)
-  providerResponse    String?                   @db.Text // JSON string
-  errorMessage        String?
-  processedAt         DateTime?
-  webhookData         String?                   @db.Text // JSON string
-  createdAt           DateTime                  @default(now())
-  updatedAt           DateTime                  @updatedAt
-
-  // Relations
-  payment             Payment                   @relation("PaymentTransactions", fields: [paymentId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerTransactionId])
-  @@index([status])
-  @@map("payment_transactions")
-}
-
-// Cash Collections for Mobile Collection Module
-model CashCollection {
-  id                  String      @id @default(cuid())
-  paymentId           String      @unique
-  collectorId         String
-  collectionMethod    String      // 'home', 'office', 'field'
-  collectorLocation   String      // GPS coordinates or address
-  photoEvidence       String?     // Path to photo file
-  deviceInfo          String?     // Mobile device information
-  collectionNotes     String?
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-
-  // Relations
-  payment             Payment     @relation("CashCollections", fields: [paymentId], references: [id], onDelete: Cascade)
-  collector           User        @relation("CashCollector", fields: [collectorId], references: [id])
-
-  @@index([collectorId])
-  @@index([collectionMethod])
-  @@map("cash_collections")
-}
-
-// Configuración del Sistema - Fase 3
-model SystemConfig {
-  id          String    @id @default(cuid())
-  key         String    @unique
-  value       String    @db.Text
-  description String?
-  category    String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  updatedBy   String?
-
-  // Relations
-  updatedByUser User?   @relation("ConfigUpdates", fields: [updatedBy], references: [id], onDelete: SetNull)
-
-  @@index([category])
-  @@index([key])
-  @@map("system_config")
-}
-
-// Reportes y Analytics - Fase 3  
 enum ReportType {
   LOAN_PORTFOLIO
   PAYMENT_ANALYSIS
@@ -626,30 +707,6 @@ enum ReportStatus {
   FAILED
 }
 
-model ReportGeneration {
-  id            String        @id @default(cuid())
-  userId        String
-  type          ReportType
-  status        ReportStatus  @default(PENDING)
-  title         String
-  description   String?
-  parameters    String?       @db.Text // JSON string
-  filePath      String?       // Path to generated file
-  fileSize      Int?
-  generatedAt   DateTime?
-  expiresAt     DateTime?
-  createdAt     DateTime      @default(now())
-  
-  // Relations
-  user          User          @relation("GeneratedReports", fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-  @@index([type])
-  @@map("report_generations")
-}
-
-// WhatsApp Messaging System - EvolutionAPI Integration
 enum WhatsAppMessageStatus {
   PENDING
   SENT
@@ -667,92 +724,6 @@ enum WhatsAppMessageType {
   CUSTOM
 }
 
-model WhatsAppMessage {
-  id              String                @id @default(cuid())
-  clientId        String
-  phone           String
-  messageType     WhatsAppMessageType
-  status          WhatsAppMessageStatus @default(PENDING)
-  message         String                @db.Text
-  mediaUrl        String?               // Para enviar imágenes/documentos
-  scheduledFor    DateTime?
-  sentAt          DateTime?
-  deliveredAt     DateTime?
-  readAt          DateTime?
-  errorMessage    String?
-  
-  // EvolutionAPI response data
-  evolutionMessageId String?
-  evolutionResponse  String?            @db.Text // JSON response from EvolutionAPI
-  
-  // Metadata
-  paymentId       String?               // Link to payment that triggered message
-  loanId          String?               // Link to loan for loan-related messages
-  metadata        String?               @db.Text // Additional JSON data
-  
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-
-  // Relations
-  client          Client                @relation("ClientMessages", fields: [clientId], references: [id], onDelete: Cascade)
-
-  @@index([clientId])
-  @@index([status])
-  @@index([scheduledFor])
-  @@index([paymentId])
-  @@map("whatsapp_messages")
-}
-
-// EvolutionAPI Configuration
-model EvolutionAPIConfig {
-  id                String    @id @default(cuid())
-  instanceName      String    @unique
-  apiKey            String
-  baseUrl           String
-  webhookUrl        String?
-  isActive          Boolean   @default(true)
-  
-  // Message templates
-  paymentReceivedTemplate   String? @db.Text
-  paymentReminderTemplate   String? @db.Text
-  loanApprovedTemplate      String? @db.Text
-  loanUpdateTemplate        String? @db.Text
-  marketingTemplate         String? @db.Text
-  
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  @@map("evolution_api_config")
-}
-
-// Sistema de Archivos Dual (Local/S3) - Nueva implementación mejorada
-model File {
-  id              String    @id @default(cuid())
-  fileName        String
-  originalName    String
-  filePath        String    // S3 key o path local relativo
-  fileSize        Int
-  mimeType        String
-  category        String    @default("general")
-  description     String?
-  clientId        String?
-  uploadedById    String
-  storageType     String    @default("local") // "local" o "s3"
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  // Relations
-  client          Client?   @relation("ClientDualFiles", fields: [clientId], references: [id], onDelete: SetNull)
-  uploadedBy      User      @relation("UserDualFiles", fields: [uploadedById], references: [id], onDelete: Restrict)
-
-  @@index([clientId])
-  @@index([uploadedById])
-  @@index([category])
-  @@index([createdAt])
-  @@map("files")
-}
-
-// Sistema de Gestión de Módulos PWA
 enum ModuleCategory {
   DASHBOARD
   LOANS
@@ -771,117 +742,3 @@ enum ModuleStatus {
   BETA
   MAINTENANCE
 }
-
-model PWAModule {
-  id              String        @id @default(cuid())
-  moduleKey       String        @unique // Identificador único del módulo
-  name            String        // Nombre mostrado
-  description     String?       // Descripción del módulo
-  category        ModuleCategory
-  status          ModuleStatus  @default(ENABLED)
-  isCore          Boolean       @default(false) // Los módulos core no se pueden deshabilitar
-  requiredFor     String[]      // Roles que requieren este módulo: ["ADMIN", "ASESOR"]
-  availableFor    String[]      // Roles que pueden usar este módulo: ["ADMIN", "ASESOR", "CLIENTE"]
-  icon            String?       // Nombre del icono Lucide
-  route           String?       // Ruta del módulo
-  sortOrder       Int           @default(0)
-  
-  // Configuración específica
-  config          String?       @db.Text // JSON con configuración específica del módulo
-  
-  // Control de versiones
-  version         String        @default("1.0.0")
-  minSystemVersion String?      // Versión mínima del sistema requerida
-  
-  // Metadatos
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  updatedBy       String?
-  
-  // Relations
-  updatedByUser   User?         @relation("ModuleUpdates", fields: [updatedBy], references: [id], onDelete: SetNull)
-  rolePermissions ModuleRolePermission[] @relation("ModulePermissions")
-  
-  @@index([category])
-  @@index([status])
-  @@index([sortOrder])
-  @@map("pwa_modules")
-}
-
-// Permisos específicos por rol para cada módulo
-model ModuleRolePermission {
-  id          String    @id @default(cuid())
-  moduleId    String
-  role        UserRole
-  enabled     Boolean   @default(true)
-  permissions String?   @db.Text // JSON con permisos específicos ["read", "write", "delete"]
-  
-  // Configuración específica por rol
-  config      String?   @db.Text // JSON con configuración específica para este rol
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  updatedBy   String?
-  
-  // Relations
-  module      PWAModule @relation("ModulePermissions", fields: [moduleId], references: [id], onDelete: Cascade)
-  updatedByUser User?   @relation("RolePermissionUpdates", fields: [updatedBy], references: [id], onDelete: SetNull)
-  
-  @@unique([moduleId, role])
-  @@index([role])
-  @@map("module_role_permissions")
-}
-
-// Log de cambios en módulos
-model ModuleChangeLog {
-  id          String    @id @default(cuid())
-  moduleId    String
-  action      String    // "ENABLED", "DISABLED", "CONFIG_UPDATED", "PERMISSIONS_CHANGED"
-  role        UserRole? // Si aplica a un rol específico
-  oldValue    String?   @db.Text // JSON del estado anterior
-  newValue    String?   @db.Text // JSON del nuevo estado
-  reason      String?   // Razón del cambio
-  userId      String
-  createdAt   DateTime  @default(now())
-  
-  // Relations
-  user        User      @relation("ModuleChangeLogs", fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([moduleId])
-  @@index([action])
-  @@index([createdAt])
-  @@map("module_change_logs")
-}
-
-// Message Recharge Management
-model MessageRecharge {
-  id                String                 @id @default(cuid())
-  clientId          String
-  packageType       String                 // Tipo de paquete (ej: "Paquete Básico")
-  messageCount      Int                    // Cantidad de mensajes
-  amount            Decimal                @db.Decimal(10, 2) // Monto pagado
-  status            MessageRechargeStatus  @default(PENDING)
-  paymentReference  String?                // Referencia de pago SPEI
-  transferDate      DateTime?              // Fecha de transferencia
-  processedAt       DateTime?              // Fecha de procesamiento
-  
-  // Relations
-  client            Client                 @relation("ClientMessageRecharges", fields: [clientId], references: [id], onDelete: Cascade)
-  
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
-
-  @@index([clientId])
-  @@index([status])
-  @@index([createdAt])
-  @@map("message_recharges")
-}
-
-enum MessageRechargeStatus {
-  PENDING     // Pendiente de pago
-  PAID        // Pago confirmado
-  COMPLETED   // Recarga completada
-  CANCELLED   // Cancelada
-}
-
-

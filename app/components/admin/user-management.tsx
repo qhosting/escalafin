@@ -68,6 +68,16 @@ export function UserManagement() {
   const { data: session } = useSession();
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Debug logging for session
+  useEffect(() => {
+    console.log('🔐 Session debug:', {
+      hasSession: !!session,
+      user: session?.user,
+      role: session?.user?.role,
+      email: session?.user?.email
+    });
+  }, [session]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -90,14 +100,27 @@ export function UserManagement() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Iniciando carga de usuarios...');
+      
       const response = await fetch('/api/admin/users');
-      if (!response.ok) throw new Error('Error al cargar usuarios');
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Error response:', errorData);
+        throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+      }
       
       const data = await response.json();
+      console.log('✅ Data received:', data);
+      console.log('👥 Users count:', data.users?.length || 0);
+      
       setUsers(data.users || []);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      toast.error('Error al cargar los usuarios');
+      toast.success(`${data.users?.length || 0} usuarios cargados exitosamente`);
+    } catch (error: any) {
+      console.error('❌ Error fetching users:', error);
+      toast.error(`Error al cargar los usuarios: ${error?.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
