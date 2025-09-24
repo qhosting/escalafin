@@ -5,6 +5,8 @@ import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+// Endpoint público para registro de CLIENTES únicamente
+// Los administradores y asesores se crean desde el panel de administración
 export async function POST(request: NextRequest) {
   try {
     // Verificar si el registro está habilitado
@@ -49,13 +51,12 @@ export async function POST(request: NextRequest) {
     // Hashear la contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Validar rol
-    const validRoles = ['ADMIN', 'ASESOR', 'CLIENTE'];
-    const userRole = role.toUpperCase();
+    // El registro público solo permite CLIENTE
+    const userRole = 'CLIENTE';
     
-    if (!validRoles.includes(userRole)) {
+    if (role && role.toUpperCase() !== 'CLIENTE') {
       return NextResponse.json(
-        { error: 'Rol de usuario inválido' },
+        { error: 'El registro público solo está disponible para clientes. Los administradores y asesores se crean desde el panel de administración.' },
         { status: 400 }
       );
     }
@@ -68,24 +69,22 @@ export async function POST(request: NextRequest) {
         firstName,
         lastName,
         phone: phone || null,
-        role: userRole as 'ADMIN' | 'ASESOR' | 'CLIENTE',
+        role: 'CLIENTE',
         status: 'ACTIVE',
       },
     });
 
-    // Si es un cliente, crear también el perfil de cliente
-    if (role.toUpperCase() === 'CLIENTE') {
-      await prisma.client.create({
-        data: {
-          userId: user.id,
-          firstName,
-          lastName,
-          email,
-          phone: phone || '',
-          status: 'ACTIVE',
-        },
-      });
-    }
+    // Siempre crear el perfil de cliente ya que el registro público es solo para clientes
+    await prisma.client.create({
+      data: {
+        userId: user.id,
+        firstName,
+        lastName,
+        email,
+        phone: phone || '',
+        status: 'ACTIVE',
+      },
+    });
 
     return NextResponse.json(
       {
