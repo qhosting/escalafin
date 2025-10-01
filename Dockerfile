@@ -1,22 +1,20 @@
-# ESCALAFIN MVP - DOCKERFILE v8.0 OPTIMIZADO
-# Build optimizado para EasyPanel/Coolify
+# ESCALAFIN MVP - DOCKERFILE v8.1 OPTIMIZADO
+# Build optimizado para EasyPanel/Coolify usando NPM
 FROM node:18-alpine AS base
 
 # Labels
 LABEL maintainer="escalafin-build@2025-10-01"  
-LABEL version="8.0-optimized"
-LABEL build-date="2025-10-01T04:40:00Z"
+LABEL version="8.1-npm"
+LABEL build-date="2025-10-01T04:50:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
     libc6-compat \
     curl \
+    wget \
     git \
     openssl \
     && rm -rf /var/cache/apk/*
-
-# Habilitar Corepack para Yarn
-RUN corepack enable && corepack prepare yarn@stable --activate
 
 # Variables de entorno básicas
 ENV NODE_ENV=production
@@ -30,19 +28,13 @@ WORKDIR /app
 FROM base AS deps
 
 # Copiar archivos de dependencias
-COPY app/package.json app/yarn.lock* app/package-lock.json* ./
+COPY app/package.json ./
 
-# Instalar dependencias
+# Instalar dependencias usando npm
 RUN echo "=== INSTALANDO DEPENDENCIAS ===" && \
     echo "Node: $(node --version)" && \
-    echo "Yarn: $(yarn --version)" && \
-    if [ -f yarn.lock ]; then \
-      yarn install --frozen-lockfile --network-timeout 600000; \
-    elif [ -f package-lock.json ]; then \
-      npm ci --legacy-peer-deps; \
-    else \
-      npm install --legacy-peer-deps; \
-    fi
+    echo "NPM: $(npm --version)" && \
+    npm install --legacy-peer-deps --loglevel verbose
 
 # ===== STAGE: Builder =====
 FROM base AS builder
