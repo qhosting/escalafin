@@ -1,0 +1,27 @@
+tree 41bdfc51a0151d8979316db5217d75715782f3d7
+parent 1521a146f03a6616d598f25050603145b8e457dc
+author qhosting <admin@qhosting.net> 1758646629 +0000
+committer qhosting <admin@qhosting.net> 1758646629 +0000
+
+🔍 DEBUG: Dockerfile v6.6 - Captura completa del error npm build
+
+❌ PROBLEMA v6.5: npm run build falla con exit code 1 pero sin detalle específico
+🔍 SOLUCIÓN v6.6: División del build en 4 pasos separados para diagnóstico
+
+📋 PASOS DE DEBUG v6.6:
+1️⃣ PASO 1: PRE-BUILD - verificar archivos presentes
+2️⃣ PASO 2: SCRIPTS - validar package.json y versiones Node/NPM
+3️⃣ PASO 3: BUILD NEXT.JS - captura COMPLETA del error específico
+4️⃣ PASO 4: VERIFICACIÓN - confirmar .next/ generado exitosamente
+
+🎯 CAPTURA COMPLETA DE ERROR:
+- npm run build 2>&1 | tee /tmp/build-output.txt
+- Si falla: mostrar TODA la salida del build
+- Información adicional: archivos TS, dependencias, contexto
+
+📈 EXPECTATIVA:
+- Identificar ERROR EXACTO: TypeScript, missing deps, config, etc.
+- Logs detallados paso a paso para solución definitiva
+- Sin más guessing - ERROR ESPECÍFICO visible
+
+🚀 SIGUIENTE: Redeploy para ver error completo en PASO 3
