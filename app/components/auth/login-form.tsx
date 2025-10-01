@@ -23,10 +23,13 @@ export function LoginForm() {
     console.log('🔄 Iniciando login con:', { email });
 
     try {
+      console.log('Attempting login with email:', email);
+      
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
+        callbackUrl: '/',
       });
 
       console.log('📊 Resultado de signIn:', result);

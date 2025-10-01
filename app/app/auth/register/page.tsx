@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { toast } from 'sonner';
 import { Eye, EyeOff, UserPlus, Building2, AlertTriangle, ArrowLeft } from 'lucide-react';
 
@@ -21,7 +21,7 @@ export default function RegisterPage() {
     phone: '',
     password: '',
     confirmPassword: '',
-    role: 'CLIENTE',
+    role: 'CLIENTE', // Siempre será CLIENTE para registro público
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -96,20 +96,8 @@ export default function RegisterPage() {
       });
 
       if (result?.ok) {
-        // Redirigir según el rol
-        switch (formData.role) {
-          case 'ADMIN':
-            router.replace('/admin/dashboard');
-            break;
-          case 'ASESOR':
-            router.replace('/asesor/dashboard');
-            break;
-          case 'CLIENTE':
-            router.replace('/cliente/dashboard');
-            break;
-          default:
-            router.replace('/');
-        }
+        // Solo clientes pueden registrarse públicamente, así que redirigir al dashboard de cliente
+        router.replace('/cliente/dashboard');
       }
     } catch (error) {
       toast.error('Error al crear la cuenta');
@@ -147,27 +135,27 @@ export default function RegisterPage() {
             <h1 className="text-3xl font-bold">EscalaFin</h1>
           </div>
           <h2 className="text-2xl font-semibold mb-4">
-            {registrationEnabled ? 'Únete a EscalaFin' : 'Registro Temporalmente Deshabilitado'}
+            {registrationEnabled ? 'Registro de Clientes' : 'Registro Temporalmente Deshabilitado'}
           </h2>
           <p className="text-blue-100 text-lg leading-relaxed">
             {registrationEnabled 
-              ? 'Crea tu cuenta y accede a la plataforma de gestión financiera más completa. Administra préstamos, gestiona clientes y optimiza tu flujo de trabajo.'
-              : 'El registro de nuevos usuarios está temporalmente deshabilitado. Si necesitas acceso a la plataforma, contacta al administrador del sistema.'
+              ? 'Crea tu cuenta como cliente y accede a la plataforma. Solicita préstamos, consulta tu historial crediticio y gestiona tus pagos de manera fácil y segura.'
+              : 'El registro de nuevos clientes está temporalmente deshabilitado. Si necesitas acceso a la plataforma, contacta al administrador del sistema.'
             }
           </p>
           {registrationEnabled && (
             <div className="mt-8 space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
-                <span className="text-blue-100">Acceso inmediato a la plataforma</span>
+                <span className="text-blue-100">Solicita préstamos de forma digital</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
-                <span className="text-blue-100">Herramientas avanzadas de gestión</span>
+                <span className="text-blue-100">Consulta tu historial crediticio</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
-                <span className="text-blue-100">Reportes y análisis en tiempo real</span>
+                <span className="text-blue-100">Gestiona tus pagos online</span>
               </div>
             </div>
           )}
@@ -213,9 +201,9 @@ export default function RegisterPage() {
         ) : (
           <Card className="w-full max-w-md shadow-lg border-0">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl font-bold text-center">Crear Cuenta</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">Crear Cuenta de Cliente</CardTitle>
             <CardDescription className="text-center text-gray-600">
-              Completa tus datos para registrarte
+              Completa tus datos para registrarte como cliente
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -265,18 +253,15 @@ export default function RegisterPage() {
                 />
               </div>
 
+              {/* Rol fijo como CLIENTE - no seleccionable */}
               <div className="space-y-2">
-                <Label htmlFor="role">Tipo de Usuario</Label>
-                <Select value={formData.role} onValueChange={(value) => handleChange('role', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona tu rol" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CLIENTE">Cliente</SelectItem>
-                    <SelectItem value="ASESOR">Asesor</SelectItem>
-                    <SelectItem value="ADMIN">Administrador</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium text-gray-700">Tipo de Usuario</Label>
+                <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-600">
+                  Cliente - Registro público solo para clientes
+                </div>
+                <p className="text-xs text-gray-500">
+                  Los administradores y asesores se crean desde el panel de administración
+                </p>
               </div>
 
               <div className="space-y-2">

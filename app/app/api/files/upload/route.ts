@@ -1,6 +1,8 @@
 
 // API para upload de archivos con soporte dual (local/S3)
 
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'

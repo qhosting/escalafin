@@ -19,6 +19,7 @@ import {
 import { ArrowLeft, Save, User } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { ClientImageUpload } from '@/components/clients/client-image-upload';
 
 interface ClientFormData {
   firstName: string;
@@ -208,6 +209,25 @@ export default function NewClientPage() {
                 onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Imagen del Cliente */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Imagen del Cliente</CardTitle>
+            <CardDescription>
+              Foto de perfil del cliente (opcional)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ClientImageUpload 
+              clientId="temp-new-client"
+              onUploadComplete={(imageUrl) => {
+                console.log('Imagen subida:', imageUrl);
+                // Aquí puedes manejar la URL de la imagen si necesitas asociarla al cliente
+              }}
+            />
           </CardContent>
         </Card>
 

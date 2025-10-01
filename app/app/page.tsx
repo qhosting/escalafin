@@ -34,23 +34,38 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    // Redirigir usuarios autenticados a su dashboard
-    if (session?.user) {
-      switch (session.user.role) {
-        case 'ADMIN':
-          router.push('/admin/dashboard');
-          break;
-        case 'ASESOR':
-          router.push('/asesor/dashboard');
-          break;
-        case 'CLIENTE':
-          router.push('/cliente/dashboard');
-          break;
-        default:
-          router.push('/auth/login');
-      }
+    console.log('Page useEffect - status:', status, 'session:', session);
+    
+    // Solo redirigir si hay una sesión válida y está completamente cargada
+    if (status === 'authenticated' && session?.user?.role) {
+      console.log('Authenticated user with role:', session.user.role);
+      
+      // Pequeño delay para evitar hydration issues
+      const timeoutId = setTimeout(() => {
+        switch (session.user.role) {
+          case 'ADMIN':
+            console.log('Redirecting to admin dashboard');
+            router.replace('/admin/dashboard');
+            break;
+          case 'ASESOR':
+            console.log('Redirecting to asesor dashboard');
+            router.replace('/asesor/dashboard');
+            break;
+          case 'CLIENTE':
+            console.log('Redirecting to cliente dashboard');
+            router.replace('/cliente/dashboard');
+            break;
+          default:
+            console.log('Unknown role, redirecting to login');
+            router.replace('/auth/login');
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    } else if (status === 'unauthenticated') {
+      console.log('User is not authenticated');
     }
-  }, [session, router]);
+  }, [session, status, router]);
 
   if (!mounted) {
     return null; // Evitar hidration mismatch
@@ -58,14 +73,24 @@ export default function HomePage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando...</p>
+        </div>
       </div>
     );
   }
 
-  if (session) {
-    return null; // Se está redirigiendo
+  if (status === 'authenticated' && session?.user?.role) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirigiendo al dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
