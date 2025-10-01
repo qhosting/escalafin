@@ -1,150 +1,119 @@
+# ESCALAFIN MVP - DOCKERFILE v8.0 OPTIMIZADO
+# Build optimizado para EasyPanel/Coolify
+FROM node:18-alpine AS base
 
-# ESCALAFIN MVP - DOCKERFILE v7.0 PRISMA FIX
-# CORRECCION: Prisma schema output path + mejoras de estabilidad
-FROM node:18-alpine
-
-# Labels únicos para invalidar cache
-LABEL maintainer="escalafin-build@2025-09-24"  
-LABEL version="7.0-prisma-fix"
-LABEL build-date="2025-09-24T00:50:00Z"
+# Labels
+LABEL maintainer="escalafin-build@2025-10-01"  
+LABEL version="8.0-optimized"
+LABEL build-date="2025-10-01T04:40:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
     libc6-compat \
     curl \
     git \
+    openssl \
     && rm -rf /var/cache/apk/*
 
-# Directorio de trabajo  
-WORKDIR /app
+# Habilitar Corepack para Yarn
+RUN corepack enable && corepack prepare yarn@stable --activate
 
-# Variables de entorno para build
+# Variables de entorno básicas
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-# Crear usuario del sistema
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -u 1001 -S nextjs -G nodejs
+WORKDIR /app
 
-# SOLUCIÓN DIRECTA: Copiar específicamente el directorio app/
-COPY app/ /app/
+# ===== STAGE: Dependencies =====
+FROM base AS deps
 
-# VALIDACIÓN CRÍTICA: Verificar package.json
-RUN echo "=== DOCKERFILE v7.0 - VALIDACIÓN ===" && \
-    echo "Archivos copiados a /app/:" && \
-    ls -la /app/ && \
-    echo "" && \
-    if [ -f "/app/package.json" ]; then \
-      echo "✅ package.json encontrado correctamente" && \
-      echo "Contenido (primeras 10 líneas):" && \
-      head -10 /app/package.json; \
-    else \
-      echo "❌ CRÍTICO: package.json no encontrado" && \
-      echo "Estructura completa:" && \
-      find /app -type f -name "*.json" | head -5 && \
-      exit 1; \
-    fi
+# Copiar archivos de dependencias
+COPY app/package.json app/yarn.lock* app/package-lock.json* ./
 
-# Instalar yarn globalmente
-RUN npm install -g yarn@1.22.19 --registry https://registry.npmjs.org/
-
-# Instalar TODAS las dependencias (incluyendo dev para build)
-RUN echo "=== INSTALACIÓN DE DEPENDENCIAS ===" && \
-    echo "Node version: $(node --version)" && \
-    echo "NPM version: $(npm --version)" && \
-    echo "Yarn version: $(yarn --version)" && \
+# Instalar dependencias
+RUN echo "=== INSTALANDO DEPENDENCIAS ===" && \
+    echo "Node: $(node --version)" && \
+    echo "Yarn: $(yarn --version)" && \
     if [ -f yarn.lock ]; then \
-      echo "=== USANDO YARN ===" && \
       yarn install --frozen-lockfile --network-timeout 600000; \
+    elif [ -f package-lock.json ]; then \
+      npm ci --legacy-peer-deps; \
     else \
-      echo "=== USANDO NPM ===" && \
       npm install --legacy-peer-deps; \
     fi
 
-# Variables de entorno necesarias para el build
+# ===== STAGE: Builder =====
+FROM base AS builder
+
+WORKDIR /app
+
+# Copiar dependencias instaladas
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copiar código fuente
+COPY app/ .
+
+# Args para build-time (no quedan en la imagen final)
+ARG DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
+ARG NEXTAUTH_URL="http://localhost:3000"
+ARG NEXTAUTH_SECRET="build-time-secret-placeholder"
+ARG AWS_BUCKET_NAME="placeholder-bucket"
+ARG AWS_FOLDER_PREFIX="placeholder/"
+ARG OPENPAY_MERCHANT_ID="placeholder"
+ARG OPENPAY_PRIVATE_KEY="placeholder"
+ARG OPENPAY_PUBLIC_KEY="placeholder"
+ARG OPENPAY_BASE_URL="https://sandbox-api.openpay.mx/v1"
+ARG EVOLUTION_API_URL="https://placeholder.com"
+ARG EVOLUTION_API_TOKEN="placeholder"
+ARG EVOLUTION_INSTANCE_NAME="placeholder"
+
+# Variables para el build
 ENV SKIP_ENV_VALIDATION=true
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
-ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
-ENV NEXTAUTH_URL="http://localhost:3000"
-ENV NEXTAUTH_SECRET="build-time-secret-12345678901234567890123456789012"
-ENV AWS_BUCKET_NAME="placeholder-bucket"
-ENV AWS_FOLDER_PREFIX="placeholder/"
-ENV OPENPAY_MERCHANT_ID="placeholder"
-ENV OPENPAY_PRIVATE_KEY="placeholder"
-ENV OPENPAY_PUBLIC_KEY="placeholder"
-ENV OPENPAY_BASE_URL="https://sandbox-api.openpay.mx/v1"
-ENV EVOLUTION_API_URL="https://placeholder.com"
-ENV EVOLUTION_API_TOKEN="placeholder"
-ENV EVOLUTION_INSTANCE_NAME="placeholder"
 
 # Generar cliente Prisma
 RUN echo "=== GENERANDO CLIENTE PRISMA ===" && \
     if [ -f prisma/schema.prisma ]; then \
       echo "Schema encontrado, generando cliente..." && \
       npx prisma generate && \
-      echo "✅ Cliente Prisma generado correctamente"; \
+      echo "✅ Cliente Prisma generado"; \
     else \
-      echo "❌ No se encontró prisma/schema.prisma" && \
-      ls -la prisma/ 2>/dev/null || echo "No hay directorio prisma/" && \
-      exit 1; \
+      echo "❌ No se encontró prisma/schema.prisma" && exit 1; \
     fi
-
-# Fix next.config.js para producción
-RUN echo "=== CONFIGURANDO NEXT.JS ===" && \
-    cat > next.config.js << 'EOF'
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  images: { 
-    unoptimized: true 
-  },
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'prisma']
-  }
-};
-
-module.exports = nextConfig;
-EOF
 
 # Build de Next.js
 RUN echo "=== BUILD NEXT.JS ===" && \
-    echo "Iniciando build..." && \
-    npm run build 2>&1 | tee /tmp/build-output.txt || \
-    (echo "❌ BUILD FALLÓ:" && \
-     cat /tmp/build-output.txt && \
-     exit 1)
+    npm run build && \
+    echo "✅ Build completado"
 
-# Verificar build exitoso
-RUN echo "=== VERIFICACIÓN BUILD ===" && \
-    if [ -d ".next" ]; then \
-      echo "✅ Build completado:" && \
-      ls -la .next/ && \
-      echo "Archivos principales:" && \
-      find .next -type f -name "*.js" | head -5; \
-    else \
-      echo "❌ Build falló - no se generó .next/" && \
-      exit 1; \
-    fi
+# ===== STAGE: Runner (imagen final) =====
+FROM base AS runner
 
-# Limpiar dependencias de desarrollo
-RUN echo "=== LIMPIEZA POST-BUILD ===" && \
-    if [ -f yarn.lock ]; then \
-      yarn install --production --frozen-lockfile; \
-    else \
-      npm prune --production; \
-    fi && \
-    rm -rf /tmp/* ~/.npm ~/.yarn-cache 2>/dev/null || true
+WORKDIR /app
 
-# Cambiar propietario de archivos
-RUN chown -R nextjs:nodejs /app
+# Crear usuario no-root
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -u 1001 -S nextjs -G nodejs
+
+# Copiar archivos necesarios para producción
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./next.config.js
+
+# Copiar start script si existe
+COPY --from=builder --chown=nextjs:nodejs /app/start.sh* ./
+
+# Variables de entorno para runtime (serán sobrescritas por el host)
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 # Cambiar a usuario no-root
 USER nextjs
@@ -154,7 +123,7 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:3000/api/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
 # Comando de inicio
 CMD ["npm", "start"]
