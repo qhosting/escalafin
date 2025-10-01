@@ -1,11 +1,11 @@
-# ESCALAFIN MVP - DOCKERFILE v8.2 OPTIMIZADO
+# ESCALAFIN MVP - DOCKERFILE v8.3 OPTIMIZADO
 # Build optimizado para EasyPanel/Coolify usando NPM
 FROM node:18-alpine AS base
 
 # Labels
 LABEL maintainer="escalafin-build@2025-10-01"  
-LABEL version="8.2-explicit-copy"
-LABEL build-date="2025-10-01T05:00:00Z"
+LABEL version="8.3-prisma-fixed"
+LABEL build-date="2025-10-01T05:30:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
