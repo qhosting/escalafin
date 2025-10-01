@@ -1,11 +1,11 @@
-# ESCALAFIN MVP - DOCKERFILE v8.1 OPTIMIZADO
+# ESCALAFIN MVP - DOCKERFILE v8.2 OPTIMIZADO
 # Build optimizado para EasyPanel/Coolify usando NPM
 FROM node:18-alpine AS base
 
 # Labels
 LABEL maintainer="escalafin-build@2025-10-01"  
-LABEL version="8.1-npm"
-LABEL build-date="2025-10-01T04:50:00Z"
+LABEL version="8.2-explicit-copy"
+LABEL build-date="2025-10-01T05:00:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -44,8 +44,19 @@ WORKDIR /app
 # Copiar dependencias instaladas
 COPY --from=deps /app/node_modules ./node_modules
 
-# Copiar código fuente
-COPY app/ .
+# Copiar código fuente completo
+COPY app/package.json ./package.json
+COPY app/next.config.js ./next.config.js
+COPY app/tsconfig.json ./tsconfig.json
+COPY app/tailwind.config.ts ./tailwind.config.ts
+COPY app/postcss.config.js ./postcss.config.js
+COPY app/components.json ./components.json
+COPY app/prisma ./prisma
+COPY app/app ./app
+COPY app/components ./components
+COPY app/lib ./lib
+COPY app/hooks ./hooks
+COPY app/public ./public
 
 # Args para build-time (no quedan en la imagen final)
 ARG DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
@@ -66,15 +77,16 @@ ENV SKIP_ENV_VALIDATION=true
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
+# Listar contenido para debug
+RUN echo "=== CONTENIDO DEL DIRECTORIO ===" && \
+    ls -la && \
+    echo "=== PRISMA SCHEMA ===" && \
+    ls -la prisma/
+
 # Generar cliente Prisma
 RUN echo "=== GENERANDO CLIENTE PRISMA ===" && \
-    if [ -f prisma/schema.prisma ]; then \
-      echo "Schema encontrado, generando cliente..." && \
-      npx prisma generate && \
-      echo "✅ Cliente Prisma generado"; \
-    else \
-      echo "❌ No se encontró prisma/schema.prisma" && exit 1; \
-    fi
+    npx prisma generate && \
+    echo "✅ Cliente Prisma generado"
 
 # Build de Next.js
 RUN echo "=== BUILD NEXT.JS ===" && \
