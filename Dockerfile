@@ -1,11 +1,11 @@
-# ESCALAFIN MVP - DOCKERFILE v8.3 OPTIMIZADO
+# ESCALAFIN MVP - DOCKERFILE v8.4 OPTIMIZADO
 # Build optimizado para EasyPanel/Coolify usando NPM
 FROM node:18-alpine AS base
 
 # Labels
-LABEL maintainer="escalafin-build@2025-10-01"  
-LABEL version="8.3-prisma-fixed"
-LABEL build-date="2025-10-01T05:30:00Z"
+LABEL maintainer="escalafin-build@2025-10-06"  
+LABEL version="8.4-prisma-debug"
+LABEL build-date="2025-10-06T18:35:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -81,11 +81,15 @@ ENV NODE_ENV=production
 RUN echo "=== CONTENIDO DEL DIRECTORIO ===" && \
     ls -la && \
     echo "=== PRISMA SCHEMA ===" && \
-    ls -la prisma/
+    ls -la prisma/ && \
+    echo "=== CONTENIDO SCHEMA ===" && \
+    cat prisma/schema.prisma && \
+    echo "=== VERIFICANDO PRISMA CLI ===" && \
+    npx prisma --version
 
-# Generar cliente Prisma
+# Generar cliente Prisma con DATABASE_URL temporal
 RUN echo "=== GENERANDO CLIENTE PRISMA ===" && \
-    npx prisma generate && \
+    DATABASE_URL="postgresql://user:pass@localhost:5432/db" npx prisma generate && \
     echo "✅ Cliente Prisma generado"
 
 # Build de Next.js
