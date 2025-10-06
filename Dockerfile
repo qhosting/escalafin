@@ -1,11 +1,11 @@
-# ESCALAFIN MVP - DOCKERFILE v8.5 OPTIMIZADO
+# ESCALAFIN MVP - DOCKERFILE v8.6 OPTIMIZADO
 # Build optimizado para EasyPanel/Coolify usando NPM
 FROM node:18-alpine AS base
 
 # Labels
 LABEL maintainer="escalafin-build@2025-10-06"  
-LABEL version="8.5-prisma-simplified"
-LABEL build-date="2025-10-06T18:40:00Z"
+LABEL version="8.6-nextjs-debug"
+LABEL build-date="2025-10-06T18:55:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -87,9 +87,16 @@ RUN echo "=== GENERANDO CLIENTE PRISMA ===" && \
      echo "Prisma version:" && npx prisma --version && \
      exit 1)
 
-# Build de Next.js
+# Build de Next.js con logs detallados
 RUN echo "=== BUILD NEXT.JS ===" && \
-    npm run build && \
+    npm run build 2>&1 | tee /tmp/build.log || \
+    (echo "❌ BUILD FALLÓ - LOGS COMPLETOS:" && \
+     cat /tmp/build.log && \
+     echo "=== VERIFICANDO ARCHIVOS ===" && \
+     ls -la app/ && \
+     echo "=== NODE_MODULES ===" && \
+     ls -la node_modules/@prisma/ && \
+     exit 1) && \
     echo "✅ Build completado"
 
 # ===== STAGE: Runner (imagen final) =====
