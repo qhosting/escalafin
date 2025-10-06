@@ -1,11 +1,11 @@
-# ESCALAFIN MVP - DOCKERFILE v8.4 OPTIMIZADO
+# ESCALAFIN MVP - DOCKERFILE v8.5 OPTIMIZADO
 # Build optimizado para EasyPanel/Coolify usando NPM
 FROM node:18-alpine AS base
 
 # Labels
 LABEL maintainer="escalafin-build@2025-10-06"  
-LABEL version="8.4-prisma-debug"
-LABEL build-date="2025-10-06T18:35:00Z"
+LABEL version="8.5-prisma-simplified"
+LABEL build-date="2025-10-06T18:40:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -76,21 +76,16 @@ ARG EVOLUTION_INSTANCE_NAME="placeholder"
 ENV SKIP_ENV_VALIDATION=true
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
-# Listar contenido para debug
-RUN echo "=== CONTENIDO DEL DIRECTORIO ===" && \
-    ls -la && \
-    echo "=== PRISMA SCHEMA ===" && \
-    ls -la prisma/ && \
-    echo "=== CONTENIDO SCHEMA ===" && \
-    cat prisma/schema.prisma && \
-    echo "=== VERIFICANDO PRISMA CLI ===" && \
-    npx prisma --version
-
-# Generar cliente Prisma con DATABASE_URL temporal
+# Generar cliente Prisma (simplificado)
 RUN echo "=== GENERANDO CLIENTE PRISMA ===" && \
-    DATABASE_URL="postgresql://user:pass@localhost:5432/db" npx prisma generate && \
-    echo "✅ Cliente Prisma generado"
+    cd /app && \
+    npx --yes prisma@6.7.0 generate --schema=./prisma/schema.prisma || \
+    (echo "❌ Error generando Prisma client" && \
+     echo "Schema location:" && ls -la prisma/ && \
+     echo "Prisma version:" && npx prisma --version && \
+     exit 1)
 
 # Build de Next.js
 RUN echo "=== BUILD NEXT.JS ===" && \
