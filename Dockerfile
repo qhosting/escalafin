@@ -1,11 +1,11 @@
-# ESCALAFIN MVP - DOCKERFILE v8.9 OPTIMIZADO
+# ESCALAFIN MVP - DOCKERFILE v8.10 OPTIMIZADO
 # Build optimizado para EasyPanel/Coolify usando NPM + Standalone
 FROM node:18-alpine AS base
 
 # Labels
 LABEL maintainer="escalafin-build@2025-10-08"  
-LABEL version="8.9-sh-compatible"
-LABEL build-date="2025-10-08T02:40:00Z"
+LABEL version="8.10-full-output"
+LABEL build-date="2025-10-08T02:55:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -87,25 +87,30 @@ RUN echo "=== GENERANDO CLIENTE PRISMA ===" && \
      echo "Prisma version:" && npx prisma --version && \
      exit 1)
 
-# Build de Next.js con captura de errores (compatible con sh)
-RUN set -o pipefail && \
-    echo "=== BUILD NEXT.JS ===" && \
-    (npm run build 2>&1 | tee /tmp/build-output.log) || \
-    (echo "❌ BUILD FALLÓ" && \
-     echo "=== ÚLTIMAS 100 LÍNEAS DEL LOG ===" && \
-     tail -100 /tmp/build-output.log && \
-     echo "=== ARCHIVOS EN /app ===" && \
-     ls -la && \
-     echo "=== VERIFICANDO NODE_MODULES ===" && \
-     ls -la node_modules/@prisma/ 2>/dev/null || echo "@prisma no encontrado" && \
-     exit 1) && \
-    echo "=== VERIFICANDO BUILD ===" && \
-    test -f .next/BUILD_ID && \
-    echo "✅ Build completado exitosamente" || \
-    (echo "❌ ERROR: BUILD_ID no existe" && \
-     echo "=== CONTENIDO .next ===" && \
-     ls -laR .next/ 2>/dev/null || echo ".next no existe" && \
-     exit 1)
+# Build de Next.js - Versión simplificada para captura de errores
+RUN echo "=== INICIANDO BUILD NEXT.JS ===" && \
+    npm run build 2>&1 | tee /tmp/build-output.log; \
+    if [ ! -f .next/BUILD_ID ]; then \
+        echo "" && \
+        echo "========================================" && \
+        echo "❌ BUILD DE NEXT.JS FALLÓ" && \
+        echo "========================================" && \
+        echo "" && \
+        echo "=== OUTPUT COMPLETO DEL BUILD ===" && \
+        cat /tmp/build-output.log && \
+        echo "" && \
+        echo "=== ESTRUCTURA DE ARCHIVOS ===" && \
+        ls -la && \
+        echo "" && \
+        echo "=== PRISMA CLIENT ===" && \
+        ls -la node_modules/@prisma/client 2>/dev/null || echo "❌ @prisma/client NO ENCONTRADO" && \
+        echo "" && \
+        echo "=== CONTENIDO .next ===" && \
+        ls -laR .next/ 2>/dev/null || echo "❌ .next NO EXISTE" && \
+        echo "" && \
+        exit 1; \
+    fi && \
+    echo "✅ Build de Next.js completado exitosamente"
 
 # ===== STAGE: Runner (imagen final) =====
 FROM base AS runner
