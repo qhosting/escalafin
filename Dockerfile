@@ -1,11 +1,11 @@
-# ESCALAFIN MVP - DOCKERFILE v8.11 OPTIMIZADO
+# ESCALAFIN MVP - DOCKERFILE v8.12 OPTIMIZADO
 # Build optimizado para EasyPanel/Coolify usando NPM + Standalone
 FROM node:18-alpine AS base
 
 # Labels
 LABEL maintainer="escalafin-build@2025-10-08"  
-LABEL version="8.11-direct-output"
-LABEL build-date="2025-10-08T03:25:00Z"
+LABEL version="8.12-devdeps-fix"
+LABEL build-date="2025-10-08T03:35:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -16,8 +16,7 @@ RUN apk add --no-cache \
     openssl \
     && rm -rf /var/cache/apk/*
 
-# Variables de entorno básicas
-ENV NODE_ENV=production
+# Variables de entorno básicas (NO establecer NODE_ENV=production aquí)
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
@@ -30,11 +29,14 @@ FROM base AS deps
 # Copiar archivos de dependencias
 COPY app/package.json ./
 
-# Instalar dependencias usando npm
+# Instalar TODAS las dependencias (incluyendo devDependencies para build)
+# NODE_ENV no está en production, así que instalará devDependencies
 RUN echo "=== INSTALANDO DEPENDENCIAS ===" && \
     echo "Node: $(node --version)" && \
     echo "NPM: $(npm --version)" && \
-    npm install --legacy-peer-deps --loglevel verbose
+    echo "NODE_ENV: ${NODE_ENV:-not set}" && \
+    npm install --legacy-peer-deps && \
+    echo "✅ Dependencias instaladas (incluyendo devDependencies)"
 
 # ===== STAGE: Builder =====
 FROM base AS builder
