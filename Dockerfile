@@ -1,11 +1,11 @@
-# ESCALAFIN MVP - DOCKERFILE v8.10 OPTIMIZADO
+# ESCALAFIN MVP - DOCKERFILE v8.11 OPTIMIZADO
 # Build optimizado para EasyPanel/Coolify usando NPM + Standalone
 FROM node:18-alpine AS base
 
 # Labels
 LABEL maintainer="escalafin-build@2025-10-08"  
-LABEL version="8.10-full-output"
-LABEL build-date="2025-10-08T02:55:00Z"
+LABEL version="8.11-direct-output"
+LABEL build-date="2025-10-08T03:25:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -87,27 +87,23 @@ RUN echo "=== GENERANDO CLIENTE PRISMA ===" && \
      echo "Prisma version:" && npx prisma --version && \
      exit 1)
 
-# Build de Next.js - Versión simplificada para captura de errores
+# Build de Next.js - SIN CAPTURA, output directo
 RUN echo "=== INICIANDO BUILD NEXT.JS ===" && \
-    npm run build 2>&1 | tee /tmp/build-output.log; \
+    echo "Si falla, el error aparecerá arriba ⬆️" && \
+    echo "" && \
+    npm run build && \
+    echo "" && \
+    echo "=== VERIFICANDO BUILD ===" && \
     if [ ! -f .next/BUILD_ID ]; then \
+        echo "❌ ERROR: .next/BUILD_ID no existe" && \
+        echo "El build de Next.js falló (ver error arriba ⬆️)" && \
         echo "" && \
-        echo "========================================" && \
-        echo "❌ BUILD DE NEXT.JS FALLÓ" && \
-        echo "========================================" && \
+        echo "=== DIAGNÓSTICO ===" && \
+        echo "Archivos en /app:" && ls -la && \
         echo "" && \
-        echo "=== OUTPUT COMPLETO DEL BUILD ===" && \
-        cat /tmp/build-output.log && \
+        echo "Prisma Client:" && ls -la node_modules/@prisma/client 2>/dev/null || echo "❌ NO ENCONTRADO" && \
         echo "" && \
-        echo "=== ESTRUCTURA DE ARCHIVOS ===" && \
-        ls -la && \
-        echo "" && \
-        echo "=== PRISMA CLIENT ===" && \
-        ls -la node_modules/@prisma/client 2>/dev/null || echo "❌ @prisma/client NO ENCONTRADO" && \
-        echo "" && \
-        echo "=== CONTENIDO .next ===" && \
-        ls -laR .next/ 2>/dev/null || echo "❌ .next NO EXISTE" && \
-        echo "" && \
+        echo "Contenido .next:" && ls -la .next/ 2>/dev/null || echo "❌ NO EXISTE" && \
         exit 1; \
     fi && \
     echo "✅ Build de Next.js completado exitosamente"
