@@ -1,11 +1,11 @@
-# ESCALAFIN MVP - DOCKERFILE v8.7 OPTIMIZADO
+# ESCALAFIN MVP - DOCKERFILE v8.8 OPTIMIZADO
 # Build optimizado para EasyPanel/Coolify usando NPM + Standalone
 FROM node:18-alpine AS base
 
 # Labels
-LABEL maintainer="escalafin-build@2025-10-06"  
-LABEL version="8.7-standalone-fixed"
-LABEL build-date="2025-10-06T19:10:00Z"
+LABEL maintainer="escalafin-build@2025-10-08"  
+LABEL version="8.8-error-capture"
+LABEL build-date="2025-10-08T02:30:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -87,17 +87,27 @@ RUN echo "=== GENERANDO CLIENTE PRISMA ===" && \
      echo "Prisma version:" && npx prisma --version && \
      exit 1)
 
-# Build de Next.js con logs detallados
+# Build de Next.js con captura de errores
 RUN echo "=== BUILD NEXT.JS ===" && \
-    npm run build && \
-    echo "=== VERIFICANDO BUILD ===" && \
-    ls -la .next/ && \
-    test -f .next/BUILD_ID && \
-    echo "✅ Build completado exitosamente" || \
-    (echo "❌ BUILD FALLÓ O .next NO EXISTE" && \
-     echo "=== CONTENIDO DEL DIRECTORIO ===" && \
-     ls -laR && \
-     exit 1)
+    npm run build 2>&1 | tee /tmp/build-output.log; \
+    BUILD_EXIT_CODE=${PIPESTATUS[0]}; \
+    echo "Build exit code: $BUILD_EXIT_CODE"; \
+    if [ $BUILD_EXIT_CODE -ne 0 ]; then \
+        echo "❌ BUILD FALLÓ - Exit code: $BUILD_EXIT_CODE"; \
+        echo "=== ÚLTIMAS 50 LÍNEAS DEL LOG ==="; \
+        tail -50 /tmp/build-output.log; \
+        echo "=== ARCHIVOS EN /app ==="; \
+        ls -la; \
+        exit 1; \
+    fi; \
+    echo "=== VERIFICANDO BUILD ==="; \
+    if [ ! -f .next/BUILD_ID ]; then \
+        echo "❌ ERROR: BUILD_ID no existe"; \
+        echo "=== CONTENIDO .next ==="; \
+        ls -laR .next/ || echo ".next no existe"; \
+        exit 1; \
+    fi; \
+    echo "✅ Build completado exitosamente"
 
 # ===== STAGE: Runner (imagen final) =====
 FROM base AS runner
