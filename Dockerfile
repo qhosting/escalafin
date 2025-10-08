@@ -1,11 +1,11 @@
-# ESCALAFIN MVP - DOCKERFILE v8.12 OPTIMIZADO
+# ESCALAFIN MVP - DOCKERFILE v8.13 OPTIMIZADO
 # Build optimizado para EasyPanel/Coolify usando NPM + Standalone
 FROM node:18-alpine AS base
 
 # Labels
 LABEL maintainer="escalafin-build@2025-10-08"  
-LABEL version="8.12-devdeps-fix"
-LABEL build-date="2025-10-08T03:35:00Z"
+LABEL version="8.13-standalone-verification"
+LABEL build-date="2025-10-08T04:00:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -99,16 +99,21 @@ RUN echo "=== INICIANDO BUILD NEXT.JS ===" && \
     if [ ! -f .next/BUILD_ID ]; then \
         echo "❌ ERROR: .next/BUILD_ID no existe" && \
         echo "El build de Next.js falló (ver error arriba ⬆️)" && \
-        echo "" && \
-        echo "=== DIAGNÓSTICO ===" && \
-        echo "Archivos en /app:" && ls -la && \
-        echo "" && \
-        echo "Prisma Client:" && ls -la node_modules/@prisma/client 2>/dev/null || echo "❌ NO ENCONTRADO" && \
-        echo "" && \
-        echo "Contenido .next:" && ls -la .next/ 2>/dev/null || echo "❌ NO EXISTE" && \
         exit 1; \
     fi && \
-    echo "✅ Build de Next.js completado exitosamente"
+    echo "✅ Build de Next.js completado exitosamente" && \
+    echo "" && \
+    echo "=== VERIFICANDO STANDALONE OUTPUT ===" && \
+    echo "Contenido de .next/:" && ls -la .next/ && \
+    echo "" && \
+    echo "Contenido de .next/standalone/:" && ls -la .next/standalone/ && \
+    echo "" && \
+    if [ -f .next/standalone/server.js ]; then \
+        echo "✅ server.js encontrado en standalone"; \
+    else \
+        echo "❌ server.js NO encontrado en standalone"; \
+        exit 1; \
+    fi
 
 # ===== STAGE: Runner (imagen final) =====
 FROM base AS runner
@@ -120,10 +125,32 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -u 1001 -S nextjs -G nodejs
 
 # Copiar archivos del standalone build
+# El standalone output de Next.js contiene todo lo necesario
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Copiar prisma para migraciones si es necesario
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma/client ./node_modules/@prisma/client
+
+# Verificar estructura de archivos (como root antes de cambiar usuario)
+RUN echo "=== VERIFICANDO ESTRUCTURA RUNNER ===" && \
+    echo "Archivos en /app:" && ls -la /app && \
+    echo "" && \
+    echo "¿Existe server.js?" && \
+    if [ -f /app/server.js ]; then \
+        echo "✅ server.js encontrado"; \
+    else \
+        echo "❌ server.js NO encontrado"; \
+        echo "Listado completo:" && find /app -name "server.js" || echo "No se encontró server.js en ningún lugar"; \
+        exit 1; \
+    fi && \
+    echo "" && \
+    echo "Contenido de .next/:" && ls -la /app/.next 2>/dev/null || echo "❌ .next/ no existe" && \
+    echo "" && \
+    echo "✅ Estructura verificada"
 
 # Variables de entorno para runtime (serán sobrescritas por el host)
 ENV NODE_ENV=production
