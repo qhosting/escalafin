@@ -1,11 +1,11 @@
-# ESCALAFIN MVP - DOCKERFILE v8.6 OPTIMIZADO
-# Build optimizado para EasyPanel/Coolify usando NPM
+# ESCALAFIN MVP - DOCKERFILE v8.7 OPTIMIZADO
+# Build optimizado para EasyPanel/Coolify usando NPM + Standalone
 FROM node:18-alpine AS base
 
 # Labels
 LABEL maintainer="escalafin-build@2025-10-06"  
-LABEL version="8.6-nextjs-debug"
-LABEL build-date="2025-10-06T18:55:00Z"
+LABEL version="8.7-standalone-fixed"
+LABEL build-date="2025-10-06T19:10:00Z"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache \
@@ -89,15 +89,15 @@ RUN echo "=== GENERANDO CLIENTE PRISMA ===" && \
 
 # Build de Next.js con logs detallados
 RUN echo "=== BUILD NEXT.JS ===" && \
-    npm run build 2>&1 | tee /tmp/build.log || \
-    (echo "❌ BUILD FALLÓ - LOGS COMPLETOS:" && \
-     cat /tmp/build.log && \
-     echo "=== VERIFICANDO ARCHIVOS ===" && \
-     ls -la app/ && \
-     echo "=== NODE_MODULES ===" && \
-     ls -la node_modules/@prisma/ && \
-     exit 1) && \
-    echo "✅ Build completado"
+    npm run build && \
+    echo "=== VERIFICANDO BUILD ===" && \
+    ls -la .next/ && \
+    test -f .next/BUILD_ID && \
+    echo "✅ Build completado exitosamente" || \
+    (echo "❌ BUILD FALLÓ O .next NO EXISTE" && \
+     echo "=== CONTENIDO DEL DIRECTORIO ===" && \
+     ls -laR && \
+     exit 1)
 
 # ===== STAGE: Runner (imagen final) =====
 FROM base AS runner
@@ -108,16 +108,11 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -u 1001 -S nextjs -G nodejs
 
-# Copiar archivos necesarios para producción
+# Copiar archivos del standalone build
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./next.config.js
-
-# Copiar start script si existe
-COPY --from=builder --chown=nextjs:nodejs /app/start.sh* ./
 
 # Variables de entorno para runtime (serán sobrescritas por el host)
 ENV NODE_ENV=production
@@ -135,5 +130,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-# Comando de inicio
-CMD ["npm", "start"]
+# Comando de inicio usando standalone server
+CMD ["node", "server.js"]
