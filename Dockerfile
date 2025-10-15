@@ -1,6 +1,6 @@
 
 # ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA EASYPANEL
-# Versión: 9.3 - Logs detallados + variables de entorno completas
+# Versión: 9.4 - Fix standalone output forzado
 # Fecha: 2025-10-15
 
 FROM node:18-alpine AS base
@@ -64,6 +64,12 @@ ENV EVOLUTION_INSTANCE_NAME="placeholder"
 RUN echo "=== Generando Prisma Client ===" && \
     npx prisma generate && \
     echo "✅ Prisma Client generado"
+
+# Forzar configuración standalone en next.config.js
+RUN echo "=== Configurando standalone output ===" && \
+    sed -i "s/output: process.env.NEXT_OUTPUT_MODE,/output: 'standalone',/" next.config.js && \
+    echo "Configuración aplicada:" && \
+    grep "output:" next.config.js
 
 # Build de Next.js con logs detallados
 RUN echo "=== Iniciando build de Next.js ===" && \
