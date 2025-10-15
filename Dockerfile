@@ -1,6 +1,6 @@
 
 # ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA EASYPANEL
-# Versión: 9.2 - Fix npm install (sin package-lock.json)
+# Versión: 9.3 - Logs detallados + variables de entorno completas
 # Fecha: 2025-10-15
 
 FROM node:18-alpine AS base
@@ -46,17 +46,36 @@ ENV NEXT_OUTPUT_MODE=standalone
 # Variables placeholder para el build
 ENV DATABASE_URL="postgresql://user:pass@localhost:5432/db"
 ENV NEXTAUTH_URL="http://localhost:3000"
-ENV NEXTAUTH_SECRET="placeholder-secret"
+ENV NEXTAUTH_SECRET="placeholder-secret-min-32-chars-long-for-nextauth"
+
+# Variables adicionales que pueden ser necesarias
+ENV AWS_BUCKET_NAME="placeholder-bucket"
+ENV AWS_FOLDER_PREFIX="placeholder/"
+ENV AWS_REGION="us-east-1"
+ENV OPENPAY_MERCHANT_ID="placeholder"
+ENV OPENPAY_PRIVATE_KEY="placeholder"
+ENV OPENPAY_PUBLIC_KEY="placeholder"
+ENV OPENPAY_BASE_URL="https://sandbox-api.openpay.mx/v1"
+ENV EVOLUTION_API_URL="http://localhost:8080"
+ENV EVOLUTION_API_TOKEN="placeholder"
+ENV EVOLUTION_INSTANCE_NAME="placeholder"
 
 # Generar Prisma Client
-RUN npx prisma generate
+RUN echo "=== Generando Prisma Client ===" && \
+    npx prisma generate && \
+    echo "✅ Prisma Client generado"
 
-# Build de Next.js con verificación
-RUN npm run build && \
-    echo "=== Verificando build standalone ===" && \
+# Build de Next.js con logs detallados
+RUN echo "=== Iniciando build de Next.js ===" && \
+    npm run build 2>&1 | tee /tmp/build.log || (cat /tmp/build.log && exit 1)
+
+# Verificar standalone output
+RUN echo "=== Verificando build standalone ===" && \
     ls -la .next/ && \
     if [ ! -d ".next/standalone" ]; then \
         echo "❌ ERROR: standalone output no generado"; \
+        echo "=== Contenido de .next: ===" ; \
+        find .next -type d -maxdepth 2 ; \
         exit 1; \
     fi && \
     echo "✅ Standalone output verificado"
