@@ -1,6 +1,6 @@
 
 # ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA EASYPANEL
-# Versión: 9.0 - Simplificado y específico para EasyPanel
+# Versión: 9.1 - Fix crítico NEXT_OUTPUT_MODE
 # Fecha: 2025-10-15
 
 FROM node:18-alpine AS base
@@ -39,6 +39,7 @@ COPY app/ ./
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=true
+ENV NEXT_OUTPUT_MODE=standalone
 
 # Variables placeholder para el build
 ENV DATABASE_URL="postgresql://user:pass@localhost:5432/db"
@@ -48,8 +49,15 @@ ENV NEXTAUTH_SECRET="placeholder-secret"
 # Generar Prisma Client
 RUN npx prisma generate
 
-# Build de Next.js
-RUN npm run build
+# Build de Next.js con verificación
+RUN npm run build && \
+    echo "=== Verificando build standalone ===" && \
+    ls -la .next/ && \
+    if [ ! -d ".next/standalone" ]; then \
+        echo "❌ ERROR: standalone output no generado"; \
+        exit 1; \
+    fi && \
+    echo "✅ Standalone output verificado"
 
 # ===== STAGE 3: Production image =====
 FROM base AS runner
