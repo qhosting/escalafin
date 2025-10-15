@@ -1,58 +1,76 @@
 
-# Dependencies
-node_modules
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Testing
-coverage
-.nyc_output
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+.pnpm-debug.log
 
 # Next.js
 .next/
 out/
-build
-dist
+build/
+dist/
+.swc/
 
-# Production
-.vercel
-.env*.local
-.env.production
+# Testing
+coverage/
+.nyc_output/
 
-# Debug
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
 *.log
-.DS_Store
+logs/
 
-# IDEs
-.idea
-.vscode
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
 *.swp
 *.swo
 *~
 
-# OS
-Thumbs.db
-
-# Misc
-.git
+# Git
+.git/
 .gitignore
-README*.md
-CHANGELOG*.md
-*.pdf
-*.bundle
-*.tar.gz
-.cache
-temp_*
-test-*
-instances/
-uploads/*
 
-# Keep necessary files
-!.dockerignore
-!Dockerfile*
-!docker-compose*.yml
-!start.sh
-!healthcheck.sh
-!.env.example
+# Uploads (local)
+uploads/
+
+# Temp
+tmp/
+temp/
+*.tmp
+
+# Documentation
+*.pdf
+*.md
+!README.md
+
+# Backups
+*.backup
+*_BACKUP_*
+
+# Testing
+test-scripts/
+testing-documentation/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Archives
+*.tar.gz
+*.zip
+*.bundle
+
+# Instances
+instances/
+
+# Scripts
+scripts/
