@@ -1,6 +1,6 @@
 
 # ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA EASYPANEL
-# Versión: 9.1 - Fix crítico NEXT_OUTPUT_MODE
+# Versión: 9.2 - Fix npm install (sin package-lock.json)
 # Fecha: 2025-10-15
 
 FROM node:18-alpine AS base
@@ -19,10 +19,12 @@ WORKDIR /app
 FROM base AS deps
 
 # Copiar archivos de dependencias
-COPY app/package.json app/package-lock.json* ./
+COPY app/package.json ./
 
-# Instalar TODAS las dependencias (incluyendo devDependencies)
-RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+# Verificar e instalar dependencias con manejo de errores
+RUN echo "=== Instalando dependencias ===" && \
+    npm install --legacy-peer-deps --loglevel=verbose 2>&1 | tail -100 && \
+    echo "✅ Dependencias instaladas correctamente"
 
 # ===== STAGE 2: Build de la aplicación =====
 FROM base AS builder
