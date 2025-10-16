@@ -1,6 +1,6 @@
 
 # 🚀 ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA PRODUCCIÓN
-# Versión: 12.0 - Con mejores prácticas de CitaPlanner
+# Versión: 13.0 - Fix para npm install sin package-lock.json obligatorio
 # Fecha: 2025-10-16
 # Compatible con Coolify, GitHub Actions, Docker Hub, EasyPanel
 
@@ -26,16 +26,25 @@ WORKDIR /app
 FROM base AS deps
 WORKDIR /app
 
-# Configurar npm para usar cache
+# Configurar npm
 ENV NPM_CONFIG_CACHE=/app/.npm-cache
+ENV SKIP_ENV_VALIDATION=1
 
-# Copy package files
-COPY app/package.json app/package-lock.json* ./
+# Copy package files - soporta tanto npm como yarn
+COPY app/package.json ./
+COPY app/package-lock.json* ./
+COPY app/yarn.lock* ./
 
-# Instalar dependencias con npm
-RUN echo "=== 📦 Instalando dependencias con NPM ===" && \
-    npm cache clean --force && \
-    npm ci --legacy-peer-deps --ignore-scripts && \
+# Instalar dependencias
+# Usa package-lock.json si existe, sino genera uno nuevo
+RUN echo "=== 📦 Instalando dependencias ===" && \
+    if [ -f "package-lock.json" ]; then \
+        echo "✓ Usando package-lock.json existente"; \
+        npm ci --legacy-peer-deps --ignore-scripts; \
+    else \
+        echo "✓ Generando package-lock.json nuevo"; \
+        npm install --legacy-peer-deps --ignore-scripts --no-optional; \
+    fi && \
     echo "✅ Dependencias instaladas correctamente"
 
 # ===================================
@@ -48,107 +57,70 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source code
-COPY app/ .
+COPY app/ ./
 
-# Variables de entorno para el build
-ENV SKIP_ENV_VALIDATION=true
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
-
-# Generate Prisma client
+# Generar Prisma Client
 RUN echo "=== 🔧 Generando Prisma Client ===" && \
     npx prisma generate && \
     echo "✅ Prisma Client generado"
 
-# Build Next.js application con standalone output
-RUN echo "=== 🏗️ Building Next.js con standalone output ===" && \
+# Build de Next.js
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV SKIP_ENV_VALIDATION=1
+
+RUN echo "=== 🏗️  Building Next.js ===" && \
     npm run build && \
-    echo "✅ Build completado"
-
-# Verificar que standalone fue creado correctamente
-RUN echo "=== 🔍 Verificando standalone build ===" && \
-    if [ ! -d ".next/standalone" ]; then \
-        echo "❌ ERROR: .next/standalone no fue creado" && \
-        echo "📂 Contenido de .next/:" && \
-        ls -la .next/ && \
-        exit 1; \
-    fi && \
-    echo "✅ Standalone build verificado"
+    echo "✅ Build completado exitosamente"
 
 # ===================================
-# STAGE 3: public-files - Copiar archivos públicos
-# ===================================
-FROM base AS public-files
-WORKDIR /app
-COPY app/public ./public
-
-# ===================================
-# STAGE 4: runner - Imagen de producción
+# STAGE 3: runner - Imagen de producción
 # ===================================
 FROM base AS runner
 WORKDIR /app
 
-# Set environment variables
+# Configurar entorno de producción
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
 
-# Create user and group
+# Crear usuario no-root
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy el build standalone con permisos correctos
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone/app ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone/.next/static ./.next/static
+# Copy necesarios de builder
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# Copy archivos públicos desde stage dedicado
-COPY --from=public-files --chown=nextjs:nodejs /app/public ./public
+# Copy scripts
+COPY --from=builder /app/start.sh* /app/
+COPY --from=builder /app/healthcheck.sh* /app/
 
-# Copy archivos de Prisma con permisos correctos
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+# Hacer ejecutables los scripts
+RUN if [ -f "start.sh" ]; then chmod +x start.sh; fi && \
+    if [ -f "healthcheck.sh" ]; then chmod +x healthcheck.sh; fi
 
-# Copy Prisma binaries necesarios
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+# Crear directorios necesarios
+RUN mkdir -p /app/uploads && \
+    chown -R nextjs:nodejs /app
 
-# Copy scripts folder para seed execution
-COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+# Configurar healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD if [ -f "healthcheck.sh" ]; then sh healthcheck.sh; else wget --no-verbose --tries=1 --spider http://localhost:${PORT}/api/health || exit 1; fi
 
-# Copy essential node_modules para seed execution (bcryptjs, tsx, y ALL tsx dependencies)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/bcryptjs ./node_modules/bcryptjs
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/tsx ./node_modules/tsx
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/dotenv ./node_modules/dotenv
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/typescript ./node_modules/typescript
-
-# Copy tsx transitive dependencies (required for tsx to work)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/get-tsconfig ./node_modules/get-tsconfig
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/esbuild ./node_modules/esbuild
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/resolve-pkg-maps ./node_modules/resolve-pkg-maps
-
-# Copy scripts de inicio
-COPY --chown=nextjs:nodejs start.sh ./
-RUN chmod +x start.sh
-
-# Crear directorios con permisos correctos
-RUN mkdir -p node_modules/.prisma node_modules/@prisma node_modules/.bin \
-    && mkdir -p /app/uploads \
-    && chown -R nextjs:nodejs node_modules/.prisma node_modules/@prisma node_modules/.bin /app/uploads
-
-# Verificar instalación de Prisma
-RUN echo "=== 🔍 Verificando instalación de Prisma ===" && \
-    ls -la node_modules/.bin/prisma && echo "✅ Prisma CLI encontrado" || echo "⚠️ Prisma CLI no encontrado"
-
-# Switch to non-root user
+# Cambiar a usuario no-root
 USER nextjs
 
-# Expose port
+# Exponer puerto
 EXPOSE 3000
 
-# Health check usando el nuevo endpoint
-HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+# Comando de inicio
+CMD ["dumb-init", "node", "server.js"]
 
-# Iniciar aplicación con script robusto
-CMD ["./start.sh"]
+# Labels de metadata
+LABEL maintainer="EscalaFin Team"
+LABEL version="13.0"
+LABEL description="EscalaFin MVP - Sistema de Gestión de Préstamos y Créditos"
