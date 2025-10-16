@@ -1,16 +1,16 @@
 
 
 # 🚀 ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA PRODUCCIÓN
-# Versión: 15.0 - Fix completo de deployment (standalone + scripts)
+# Versión: 16.0 - Fix npm ci -> npm install (lockfileVersion 3 compatible)
 # Fecha: 2025-10-16
 # Compatible con Coolify, GitHub Actions, Docker Hub, EasyPanel
 #
-# CAMBIOS EN v15.0:
-# - ✅ Agregado NEXT_OUTPUT_MODE=standalone para generar server.js
-# - ✅ Scripts start.sh y healthcheck.sh copiados desde root
-# - ✅ npm pinned a v10.9.0 para builds reproducibles
-# - ✅ Cache de dependencias optimizado
-# - ✅ Healthcheck mejorado con mejor logging
+# CAMBIOS EN v16.0:
+# - ✅ Cambiado npm ci por npm install para evitar problemas con lockfileVersion 3
+# - ✅ Agregado logging de versiones de npm y node para debugging
+# - ✅ Agregado detección automática de lockfileVersion
+# - ✅ Uso de --prefer-offline para builds más rápidos
+# - ✅ Más robusto y compatible con diferentes versiones de package-lock.json
 
 # ===================================
 # STAGE 0: Base - Imagen base
@@ -49,15 +49,15 @@ COPY app/package.json ./
 COPY app/package-lock.json* ./
 COPY app/yarn.lock* ./
 
-# Instalar dependencias
+# Instalar dependencias - Usar npm install en lugar de npm ci para evitar problemas con lockfileVersion
 RUN echo "=== 📦 Instalando dependencias ===" && \
+    echo "📊 Versión de npm: $(npm --version)" && \
+    echo "📊 Versión de node: $(node --version)" && \
     if [ -f "package-lock.json" ]; then \
-        echo "✓ Usando package-lock.json existente (lockfileVersion 3)"; \
-        npm ci --legacy-peer-deps --ignore-scripts; \
-    else \
-        echo "✓ Generando package-lock.json nuevo"; \
-        npm install --legacy-peer-deps --ignore-scripts --no-optional; \
+        echo "✓ package-lock.json encontrado (lockfileVersion: $(grep -o '"lockfileVersion": [0-9]*' package-lock.json | grep -o '[0-9]*'))"; \
     fi && \
+    echo "🔧 Usando npm install (más robusto que npm ci)" && \
+    npm install --legacy-peer-deps --ignore-scripts --no-optional --prefer-offline && \
     echo "✅ Dependencias instaladas correctamente"
 
 # ===================================
