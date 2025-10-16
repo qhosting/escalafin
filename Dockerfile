@@ -1,6 +1,6 @@
 
 # 🚀 ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA PRODUCCIÓN
-# Versión: 13.0 - Fix para npm install sin package-lock.json obligatorio
+# Versión: 14.0 - Fix para lockfileVersion 3 (npm >= 9)
 # Fecha: 2025-10-16
 # Compatible con Coolify, GitHub Actions, Docker Hub, EasyPanel
 
@@ -26,6 +26,12 @@ WORKDIR /app
 FROM base AS deps
 WORKDIR /app
 
+# Actualizar npm a una versión que soporte lockfileVersion 3 (npm >= 9)
+RUN echo "=== 📦 Actualizando npm ===" && \
+    npm install -g npm@latest && \
+    npm --version && \
+    echo "✅ npm actualizado correctamente"
+
 # Configurar npm
 ENV NPM_CONFIG_CACHE=/app/.npm-cache
 ENV SKIP_ENV_VALIDATION=1
@@ -39,7 +45,7 @@ COPY app/yarn.lock* ./
 # Usa package-lock.json si existe, sino genera uno nuevo
 RUN echo "=== 📦 Instalando dependencias ===" && \
     if [ -f "package-lock.json" ]; then \
-        echo "✓ Usando package-lock.json existente"; \
+        echo "✓ Usando package-lock.json existente (lockfileVersion 3)"; \
         npm ci --legacy-peer-deps --ignore-scripts; \
     else \
         echo "✓ Generando package-lock.json nuevo"; \
