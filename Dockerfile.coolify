@@ -1,9 +1,17 @@
 
-# Dockerfile optimizado para producción con Coolify
+# ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA COOLIFY
+# Versión: 11.0 - Solo NPM (más estable en Docker)
+# Fecha: 2025-10-16
+
 FROM node:18-alpine AS base
 
 # Install system dependencies
-RUN apk add --no-cache libc6-compat curl dumb-init openssl
+RUN apk add --no-cache \
+    libc6-compat \
+    curl \
+    dumb-init \
+    openssl \
+    && rm -rf /var/cache/apk/*
 
 # Create app directory and user
 WORKDIR /app
@@ -16,35 +24,43 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Install dependencies
+# ===== STAGE 1: Instalar dependencias =====
 FROM base AS deps
 WORKDIR /app
 
-# Copy package files
-COPY app/package.json app/yarn.lock* ./
+# Copy package files (package.json y ambos lock files por compatibilidad)
+COPY app/package.json app/package-lock.json* app/yarn.lock* ./
 
-# Install dependencies with network timeout
-RUN if [ -f yarn.lock ]; then \
-      yarn install --frozen-lockfile --network-timeout 300000 --production=false; \
-    else \
-      npm ci --legacy-peer-deps; \
-    fi
+# Instalar dependencias SOLO con NPM
+RUN echo "=== Instalando dependencias con NPM ===" && \
+    echo "Limpiando cache..." && \
+    npm cache clean --force && \
+    echo "Instalando todas las dependencias (dev + prod)..." && \
+    npm install --legacy-peer-deps --prefer-offline --no-audit --progress=false && \
+    echo "✅ Dependencias instaladas correctamente"
 
-# Build stage
+# ===== STAGE 2: Build =====
 FROM base AS builder
 WORKDIR /app
 
-# Copy dependencies
+# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source code
 COPY app/ .
 
-# Generate Prisma client
-RUN npx prisma generate
+# Variables de entorno para el build
+ENV SKIP_ENV_VALIDATION=true
 
-# Build Next.js application
-RUN yarn build
+# Generate Prisma client
+RUN echo "=== Generando Prisma Client ===" && \
+    npx prisma generate && \
+    echo "✅ Prisma Client generado"
+
+# Build Next.js application con NPM
+RUN echo "=== Building Next.js ===" && \
+    npm run build && \
+    echo "✅ Build completado"
 
 # Production image
 FROM base AS runner
