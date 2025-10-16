@@ -1,76 +1,103 @@
 
-# Node
-node_modules/
+# Dependencies
+node_modules
 npm-debug.log
 yarn-error.log
-.pnpm-debug.log
+yarn-debug.log
 
-# Next.js
-.next/
-out/
-build/
-dist/
-.swc/
+# Git
+.git
+.gitignore
+.gitattributes
 
-# Testing
-coverage/
-.nyc_output/
-
-# Environment
+# Environment files
 .env
-.env.*
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
 !.env.example
+
+# Build outputs
+.next
+out
+dist
+build
+.cache
 
 # Logs
 *.log
-logs/
+logs
+dev-server.log
 
-# OS
-.DS_Store
-Thumbs.db
+# Testing
+coverage
+.nyc_output
+test-scripts
+testing-documentation
 
 # IDE
-.idea/
-.vscode/
+.vscode
+.idea
 *.swp
 *.swo
 *~
+.DS_Store
 
-# Git
-.git/
-.gitignore
-
-# Uploads (local)
-uploads/
-
-# Temp
-tmp/
-temp/
-*.tmp
-
-# Documentation
-*.pdf
+# Documentation (reduce build size)
 *.md
 !README.md
+*.pdf
+docs
 
-# Backups
-*.backup
+# Development files
+docker-compose.yml
+docker-compose.*.yml
+!docker-compose.coolify.yml
+
+# Scripts (ya están en la imagen base si se necesitan)
+test-scripts
+scripts/*.sh
+!start.sh
+!healthcheck.sh
+
+# Backups and temp files
 *_BACKUP_*
+*_backup_*
+*_temp
+*_temporal
+*.backup
+*.bak
+*.tmp
+*.old
 
-# Testing
-test-scripts/
-testing-documentation/
+# Multi-instance files
+instances
+coolify-*.sh
+deploy-*.sh
+escalafin-*.tar.gz
+*.bundle
+
+# Prisma migrations (solo en desarrollo)
+# Descomenta si no necesitas las migraciones en producción
+# app/prisma/migrations
+
+# Public uploads (deben estar en S3)
+uploads
+public/uploads
 
 # Build artifacts
 *.tsbuildinfo
+.eslintcache
 
-# Archives
-*.tar.gz
-*.zip
-*.bundle
+# OS files
+Thumbs.db
+.DS_Store
+desktop.ini
 
-# Instances
-instances/
-
-# Scripts
-scripts/
+# Other
+*.orig
+*.rej
+.npmrc
+.yarnrc
