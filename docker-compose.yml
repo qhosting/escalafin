@@ -1,44 +1,72 @@
-
-# Docker Compose para desarrollo local
+# 🚀 Docker Compose para EscalaFin
+# Optimizado con mejores prácticas de CitaPlanner
 version: '3.8'
 
 services:
   app:
-    build:
+    build: 
       context: .
       dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:3000"
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://escalafin:password@db:5432/escalafin
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=development-secret-key-32-chars
+      # Database
+      - DATABASE_URL=${DATABASE_URL:-postgresql://escalafin:password@postgres:5432/escalafin}
+      
+      # NextAuth
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-development-secret-key-32-chars}
+      
+      # App Config
+      - NODE_ENV=production
+      - PORT=3000
+      
+      # AWS S3 (Cloud Storage)
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - AWS_FOLDER_PREFIX=${AWS_FOLDER_PREFIX}
+      
+      # Openpay
+      - OPENPAY_ID=${OPENPAY_ID}
+      - OPENPAY_PRIVATE_KEY=${OPENPAY_PRIVATE_KEY}
+      - OPENPAY_PUBLIC_KEY=${OPENPAY_PUBLIC_KEY}
+      - OPENPAY_SANDBOX=${OPENPAY_SANDBOX:-true}
+      
+      # Redis (Optional)
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
-    volumes:
-      - ./app:/app:ro
     restart: unless-stopped
+    networks:
+      - escalafin-network
+    volumes:
+      - app-cache:/app/.next/cache
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
-  db:
-    image: postgres:14-alpine
+  postgres:
+    image: postgres:17-alpine
     environment:
-      POSTGRES_USER: escalafin
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: escalafin
+      - POSTGRES_DB=${POSTGRES_DB:-escalafin_db}
+      - POSTGRES_USER=${POSTGRES_USER:-escalafin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - postgres_backups:/backup-escalafin
+      # - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql  # Opcional: script de inicialización
     restart: unless-stopped
+    networks:
+      - escalafin-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U escalafin"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-escalafin}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -46,13 +74,29 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
     restart: unless-stopped
+    networks:
+      - escalafin-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    command: redis-server --appendonly yes
 
 volumes:
   postgres_data:
+    driver: local
+  postgres_backups:
+    driver: local
+  redis_data:
+    driver: local
+  app-cache:
+    driver: local
+
+networks:
+  escalafin-network:
+    driver: bridge
