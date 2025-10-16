@@ -1,7 +1,7 @@
 
-# ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA EASYPANEL
-# Versión: 9.4 - Fix standalone output forzado
-# Fecha: 2025-10-15
+# ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA PRODUCCIÓN
+# Versión: 10.0 - Fix yarn.lock symlink
+# Fecha: 2025-10-16
 
 FROM node:18-alpine AS base
 
@@ -10,6 +10,7 @@ RUN apk add --no-cache \
     libc6-compat \
     curl \
     openssl \
+    dumb-init \
     && rm -rf /var/cache/apk/*
 
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -18,12 +19,22 @@ WORKDIR /app
 # ===== STAGE 1: Instalar TODAS las dependencias =====
 FROM base AS deps
 
-# Copiar archivos de dependencias
-COPY app/package.json ./
+# Copiar archivos de dependencias (package.json Y lock files)
+COPY app/package.json app/package-lock.json* app/yarn.lock* ./
 
-# Verificar e instalar dependencias con manejo de errores
+# Instalar dependencias usando el gestor apropiado
 RUN echo "=== Instalando dependencias ===" && \
-    npm install --legacy-peer-deps --loglevel=verbose 2>&1 | tail -100 && \
+    if [ -f yarn.lock ]; then \
+        echo "Usando Yarn..." && \
+        corepack enable && \
+        yarn install --frozen-lockfile --network-timeout 300000; \
+    elif [ -f package-lock.json ]; then \
+        echo "Usando NPM..." && \
+        npm ci --legacy-peer-deps; \
+    else \
+        echo "Usando NPM install..." && \
+        npm install --legacy-peer-deps; \
+    fi && \
     echo "✅ Dependencias instaladas correctamente"
 
 # ===== STAGE 2: Build de la aplicación =====
@@ -73,7 +84,13 @@ RUN echo "=== Configurando standalone output ===" && \
 
 # Build de Next.js con logs detallados
 RUN echo "=== Iniciando build de Next.js ===" && \
-    npm run build 2>&1 | tee /tmp/build.log || (cat /tmp/build.log && exit 1)
+    if [ -f yarn.lock ]; then \
+        echo "Usando yarn build..." && \
+        yarn build 2>&1 | tee /tmp/build.log || (cat /tmp/build.log && exit 1); \
+    else \
+        echo "Usando npm build..." && \
+        npm run build 2>&1 | tee /tmp/build.log || (cat /tmp/build.log && exit 1); \
+    fi
 
 # Verificar standalone output
 RUN echo "=== Verificando build standalone ===" && \
@@ -109,12 +126,17 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
+# Crear directorio para uploads
+RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
+
 USER nextjs
 
 EXPOSE 3000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
+# Start application with dumb-init
+ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "server.js"]
