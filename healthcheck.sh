@@ -1,9 +1,15 @@
 
 #!/bin/sh
 # Healthcheck script for EscalaFin MVP
+# Versión: 2.0 - Usa wget (incluido en alpine) en lugar de curl
 
-# Try to curl the health endpoint
-if curl -f http://localhost:${PORT:-3000}/api/health > /dev/null 2>&1; then
+PORT=${PORT:-3000}
+HEALTH_URL="http://localhost:${PORT}/api/health"
+
+echo "🏥 Ejecutando healthcheck en ${HEALTH_URL}..."
+
+# Try to wget the health endpoint
+if wget --no-verbose --tries=1 --spider "${HEALTH_URL}" > /dev/null 2>&1; then
   echo "✅ Health check passed"
   exit 0
 else

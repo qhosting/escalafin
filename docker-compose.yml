@@ -9,6 +9,7 @@ services:
       dockerfile: Dockerfile
       args:
         - NODE_ENV=production
+        - NEXT_OUTPUT_MODE=standalone
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
@@ -22,6 +23,7 @@ services:
       # App Config
       - NODE_ENV=production
       - PORT=3000
+      - NEXT_OUTPUT_MODE=standalone
       
       # AWS S3 (Cloud Storage)
       - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}

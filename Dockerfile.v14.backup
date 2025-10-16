@@ -1,16 +1,8 @@
 
-
 # 🚀 ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA PRODUCCIÓN
-# Versión: 15.0 - Fix completo de deployment (standalone + scripts)
+# Versión: 14.0 - Fix para lockfileVersion 3 (npm >= 9)
 # Fecha: 2025-10-16
 # Compatible con Coolify, GitHub Actions, Docker Hub, EasyPanel
-#
-# CAMBIOS EN v15.0:
-# - ✅ Agregado NEXT_OUTPUT_MODE=standalone para generar server.js
-# - ✅ Scripts start.sh y healthcheck.sh copiados desde root
-# - ✅ npm pinned a v10.9.0 para builds reproducibles
-# - ✅ Cache de dependencias optimizado
-# - ✅ Healthcheck mejorado con mejor logging
 
 # ===================================
 # STAGE 0: Base - Imagen base
@@ -34,22 +26,23 @@ WORKDIR /app
 FROM base AS deps
 WORKDIR /app
 
-# Actualizar npm a versión específica que soporte lockfileVersion 3
-RUN echo "=== 📦 Instalando npm v10.9.0 ===" && \
-    npm install -g npm@10.9.0 && \
+# Actualizar npm a una versión que soporte lockfileVersion 3 (npm >= 9)
+RUN echo "=== 📦 Actualizando npm ===" && \
+    npm install -g npm@latest && \
     npm --version && \
-    echo "✅ npm 10.9.0 instalado (soporta lockfileVersion 3)"
+    echo "✅ npm actualizado correctamente"
 
 # Configurar npm
 ENV NPM_CONFIG_CACHE=/app/.npm-cache
 ENV SKIP_ENV_VALIDATION=1
 
-# Copy package files (optimizado para cache)
+# Copy package files - soporta tanto npm como yarn
 COPY app/package.json ./
 COPY app/package-lock.json* ./
 COPY app/yarn.lock* ./
 
 # Instalar dependencias
+# Usa package-lock.json si existe, sino genera uno nuevo
 RUN echo "=== 📦 Instalando dependencias ===" && \
     if [ -f "package-lock.json" ]; then \
         echo "✓ Usando package-lock.json existente (lockfileVersion 3)"; \
@@ -72,30 +65,19 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy source code
 COPY app/ ./
 
-# Configurar variables de entorno para el build
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV SKIP_ENV_VALIDATION=1
-ENV NEXT_OUTPUT_MODE=standalone
-
 # Generar Prisma Client
 RUN echo "=== 🔧 Generando Prisma Client ===" && \
     npx prisma generate && \
     echo "✅ Prisma Client generado"
 
-# Build de Next.js en modo standalone
-RUN echo "=== 🏗️  Building Next.js (standalone mode) ===" && \
+# Build de Next.js
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV SKIP_ENV_VALIDATION=1
+
+RUN echo "=== 🏗️  Building Next.js ===" && \
     npm run build && \
-    echo "✅ Build completado exitosamente" && \
-    echo "🔍 Verificando archivos generados..." && \
-    ls -la .next/ && \
-    if [ -d ".next/standalone" ]; then \
-        echo "✅ Standalone build generado correctamente"; \
-        ls -la .next/standalone/ | head -10; \
-    else \
-        echo "❌ ERROR: Standalone build NO generado"; \
-        exit 1; \
-    fi
+    echo "✅ Build completado exitosamente"
 
 # ===================================
 # STAGE 3: runner - Imagen de producción
@@ -107,49 +89,33 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
 # Crear usuario no-root
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# ===================================
-# Copiar archivos de producción
-# ===================================
-
-# 1. Copiar scripts de infraestructura (desde root del proyecto)
-COPY start.sh healthcheck.sh /app/
-RUN chmod +x /app/start.sh /app/healthcheck.sh && \
-    echo "✅ Scripts de infraestructura copiados"
-
-# 2. Copiar standalone build
+# Copy necesarios de builder
+COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-
-# 3. Copiar archivos públicos
-COPY --from=builder /app/public ./public
-
-# 4. Copiar Prisma client y schema
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# 5. Crear directorios necesarios
+# Copy scripts
+COPY --from=builder /app/start.sh* /app/
+COPY --from=builder /app/healthcheck.sh* /app/
+
+# Hacer ejecutables los scripts
+RUN if [ -f "start.sh" ]; then chmod +x start.sh; fi && \
+    if [ -f "healthcheck.sh" ]; then chmod +x healthcheck.sh; fi
+
+# Crear directorios necesarios
 RUN mkdir -p /app/uploads && \
-    chown -R nextjs:nodejs /app && \
-    echo "✅ Directorios creados y permisos configurados"
+    chown -R nextjs:nodejs /app
 
-# Verificar que server.js existe
-RUN if [ ! -f "/app/server.js" ]; then \
-        echo "❌ ERROR CRÍTICO: server.js no encontrado"; \
-        echo "📂 Contenido de /app:"; \
-        ls -la /app/; \
-        exit 1; \
-    fi && \
-    echo "✅ server.js verificado en /app/server.js"
-
-# Configurar healthcheck mejorado
+# Configurar healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD /app/healthcheck.sh || wget --no-verbose --tries=1 --spider http://localhost:${PORT}/api/health || exit 1
+    CMD if [ -f "healthcheck.sh" ]; then sh healthcheck.sh; else wget --no-verbose --tries=1 --spider http://localhost:${PORT}/api/health || exit 1; fi
 
 # Cambiar a usuario no-root
 USER nextjs
@@ -158,12 +124,9 @@ USER nextjs
 EXPOSE 3000
 
 # Comando de inicio
-# Nota: start.sh contiene lógica de migraciones y seed
-CMD ["dumb-init", "sh", "/app/start.sh"]
+CMD ["dumb-init", "node", "server.js"]
 
 # Labels de metadata
 LABEL maintainer="EscalaFin Team"
-LABEL version="15.0"
+LABEL version="13.0"
 LABEL description="EscalaFin MVP - Sistema de Gestión de Préstamos y Créditos"
-LABEL changelog="v15.0: Fix completo - standalone mode + scripts corregidos"
-

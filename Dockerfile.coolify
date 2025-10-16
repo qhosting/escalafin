@@ -1,7 +1,8 @@
 
 # ESCALAFIN MVP - DOCKERFILE OPTIMIZADO PARA COOLIFY
-# Versión: 11.0 - Solo NPM (más estable en Docker)
+# Versión: 15.0 - Fix completo de deployment (standalone + scripts)
 # Fecha: 2025-10-16
+# CAMBIOS: Agregado NEXT_OUTPUT_MODE=standalone y scripts corregidos
 
 FROM node:18-alpine AS base
 
@@ -51,6 +52,7 @@ COPY app/ .
 
 # Variables de entorno para el build
 ENV SKIP_ENV_VALIDATION=true
+ENV NEXT_OUTPUT_MODE=standalone
 
 # Generate Prisma client
 RUN echo "=== Generando Prisma Client ===" && \
@@ -65,6 +67,10 @@ RUN echo "=== Building Next.js ===" && \
 # Production image
 FROM base AS runner
 WORKDIR /app
+
+# Copy scripts from project root (not from builder)
+COPY start.sh healthcheck.sh /app/
+RUN chmod +x /app/start.sh /app/healthcheck.sh
 
 # Copy built application
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -82,10 +88,10 @@ USER nextjs
 # Expose port
 EXPOSE 3000
 
-# Health check
+# Health check (usa wget en lugar de curl)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
+  CMD /app/healthcheck.sh || wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-# Start the application
+# Start the application (usa start.sh con lógica de migraciones y seed)
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "server.js"]
+CMD ["sh", "/app/start.sh"]
