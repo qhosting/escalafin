@@ -22,19 +22,12 @@ FROM base AS deps
 # Copiar archivos de dependencias (package.json Y lock files)
 COPY app/package.json app/package-lock.json* app/yarn.lock* ./
 
-# Instalar dependencias usando el gestor apropiado
-RUN echo "=== Instalando dependencias ===" && \
-    if [ -f yarn.lock ]; then \
-        echo "Usando Yarn..." && \
-        corepack enable && \
-        yarn install --frozen-lockfile --network-timeout 300000; \
-    elif [ -f package-lock.json ]; then \
-        echo "Usando NPM..." && \
-        npm ci --legacy-peer-deps; \
-    else \
-        echo "Usando NPM install..." && \
-        npm install --legacy-peer-deps; \
-    fi && \
+# Instalar dependencias - USAR NPM que es más estable en Docker
+RUN echo "=== Instalando dependencias con NPM ===" && \
+    echo "Limpiando cache de npm..." && \
+    npm cache clean --force && \
+    echo "Instalando dependencias..." && \
+    npm install --legacy-peer-deps --prefer-offline --no-audit --progress=false 2>&1 | tee /tmp/install.log && \
     echo "✅ Dependencias instaladas correctamente"
 
 # ===== STAGE 2: Build de la aplicación =====
@@ -84,13 +77,7 @@ RUN echo "=== Configurando standalone output ===" && \
 
 # Build de Next.js con logs detallados
 RUN echo "=== Iniciando build de Next.js ===" && \
-    if [ -f yarn.lock ]; then \
-        echo "Usando yarn build..." && \
-        yarn build 2>&1 | tee /tmp/build.log || (cat /tmp/build.log && exit 1); \
-    else \
-        echo "Usando npm build..." && \
-        npm run build 2>&1 | tee /tmp/build.log || (cat /tmp/build.log && exit 1); \
-    fi
+    npm run build 2>&1 | tee /tmp/build.log || (cat /tmp/build.log && exit 1)
 
 # Verificar standalone output
 RUN echo "=== Verificando build standalone ===" && \
