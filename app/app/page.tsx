@@ -300,7 +300,7 @@ export default function HomePage() {
             <div className="flex items-center space-x-3">
               <Building2 className="h-6 w-6" />
               <span className="text-lg font-bold">EscalaFin</span>
-              <Badge variant="outline" className="border-gray-600">v1.0</Badge>
+              <Badge variant="outline" className="border-gray-400 text-gray-700 bg-white">v1.0</Badge>
             </div>
             
             <div className="text-sm text-gray-400 text-center md:text-left">
