@@ -23,15 +23,25 @@ FROM base AS deps
 
 WORKDIR /app
 
-# Copy package files (SOLO yarn.lock, ignorar package-lock.json)
-COPY app/package.json app/yarn.lock* ./
+# Copy package files (SOLO yarn.lock, sin asterisco para asegurar que existe)
+COPY app/package.json ./
+COPY app/yarn.lock ./
 
-# Instalar dependencias con yarn (más estable que npm)
+# Verificar archivos copiados
+RUN echo "=== 📋 Verificando archivos ===" && \
+    ls -la && \
+    echo "✅ package.json: $(test -f package.json && echo 'existe' || echo 'NO existe')" && \
+    echo "✅ yarn.lock: $(test -f yarn.lock && echo 'existe' || echo 'NO existe')"
+
+# Instalar dependencias con yarn
 RUN echo "=== 📦 Instalando dependencias con Yarn ===" && \
     echo "📊 Versión de yarn: $(yarn --version)" && \
     echo "📊 Versión de node: $(node --version)" && \
     yarn install --frozen-lockfile --network-timeout 100000 && \
-    echo "✅ Dependencias instaladas correctamente"
+    echo "✅ Yarn install completado" && \
+    echo "📂 Verificando node_modules..." && \
+    ls -la node_modules/ | head -10 && \
+    echo "✅ node_modules creado correctamente"
 
 # ===================================
 # STAGE 2: Build completo
