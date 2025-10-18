@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { prisma } from '@/lib/db';
 
 /**
  * Health Check Endpoint
@@ -15,10 +15,10 @@ import { db } from '@/lib/db';
 export async function GET() {
   try {
     // Verificar conexión a base de datos
-    await db.$queryRaw`SELECT 1`;
+    await prisma.$queryRaw`SELECT 1`;
     
     // Contar usuarios para verificar que la BD tiene datos
-    const userCount = await db.user.count();
+    const userCount = await prisma.user.count();
     
     return NextResponse.json({
       status: 'healthy',
