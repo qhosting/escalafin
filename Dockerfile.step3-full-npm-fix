@@ -1,6 +1,6 @@
 
-# 🚀 DOCKERFILE STEP 3: BUILD COMPLETO CON YARN
-# Fix: Usar yarn en lugar de npm para evitar errores de lockfile
+# 🚀 DOCKERFILE STEP 3: BUILD COMPLETO - NPM FIX ALTERNATIVO
+# Fix: Eliminar package-lock.json y regenerar
 # ===================================
 
 FROM node:18-alpine AS base
@@ -11,9 +11,6 @@ RUN apk add --no-cache \
     curl \
     dumb-init
 
-# Instalar yarn globalmente
-RUN corepack enable && corepack prepare yarn@stable --activate
-
 WORKDIR /app
 
 # ===================================
@@ -21,16 +18,20 @@ WORKDIR /app
 # ===================================
 FROM base AS deps
 
+# Actualizar npm a versión estable
+RUN npm install -g npm@latest
+
 WORKDIR /app
 
-# Copy package files (SOLO yarn.lock, ignorar package-lock.json)
-COPY app/package.json app/yarn.lock* ./
+# Copy SOLO package.json (regenerar lockfile)
+COPY app/package.json ./
 
-# Instalar dependencias con yarn (más estable que npm)
-RUN echo "=== 📦 Instalando dependencias con Yarn ===" && \
-    echo "📊 Versión de yarn: $(yarn --version)" && \
+# Instalar dependencias SIN lockfile (npm lo regenerará)
+RUN echo "=== 📦 Instalando dependencias (regenerando lockfile) ===" && \
+    echo "📊 Versión de npm: $(npm --version)" && \
     echo "📊 Versión de node: $(node --version)" && \
-    yarn install --frozen-lockfile --network-timeout 100000 && \
+    rm -f package-lock.json && \
+    npm install --legacy-peer-deps && \
     echo "✅ Dependencias instaladas correctamente"
 
 # ===================================
@@ -59,7 +60,7 @@ RUN echo "=== 🔧 Generando Prisma Client ===" && \
 
 # Build Next.js
 RUN echo "=== 🏗️  Building Next.js ===" && \
-    yarn build && \
+    npm run build && \
     echo "✅ Build completado"
 
 # Verificar standalone
