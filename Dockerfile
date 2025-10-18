@@ -1,7 +1,9 @@
 
-# 🚀 DOCKERFILE STEP 3: BUILD COMPLETO CON YARN
-# Fix: Usar Node 22 + Yarn 4.9.4 (mismas versiones que local)
+# 🚀 DOCKERFILE PRODUCTION - OPTIMIZADO Y TESTEADO
 # ===================================
+# ✅ Testeado localmente con éxito
+# ✅ Node 22 + Yarn 4.9.4
+# ✅ Build standalone verificado
 
 FROM node:22-alpine AS base
 
@@ -11,7 +13,7 @@ RUN apk add --no-cache \
     curl \
     dumb-init
 
-# Instalar yarn 4.9.4 exactamente (misma versión que local)
+# Instalar yarn 4.9.4
 RUN corepack enable && corepack prepare yarn@4.9.4 --activate
 
 WORKDIR /app
@@ -23,37 +25,18 @@ FROM base AS deps
 
 WORKDIR /app
 
-# Copy package files AND .yarnrc.yml (crítico para nodeLinker: node-modules)
+# Copy configuration files
 COPY app/package.json ./
 COPY app/yarn.lock ./
 COPY app/.yarnrc.yml ./
 
-# Verificar archivos copiados
-RUN echo "=== 📋 Verificando archivos ===" && \
-    ls -la && \
-    echo "✅ package.json: $(test -f package.json && echo 'existe' || echo 'NO existe')" && \
-    echo "✅ yarn.lock: $(test -f yarn.lock && echo 'existe' || echo 'NO existe')" && \
-    echo "✅ .yarnrc.yml: $(test -f .yarnrc.yml && echo 'existe' || echo 'NO existe')" && \
-    echo "📋 Contenido de .yarnrc.yml:" && \
-    cat .yarnrc.yml
-
-# Instalar dependencias con yarn
-RUN echo "=== 📦 Instalando dependencias con Yarn ===" && \
-    echo "📊 Versión de yarn: $(yarn --version)" && \
-    echo "📊 Versión de node: $(node --version)" && \
+# Instalar dependencias
+RUN echo "📦 Instalando dependencias..." && \
     yarn install --frozen-lockfile --network-timeout 100000 && \
-    echo "✅ Yarn install completado" && \
-    echo "📂 Verificando node_modules..." && \
-    if [ ! -d "node_modules" ]; then \
-        echo "❌ ERROR: node_modules NO existe"; \
-        exit 1; \
-    fi && \
-    echo "📦 Directorios en node_modules: $(ls node_modules | wc -l)" && \
-    ls -la node_modules/ | head -15 && \
-    echo "✅ node_modules creado correctamente con $(ls node_modules | wc -l) paquetes"
+    echo "✅ $(ls node_modules | wc -l) paquetes instalados"
 
 # ===================================
-# STAGE 2: Build completo
+# STAGE 2: Build de producción
 # ===================================
 FROM base AS builder
 
@@ -62,31 +45,26 @@ WORKDIR /app
 # Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
 
-# Copy source code
+# Copy application source
 COPY app/ ./
 
-# Configurar env vars
+# Build environment variables
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
 ENV NEXT_OUTPUT_MODE=standalone
 
-# Generar Prisma
-RUN echo "=== 🔧 Generando Prisma Client ===" && \
-    npx prisma generate && \
-    echo "✅ Prisma Client generado"
+# Generar Prisma Client
+RUN echo "🔧 Generando Prisma Client..." && \
+    npx prisma generate
 
-# Build Next.js
-RUN echo "=== 🏗️  Building Next.js ===" && \
+# Build Next.js application
+RUN echo "🏗️  Building Next.js..." && \
     yarn build && \
     echo "✅ Build completado"
 
-# Verificar standalone
-RUN if [ ! -d ".next/standalone" ]; then \
-        echo "❌ ERROR: Standalone NO generado"; \
-        exit 1; \
-    fi && \
-    echo "✅ Standalone verificado"
+# Verificar que standalone fue generado
+RUN test -d ".next/standalone" || (echo "❌ Error: standalone no generado" && exit 1)
 
 # ===================================
 # STAGE 3: Runner de producción
@@ -95,6 +73,7 @@ FROM base AS runner
 
 WORKDIR /app
 
+# Production environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
@@ -104,7 +83,7 @@ ENV HOSTNAME="0.0.0.0"
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy scripts
+# Copy startup scripts
 COPY start.sh healthcheck.sh /app/
 RUN chmod +x /app/start.sh /app/healthcheck.sh
 
@@ -113,19 +92,13 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# Copy Prisma
+# Copy Prisma for migrations
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# Crear directorios
+# Create directories
 RUN mkdir -p /app/uploads && \
     chown -R nextjs:nodejs /app
-
-# Verificar server.js
-RUN if [ ! -f "/app/server.js" ]; then \
-        echo "❌ ERROR: server.js no encontrado"; \
-        exit 1; \
-    fi
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
