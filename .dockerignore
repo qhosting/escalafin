@@ -1,41 +1,46 @@
 
-# Dependencies
+# Dependencias
 node_modules
-npm-debug.log
-yarn-error.log
-yarn-debug.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Git
-.git
-.gitignore
-.gitattributes
-
-# Environment files
-.env
-.env.local
-.env.development
-.env.test
-.env.production
-.env.*.local
-!.env.example
-
-# Build outputs
+# Next.js
 .next
+.build
 out
-dist
-build
-.cache
 
-# Logs
-*.log
-logs
-dev-server.log
+# Producción
+/build
+dist
 
 # Testing
 coverage
 .nyc_output
-test-scripts
-testing-documentation
+
+# Misc
+.DS_Store
+*.pem
+*.log
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env*.local
+
+# Vercel
+.vercel
+
+# Typescript
+*.tsbuildinfo
 
 # IDE
 .vscode
@@ -43,61 +48,49 @@ testing-documentation
 *.swp
 *.swo
 *~
+
+# OS
 .DS_Store
+Thumbs.db
 
-# Documentation (reduce build size)
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
 *.md
-!README.md
 *.pdf
-docs
+docs/
+CHANGELOG*
+README*
+LICENSE
 
-# Development files
-docker-compose.yml
-docker-compose.*.yml
-!docker-compose.coolify.yml
+# Scripts
+*.sh
+test-scripts/
 
-# Scripts (ya están en la imagen base si se necesitan)
-test-scripts
-scripts/*.sh
-!start.sh
-!healthcheck.sh
-
-# Backups and temp files
-*_BACKUP_*
-*_backup_*
-*_temp
-*_temporal
+# Backups
 *.backup
 *.bak
-*.tmp
-*.old
+*_BACKUP_*
+escalafin_mvp_BACKUP_*
+escalafin_mvp_temp/
 
-# Multi-instance files
-instances
-coolify-*.sh
-deploy-*.sh
-escalafin-*.tar.gz
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Uploads (no copiar al build)
+uploads/
+Uploads/
+
+# Instances
+instances/
+
+# Bundles
 *.bundle
 
-# Prisma migrations (solo en desarrollo)
-# Descomenta si no necesitas las migraciones en producción
-# app/prisma/migrations
-
-# Public uploads (deben estar en S3)
-uploads
-public/uploads
-
-# Build artifacts
-*.tsbuildinfo
-.eslintcache
-
-# OS files
-Thumbs.db
-.DS_Store
-desktop.ini
-
-# Other
-*.orig
-*.rej
-.npmrc
-.yarnrc
+# Otros archivos grandes
+opt/
