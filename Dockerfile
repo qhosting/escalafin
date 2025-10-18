@@ -23,15 +23,19 @@ FROM base AS deps
 
 WORKDIR /app
 
-# Copy package files (SOLO yarn.lock, sin asterisco para asegurar que existe)
+# Copy package files AND .yarnrc.yml (crítico para nodeLinker: node-modules)
 COPY app/package.json ./
 COPY app/yarn.lock ./
+COPY app/.yarnrc.yml ./
 
 # Verificar archivos copiados
 RUN echo "=== 📋 Verificando archivos ===" && \
     ls -la && \
     echo "✅ package.json: $(test -f package.json && echo 'existe' || echo 'NO existe')" && \
-    echo "✅ yarn.lock: $(test -f yarn.lock && echo 'existe' || echo 'NO existe')"
+    echo "✅ yarn.lock: $(test -f yarn.lock && echo 'existe' || echo 'NO existe')" && \
+    echo "✅ .yarnrc.yml: $(test -f .yarnrc.yml && echo 'existe' || echo 'NO existe')" && \
+    echo "📋 Contenido de .yarnrc.yml:" && \
+    cat .yarnrc.yml
 
 # Instalar dependencias con yarn
 RUN echo "=== 📦 Instalando dependencias con Yarn ===" && \
@@ -40,8 +44,13 @@ RUN echo "=== 📦 Instalando dependencias con Yarn ===" && \
     yarn install --frozen-lockfile --network-timeout 100000 && \
     echo "✅ Yarn install completado" && \
     echo "📂 Verificando node_modules..." && \
-    ls -la node_modules/ | head -10 && \
-    echo "✅ node_modules creado correctamente"
+    if [ ! -d "node_modules" ]; then \
+        echo "❌ ERROR: node_modules NO existe"; \
+        exit 1; \
+    fi && \
+    echo "📦 Directorios en node_modules: $(ls node_modules | wc -l)" && \
+    ls -la node_modules/ | head -15 && \
+    echo "✅ node_modules creado correctamente con $(ls node_modules | wc -l) paquetes"
 
 # ===================================
 # STAGE 2: Build completo
