@@ -87,6 +87,13 @@ RUN echo "🏗️  Building Next.js..." && \
 # Verificar que standalone fue generado
 RUN test -d ".next/standalone" || (echo "❌ Error: standalone no generado" && exit 1)
 
+# Verificar estructura del standalone
+RUN echo "📂 Verificando estructura del standalone..." && \
+    ls -la .next/standalone/ && \
+    echo "" && \
+    ls -la .next/standalone/app/ && \
+    test -f ".next/standalone/app/server.js" || (echo "❌ Error: server.js no encontrado en standalone/app/" && exit 1)
+
 # ===================================
 # STAGE 3: Runner de producción
 # ===================================
@@ -108,8 +115,8 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY start.sh healthcheck.sh /app/
 RUN chmod +x /app/start.sh /app/healthcheck.sh
 
-# Copy standalone build
-COPY --from=builder /app/.next/standalone ./
+# Copy standalone build (con outputFileTracingRoot, standalone contiene carpeta app/)
+COPY --from=builder /app/.next/standalone/app ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
