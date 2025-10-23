@@ -68,8 +68,6 @@ LICENSE
 
 # Scripts
 *.sh
-!start.sh
-!healthcheck.sh
 test-scripts/
 
 # Backups
