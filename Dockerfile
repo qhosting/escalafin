@@ -124,41 +124,16 @@ echo "🚀 Iniciando ESCALAFIN..."
 export PATH="$PATH:/app/node_modules/.bin"
 echo "📦 PATH configurado: $PATH"
 
-# Verify .bin directory and Prisma CLI exist
-echo "🔍 Verificando Prisma CLI..."
-if [ -f "node_modules/.bin/prisma" ]; then
-    echo "✅ Prisma CLI encontrado en node_modules/.bin/prisma"
-    PRISMA_CMD="node_modules/.bin/prisma"
-elif [ -f "node_modules/prisma/build/index.js" ]; then
-    echo "⚠️ Usando Prisma directamente desde build/index.js"
-    PRISMA_CMD="node node_modules/prisma/build/index.js"
-else
-    echo "❌ Prisma CLI no encontrado - intentando con npx"
-    PRISMA_CMD="npx prisma"
-fi
+# Use npx to run prisma commands at runtime
+PRISMA_CMD="npx prisma"
 
-echo "🔐 Comando Prisma: $PRISMA_CMD"
-
-# Verificar cliente Prisma
-echo "🔍 Verificando cliente Prisma..."
-if [ -d "node_modules/@prisma/client" ]; then
-    echo "✅ Cliente Prisma encontrado"
-else
-    echo "⚠️ Cliente Prisma no encontrado, generando..."
-    $PRISMA_CMD generate || echo "❌ Error generando cliente Prisma"
-fi
-
-# Aplicar migraciones (sin verificar resultado)
+# Aplicar migraciones. El cliente Prisma ya fue generado durante el build.
 echo "🔄 Aplicando migraciones si es necesario..."
 $PRISMA_CMD migrate deploy || echo "⚠️ Error en migraciones, continuando..."
 
 # Verificar estado de migraciones
 echo "📋 Verificando estado de migraciones..."
 $PRISMA_CMD migrate status || echo "⚠️ No se pudo verificar estado de migraciones"
-
-# Regenerar cliente Prisma en container
-echo "🔧 Regenerando cliente Prisma en container..."
-$PRISMA_CMD generate || echo "⚠️ Error generando cliente Prisma"
 
 # Ejecutar seed solo si no hay usuarios
 echo "🌱 Verificando si necesita seed..."
