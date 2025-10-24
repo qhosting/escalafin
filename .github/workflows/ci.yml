@@ -61,9 +61,13 @@ jobs:
     
     - name: Generate Prisma Client
       run: cd app && yarn prisma generate
+      env:
+        PRISMA_HOME_DIR: '.'
     
     - name: Run database migrations
       run: cd app && yarn prisma db push
+      env:
+        PRISMA_HOME_DIR: '.'
     
     - name: Type check
       run: cd app && yarn tsc --noEmit
