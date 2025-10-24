@@ -48,6 +48,9 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy application source
 COPY app/ ./
 
+# Copy startup scripts to make them available for the runner stage
+COPY start.sh healthcheck.sh ./
+
 # Build environment variables
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -112,7 +115,7 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Copy startup scripts
-COPY start.sh healthcheck.sh /app/
+COPY --from=builder /app/start.sh /app/healthcheck.sh /app/
 RUN chmod +x /app/start.sh /app/healthcheck.sh
 
 # Copy standalone build (con outputFileTracingRoot, standalone contiene carpeta app/)
