@@ -1,4 +1,3 @@
-
 # 🚀 DOCKERFILE PRODUCTION - OPTIMIZADO Y TESTEADO
 # ===================================
 # ✅ Testeado localmente con éxito
