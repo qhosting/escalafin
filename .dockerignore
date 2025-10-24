@@ -67,7 +67,11 @@ README*
 LICENSE
 
 # Scripts
+# Ignorar todos los scripts .sh
 *.sh
+# Excepto los scripts de inicio y healthcheck
+!start.sh
+!healthcheck.sh
 test-scripts/
 
 # Backups
