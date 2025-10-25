@@ -13,6 +13,9 @@ RUN apk add --no-cache \
     curl \
     dumb-init
 
+# Instalar yarn 4.9.4
+RUN corepack enable && corepack prepare yarn@4.9.4 --activate
+
 WORKDIR /app
 
 # ===================================
@@ -24,12 +27,13 @@ WORKDIR /app
 
 # Copy configuration files
 COPY app/package.json ./
-COPY app/package-lock.json ./
+COPY app/yarn.lock ./
+COPY app/.yarnrc.yml ./
 
 # Instalar dependencias
-RUN echo "📦 Instalando dependencias con npm..." && \
-    npm ci --legacy-peer-deps && \
-    echo "✅ Dependencias instaladas"
+RUN echo "📦 Instalando dependencias..." && \
+    yarn install --frozen-lockfile --network-timeout 100000 && \
+    echo "✅ $(ls node_modules | wc -l) paquetes instalados"
 
 # ===================================
 # STAGE 2: Build de producción
@@ -62,7 +66,7 @@ SHELL ["/bin/bash", "-c"]
 
 # Build Next.js application
 RUN echo "🏗️  Building Next.js..." && \
-    npm run build 2>&1 | tee /tmp/build.log; \
+    yarn build 2>&1 | tee /tmp/build.log; \
     BUILD_EXIT_CODE=${PIPESTATUS[0]}; \
     if [ $BUILD_EXIT_CODE -ne 0 ]; then \
         echo "❌ Build falló con código $BUILD_EXIT_CODE"; \

@@ -60,14 +60,10 @@ jobs:
         echo "NEXTAUTH_URL=http://localhost:3000" >> .env
     
     - name: Generate Prisma Client
-      run: cd app && yarn prisma generate
-      env:
-        PRISMA_HOME_DIR: '.'
+      run: cd app && npm run prisma generate
     
     - name: Run database migrations
-      run: cd app && yarn prisma db push
-      env:
-        PRISMA_HOME_DIR: '.'
+      run: cd app && npm run prisma db push
     
     - name: Type check
       run: cd app && yarn tsc --noEmit
