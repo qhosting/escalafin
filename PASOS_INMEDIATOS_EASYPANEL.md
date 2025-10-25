@@ -1,171 +1,140 @@
 
-# 🎯 PASOS INMEDIATOS PARA SOLUCIONAR EASYPANEL
+# ⚡ ACCIÓN INMEDIATA - EasyPanel No Visualiza
 
-## ✅ Diagnóstico Completo
+## 🎯 CAMBIOS QUE DEBES HACER AHORA
 
-**Estado actual:**
-- ✅ Código: 100% funcional
-- ✅ Build local: Exitoso
-- ✅ GitHub: Actualizado
-- ❌ EasyPanel: Error de configuración
+### 1️⃣ NEXTAUTH_URL - CAMBIAR INMEDIATAMENTE
 
-## 🚨 ACCIÓN INMEDIATA
+**Actual (INCORRECTO):**
+```bash
+NEXTAUTH_URL=https://escalafin.com
+```
 
-### 1️⃣ LIMPIAR CACHE (CRÍTICO)
+**Debe ser la URL REAL de EasyPanel:**
+```bash
+NEXTAUTH_URL=https://tu-app-REAL.easypanel.host
+```
 
-**Esto es lo más importante.** Sin esto, seguirá usando el build viejo.
+**¿Cómo encontrar la URL correcta?**
+- En EasyPanel, ve a tu aplicación
+- Busca "Domain", "URL" o "Endpoint"
+- Copia la URL completa
+- Ejemplo: `https://escalafin-12abc3.easypanel.host`
+
+### 2️⃣ DATABASE_URL - VERIFICAR
+
+**Actual:**
+```bash
+DATABASE_URL=postgresql://postgres:fa8853b6e623ed411e27@cloudmx_escalafin-db:5432/escalafin-db?schema=public
+```
+
+**Pregunta crítica:** ¿Dónde está tu base de datos PostgreSQL?
+
+**A) Si está en EasyPanel (mismo proyecto):**
+- Ve al servicio de PostgreSQL en EasyPanel
+- Copia la "Internal Connection URL"
+- Reemplaza DATABASE_URL con esa
+
+**B) Si está en Railway, Supabase, Render, etc.:**
+- Copia la URL pública/externa de tu proveedor
+- Debe incluir un hostname externo, no `cloudmx_escalafin-db`
+- Ejemplo: `postgresql://user:pass@containers-us-west-123.railway.app:5432/db`
+
+## 🚀 PASOS PARA CORREGIR (3 minutos)
+
+### 1. Ir a Variables de Entorno
+
+```
+EasyPanel → Tu App → Settings → Environment Variables
+```
+
+### 2. Editar NEXTAUTH_URL
+
+1. Busca la variable `NEXTAUTH_URL`
+2. Cambia de `https://escalafin.com` a tu URL real de EasyPanel
+3. **Guarda**
+
+### 3. Verificar DATABASE_URL
+
+1. Busca la variable `DATABASE_URL`
+2. ¿El hostname es `cloudmx_escalafin-db`? 
+   - ✅ Si tienes ese servicio en EasyPanel → OK
+   - ❌ Si NO lo tienes → Cambiar a la URL correcta
+
+### 4. Restart (NO Rebuild)
+
+1. **Guardar** las variables
+2. **Restart** la aplicación (botón de restart/reiniciar)
+3. **NO necesitas rebuild**, solo restart
+4. Espera 30-60 segundos
+
+### 5. Probar
+
+Abre tu URL en el navegador:
+```
+https://tu-app-real.easypanel.host
+```
+
+## 🔍 SI SIGUE SIN FUNCIONAR
+
+### Ver los Logs COMPLETOS
 
 En EasyPanel:
+1. Ve a tu aplicación
+2. Click en **Logs** o **Container Logs**
+3. Copia TODO el log desde el inicio
+4. Compártelo conmigo
 
-1. Abre tu proyecto `escalafin`
-2. Ve a **Settings** o **Configuración**
-3. Busca la sección **Build**
-4. Encuentra el botón **"Clear Build Cache"** o **"Limpiar Cache"**
-5. Haz clic y confirma
-6. Espera a que confirme que el cache fue limpiado
+### Busca estos mensajes en los logs:
 
-### 2️⃣ CONFIGURAR RECURSOS
-
-En la misma sección de Build:
-
+**✅ ÉXITO:**
 ```
-Build Resources:
-  Memory: 2GB
-  CPU: 1-2 vCPUs
+🚀 Iniciando ESCALAFIN...
+✅ server.js encontrado
+🎉 EJECUTANDO: node server.js
 ```
 
-**⚠️ Importante:** Si no tienes opción de 2GB, usa al menos 1GB.
-
-### 3️⃣ VERIFICAR CONFIGURACIÓN
-
-Asegúrate que esté así:
-
-```yaml
-Source:
-  Repository: https://github.com/qhosting/escalafin-mvp
-  Branch: main
-
-Build:
-  Dockerfile Path: Dockerfile
-  Context Path: /
-  Build Arguments: (vacío o ninguno)
+**❌ ERROR DE BASE DE DATOS:**
 ```
-
-### 4️⃣ VARIABLES DE ENTORNO
-
-Verifica que estén configuradas en la sección **Environment Variables**:
-
-#### Runtime Variables (Obligatorias)
-
-```bash
-NODE_ENV=production
-DATABASE_URL=postgresql://user:pass@host:5432/escalafin
-NEXTAUTH_URL=https://tu-dominio.com
-NEXTAUTH_SECRET=tu-secret-largo-aleatorio
-AWS_BUCKET_NAME=tu-bucket
-AWS_FOLDER_PREFIX=uploads/
+Error: P1001: Can't reach database server
 ```
+→ DATABASE_URL incorrecta
 
-#### Openpay Variables
-
-```bash
-OPENPAY_ID=tu-merchant-id
-OPENPAY_PRIVATE_KEY=tu-private-key
-OPENPAY_PUBLIC_KEY=tu-public-key
-OPENPAY_API_URL=https://sandbox-api.openpay.mx/v1
-OPENPAY_SANDBOX=true
+**❌ ERROR DE NEXTAUTH:**
 ```
-
-#### EvolutionAPI Variables (si aplica)
-
-```bash
-EVOLUTION_API_URL=tu-url
-EVOLUTION_API_KEY=tu-api-key
-EVOLUTION_INSTANCE_NAME=tu-instancia
+[next-auth][error][INVALID_URL]
 ```
+→ NEXTAUTH_URL incorrecta
 
-### 5️⃣ REBUILD
+## 📋 INFORMACIÓN QUE NECESITO
 
-1. Haz clic en **Deploy** o **Rebuild**
-2. Observa los logs en tiempo real
-3. Deberías ver:
-   ```
-   📦 Instalando dependencias...
-   ✅ X paquetes instalados
-   🔧 Generando Prisma Client...
-   🏗️  Building Next.js...
-   ✅ Build completado
-   ```
+Para ayudarte más, necesito:
 
-## 🔍 SI FALLA NUEVAMENTE
+1. **La URL EXACTA** donde está desplegada tu app en EasyPanel
+   - Ejemplo: `https://escalafin-abc123.easypanel.host`
 
-### Ver el Error Específico
+2. **Screenshot de los LOGS** del container
+   - Desde que inicia hasta el final
 
-1. Ve a **Build Logs** en EasyPanel
-2. Busca la línea con `yarn build`
-3. Copia **TODO** el output después de esa línea
-4. Busca líneas con:
-   - `Error:`
-   - `❌`
-   - `failed`
-   - `exit code`
+3. **¿Dónde está tu PostgreSQL?**
+   - [ ] En EasyPanel (mismo proyecto)
+   - [ ] Railway
+   - [ ] Supabase
+   - [ ] Render
+   - [ ] Otro: _______
 
-### Compartir el Error
+## 🎯 Checklist Rápido
 
-Si falla, necesito ver:
+Antes de contactarme de nuevo, verifica:
 
-1. **Las últimas 100 líneas del log de build**
-2. **El error específico que muestra**
-3. **La configuración de memoria/CPU que tienes**
-
-## 💡 ALTERNATIVA: Usar Dockerfile.debug
-
-Si quieres ver MÁS información del error:
-
-1. En EasyPanel, cambia:
-   ```
-   Dockerfile Path: Dockerfile.debug
-   ```
-2. Limpia cache
-3. Rebuild
-4. Este Dockerfile te mostrará información detallada del error
-
-## 📊 Checklist Final
-
-Antes de hacer rebuild, verifica:
-
-- [ ] ✅ Cache limpiado
-- [ ] ✅ Memoria configurada (2GB recomendado, 1GB mínimo)
-- [ ] ✅ Dockerfile Path: `Dockerfile`
-- [ ] ✅ Context Path: `/`
-- [ ] ✅ Variables de entorno configuradas
-- [ ] ✅ Repository actualizado a último commit
-
-## 🎯 Confianza
-
-**95% de éxito** si sigues estos pasos exactamente.
-
-El código funciona perfectamente. Solo necesitamos que EasyPanel lo compile con la configuración correcta.
+- [ ] ✅ NEXTAUTH_URL cambiada a la URL real de EasyPanel
+- [ ] ✅ DATABASE_URL apunta a una base de datos accesible
+- [ ] ✅ Variables guardadas
+- [ ] ✅ Aplicación reiniciada (restart)
+- [ ] ✅ Esperé 60 segundos después del restart
+- [ ] ✅ Probé abrir la URL en navegador
+- [ ] ✅ Revisé los logs del container
 
 ---
 
-## 🆘 Plan B: Docker Registry
-
-Si todo falla, podemos:
-
-1. Hacer build de la imagen Docker localmente
-2. Subirla a un registry (Docker Hub, GitHub Registry)
-3. Usar la imagen pre-construida en EasyPanel
-
-Esto sería 100% efectivo, pero requiere un paso más. Solo lo haremos si los pasos anteriores no funcionan.
-
----
-
-**¿Listo para intentar?** 
-
-1. Limpia cache
-2. Configura 2GB memoria
-3. Rebuild
-4. Observa los logs
-
-¡Vamos! 🚀
+**CRÍTICO:** El problema más común es NEXTAUTH_URL incorrecta. Cambia eso PRIMERO.

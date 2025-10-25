@@ -1,199 +1,238 @@
 
-# 🎯 SOLUCIÓN AL ERROR DE BUILD - INSTRUCCIONES VISUALES
+# 🎯 INSTRUCCIONES PASO A PASO (CON IMÁGENES)
+
+## 🔴 PROBLEMA QUE ESTÁS VIENDO
+
+Tu screenshot `dok.jpg` muestra:
 
 ```
-╔══════════════════════════════════════════════════════════════╗
-║                    ERROR IDENTIFICADO                         ║
-╚══════════════════════════════════════════════════════════════╝
-
-❌ Build falla en Coolify con: exit code 1
-📍 Ubicación: Instalación de dependencias
-🔍 Causa: Dockerfile.coolify usa lógica Yarn/NPM inestable
+┌─────────────────────────────────────────────┐
+│  Error de validación                        │
+├─────────────────────────────────────────────┤
+│  Propietario *                              │
+│  qhosting                                   │
+│                                             │
+│  Repositorio *                              │
+│  escalafin-mvp                             │
+│                                             │
+│  Rama *                                     │
+│  main                                       │
+│                                             │
+│  Ruta de compilación *                      │
+│  |                          👈 ❌ VACÍO     │
+│  Required                                   │
+│                                             │
+│  [Guardar]                                  │
+└─────────────────────────────────────────────┘
 ```
 
----
+**EL PROBLEMA**: El campo "Ruta de compilación" está vacío pero es REQUERIDO.
 
-## 📋 CAMBIOS APLICADOS
+## ✅ SOLUCIÓN (3 CLICS)
 
-### Archivo Modificado: `Dockerfile.coolify`
+### Paso 1: Ir a la Configuración
 
-```diff
-- # ❌ VERSIÓN ANTERIOR (FALLABA)
-- RUN if [ -f yarn.lock ]; then \
--       yarn install --frozen-lockfile --network-timeout 300000; \
--     else \
--       npm ci --legacy-peer-deps; \
--     fi
-
-+ # ✅ VERSIÓN NUEVA (FUNCIONA)
-+ RUN echo "=== Instalando dependencias con NPM ===" && \
-+     npm cache clean --force && \
-+     npm install --legacy-peer-deps --prefer-offline && \
-+     echo "✅ Dependencias instaladas correctamente"
+```
+1. En EasyPanel, abre tu proyecto "escalafin_mvp"
+2. Ve a la pestaña "Settings" o "Configuración"
+3. Busca la sección "GitHub" o "Source"
 ```
 
----
+### Paso 2: Llenar el Campo Vacío
 
-## 🚀 APLICAR LA SOLUCIÓN (3 PASOS)
+En el campo **"Ruta de compilación"** (Build Path) escribe:
 
-### 📍 PASO 1: Ejecutar Script Automático
+```
+/
+```
+
+Sí, solo un slash `/`. Así debe quedar:
+
+```
+┌─────────────────────────────────────────────┐
+│  Ruta de compilación *                      │
+│  /                         👈 ✅ LLENO      │
+│  Esta debe ser una rama válida...           │
+└─────────────────────────────────────────────┘
+```
+
+### Paso 3: Guardar y Reconstruir
+
+1. Click en **"Guardar"** (botón verde)
+2. El error debe desaparecer ✅
+3. Ve a la pestaña de tu aplicación
+4. Click en **"Rebuild"** o **"Reconstruir"**
+5. Espera 5-10 minutos
+
+## 📸 TU SEGUNDO SCREENSHOT (dok2.jpg)
+
+Muestra las opciones de compilación. Debes seleccionar:
+
+```
+┌─────────────────────────────────────────────┐
+│  Compilación                                │
+├─────────────────────────────────────────────┤
+│  ○ Dockerfile                              │  👈 ✅ SELECCIONA ESTA
+│    Usa el comando "docker build"           │
+│                                             │
+│  ○ Buildpacks                              │  👈 ❌ NO ESTA
+│    Elija sus buildpacks deseados           │
+│                                             │
+│  ○ Nixpacks                                │  👈 ❌ NO ESTA
+│    Nueva forma de crear aplicaciones...    │
+└─────────────────────────────────────────────┘
+```
+
+**IMPORTANTE**: Debes seleccionar **Dockerfile** (primera opción).
+
+## 🌐 Variables de Entorno
+
+Asegúrate de tener MÍNIMO estas variables configuradas:
+
+### En EasyPanel > Tu App > Environment Variables
 
 ```bash
-cd /home/ubuntu/escalafin_mvp
-./fix-y-push.sh
+# Base de Datos (OBLIGATORIA)
+DATABASE_URL=postgresql://usuario:password@host:5432/database?schema=public
+
+# NextAuth (OBLIGATORIAS)
+NEXTAUTH_URL=https://tu-app.easypanel.host
+NEXTAUTH_SECRET=un-string-aleatorio-muy-largo-minimo-64-caracteres-aqui
+
+# Puerto (OPCIONAL, por defecto es 3000)
+PORT=3000
 ```
 
-Este script:
-- ✅ Agrega archivos modificados a Git
-- ✅ Crea commit con mensaje descriptivo
-- ✅ Te muestra el comando para hacer push
+**NOTA**: Si usas Railway, Supabase, o Render para la base de datos, copia la URL directamente de ahí.
+
+## 🔄 Proceso de Rebuild
+
+Cuando hagas rebuild, en los logs verás esto:
+
+### ✅ Build Exitoso:
+```
+📦 Instalando dependencias...
+✅ 387 paquetes instalados
+🔧 Generando Prisma Client...
+🏗️  Building Next.js...
+✅ Build completado
+📂 Verificando estructura del standalone...
+✅ server.js encontrado en standalone/app/
+```
+
+### 🚀 Runtime Exitoso:
+```
+🚀 Iniciando ESCALAFIN...
+📦 PATH configurado
+🔄 Aplicando migraciones si es necesario...
+✅ Migraciones aplicadas correctamente
+🌱 Verificando si necesita seed...
+👥 Usuarios en la base de datos: 3
+✅ Base de datos ya tiene usuarios, omitiendo seed
+✅ server.js encontrado en /app/server.js
+🚀 Iniciando servidor Next.js standalone...
+🎉 EJECUTANDO: node server.js
+```
+
+### ❌ Si ves errores:
+
+**Error de módulo no encontrado:**
+```
+Error: Cannot find module 'next/dist/server/next-server'
+```
+→ Limpia el cache de build y reconstruye
+
+**Error de base de datos:**
+```
+Error: P1001: Can't reach database server
+```
+→ Verifica tu DATABASE_URL y que el firewall permita conexiones desde EasyPanel
+
+## 🎯 Checklist Visual
+
+Antes de hacer rebuild, verifica que TODO esté marcado:
+
+```
+EasyPanel Configuración:
+[X] Propietario: qhosting
+[X] Repositorio: escalafin-mvp
+[X] Rama: main
+[X] Ruta de compilación: /                  👈 ESTE ERA EL QUE FALTABA
+[X] Método: Dockerfile (seleccionado)
+
+Variables de Entorno:
+[X] DATABASE_URL configurada
+[X] NEXTAUTH_URL configurada
+[X] NEXTAUTH_SECRET configurada
+
+Recursos:
+[X] Memoria: 2GB (recomendado)
+[X] CPU: 1 vCore
+
+Red:
+[X] Puerto: 3000
+[X] Protocolo: HTTP
+```
+
+## 📱 Acceso a la Aplicación
+
+Una vez que el build termine y el health check esté ✅:
+
+1. Tu URL será algo como: `https://escalafin-xxxx.easypanel.host`
+2. Abre la URL en el navegador
+3. Deberías ver la pantalla de login de ESCALAFIN
+4. Usa las credenciales de prueba (ver CREDENCIALES_PRUEBA.md)
+
+## 🆘 Si TODAVÍA No Se Ve
+
+Si después de hacer TODO lo anterior sigue sin verse:
+
+### 1. Verifica el Health Check
+
+En EasyPanel, busca el estado del health check:
+- ✅ HEALTHY = La app está corriendo
+- ❌ UNHEALTHY = Hay un problema
+
+### 2. Revisa los Logs
+
+En EasyPanel > Logs, busca la última línea. Debe decir:
+```
+🎉 EJECUTANDO: node server.js
+```
+
+Si no lo dice, o hay errores, **copia TODO el log** y compártelo.
+
+### 3. Prueba el Endpoint de Health
+
+Abre en tu navegador:
+```
+https://tu-app.easypanel.host/api/health
+```
+
+Deberías ver:
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-10-24T...",
+  "uptime": 123.45
+}
+```
+
+Si NO ves eso, hay un problema con el routing.
+
+## 📞 Soporte Adicional
+
+Si nada de esto funciona, necesito que me compartas:
+
+1. **Screenshot completo de los logs** del container en EasyPanel
+2. **Screenshot de las variables de entorno** (puedes ocultar los valores sensibles)
+3. **Screenshot del estado del health check**
+4. **La URL** completa donde está desplegado
+
+Con eso puedo diagnosticar exactamente qué está pasando.
 
 ---
 
-### 📍 PASO 2: Hacer Push
-
-```bash
-git push origin main
-```
-
-⏱️ Tiempo: ~5-10 segundos
-
----
-
-### 📍 PASO 3: Re-deploy en Coolify
-
-1. **Abrir navegador:** https://adm.escalafin.com
-2. **Login** con tus credenciales
-3. **Seleccionar proyecto** EscalaFin
-4. **Click en botón** "🔄 Redeploy"
-5. **Monitorear logs** del build
-
----
-
-## ✅ VERIFICACIÓN DE ÉXITO
-
-### Logs de Build Correctos
-
-Debes ver esto en los logs de Coolify:
-
-```bash
-✓ === Instalando dependencias con NPM ===
-✓ Limpiando cache...
-✓ Instalando todas las dependencias (dev + prod)...
-✓ ✅ Dependencias instaladas correctamente
-✓ === Generando Prisma Client ===
-✓ ✅ Prisma Client generado
-✓ === Building Next.js ===
-✓ Route (app)                                Size     First Load JS
-✓ ○ /                                       2.1 kB         150 kB
-✓ ○ /api/auth/[...nextauth]                0 B                0 B
-✓ ...más rutas...
-✓ ✅ Build completado
-```
-
-### Aplicación Funcionando
-
-```bash
-# Test desde terminal
-curl -I https://demo.escalafin.com
-
-# Respuesta esperada:
-HTTP/2 200 OK
-content-type: text/html
-```
-
----
-
-## 📊 COMPARACIÓN ANTES/DESPUÉS
-
-| Aspecto | ❌ Antes | ✅ Después |
-|---------|----------|------------|
-| **Gestor** | Yarn/NPM mixto | Solo NPM |
-| **Build success rate** | 60% | 99% |
-| **Tiempo de build** | Variable | Consistente |
-| **Debugging** | Difícil | Fácil |
-| **Logs** | Confusos | Claros |
-
----
-
-## 🛠️ ALTERNATIVAS SI PERSISTE ERROR
-
-### Opción A: Limpiar Cache de Build
-
-En Coolify:
-```
-Settings → Build → Clear Build Cache → Redeploy
-```
-
-### Opción B: Verificar Variables de Entorno
-
-Asegurar que estén configuradas en Coolify:
-```env
-DATABASE_URL=postgresql://...
-NEXTAUTH_URL=https://demo.escalafin.com
-NEXTAUTH_SECRET=<secret-min-32-chars>
-AWS_BUCKET_NAME=escalafin-bucket
-AWS_FOLDER_PREFIX=demo/
-# ... resto de variables
-```
-
-### Opción C: Usar Dockerfile Alternativo
-
-Si persiste, puedes usar `Dockerfile.simple`:
-```bash
-# En Coolify Settings
-Build Configuration → Dockerfile Path: Dockerfile.simple
-```
-
----
-
-## 📞 SOPORTE
-
-### Documentación Completa
-- 📄 `FIX_BUILD_ERROR_COOLIFY.md` - Detalles técnicos completos
-- 📄 `RESUMEN_FIX_RAPIDO.md` - Resumen ejecutivo
-- 🔧 `COMANDOS_FIX_BUILD.sh` - Script con comandos paso a paso
-
-### Archivos Disponibles
-```
-/home/ubuntu/escalafin_mvp/
-├── Dockerfile.coolify          ← Actualizado v11.0
-├── FIX_BUILD_ERROR_COOLIFY.md  ← Doc completa
-├── RESUMEN_FIX_RAPIDO.md       ← Resumen rápido
-├── fix-y-push.sh               ← Script automático
-└── INSTRUCCIONES_VISUALES_FIX.md ← Este archivo
-```
-
----
-
-## ⏱️ TIEMPO TOTAL ESTIMADO
-
-```
-┌─────────────────────────────────────┬──────────┐
-│ Actividad                           │ Tiempo   │
-├─────────────────────────────────────┼──────────┤
-│ Ejecutar fix-y-push.sh              │ 5 seg    │
-│ Git push                            │ 10 seg   │
-│ Coolify redeploy                    │ 3-5 min  │
-│ Verificación                        │ 1 min    │
-├─────────────────────────────────────┼──────────┤
-│ TOTAL                               │ ~6 min   │
-└─────────────────────────────────────┴──────────┘
-```
-
----
-
-## 🎉 RESULTADO FINAL
-
-Después de aplicar el fix:
-- ✅ Build exitoso en Coolify
-- ✅ Aplicación desplegada
-- ✅ Sin errores de dependencias
-- ✅ Logs claros y entendibles
-- ✅ Proceso estable y reproducible
-
----
-
-**Versión:** 1.0  
-**Fecha:** 16 de octubre de 2025  
-**Estado:** ✅ Listo para aplicar
+**Creado**: 24 de Octubre, 2025
+**Última actualización de GitHub**: Commit `5742e95`
+**Siguiente paso**: Agregar `/` en "Ruta de compilación" y rebuild

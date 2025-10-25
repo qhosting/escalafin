@@ -1,4 +1,3 @@
-
 # 🚀 DOCKERFILE PRODUCTION - OPTIMIZADO Y TESTEADO
 # ===================================
 # ✅ Testeado localmente con éxito
@@ -8,6 +7,7 @@
 FROM node:22-alpine AS base
 
 RUN apk add --no-cache \
+    bash \
     libc6-compat \
     openssl \
     curl \
@@ -60,6 +60,9 @@ ENV NEXT_OUTPUT_MODE=standalone
 # Generar Prisma Client
 RUN echo "🔧 Generando Prisma Client..." && \
     npx prisma generate
+
+# Switch to bash for the build command to use PIPESTATUS
+SHELL ["/bin/bash", "-c"]
 
 # Build Next.js application
 RUN echo "🏗️  Building Next.js..." && \
