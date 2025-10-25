@@ -32,24 +32,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-
-    - name: Enable Corepack
-      run: corepack enable
-
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      run: cd app && echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
-
-    - name: Cache dependencies
-      uses: actions/cache@v4
-      with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('app/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-yarn-
+        cache: 'npm'
+        cache-dependency-path: 'app/package-lock.json'
 
     - name: Install dependencies
-      run: cd app && yarn install --frozen-lockfile
+      run: cd app && npm ci --legacy-peer-deps
     
     - name: Setup test environment
       run: |
@@ -60,16 +47,16 @@ jobs:
         echo "NEXTAUTH_URL=http://localhost:3000" >> .env
     
     - name: Generate Prisma Client
-      run: cd app && npm run prisma generate
+      run: cd app && npx prisma generate
     
     - name: Run database migrations
-      run: cd app && npm run prisma db push
+      run: cd app && npx prisma db push
     
     - name: Type check
-      run: cd app && yarn tsc --noEmit
+      run: cd app && npx tsc --noEmit
     
     - name: Build application
-      run: cd app && yarn build
+      run: cd app && npm run build
     
     - name: Run tests
-      run: cd app && yarn test --passWithNoTests
+      run: cd app && npm test -- --passWithNoTests
