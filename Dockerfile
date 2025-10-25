@@ -124,8 +124,8 @@ echo "🚀 Iniciando ESCALAFIN..."
 export PATH="$PATH:/app/node_modules/.bin"
 echo "📦 PATH configurado: $PATH"
 
-# Use npx to run prisma commands at runtime
-PRISMA_CMD="npx prisma"
+# Use yarn to run prisma commands at runtime
+PRISMA_CMD="yarn prisma"
 
 # Aplicar migraciones. El cliente Prisma ya fue generado durante el build.
 echo "🔄 Aplicando migraciones si es necesario..."
@@ -155,7 +155,7 @@ if [ "$USER_COUNT" = "0" ]; then
     echo "🌱 Base de datos vacía - ejecutando seed..."
     if [ -f "scripts/seed.ts" ]; then
         echo "✅ Seed script encontrado, ejecutando..."
-        npm run seed || echo "⚠️ Error ejecutando seed, continuando..."
+        $PRISMA_CMD db seed || echo "⚠️ Error ejecutando seed, continuando..."
     else
         echo "⚠️ Script seed.ts no encontrado en scripts/"
         echo "📂 Contenido de scripts/:"
