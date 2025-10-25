@@ -1,5 +1,5 @@
 # ESCALAFIN MVP - DOCKERFILE UNIFICADO PARA EASYPANEL
-# Versión: 10.0 - Basado en Dockerfile principal para consistencia
+# Versión: 11.0 - Unificado con el Dockerfile principal y start.sh
 # Fecha: 2025-10-25
 
 FROM node:18-alpine AS base
@@ -65,8 +65,16 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modul
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
 
+# Copiar y preparar el script de inicio
+COPY --chown=nextjs:nodejs start.sh .
+RUN chmod +x ./start.sh
+
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["dumb-init", "node", "server.js"]
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+
+CMD ["dumb-init", "sh", "./start.sh"]

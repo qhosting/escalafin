@@ -153,11 +153,13 @@ echo "👥 Usuarios en la base de datos: $USER_COUNT"
 
 if [ "$USER_COUNT" = "0" ]; then
     echo "🌱 Base de datos vacía - ejecutando seed..."
-    if [ -f "scripts/seed.ts" ]; then
-        echo "✅ Seed script encontrado, ejecutando..."
-        yarn prisma db seed || echo "⚠️ Error ejecutando seed, continuando..."
-    else
-        echo "⚠️ Script seed.ts no encontrado en scripts/"
+    yarn prisma db seed || echo "⚠️ Error ejecutando seed, continuando..."
+else
+    echo "✅ Base de datos ya tiene usuarios, omitiendo seed"
+fi
+
+# Verificar archivos necesarios
+echo "🔍 Verificando archivos de Next.js standalone..."
         echo "📂 Contenido de scripts/:"
         ls -la scripts/ 2>/dev/null || echo "Directorio scripts/ no existe"
     fi
