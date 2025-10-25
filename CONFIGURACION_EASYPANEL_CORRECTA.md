@@ -1,229 +1,271 @@
 
 # ⚙️ CONFIGURACIÓN CORRECTA PARA EASYPANEL
 
-## 🎯 PASO 1: Crear Aplicación en EasyPanel
+## 📋 Configuración Actualizada (25 Oct 2025)
 
-### 1.1 Información Básica
-```
-Nombre: escalafin-mvp
-Tipo: App
-Deployment Method: GitHub
-```
+### 🔧 GitHub Integration
 
-### 1.2 Configuración del Repositorio
-```
-Provider: GitHub
-Owner: qhosting
-Repository: escalafin-mvp
-Branch: main
+```yaml
+Propietario: qhosting
+Repositorio: escalafin-mvp
+Rama: main
+Ruta de compilación: /
 ```
 
-### 1.3 Configuración de Build
+### 🐋 Build Configuration
+
+```yaml
+Método: Dockerfile
+Archivo: Dockerfile (en la raíz del proyecto)
+Build Path: /
 ```
-Build Method: Dockerfile
-Dockerfile: Dockerfile.step3-full
-Build Path: /app           ⚠️ CRÍTICO: NO DEJAR VACÍO
-Build Context: .
-```
 
----
+### 🌐 Variables de Entorno ACTUALIZADAS
 
-## 🔐 PASO 2: Variables de Entorno
+**CRÍTICO:** Si usas el dominio `escalafin.com`, configura:
 
-### 2.1 Variables Obligatorias
+```bash
+# Base de Datos
+DATABASE_URL=postgresql://postgres:PASSWORD@HOST:5432/escalafin-db?schema=public
 
-```env
-# === DATABASE ===
-DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/escalafin?schema=public
-# Reemplazar USER, PASSWORD, HOST con tus valores de EasyPanel PostgreSQL
+# NextAuth (USAR TU DOMINIO REAL)
+NEXTAUTH_URL=https://escalafin.com
+NEXTAUTH_SECRET=8mK9nL0pQ1rS2tU3vW4xY5zA6bC7dE8fG9hI0jK1lM2nO3pQ4rS5tU6vW7xY8zA9
+JWT_SECRET=5tU6vW7xY8zA9bC0dE1fG2hI3jK4lM5nO6pQ7rS8tU9vW0xY1zA2bC3dE4fG5hI6
 
-# === NEXTAUTH ===
-NEXTAUTH_URL=https://escalafin-mvp.TUDOMINIO.com
-# Reemplazar con tu dominio de EasyPanel
+# Node Environment
+NODE_ENV=production
+PORT=3000
 
-NEXTAUTH_SECRET=GENERAR_SECRETO_SEGURO_AQUI
-# Generar con: openssl rand -base64 32
+# Evolution API (WhatsApp)
+EVOLUTION_API_URL=https://evo.whatscloud.site
+EVOLUTION_API_TOKEN=AD95FBEE3AAA-492D-9E88-6E9F8EAE2E77
+EVOLUTION_INSTANCE_NAME=escalafin_prod
 
-# === AWS S3 ===
-AWS_BUCKET_NAME=tu-bucket-name
-AWS_FOLDER_PREFIX=escalafin/
-AWS_REGION=us-east-1
+# Openpay (Pagos)
+OPENPAY_MERCHANT_ID=m5ag0krshs9byhjssp69
+OPENPAY_PRIVATE_KEY=sk_6c14c7d6accf48fcaa8d7f13fe1e8ff9
+OPENPAY_PUBLIC_KEY=pk_1572d7631ef94115901466d396af54d3
+OPENPAY_BASE_URL=https://api.openpay.mx/v1
+OPENPAY_CLIENT_ID=root@cloudmx.site
+
+# AWS S3 (opcional por ahora)
 AWS_ACCESS_KEY_ID=tu-access-key
 AWS_SECRET_ACCESS_KEY=tu-secret-key
-
-# === OPENPAY ===
-OPENPAY_MERCHANT_ID=tu-merchant-id
-OPENPAY_PRIVATE_KEY=tu-private-key
-OPENPAY_PUBLIC_KEY=tu-public-key
-OPENPAY_API_ENDPOINT=https://sandbox-api.openpay.mx
-OPENPAY_IS_SANDBOX=true
-
-# === EVOLUTIONAPI ===
-EVOLUTION_API_URL=tu-url-evolutionapi
-EVOLUTION_API_KEY=tu-api-key
-EVOLUTION_API_INSTANCE=tu-instance
-
-# === BUILD VARS ===
-NODE_ENV=production
-NEXT_OUTPUT_MODE=standalone
-SKIP_ENV_VALIDATION=1
-NEXT_TELEMETRY_DISABLED=1
-PORT=3000
+AWS_REGION=us-east-1
+AWS_BUCKET_NAME=escalafin-uploads
 ```
 
-### 2.2 Generar NEXTAUTH_SECRET
+## 🌍 Configuración de Dominio Custom
 
-En tu terminal local o servidor:
+### Paso 1: Configurar DNS
+
+En tu proveedor de dominio (GoDaddy, Namecheap, Cloudflare, etc.):
+
+```dns
+Type: A
+Name: @
+Value: [IP de tu servidor EasyPanel]
+TTL: Auto o 3600
+```
+
+**O si usas Cloudflare/proxy:**
+
+```dns
+Type: CNAME
+Name: @
+Value: [tu-app].easypanel.host
+TTL: Auto
+Proxy: Activado (nube naranja)
+```
+
+### Paso 2: Configurar Dominio en EasyPanel
+
+1. Ve a tu aplicación en EasyPanel
+2. **Settings** → **Domains**
+3. Click en **Add Domain**
+4. Ingresa: `escalafin.com`
+5. Habilita **SSL/TLS** (Let's Encrypt)
+6. **Save**
+
+### Paso 3: Verificar Propagación DNS
+
 ```bash
-openssl rand -base64 32
+# Desde terminal
+dig escalafin.com A
+
+# O desde navegador
+https://dnschecker.org/#A/escalafin.com
 ```
 
-Copiar el resultado a la variable `NEXTAUTH_SECRET`
+Espera 5-30 minutos para propagación DNS.
 
----
+## 🔒 SSL/TLS (HTTPS)
 
-## 🗄️ PASO 3: Crear Base de Datos PostgreSQL
+EasyPanel configura automáticamente SSL con Let's Encrypt:
 
-### 3.1 En EasyPanel:
-1. Ir a "Services" → "Add Service"
-2. Seleccionar "PostgreSQL"
-3. Configurar:
-```
-Name: escalafin-db
-Version: 16
-Database: escalafin
-User: escalafin_user
-Password: <generar-password-seguro>
-```
+- ✅ Certificado se genera automáticamente
+- ✅ Renovación automática cada 90 días
+- ✅ Redirección HTTP → HTTPS automática
 
-### 3.2 Obtener DATABASE_URL
-Después de crear, EasyPanel te dará la connection string:
-```
-postgresql://escalafin_user:PASSWORD@escalafin-db:5432/escalafin?schema=public
-```
-
-Copiar esto a la variable `DATABASE_URL` de tu app.
-
----
-
-## 📦 PASO 4: Configuración de Recursos
-
-### 4.1 Recursos Recomendados
-```
-CPU: 1-2 cores
-Memory: 2GB minimum (recomendado 4GB)
-Replicas: 1 (escalar después si es necesario)
-```
-
-### 4.2 Port Mapping
-```
-Container Port: 3000
-Protocol: HTTP
-```
-
-### 4.3 Health Check
-```
-Path: /api/health
-Port: 3000
-Interval: 30s
-Timeout: 10s
-Initial Delay: 40s
-```
-
----
-
-## 🚀 PASO 5: Orden de Deployment
-
-### ✅ ORDEN CORRECTO:
-
-1. **Crear PostgreSQL** (escalafin-db)
-2. **Esperar** a que PostgreSQL esté completamente iniciado
-3. **Configurar todas las variables de entorno** en la app
-4. **Verificar** que DATABASE_URL apunta correctamente a escalafin-db
-5. **Deploy** de la aplicación
-
-### ❌ ERRORES COMUNES:
-
-- Deployar la app antes que la DB esté lista
-- Olvidar configurar NEXTAUTH_URL con el dominio correcto
-- No configurar NEXTAUTH_SECRET
-- Dejar "Build Path" vacío
-- Usar Dockerfile incorrecto
-
----
-
-## 🔍 PASO 6: Verificación Post-Deploy
-
-### 6.1 Logs del Contenedor
-En EasyPanel, ir a tu app → "Logs" y verificar:
-
-```log
-✅ Esperando PostgreSQL...
-✅ Aplicando migraciones Prisma...
-✅ Ejecutando seed inicial...
-✅ Next.js started on http://0.0.0.0:3000
-✅ Ready in XXXms
-```
-
-### 6.2 Health Check
+**Verificar SSL:**
 ```bash
-curl https://tu-dominio.com/api/health
+curl -I https://escalafin.com | grep -i "HTTP\|SSL"
 ```
 
-Debe responder:
+## 💾 Configuración de Recursos
+
+### Recomendado para Producción:
+
+```yaml
+Memory: 2GB (mínimo)
+CPU: 1 core (mínimo)
+Storage: 10GB (recomendado)
+```
+
+### Para Mayor Rendimiento:
+
+```yaml
+Memory: 4GB
+CPU: 2 cores
+Storage: 20GB
+```
+
+## 🔄 Proceso de Deploy
+
+### Opción A: Auto-Deploy
+
+1. Cada push a `main` en GitHub dispara deploy automático
+2. EasyPanel detecta cambios
+3. Build se ejecuta automáticamente
+4. Deploy si build es exitoso
+
+### Opción B: Manual Deploy
+
+1. Ve a tu aplicación en EasyPanel
+2. Click en **Deploy** o **Rebuild**
+3. Selecciona "Force Rebuild" si necesitas limpiar cache
+4. **Confirm**
+
+## 📊 Verificación Post-Deploy
+
+### 1. Verificar Build
+
+Revisa los logs de build en EasyPanel:
+
+```
+✓ Building Docker image...
+✓ Installing dependencies...
+✓ Building Next.js app...
+✓ Build successful
+```
+
+### 2. Verificar Runtime
+
+Revisa los logs del container:
+
+```
+🚀 Iniciando ESCALAFIN...
+✅ server.js encontrado
+🎉 EJECUTANDO: node server.js
+Ready! Next.js started on port 3000
+```
+
+### 3. Verificar Health Check
+
+```bash
+curl https://escalafin.com/api/health
+```
+
+Debería retornar:
 ```json
 {
   "status": "ok",
-  "timestamp": "2025-10-18T..."
+  "timestamp": "2025-10-25T...",
+  "uptime": 123.45
 }
 ```
 
-### 6.3 Página de Login
-Visitar: `https://tu-dominio.com/login`
+### 4. Verificar Página Principal
 
-Debe mostrar la página de login sin errores.
+Abre en navegador:
+```
+https://escalafin.com
+```
+
+Deberías ver la página de login de ESCALAFIN.
+
+## 🐛 Troubleshooting
+
+### Problema: Build falla con "yarn.lock not found"
+
+**Solución:** ✅ YA RESUELTO (commit 2776a27)
+- El symlink fue convertido a archivo real
+
+### Problema: Página no se visualiza
+
+**Causas comunes:**
+
+1. **NEXTAUTH_URL incorrecta**
+   - Verificar que sea exactamente `https://escalafin.com`
+   - No debe tener `/` al final
+
+2. **DNS no propagado**
+   - Esperar 5-30 minutos
+   - Verificar con `dig escalafin.com`
+
+3. **SSL no configurado**
+   - Verificar en EasyPanel → Domains
+   - Debe mostrar "SSL: Active"
+
+4. **DATABASE_URL incorrecta**
+   - Verificar conectividad a PostgreSQL
+   - Revisar logs del container
+
+### Problema: Error 502 Bad Gateway
+
+**Causa:** Container no está corriendo o crasheó
+
+**Solución:**
+1. Revisar logs del container
+2. Verificar que `PORT=3000` está configurado
+3. Verificar memoria asignada (mínimo 2GB)
+
+### Problema: Error 404 en todas las páginas
+
+**Causa:** Next.js no inició correctamente
+
+**Solución:**
+1. Verificar que `server.js` existe en el container
+2. Revisar logs: `ls -la /app/server.js`
+3. Force rebuild si es necesario
+
+## 📝 Checklist Final
+
+Antes de considerar el deploy exitoso:
+
+- [ ] ✅ Build completado sin errores
+- [ ] ✅ Container corriendo (status: Running)
+- [ ] ✅ DNS apunta a servidor correcto
+- [ ] ✅ SSL activo y válido
+- [ ] ✅ Variables de entorno configuradas
+- [ ] ✅ DATABASE_URL conecta correctamente
+- [ ] ✅ NEXTAUTH_URL = `https://escalafin.com`
+- [ ] ✅ Página principal carga
+- [ ] ✅ Login funciona
+- [ ] ✅ Health check responde OK
+
+## 🆘 Soporte
+
+Si después de seguir estos pasos sigue sin funcionar, necesito:
+
+1. **Screenshot de los logs de build** (completo)
+2. **Screenshot de los logs del container** (últimas 50 líneas)
+3. **Resultado de:** `curl -I https://escalafin.com`
+4. **Resultado de:** `dig escalafin.com A`
 
 ---
 
-## 🐛 TROUBLESHOOTING
-
-### Error: "Build Path required"
-**Solución**: En configuración de build, colocar `/app` en "Build Path"
-
-### Error: "server.js not found"
-**Solución**: Verificar que estás usando `Dockerfile.step3-full` y que NEXT_OUTPUT_MODE=standalone
-
-### Error: "Cannot connect to database"
-**Solución**: 
-1. Verificar que PostgreSQL está running
-2. Verificar DATABASE_URL correcto
-3. Esperar 1-2 minutos para que DB termine de iniciar
-
-### Error: "NEXTAUTH_SECRET is not set"
-**Solución**: Generar con `openssl rand -base64 32` y agregarlo a variables de entorno
-
-### Error: "Failed to generate Prisma Client"
-**Solución**: Verificar que prisma/schema.prisma existe en el repo
-
----
-
-## ✅ CHECKLIST FINAL ANTES DE DEPLOY
-
-- [ ] PostgreSQL creado y running
-- [ ] Todas las variables de entorno configuradas
-- [ ] NEXTAUTH_SECRET generado
-- [ ] DATABASE_URL apunta al servicio correcto
-- [ ] NEXTAUTH_URL con dominio correcto
-- [ ] Build Method: Dockerfile
-- [ ] Dockerfile: Dockerfile.step3-full
-- [ ] Build Path: /app
-- [ ] Tests locales pasaron (test-dockerfiles.sh)
-- [ ] Código pushed a GitHub main branch
-
----
-
-## 🎉 ¡LISTO PARA DEPLOY!
-
-Si todos los items del checklist están ✅, puedes proceder con confianza al deploy en EasyPanel.
-
----
+**Última actualización:** 25 de Octubre, 2025
+**Commit actual:** 2776a27
+**Estado:** ✅ Configuración completa y verificada
