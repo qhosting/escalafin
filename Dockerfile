@@ -152,15 +152,6 @@ fi
 
 # Verificar archivos necesarios
 echo "🔍 Verificando archivos de Next.js standalone..."
-        echo "📂 Contenido de scripts/:"
-        ls -la scripts/ 2>/dev/null || echo "Directorio scripts/ no existe"
-    fi
-else
-    echo "✅ Base de datos ya tiene usuarios, omitiendo seed"
-fi
-
-# Verificar archivos necesarios
-echo "🔍 Verificando archivos de Next.js standalone..."
 
 # Verify server.js exists in the correct location (/app/server.js)
 if [ ! -f "/app/server.js" ]; then
