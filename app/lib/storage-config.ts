@@ -20,12 +20,25 @@ export interface StorageConfig {
 }
 
 export function getStorageConfig(): StorageConfig {
-  const storageType = (process.env.STORAGE_TYPE || 'local') as StorageType
+  // Auto-detectar si AWS está configurado correctamente
+  const hasAwsCredentials = !!(
+    process.env.AWS_ACCESS_KEY_ID && 
+    process.env.AWS_SECRET_ACCESS_KEY &&
+    process.env.AWS_BUCKET_NAME &&
+    process.env.AWS_REGION &&
+    process.env.AWS_ACCESS_KEY_ID !== 'tu-access-key' &&
+    process.env.AWS_SECRET_ACCESS_KEY !== 'tu-secret-key'
+  )
+  
+  // Usar S3 solo si está explícitamente configurado Y tiene credenciales válidas
+  const storageType = (process.env.STORAGE_TYPE === 's3' && hasAwsCredentials) 
+    ? 's3' 
+    : 'local'
   
   return {
     type: storageType,
     local: {
-      uploadDir: process.env.LOCAL_UPLOAD_DIR || '/home/ubuntu/escalafin_mvp/uploads',
+      uploadDir: process.env.LOCAL_UPLOAD_DIR || '/app/uploads',
       baseUrl: process.env.LOCAL_BASE_URL || '/api/files',
       maxSize: parseInt(process.env.LOCAL_MAX_FILE_SIZE || '10')
     },
