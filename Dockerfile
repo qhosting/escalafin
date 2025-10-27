@@ -54,9 +54,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
 ENV NEXT_OUTPUT_MODE=standalone
 
-# Generar Prisma Client
-RUN echo "🔧 Generando Prisma Client..." && \
-    npx prisma generate
+# Limpiar y regenerar Prisma Client
+RUN echo "🔧 Limpiando y generando Prisma Client..." && \
+    rm -rf node_modules/.prisma node_modules/@prisma/client && \
+    npx prisma generate && \
+    echo "✅ Prisma Client generado" && \
+    echo "📋 Verificando tipos generados..." && \
+    ls -la node_modules/.prisma/client/ && \
+    echo ""
 
 # Build Next.js application
 RUN echo "🏗️  Building Next.js..." && \
