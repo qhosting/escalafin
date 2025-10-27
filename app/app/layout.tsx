@@ -2,11 +2,11 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-
-export const dynamic = 'force-dynamic';
 import { Providers } from './providers'
 import { Toaster } from 'sonner'
 import { MainLayout } from '@/components/layout/main-layout'
+
+export const dynamic = 'force-dynamic';
 
 const inter = Inter({ subsets: ['latin'] })
 

@@ -58,33 +58,14 @@ ENV NEXT_OUTPUT_MODE=standalone
 RUN echo "🔧 Generando Prisma Client..." && \
     npx prisma generate
 
-# Switch to bash for the build command to use PIPESTATUS
-SHELL ["/bin/bash", "-c"]
-
 # Build Next.js application
 RUN echo "🏗️  Building Next.js..." && \
-    yarn build 2>&1 | tee /tmp/build.log; \
-    BUILD_EXIT_CODE=${PIPESTATUS[0]}; \
-    if [ $BUILD_EXIT_CODE -ne 0 ]; then \
-        echo "❌ Build falló con código $BUILD_EXIT_CODE"; \
-        echo ""; \
-        echo "=== ÚLTIMAS 100 LÍNEAS DEL BUILD LOG ==="; \
-        tail -100 /tmp/build.log; \
-        echo ""; \
-        echo "=== INFORMACIÓN DE DEPURACIÓN ==="; \
-        echo "Node version: $(node --version)"; \
-        echo "Yarn version: $(yarn --version)"; \
-        echo "NODE_ENV: $NODE_ENV"; \
-        echo "SKIP_ENV_VALIDATION: $SKIP_ENV_VALIDATION"; \
-        echo "NEXT_OUTPUT_MODE: $NEXT_OUTPUT_MODE"; \
-        echo ""; \
-        echo "=== ARCHIVOS CRÍTICOS ==="; \
-        ls -la | head -20; \
-        echo ""; \
-        echo "=== tsconfig.json ==="; \
-        cat tsconfig.json | head -30; \
-        exit 1; \
-    fi && \
+    echo "Node version: $(node --version)" && \
+    echo "Yarn version: $(yarn --version)" && \
+    echo "NODE_ENV: $NODE_ENV" && \
+    echo "Working directory: $(pwd)" && \
+    echo "" && \
+    yarn build && \
     echo "✅ Build completado"
 
 # Verificar que standalone fue generado
