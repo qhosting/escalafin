@@ -57,15 +57,17 @@ ENV NEXT_OUTPUT_MODE=standalone
 # Limpiar y regenerar Prisma Client
 RUN echo "🔧 Limpiando y generando Prisma Client..." && \
     rm -rf node_modules/.prisma node_modules/@prisma/client && \
-    npx prisma generate && \
+    yarn prisma generate && \
     echo "✅ Prisma Client generado" && \
     echo "📋 Verificando tipos generados..." && \
     if [ -d "node_modules/.prisma/client" ]; then \
+        echo "✅ Directorio node_modules/.prisma/client encontrado"; \
         ls -la node_modules/.prisma/client/ | head -10; \
-        echo "✅ Directorio encontrado"; \
     else \
-        echo "⚠️  Directorio no encontrado, buscando..."; \
+        echo "❌ ERROR: Directorio node_modules/.prisma/client NO encontrado"; \
+        echo "🔍 Buscando archivos de Prisma..."; \
         find node_modules -name "index.d.ts" -path "*/.prisma/*" 2>/dev/null | head -5; \
+        exit 1; \
     fi && \
     echo ""
 
