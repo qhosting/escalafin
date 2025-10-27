@@ -60,7 +60,13 @@ RUN echo "🔧 Limpiando y generando Prisma Client..." && \
     npx prisma generate && \
     echo "✅ Prisma Client generado" && \
     echo "📋 Verificando tipos generados..." && \
-    ls -la node_modules/.prisma/client/ && \
+    if [ -d "node_modules/.prisma/client" ]; then \
+        ls -la node_modules/.prisma/client/ | head -10; \
+        echo "✅ Directorio encontrado"; \
+    else \
+        echo "⚠️  Directorio no encontrado, buscando..."; \
+        find node_modules -name "index.d.ts" -path "*/.prisma/*" 2>/dev/null | head -5; \
+    fi && \
     echo ""
 
 # Build Next.js application
