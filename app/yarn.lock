@@ -3623,9 +3623,9 @@ __metadata:
   linkType: hard
 
 "@rushstack/eslint-patch@npm:^1.10.3":
-  version: 1.14.0
-  resolution: "@rushstack/eslint-patch@npm:1.14.0"
-  checksum: 10c0/e5948943ae8e202bd5944d3a55eb277d64f0dfd0817484930decfc3198cead44bbcd409d1e43ddd8288512c8add68db169f511b5ecbcac873614d75cf6e7c6a6
+  version: 1.14.1
+  resolution: "@rushstack/eslint-patch@npm:1.14.1"
+  checksum: 10c0/ec5014494e4fa2dcdc555b62d5db3ebcd146562863a7e75cdacbac96dd1699e93f47dfc3f2185462a21c06987728d73258e32088e93315392e4f79234250b276
   languageName: node
   linkType: hard
 
@@ -4617,9 +4617,9 @@ __metadata:
   linkType: hard
 
 "@types/plotly.js@npm:*":
-  version: 3.0.7
-  resolution: "@types/plotly.js@npm:3.0.7"
-  checksum: 10c0/a7f891855b18bf603111e6ac537728c38ea835365fcbeb8511632b66cb48169cb7cb30d1dce181294295c6a2b15e5dae3d6a7b0d852f5ab85c6e1c97217b5880
+  version: 3.0.8
+  resolution: "@types/plotly.js@npm:3.0.8"
+  checksum: 10c0/7b8b26a07c8fb863ab1950089eb5c6f67896d65628409f17ab1beaf0a0ffa338cb2171aec108b2460205267ad65e67b10e739f8f74fbf476229202d4487d869b
   languageName: node
   linkType: hard
 
@@ -7112,9 +7112,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.238":
-  version: 1.5.240
-  resolution: "electron-to-chromium@npm:1.5.240"
-  checksum: 10c0/f304ba15eca69b6c67774924e7b4ca68dd40de6173ffd9a5695ae0dae369fe2dbe3284545cd63c25b9ec03df3c0feaf0a9329a2ddaaa849e8c53c25750cfe000
+  version: 1.5.241
+  resolution: "electron-to-chromium@npm:1.5.241"
+  checksum: 10c0/71c655ea34913e2820faa79e0ef83393c5c1d64027d6d7f9314a05d37df6aa7f70c265d727b3aa5f22c2a5cab13af9a0687deb399561d223e11a96625167b410
   languageName: node
   linkType: hard
 

@@ -1,11 +1,12 @@
 # 🚀 DOCKERFILE PRODUCTION - OPTIMIZADO Y TESTEADO
 # ===================================
 # ✅ Testeado localmente con éxito
-# ✅ Node 18 + Yarn 4.9.4 (alineado con CitaPlanner)
+# ✅ Node 18 + Yarn 4.x (Berry) con lockfile v8
 # ✅ Build standalone verificado
 # ✅ Scripts mejorados adaptados de CitaPlanner
 # ✅ start-improved.sh: logging detallado + error handling robusto
 # ✅ emergency-start.sh: bypass DB checks para debug
+# ✅ Fixed: yarn.lock regenerado con Yarn 4.x para eliminar errores de workspace
 
 FROM node:18-alpine AS base
 
@@ -16,8 +17,8 @@ RUN apk add --no-cache \
     curl \
     dumb-init
 
-# Instalar yarn 4.9.4
-RUN corepack enable && corepack prepare yarn@4.9.4 --activate
+# Instalar yarn 4.x (corepack usa la última estable)
+RUN corepack enable
 
 WORKDIR /app
 
