@@ -1,140 +1,280 @@
 
-# ⚡ ACCIÓN INMEDIATA - EasyPanel No Visualiza
+# 🚀 PASOS INMEDIATOS - EasyPanel
 
-## 🎯 CAMBIOS QUE DEBES HACER AHORA
-
-### 1️⃣ NEXTAUTH_URL - CAMBIAR INMEDIATAMENTE
-
-**Actual (INCORRECTO):**
-```bash
-NEXTAUTH_URL=https://escalafin.com
-```
-
-**Debe ser la URL REAL de EasyPanel:**
-```bash
-NEXTAUTH_URL=https://tu-app-REAL.easypanel.host
-```
-
-**¿Cómo encontrar la URL correcta?**
-- En EasyPanel, ve a tu aplicación
-- Busca "Domain", "URL" o "Endpoint"
-- Copia la URL completa
-- Ejemplo: `https://escalafin-12abc3.easypanel.host`
-
-### 2️⃣ DATABASE_URL - VERIFICAR
-
-**Actual:**
-```bash
-DATABASE_URL=postgresql://postgres:fa8853b6e623ed411e27@cloudmx_escalafin-db:5432/escalafin-db?schema=public
-```
-
-**Pregunta crítica:** ¿Dónde está tu base de datos PostgreSQL?
-
-**A) Si está en EasyPanel (mismo proyecto):**
-- Ve al servicio de PostgreSQL en EasyPanel
-- Copia la "Internal Connection URL"
-- Reemplaza DATABASE_URL con esa
-
-**B) Si está en Railway, Supabase, Render, etc.:**
-- Copia la URL pública/externa de tu proveedor
-- Debe incluir un hostname externo, no `cloudmx_escalafin-db`
-- Ejemplo: `postgresql://user:pass@containers-us-west-123.railway.app:5432/db`
-
-## 🚀 PASOS PARA CORREGIR (3 minutos)
-
-### 1. Ir a Variables de Entorno
-
-```
-EasyPanel → Tu App → Settings → Environment Variables
-```
-
-### 2. Editar NEXTAUTH_URL
-
-1. Busca la variable `NEXTAUTH_URL`
-2. Cambia de `https://escalafin.com` a tu URL real de EasyPanel
-3. **Guarda**
-
-### 3. Verificar DATABASE_URL
-
-1. Busca la variable `DATABASE_URL`
-2. ¿El hostname es `cloudmx_escalafin-db`? 
-   - ✅ Si tienes ese servicio en EasyPanel → OK
-   - ❌ Si NO lo tienes → Cambiar a la URL correcta
-
-### 4. Restart (NO Rebuild)
-
-1. **Guardar** las variables
-2. **Restart** la aplicación (botón de restart/reiniciar)
-3. **NO necesitas rebuild**, solo restart
-4. Espera 30-60 segundos
-
-### 5. Probar
-
-Abre tu URL en el navegador:
-```
-https://tu-app-real.easypanel.host
-```
-
-## 🔍 SI SIGUE SIN FUNCIONAR
-
-### Ver los Logs COMPLETOS
-
-En EasyPanel:
-1. Ve a tu aplicación
-2. Click en **Logs** o **Container Logs**
-3. Copia TODO el log desde el inicio
-4. Compártelo conmigo
-
-### Busca estos mensajes en los logs:
-
-**✅ ÉXITO:**
-```
-🚀 Iniciando ESCALAFIN...
-✅ server.js encontrado
-🎉 EJECUTANDO: node server.js
-```
-
-**❌ ERROR DE BASE DE DATOS:**
-```
-Error: P1001: Can't reach database server
-```
-→ DATABASE_URL incorrecta
-
-**❌ ERROR DE NEXTAUTH:**
-```
-[next-auth][error][INVALID_URL]
-```
-→ NEXTAUTH_URL incorrecta
-
-## 📋 INFORMACIÓN QUE NECESITO
-
-Para ayudarte más, necesito:
-
-1. **La URL EXACTA** donde está desplegada tu app en EasyPanel
-   - Ejemplo: `https://escalafin-abc123.easypanel.host`
-
-2. **Screenshot de los LOGS** del container
-   - Desde que inicia hasta el final
-
-3. **¿Dónde está tu PostgreSQL?**
-   - [ ] En EasyPanel (mismo proyecto)
-   - [ ] Railway
-   - [ ] Supabase
-   - [ ] Render
-   - [ ] Otro: _______
-
-## 🎯 Checklist Rápido
-
-Antes de contactarme de nuevo, verifica:
-
-- [ ] ✅ NEXTAUTH_URL cambiada a la URL real de EasyPanel
-- [ ] ✅ DATABASE_URL apunta a una base de datos accesible
-- [ ] ✅ Variables guardadas
-- [ ] ✅ Aplicación reiniciada (restart)
-- [ ] ✅ Esperé 60 segundos después del restart
-- [ ] ✅ Probé abrir la URL en navegador
-- [ ] ✅ Revisé los logs del container
+**Tu app está funcionando perfectamente** (✓ Ready in 162ms)  
+**Solo necesita configuración de red para ser visible**
 
 ---
 
-**CRÍTICO:** El problema más común es NEXTAUTH_URL incorrecta. Cambia eso PRIMERO.
+## ✅ PASO 1: Verificar Puertos (⏱️ 1 minuto)
+
+### En EasyPanel:
+
+1. Ve a tu aplicación **escalafin_mvp**
+2. Click en **"Settings"** o **"Configuración"**
+3. Busca la sección **"Network"**, **"Ports"**, **"Red"**, o **"Puertos"**
+
+### ¿Qué deberías ver?
+
+```
+┌─────────────────────────────────────┐
+│ PORTS / PUERTOS                     │
+├─────────────────────────────────────┤
+│ Container Port: 3000                │ ← Debe existir
+│ Protocol: HTTP                       │
+│ Public / Público: ✓                 │ ← Debe estar marcado
+│ Domain (opcional): tu-dominio.com   │
+└─────────────────────────────────────┘
+```
+
+### ❌ Si NO ves ninguna configuración de puerto:
+
+**Agrégala:**
+
+```
+1. Click en "+ Add Port" o "+ Agregar Puerto"
+2. Container Port: 3000
+3. Public Port: 80 (o dejar vacío si usa dominio)
+4. Protocol: HTTP
+5. Enable Public Access: ✓ (marcar checkbox)
+6. Click "Save" o "Guardar"
+```
+
+### ✅ Si YA existe el puerto 3000:
+
+**Verificar que:**
+- [ ] Public/Público está marcado (✓)
+- [ ] El puerto es 3000
+- [ ] Protocol es HTTP
+
+---
+
+## 🔄 PASO 2: Reiniciar (⏱️ 30 segundos)
+
+Después de configurar/verificar el puerto:
+
+```
+1. Click en "Restart" o "Reiniciar"
+2. Esperar 20-30 segundos
+3. Logs deben mostrar nuevamente: "✓ Ready in XXXms"
+```
+
+---
+
+## 🌐 PASO 3: Obtener URL de Acceso
+
+### Opción A: Tienes Dominio Configurado
+
+```
+https://tu-dominio.com
+```
+
+### Opción B: NO tienes Dominio
+
+Buscar en EasyPanel:
+- "Public URL"
+- "Access URL"
+- O directamente: `http://[IP_DEL_SERVIDOR]:80`
+
+---
+
+## 🧪 PASO 4: Probar Acceso (⏱️ 1 minuto)
+
+### Test 1: Health Check
+
+Abrir en navegador o ejecutar en terminal:
+
+```bash
+# Con dominio
+curl https://tu-dominio.com/api/health
+
+# Sin dominio (reemplazar IP)
+curl http://IP_DEL_SERVIDOR:80/api/health
+
+# O directamente al puerto 3000 si está expuesto
+curl http://IP_DEL_SERVIDOR:3000/api/health
+```
+
+**Resultado esperado:**
+```json
+{"status":"ok"}
+```
+
+### Test 2: Página de Login
+
+Abrir en navegador:
+
+```
+https://tu-dominio.com/auth/login
+```
+
+**Debe mostrar:**
+- ✅ Formulario de login de EscalaFin
+- ✅ Estilos cargados
+- ✅ Sin errores en consola del navegador
+
+---
+
+## ❌ SI AÚN NO FUNCIONA
+
+### Compartir Esta Información:
+
+#### 1. Screenshot de Configuración de Puertos
+
+En EasyPanel → Settings → Network/Ports → Tomar screenshot
+
+#### 2. Resultado de Health Check desde el Contenedor
+
+En EasyPanel → Console/Terminal del contenedor:
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+Copiar resultado completo.
+
+#### 3. Variables de Entorno Configuradas
+
+En EasyPanel → Settings → Environment:
+
+Verificar que existan:
+- `PORT=3000`
+- `HOSTNAME=0.0.0.0`
+- `NEXTAUTH_URL=...` (con tu dominio o IP correcto)
+
+#### 4. Logs Completos
+
+Últimas 50 líneas de logs (de runtime, no de build).
+
+---
+
+## 💡 CONFIGURACIÓN RÁPIDA RECOMENDADA
+
+### Si quieres acceso INMEDIATO sin dominio:
+
+```yaml
+Settings → Network:
+  ╔═══════════════════════════════════════╗
+  ║ Container Port: 3000                  ║
+  ║ Public Port: 80                       ║
+  ║ Protocol: HTTP                         ║
+  ║ Public: ✓                             ║
+  ╚═══════════════════════════════════════╝
+
+Acceso:
+  http://IP_DEL_SERVIDOR
+  # o
+  http://IP_DEL_SERVIDOR/auth/login
+```
+
+### Si tienes dominio:
+
+```yaml
+Settings → Network:
+  ╔═══════════════════════════════════════╗
+  ║ Container Port: 3000                  ║
+  ║ Protocol: HTTP                         ║
+  ║ Public: ✓                             ║
+  ║ Domain: escalafin.tu-dominio.com      ║
+  ║ SSL: Enable ✓                         ║
+  ╚═══════════════════════════════════════╝
+
+Acceso:
+  https://escalafin.tu-dominio.com
+  # o
+  https://escalafin.tu-dominio.com/auth/login
+```
+
+---
+
+## 📋 CHECKLIST VISUAL
+
+Marca según vayas completando:
+
+```
+[ ] 1. Abrir EasyPanel → Settings → Network
+[ ] 2. Verificar/Agregar puerto 3000
+[ ] 3. Marcar "Public" o "Enable Public Access"
+[ ] 4. Guardar cambios
+[ ] 5. Reiniciar el servicio
+[ ] 6. Esperar 30 segundos
+[ ] 7. Probar: curl http://[URL]/api/health
+[ ] 8. Abrir navegador: http://[URL]/auth/login
+[ ] 9. ✅ ¡Ver la página de login!
+```
+
+---
+
+## 🎯 LO QUE DEBERÍAS VER
+
+### En Navegador (http://tu-url/auth/login):
+
+```
+╔══════════════════════════════════════════════╗
+║                                              ║
+║         🏢 ESCALAFIN MVP                     ║
+║                                              ║
+║  ┌────────────────────────────────────┐    ║
+║  │ 📧 Email                           │    ║
+║  │ [                                ] │    ║
+║  └────────────────────────────────────┘    ║
+║                                              ║
+║  ┌────────────────────────────────────┐    ║
+║  │ 🔒 Contraseña                      │    ║
+║  │ [                                ] │    ║
+║  └────────────────────────────────────┘    ║
+║                                              ║
+║          [ INICIAR SESIÓN ]                 ║
+║                                              ║
+╚══════════════════════════════════════════════╝
+```
+
+### Consola del Navegador (F12):
+
+```
+✅ Sin errores rojos
+✅ Recursos cargando correctamente
+✅ Sin 404 o 500
+```
+
+---
+
+## ⚡ RESUMEN DE 30 SEGUNDOS
+
+Tu app **está corriendo perfectamente**. Solo necesitas:
+
+1. **EasyPanel** → **Settings** → **Network**
+2. **Agregar/verificar puerto 3000** como público
+3. **Save** y **Restart**
+4. **Probar** en navegador
+
+**Eso es todo** 🎉
+
+---
+
+## 📞 SIGUIENTE PASO
+
+Una vez que configures el puerto:
+
+**Prueba esto en tu navegador:**
+```
+http://[TU_IP_O_DOMINIO]/api/health
+```
+
+**Debe responder:**
+```json
+{"status":"ok"}
+```
+
+Si ves ese mensaje → ✅ **¡FUNCIONÓ!**
+
+Luego ve a:
+```
+http://[TU_IP_O_DOMINIO]/auth/login
+```
+
+Y deberías ver el login de EscalaFin.
+
+---
+
+**¿Listo?** Ve a EasyPanel ahora y configura el puerto 🚀
