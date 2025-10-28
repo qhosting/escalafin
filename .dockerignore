@@ -95,6 +95,9 @@ restore-*.sh
 *.backup
 *.bak
 *_BACKUP_*
+node_modules.backup
+**/*.backup
+**/*_BACKUP_*
 escalafin_mvp_BACKUP_*
 escalafin_mvp_temp/
 
