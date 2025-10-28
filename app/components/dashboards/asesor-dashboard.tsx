@@ -301,7 +301,7 @@ export function AsesorDashboard() {
 
         {/* Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link href="/admin/clients/new">
+          <Link href="/asesor/clients">
             <Button className="h-16 w-full bg-blue-600 hover:bg-blue-700">
               <div className="flex items-center gap-3">
                 <Plus className="w-5 h-5" />
@@ -323,7 +323,7 @@ export function AsesorDashboard() {
               </div>
             </Button>
           </Link>
-          <Link href="/mobile/collection">
+          <Link href="/mobile/cobranza">
             <Button className="h-16 w-full bg-purple-600 hover:bg-purple-700">
               <div className="flex items-center gap-3">
                 <DollarSign className="w-5 h-5" />
