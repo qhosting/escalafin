@@ -1,0 +1,134 @@
+═══════════════════════════════════════════════════════════════════
+✅ MERGE COMPLETADO: EscalaFin ← CitaPlanner
+═══════════════════════════════════════════════════════════════════
+
+FECHA: 28 Octubre 2025
+COMMIT: 28db517
+REPO: https://github.com/qhosting/escalafin
+
+═══════════════════════════════════════════════════════════════════
+
+🔄 CAMBIOS APLICADOS:
+
+1. Prisma: 6.17.1 → 6.7.0 ✅
+   - @prisma/client: 6.7.0
+   - prisma: 6.7.0
+   - Cliente Prisma regenerado
+
+2. Node: 22 → 18 ✅
+   - Dockerfile actualizado: FROM node:18-alpine
+   - Alineado con CitaPlanner
+
+═══════════════════════════════════════════════════════════════════
+
+📊 ESTADO POST-MERGE:
+
+┌───────────────┬──────────────┬─────────────┬──────────┐
+│ Dependencia   │ CitaPlanner  │ EscalaFin   │ Estado   │
+├───────────────┼──────────────┼─────────────┼──────────┤
+│ Next.js       │ 14.2.28      │ 14.2.28     │ ✅ IGUAL │
+│ React         │ 18.2.0       │ 18.2.0      │ ✅ IGUAL │
+│ Next-auth     │ 4.24.11      │ 4.24.11     │ ✅ IGUAL │
+│ Prisma        │ 6.7.0        │ 6.7.0       │ ✅ IGUAL │
+│ Node          │ 18           │ 18          │ ✅ IGUAL │
+└───────────────┴──────────────┴─────────────┴──────────┘
+
+🎉 100% DE VERSIONES CRÍTICAS ALINEADAS
+
+═══════════════════════════════════════════════════════════════════
+
+📦 ARCHIVOS MODIFICADOS:
+
+✅ app/package.json
+   - Prisma 6.7.0
+   
+✅ app/yarn.lock
+   - Dependencias actualizadas
+   - Tamaño: 490KB
+   
+✅ Dockerfile
+   - Node 18-alpine
+   
+✅ app/node_modules/.prisma/client
+   - Regenerado con Prisma 6.7.0
+
+✅ CHANGELOG_VERSION_MERGE.md
+   - Documentación completa del merge
+
+═══════════════════════════════════════════════════════════════════
+
+🚀 SIGUIENTE PASO EN EASYPANEL:
+
+1. Pull último commit desde GitHub
+   → Commit: 28db517
+   → Mensaje: "chore: Alinear versiones con CitaPlanner"
+
+2. Limpiar build cache
+   → Settings → Clear Build Cache
+   → Importante para forzar rebuild completo
+
+3. Rebuild aplicación
+   → Botón "Deploy" o "Rebuild"
+   → Usará Node 18 y Prisma 6.7.0
+
+4. Revisar logs de runtime
+   → Ver si hay diferencias con Node 18
+   → Confirmar que Prisma 6.7.0 funciona
+
+5. Probar visualización
+   → Acceder a la URL pública
+   → Verificar que se ve la página principal
+
+═══════════════════════════════════════════════════════════════════
+
+⚠️ NOTA IMPORTANTE:
+
+Este merge NO garantiza resolver el problema de visualización.
+
+RAZÓN:
+  - Las versiones críticas (Next.js, React, Next-auth) ya eran iguales
+  - Prisma NO afecta el renderizado de la UI
+  - El problema más probable es configuración/runtime
+
+OBJETIVO DEL MERGE:
+  - Reducir variables en troubleshooting
+  - Facilitar comparación con CitaPlanner
+  - Eliminar diferencias de versión como posible causa
+
+═══════════════════════════════════════════════════════════════════
+
+📋 CHECKLIST POST-DEPLOY:
+
+[ ] Build completado sin errores
+[ ] Contenedor en estado "Running"
+[ ] Logs muestran "Ready in XXXms"
+[ ] Puerto 3000 expuesto correctamente
+[ ] NEXTAUTH_URL apunta a URL pública correcta
+[ ] Health check pasa
+[ ] Página principal se visualiza
+
+Si TODO está ✅ pero NO se visualiza:
+  → El problema es configuración de proxy/DNS en EasyPanel
+  → No es problema de versiones ni de la aplicación
+
+═══════════════════════════════════════════════════════════════════
+
+📚 DOCUMENTACIÓN CREADA:
+
+1. CHANGELOG_VERSION_MERGE.md
+   - Cambios detallados
+   - Razones del merge
+   - Instrucciones de testing
+
+2. RESUMEN_MERGE_COMPLETADO.txt (este archivo)
+   - Resumen ejecutivo
+   - Próximos pasos
+   - Checklist
+
+═══════════════════════════════════════════════════════════════════
+
+✅ ESTADO: MERGE COMPLETADO Y PUSHEADO
+🔗 GitHub: https://github.com/qhosting/escalafin (commit 28db517)
+📦 Listo para: Rebuild en EasyPanel
+
+═══════════════════════════════════════════════════════════════════
