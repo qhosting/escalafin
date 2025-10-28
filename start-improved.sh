@@ -60,9 +60,9 @@ if [ -n "$DATABASE_URL" ]; then
         exit 1
     fi
     
-    # Ejecutar seed si es necesario
+    # Ejecutar setup de usuarios si es necesario
     echo ""
-    echo "🌱 Verificando necesidad de seed..."
+    echo "🌱 Verificando necesidad de configurar usuarios..."
     USER_COUNT=$(node -e "
         const { PrismaClient } = require('@prisma/client');
         const prisma = new PrismaClient();
@@ -75,10 +75,14 @@ if [ -n "$DATABASE_URL" ]; then
     echo "  👥 Usuarios en DB: $USER_COUNT"
     
     if [ "$USER_COUNT" = "0" ]; then
-        echo "  🌱 Ejecutando seed..."
-        $PRISMA_CMD db seed || echo "  ⚠️  Error en seed, continuando..."
+        echo "  🌱 Configurando usuarios de prueba..."
+        if [ -f "scripts/setup-users-production.js" ]; then
+            node scripts/setup-users-production.js || echo "  ⚠️  Error configurando usuarios, continuando..."
+        else
+            echo "  ⚠️  scripts/setup-users-production.js no encontrado, continuando..."
+        fi
     else
-        echo "  ✅ DB ya inicializada, omitiendo seed"
+        echo "  ✅ DB ya inicializada con usuarios"
     fi
 else
     echo "  ❌ DATABASE_URL no configurada"
