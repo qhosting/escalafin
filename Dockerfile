@@ -138,6 +138,9 @@ COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
+# Copy scripts directory (includes setup-users-production.js and other utilities)
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+
 # Copy startup scripts (adaptados de CitaPlanner)
 COPY --chown=nextjs:nodejs start-improved.sh ./start-improved.sh
 COPY --chown=nextjs:nodejs emergency-start.sh ./emergency-start.sh
