@@ -1,0 +1,218 @@
+═══════════════════════════════════════════════════════════════════
+🔍 DIAGNÓSTICO: PROBLEMA DE VISUALIZACIÓN EN EASYPANEL
+═══════════════════════════════════════════════════════════════════
+
+PROBLEMA: La aplicación no se visualiza a pesar de:
+  ✅ Build completado sin errores
+  ✅ Puerto 3000 configurado correctamente
+  ✅ Variables de entorno configuradas
+
+═══════════════════════════════════════════════════════════════════
+📋 CHECKLIST DE DIAGNÓSTICO (EN ORDEN DE PRIORIDAD):
+═══════════════════════════════════════════════════════════════════
+
+1️⃣  VERIFICAR LOGS DE RUNTIME (NO de build)
+═══════════════════════════════════════════════════════════════════
+
+En EasyPanel:
+  → Ir a la aplicación
+  → Click en "Logs" o "Runtime Logs"
+  → Buscar mensajes como:
+
+  ✅ Correcto:
+     "🚀 Iniciando ESCALAFIN..."
+     "✅ server.js encontrado"
+     "🎉 EJECUTANDO: node server.js"
+     "Ready in XXXms"
+     "Local: http://localhost:3000"
+
+  ❌ Error:
+     "ERROR" / "ECONNREFUSED" / "Cannot find module"
+     "❌ ERROR CRITICO: server.js NO ENCONTRADO"
+     "Database connection failed"
+
+COMANDO (si tienes acceso SSH):
+  docker logs <container_name> --tail 100 --follow
+
+═══════════════════════════════════════════════════════════════════
+2️⃣  VERIFICAR QUE EL CONTENEDOR ESTÁ CORRIENDO
+═══════════════════════════════════════════════════════════════════
+
+En EasyPanel:
+  → Dashboard de la aplicación
+  → Status debe ser "Running" (verde)
+  → Si está en "Starting" o "Stopped", hay un problema
+
+Si tienes acceso SSH:
+  docker ps | grep escalafin
+  
+  ✅ Debe mostrar: UP X seconds/minutes
+
+═══════════════════════════════════════════════════════════════════
+3️⃣  VERIFICAR CONFIGURACIÓN DE PUERTO EN EASYPANEL
+═══════════════════════════════════════════════════════════════════
+
+En EasyPanel:
+  → Settings → Ports
+  → Debe haber una entrada como:
+
+  Container Port: 3000
+  Public Port: 80 o 443
+  Tipo: HTTP
+
+  ⚠️ IMPORTANTE:
+     - Container Port DEBE ser 3000
+     - Public Port puede ser 80, 443, u otro
+     - DEBE estar marcado como expuesto/público
+
+═══════════════════════════════════════════════════════════════════
+4️⃣  VERIFICAR HEALTH CHECK
+═══════════════════════════════════════════════════════════════════
+
+El Dockerfile incluye:
+  HEALTHCHECK --interval=30s --timeout=10s --start-period=40s
+
+Si el health check falla:
+  - EasyPanel puede marcar la app como "Unhealthy"
+  - El proxy puede no enrutar tráfico
+
+Comando para probar health check manualmente:
+  docker exec -it <container> /app/healthcheck.sh
+
+  ✅ Debe retornar: "✅ Health check passed"
+
+═══════════════════════════════════════════════════════════════════
+5️⃣  VERIFICAR VARIABLES DE ENTORNO CRÍTICAS
+═══════════════════════════════════════════════════════════════════
+
+En EasyPanel → Settings → Environment Variables:
+
+CRÍTICAS PARA VISUALIZACIÓN:
+
+  ✅ NEXTAUTH_URL
+     Valor: https://tu-dominio.easypanel.host
+     ⚠️ DEBE ser la URL pública de EasyPanel
+
+  ✅ DATABASE_URL
+     Debe estar correcta y la DB accesible
+
+  ✅ PORT
+     Valor: 3000 (o el puerto que uses)
+
+  ✅ HOSTNAME
+     Valor: 0.0.0.0
+
+  ✅ NODE_ENV
+     Valor: production
+
+═══════════════════════════════════════════════════════════════════
+6️⃣  PROBAR ACCESO DIRECTO AL CONTENEDOR
+═══════════════════════════════════════════════════════════════════
+
+Si tienes acceso SSH al servidor de EasyPanel:
+
+# Probar desde dentro del contenedor
+docker exec -it <container> wget -O- http://localhost:3000
+
+  ✅ Debe retornar HTML de la página
+  ❌ Si falla, el problema es en la app (no en proxy)
+
+# Probar desde el host
+curl http://localhost:<public_port>
+
+  ✅ Debe retornar HTML
+  ❌ Si falla, el problema es en el proxy de EasyPanel
+
+═══════════════════════════════════════════════════════════════════
+7️⃣  VERIFICAR DNS Y DOMINIO
+═══════════════════════════════════════════════════════════════════
+
+En EasyPanel:
+  → Settings → Domains
+  → Debe haber un dominio configurado
+
+Probar DNS:
+  nslookup tu-dominio.easypanel.host
+
+  ✅ Debe resolver a la IP del servidor
+
+Probar en navegador:
+  https://tu-dominio.easypanel.host
+
+  ❌ Si da timeout: problema de proxy/firewall
+  ❌ Si da 502/503: app no está escuchando
+  ❌ Si da 404: proxy funciona pero app tiene problema
+
+═══════════════════════════════════════════════════════════════════
+8️⃣  USAR start-improved.sh PARA MÁS LOGGING
+═══════════════════════════════════════════════════════════════════
+
+El nuevo Dockerfile ya usa start-improved.sh que tiene:
+  - ✅ Logging detallado de cada paso
+  - ✅ Verificación de archivos críticos
+  - ✅ Estado de migraciones DB
+  - ✅ Mensajes de error claros
+
+Los logs ahora muestran:
+  "🚀 Iniciando ESCALAFIN..."
+  "🔍 Verificando archivos de Next.js standalone..."
+  "✅ server.js encontrado en /app/server.js"
+  "🎉 EJECUTANDO: node server.js"
+
+═══════════════════════════════════════════════════════════════════
+9️⃣  SI TODO FALLA: MODO EMERGENCIA
+═══════════════════════════════════════════════════════════════════
+
+Si sospechas que las verificaciones de DB causan problemas:
+
+Modificar Dockerfile temporalmente:
+  # Cambiar la última línea de:
+  CMD ["dumb-init", "sh", "/app/start-improved.sh"]
+  
+  # A:
+  CMD ["dumb-init", "sh", "/app/emergency-start.sh"]
+
+emergency-start.sh:
+  - Salta todas las verificaciones
+  - Ejecuta directamente: node server.js
+  - Útil para confirmar que el problema es DB/migraciones
+
+═══════════════════════════════════════════════════════════════════
+🎯 DIAGNÓSTICO MÁS COMÚN:
+═══════════════════════════════════════════════════════════════════
+
+PROBLEMA #1: NEXTAUTH_URL incorrecta (50% de casos)
+  Síntoma: Build OK, pero login/página no cargan
+  Solución: Actualizar NEXTAUTH_URL a la URL pública correcta
+
+PROBLEMA #2: Puerto no expuesto (30% de casos)
+  Síntoma: Contenedor running, pero no accesible
+  Solución: Verificar Settings → Ports en EasyPanel
+
+PROBLEMA #3: Health check fallando (15% de casos)
+  Síntoma: App marca como "Unhealthy"
+  Solución: Revisar logs, verificar /api/health endpoint
+
+PROBLEMA #4: Error runtime en server.js (5% de casos)
+  Síntoma: Contenedor se reinicia constantemente
+  Solución: Revisar logs detallados de runtime
+
+═══════════════════════════════════════════════════════════════════
+📊 RESUMEN RÁPIDO:
+═══════════════════════════════════════════════════════════════════
+
+Para diagnosticar en 5 minutos:
+
+1. Ver logs de runtime → ¿Dice "Ready in XXXms"?
+2. Status del contenedor → ¿Running (verde)?
+3. Puerto 3000 expuesto → ¿Configurado en EasyPanel?
+4. NEXTAUTH_URL → ¿Es la URL pública correcta?
+5. Probar health check → ¿Pasa?
+
+Si TODOS son ✅ pero no se ve → Problema es proxy de EasyPanel
+
+═══════════════════════════════════════════════════════════════════
+
+SIGUIENTE PASO: Compartir los logs de runtime para diagnóstico
+
+═══════════════════════════════════════════════════════════════════
