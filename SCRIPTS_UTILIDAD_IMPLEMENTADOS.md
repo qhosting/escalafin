@@ -1,287 +1,153 @@
-# Scripts de Utilidad Implementados - EscalaFin
+# Scripts Útiles Adaptados de CitaPlanner
 
-Scripts adaptados de CitaPlanner e implementados para EscalaFin MVP.
+## ✅ Archivos Implementados
 
-## 📦 Scripts Disponibles
-
-### ✅ Implementados y Probados
-
-| Script | Descripción | Estado |
-|--------|-------------|--------|
-| `diagnose-db.sh` | Diagnóstico completo de PostgreSQL | ✅ Funcional |
-| `generate-env.js` | Generador de archivo .env seguro | ✅ Funcional |
-| `pg_backup.sh` | Backup automatizado de PostgreSQL | ✅ Funcional |
-| `test-hash.js` | Test de hashing de passwords | ✅ Funcional |
-
----
-
-## 🚀 Uso de los Scripts
-
-### 1. Diagnóstico de Base de Datos
+### 1. `emergency-start.sh` 🚨
+**Propósito:** Bypass completo de checks para debug rápido en producción
 
 ```bash
-# Exportar DATABASE_URL
-export DATABASE_URL="postgresql://user:pass@host:5432/dbname"
-
-# Ejecutar diagnóstico
-cd /home/ubuntu/escalafin_mvp
-./scripts/diagnose-db.sh
+./emergency-start.sh
 ```
 
-**Qué hace:**
-- ✅ Verifica conectividad de red
-- ✅ Valida credenciales
-- ✅ Lista tablas existentes
-- ✅ Verifica migraciones Prisma
-- ✅ Muestra estadísticas
+**Cuándo usar:**
+- Error en migraciones de Prisma bloqueando el inicio
+- Problemas de conectividad con la base de datos
+- Debug rápido sin esperar validaciones
+
+**Advertencia:** Omite migraciones y seed. Solo para troubleshooting.
 
 ---
 
-### 2. Generar Archivo .env
+### 2. `start-improved.sh` ⚡
+**Propósito:** Script de inicio mejorado con mejor detección de errores
 
 ```bash
-# Uso básico (valores por defecto)
-cd /home/ubuntu/escalafin_mvp
-node scripts/generate-env.js
-
-# Con parámetros personalizados
-node scripts/generate-env.js \
-  --db-host db.escalafin.com \
-  --db-name escalafin \
-  --db-pass your_password \
-  --app-url https://escalafin.com \
-  --output app/.env
+./start-improved.sh
 ```
 
-**Qué hace:**
-- ✅ Genera NEXTAUTH_SECRET (64 caracteres)
-- ✅ Genera JWT_SECRET (64 caracteres)
-- ✅ Construye DATABASE_URL completa
-- ✅ Crea backup si el archivo existe
-- ✅ Genera resumen de credenciales
+**Mejoras vs start.sh original:**
+- ✅ Detección automática del comando Prisma disponible
+- ✅ Logging detallado de cada paso
+- ✅ Verificación de conexión a base de datos
+- ✅ Manejo robusto de errores
+- ✅ Verificación de existencia de server.js
 
-**Salida:**
-- `app/.env` - Archivo de configuración
-- `ENV_SUMMARY.txt` - Resumen con todas las credenciales
+**Cuándo usar:** Como reemplazo del start.sh actual en producción
 
 ---
 
-### 3. Backup de PostgreSQL
-
-```bash
-# Uso básico
-export DATABASE_URL="postgresql://user:pass@host:5432/dbname"
-cd /home/ubuntu/escalafin_mvp
-./scripts/pg_backup.sh
-
-# Con configuración personalizada
-export BACKUP_DIR="./my-backups"
-export RETENTION_DAYS="30"
-./scripts/pg_backup.sh
-```
-
-**Qué hace:**
-- ✅ Crea dump SQL completo
-- ✅ Comprime con gzip
-- ✅ Nomenclatura con timestamp
-- ✅ Limpia backups antiguos automáticamente
-
-**Variables de entorno:**
-- `BACKUP_DIR` - Directorio de backups (default: `./backups`)
-- `RETENTION_DAYS` - Días para retener (default: `7`)
-
-**Ejemplo de archivo generado:**
-```
-backups/escalafin_dbname_20251028_044500.sql.gz
-```
-
----
-
-### 4. Test de Hashing
-
-```bash
-cd /home/ubuntu/escalafin_mvp
-node scripts/test-hash.js
-```
-
-**Qué hace:**
-- ✅ Genera hash de prueba
-- ✅ Verifica comparación correcta
-- ✅ Verifica rechazo de password incorrecto
-- ✅ Genera hashes para usuarios de prueba
-
----
-
-## 📋 Casos de Uso Comunes
-
-### Setup Inicial en EasyPanel
-
-```bash
-# 1. Generar variables de entorno
-cd /home/ubuntu/escalafin_mvp
-node scripts/generate-env.js \
-  --db-host your-easypanel-db.host \
-  --db-name escalafin \
-  --db-pass your-db-password \
-  --app-url https://escalafin.yourserver.com \
-  --output app/.env
-
-# 2. Ver resumen de credenciales
-cat ENV_SUMMARY.txt
-
-# 3. Copiar cada variable a EasyPanel:
-#    - Dashboard → App → Environment Variables
-#    - Copiar cada variable del resumen
-
-# 4. Verificar base de datos
-export DATABASE_URL="..."
-./scripts/diagnose-db.sh
-
-# 5. Rebuild en EasyPanel
-```
-
----
-
-### Troubleshooting de Producción
-
-```bash
-# 1. Diagnosticar problema de DB
-export DATABASE_URL="your_production_url"
-./scripts/diagnose-db.sh
-
-# 2. Crear backup antes de cambios
-./scripts/pg_backup.sh
-
-# 3. Verificar hashing de passwords
-node scripts/test-hash.js
-```
-
----
-
-### Backup Programado (Cron)
-
-```bash
-# Editar crontab
-crontab -e
-
-# Agregar backup diario a las 3 AM
-0 3 * * * cd /home/ubuntu/escalafin_mvp && export DATABASE_URL="..." && ./scripts/pg_backup.sh >> /var/log/escalafin-backup.log 2>&1
-```
-
----
-
-## 🔧 Requisitos
-
-### Sistema
-- **Node.js** >= 14.x
-- **PostgreSQL Client** (psql)
-- **bash** (para scripts .sh)
-
-### Dependencias npm
-Instaladas en `/app`:
-- `bcryptjs` - Para hashing de passwords
+### 3. `verify-build.sh` 🔍
+**Propósito:** Verificación completa del build antes de deploy
 
 ```bash
 cd app
-yarn add bcryptjs
+../verify-build.sh
 ```
+
+**Verificaciones:**
+- ✅ Archivos esenciales (package.json, next.config.js, schema.prisma)
+- ✅ node_modules instalado correctamente
+- ✅ Prisma Client generado
+- ✅ Build standalone de Next.js
+- ✅ server.js en ubicación correcta
+
+**Cuándo usar:** Antes de hacer commit/push para validar el build
 
 ---
 
-## 📝 Notas Importantes
-
-### Seguridad
-
-⚠️ **CRÍTICO:**
-- NUNCA subas `.env` a Git
-- NUNCA subas `ENV_SUMMARY.txt` a Git
-- Rota secretos periódicamente en producción
-- Usa diferentes secretos por entorno
-
-### .gitignore
-
-Asegúrate de que estos archivos están ignorados:
+### 4. `docker-compose.easypanel.yml` 🐳
+**Propósito:** Configuración específica para EasyPanel
 
 ```bash
-.env
-.env.*
-ENV_SUMMARY.txt
-backups/
-*.sql.gz
+docker-compose -f docker-compose.easypanel.yml up
+```
+
+**Características:**
+- Variables de entorno completas
+- Healthcheck configurado
+- Network isolation
+- Restart policy
+
+**Cuándo usar:** Deploy en EasyPanel en lugar de docker-compose.yml genérico
+
+---
+
+## 🚀 Integración en Dockerfile
+
+Para usar `start-improved.sh` en el Dockerfile:
+
+```dockerfile
+# En el stage runner
+COPY --chown=nextjs:nodejs start-improved.sh ./
+RUN chmod +x start-improved.sh
+
+CMD ["./start-improved.sh"]
 ```
 
 ---
 
-## 🔄 Comparación con CitaPlanner
+## 📋 Comparación Scripts de Inicio
 
-| Feature | CitaPlanner | EscalaFin | Diferencia |
-|---------|-------------|-----------|------------|
-| **generate-env.js** | ✅ | ✅ | Adaptado a variables de EscalaFin |
-| **diagnose-db.sh** | ✅ | ✅ | Tablas específicas de EscalaFin |
-| **pg_backup.sh** | ✅ | ✅ | Sin cambios mayores |
-| **test-hash.js** | ✅ | ✅ | Usuarios de prueba de EscalaFin |
-| **setup-easypanel.js** | ✅ | ⏸️  | No implementado aún (requiere API) |
+| Feature | start.sh | start-improved.sh | emergency-start.sh |
+|---------|----------|-------------------|-------------------|
+| Detección Prisma CLI | Básica | Automática | No aplica |
+| Logging | Simple | Detallado | Mínimo |
+| Verificación DB | ✅ | ✅ | ❌ |
+| Migraciones | ✅ | ✅ | ❌ |
+| Seed automático | ✅ | ✅ | ❌ |
+| Error handling | Básico | Robusto | Bypass |
+| Verificación server.js | ❌ | ✅ | ❌ |
+| Uso recomendado | Local dev | Producción | Debug |
 
 ---
 
-## ✅ Testing Realizado
+## 🔄 Workflow Recomendado
 
+### Desarrollo Local
 ```bash
-# ✅ generate-env.js
-node scripts/generate-env.js --output /tmp/test.env
-# Resultado: Archivo generado correctamente con todos los secretos
+# 1. Build
+cd app && yarn build
 
-# ✅ test-hash.js  
-node scripts/test-hash.js
-# Resultado: Todos los tests pasados correctamente
+# 2. Verificar
+cd .. && ./verify-build.sh
 
-# ✅ diagnose-db.sh
-# Pendiente: Requiere DATABASE_URL de producción
-
-# ✅ pg_backup.sh
-# Pendiente: Requiere DATABASE_URL de producción
+# 3. Test local
+cd app && node .next/standalone/app/server.js
 ```
+
+### Deploy a Producción
+```bash
+# 1. Verificar build
+./verify-build.sh
+
+# 2. Commit y push
+git add .
+git commit -m "..."
+git push
+
+# 3. En EasyPanel: usar docker-compose.easypanel.yml
+```
+
+### Debug en Producción
+```bash
+# Si hay problemas de inicio, usar emergency-start
+CMD ["./emergency-start.sh"]
+```
+
+---
+
+## 🎯 Próximos Pasos
+
+1. **Actualizar Dockerfile** para usar `start-improved.sh`
+2. **Configurar EasyPanel** con `docker-compose.easypanel.yml`
+3. **Agregar `verify-build.sh`** a CI/CD pipeline
+4. **Documentar** `emergency-start.sh` en runbook de operaciones
 
 ---
 
 ## 📚 Referencias
 
-- **Repositorio Original:** https://github.com/qhosting/citaplanner/tree/main/scripts
-- **Commit en EscalaFin:** https://github.com/qhosting/escalafin (commit 265cb73)
-- **Documentación Prisma:** https://www.prisma.io/docs
-- **bcrypt.js:** https://github.com/dcodeIO/bcrypt.js
+- Código original: https://github.com/qhosting/citaplanner
+- Adaptaciones específicas para Node 22 + Yarn
+- Optimizado para Next.js standalone output
 
----
-
-## 🤝 Próximos Pasos
-
-### Scripts Pendientes
-
-1. **setup-easypanel.js** - Automatización completa de EasyPanel
-   - Requiere API key de EasyPanel
-   - Crea servicios PostgreSQL automáticamente
-   - Configura variables de entorno vía API
-
-2. **restore-db.sh** - Restaurar desde backup
-   ```bash
-   ./scripts/restore-db.sh backups/escalafin_20251028.sql.gz
-   ```
-
-3. **health-check.sh** - Verificación de salud del sistema
-   - Check de base de datos
-   - Check de API endpoints
-   - Check de espacio en disco
-
----
-
-## 📞 Soporte
-
-Para más información:
-- Ver documentación principal: `/DOCUMENTACION_TECNICA_COMPLETA_FINAL.md`
-- Ver guía de deployment: `/GUIA_DESPLIEGUE_EASYPANEL_ACTUALIZADA.md`
-
----
-
-**Última actualización:** 2025-10-28 04:50 UTC  
-**Commit:** 265cb73  
-**Estado:** ✅ Scripts funcionales y testeados
