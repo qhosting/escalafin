@@ -89,15 +89,30 @@ export const authOptions: NextAuthOptions = {
       return !!user;
     },
     async redirect({ url, baseUrl }) {
+      console.log('🔄 Redirect callback:', { url, baseUrl });
+      
       // Si es una URL relativa, usar baseUrl
       if (url.startsWith('/')) {
-        return `${baseUrl}${url}`;
+        const finalUrl = `${baseUrl}${url}`;
+        console.log('✅ Usando URL relativa:', finalUrl);
+        return finalUrl;
       }
+      
       // Si la URL es del mismo dominio, permitir
-      else if (new URL(url).origin === baseUrl) {
-        return url;
+      try {
+        const urlOrigin = new URL(url).origin;
+        const baseOrigin = new URL(baseUrl).origin;
+        
+        if (urlOrigin === baseOrigin) {
+          console.log('✅ URL del mismo dominio:', url);
+          return url;
+        }
+      } catch (error) {
+        console.error('❌ Error parseando URLs:', error);
       }
+      
       // Por defecto, redirigir al baseUrl
+      console.log('✅ Redirigiendo a baseUrl:', baseUrl);
       return baseUrl;
     },
   },

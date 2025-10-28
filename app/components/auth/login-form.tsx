@@ -29,7 +29,6 @@ export function LoginForm() {
         email,
         password,
         redirect: false,
-        callbackUrl: '/',
       });
 
       console.log('📊 Resultado de signIn:', result);
@@ -42,25 +41,37 @@ export function LoginForm() {
       }
 
       if (result?.ok) {
-        console.log('✅ Login exitoso, verificando sesión...');
+        console.log('✅ Login exitoso, obteniendo sesión...');
         
         // Verificar que la sesión se creó correctamente
         const session = await getSession();
-        console.log('📊 Sesión creada:', session);
+        console.log('📊 Sesión obtenida:', session);
+        
+        if (!session) {
+          console.error('❌ No se pudo obtener la sesión');
+          setError('Error al crear sesión');
+          setLoading(false);
+          return;
+        }
+        
+        // Redirigir según el rol
+        let redirectUrl = '/';
         
         if (session?.user?.role === 'ADMIN') {
+          redirectUrl = '/admin/dashboard';
           console.log('🔄 Redirigiendo a admin dashboard...');
-          router.push('/admin/dashboard');
         } else if (session?.user?.role === 'ASESOR') {
+          redirectUrl = '/asesor/dashboard';
           console.log('🔄 Redirigiendo a asesor dashboard...');
-          router.push('/asesor/dashboard');  
         } else if (session?.user?.role === 'CLIENTE') {
+          redirectUrl = '/cliente/dashboard';
           console.log('🔄 Redirigiendo a cliente dashboard...');
-          router.push('/cliente/dashboard');
         } else {
           console.log('🔄 Redirigiendo a dashboard genérico...');
-          router.push('/');
         }
+        
+        // Usar router.replace en lugar de router.push para evitar volver atrás
+        window.location.href = redirectUrl;
         return;
       } else {
         console.log('⚠️ Login sin error pero no ok:', result);
