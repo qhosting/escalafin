@@ -20,7 +20,11 @@ import {
   Calculator,
   Globe,
   FileText,
-  User
+  User,
+  FolderOpen,
+  FilePlus,
+  Receipt,
+  TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -62,42 +66,96 @@ export function EnhancedClientDashboard() {
     }
   ];
 
-  const quickActions = [
+  // Módulos de Préstamos y Solicitudes
+  const loanModules = [
     {
-      title: 'Pagar en Línea',
-      description: 'Realizar un pago ahora',
-      icon: Globe,
-      route: '/pay-online',
-      moduleKey: 'payment_online',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    },
-    {
-      title: 'Calculadora',
-      description: 'Calcular pagos',
-      icon: Calculator,
-      route: '/calculator',
-      moduleKey: 'loan_calculator',
+      title: 'Mis Préstamos',
+      description: 'Ver préstamos activos',
+      icon: CreditCard,
+      route: '/cliente/loans',
+      moduleKey: 'my_loans',
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
     {
-      title: 'Mis Documentos',
-      description: 'Gestionar archivos',
+      title: 'Solicitar Crédito',
+      description: 'Nueva solicitud',
+      icon: FilePlus,
+      route: '/cliente/credit-applications/new',
+      moduleKey: 'credit_application_create',
+      color: 'text-green-600',
+      bgColor: 'bg-green-50'
+    },
+    {
+      title: 'Mis Solicitudes',
+      description: 'Ver estado de solicitudes',
       icon: FileText,
-      route: '/files',
-      moduleKey: 'file_management',
+      route: '/cliente/credit-applications',
+      moduleKey: 'credit_application_list',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50'
+    }
+  ];
+
+  // Módulos de Pagos
+  const paymentModules = [
+    {
+      title: 'Pagar en Línea',
+      description: 'Pago con tarjeta',
+      icon: Globe,
+      route: '/cliente/pay-online',
+      moduleKey: 'payment_online',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50'
+    },
+    {
+      title: 'Historial de Pagos',
+      description: 'Ver todos mis pagos',
+      icon: Receipt,
+      route: '/cliente/payments',
+      moduleKey: 'payment_history',
       color: 'text-purple-600',
       bgColor: 'bg-purple-50'
     },
     {
+      title: 'Próximos Pagos',
+      description: 'Calendario de pagos',
+      icon: Calendar,
+      route: '/cliente/payments/schedule',
+      moduleKey: 'payment_schedule',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
+    }
+  ];
+
+  // Módulos de Información Personal
+  const profileModules = [
+    {
       title: 'Mi Perfil',
       description: 'Actualizar información',
       icon: User,
-      route: '/profile',
+      route: '/cliente/profile',
       moduleKey: 'client_profile',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50'
+    },
+    {
+      title: 'Mis Documentos',
+      description: 'Archivos en Google Drive',
+      icon: FolderOpen,
+      route: '/cliente/files',
+      moduleKey: 'file_manager',
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50'
+    },
+    {
+      title: 'Calculadora',
+      description: 'Simular préstamos',
+      icon: Calculator,
+      route: '/cliente/calculator',
+      moduleKey: 'loan_calculator',
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-50'
     }
   ];
 
@@ -154,26 +212,104 @@ export function EnhancedClientDashboard() {
           </p>
         </div>
 
-        {/* Quick Actions */}
+        {/* PRÉSTAMOS Y SOLICITUDES */}
         <Card>
           <CardHeader>
-            <CardTitle>Acciones Rápidas</CardTitle>
+            <CardTitle className="flex items-center text-lg">
+              <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+              Préstamos y Solicitudes
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {quickActions.map((action, index) => (
-                <ModuleWrapper key={index} moduleKey={action.moduleKey}>
-                  <Link href={action.route}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {loanModules.map((module, index) => (
+                <ModuleWrapper key={index} moduleKey={module.moduleKey}>
+                  <Link href={module.route}>
                     <Card className="hover:shadow-md transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary/20">
-                      <CardContent className="p-4 text-center">
-                        <div className={`${action.bgColor} p-3 rounded-full w-fit mx-auto mb-3`}>
-                          <action.icon className={`h-6 w-6 ${action.color}`} />
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className={`${module.bgColor} p-2 rounded-lg`}>
+                            <module.icon className={`h-5 w-5 ${module.color}`} />
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-gray-400" />
                         </div>
                         <h3 className="font-semibold text-gray-900 mb-1">
-                          {action.title}
+                          {module.title}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          {action.description}
+                          {module.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </ModuleWrapper>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* PAGOS */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <DollarSign className="h-5 w-5 mr-2 text-emerald-600" />
+              Pagos y Calendario
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paymentModules.map((module, index) => (
+                <ModuleWrapper key={index} moduleKey={module.moduleKey}>
+                  <Link href={module.route}>
+                    <Card className="hover:shadow-md transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary/20">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className={`${module.bgColor} p-2 rounded-lg`}>
+                            <module.icon className={`h-5 w-5 ${module.color}`} />
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {module.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {module.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </ModuleWrapper>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* MI INFORMACIÓN */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <User className="h-5 w-5 mr-2 text-indigo-600" />
+              Mi Información y Herramientas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {profileModules.map((module, index) => (
+                <ModuleWrapper key={index} moduleKey={module.moduleKey}>
+                  <Link href={module.route}>
+                    <Card className="hover:shadow-md transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary/20">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className={`${module.bgColor} p-2 rounded-lg`}>
+                            <module.icon className={`h-5 w-5 ${module.color}`} />
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {module.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {module.description}
                         </p>
                       </CardContent>
                     </Card>

@@ -32,7 +32,14 @@ import {
   Globe,
   Download,
   MessageCircle,
-  Wrench
+  Wrench,
+  FolderOpen,
+  Wallet,
+  UserCheck,
+  FilePlus,
+  TrendingDown,
+  Smartphone,
+  Database
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -94,10 +101,128 @@ export function EnhancedAdminDashboard() {
     }
   ];
 
-  const quickActions = [
+  // Módulos principales organizados por categorías
+  const coreModules = [
+    {
+      title: 'Gestión de Clientes',
+      description: 'CRUD completo de clientes',
+      icon: Users,
+      route: '/admin/clients',
+      moduleKey: 'client_list',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
+    },
+    {
+      title: 'Solicitudes de Crédito',
+      description: 'Workflow de aprobación',
+      icon: FilePlus,
+      route: '/admin/credit-applications',
+      moduleKey: 'credit_application_list',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50'
+    },
+    {
+      title: 'Gestión de Préstamos',
+      description: 'Ver y administrar préstamos',
+      icon: CreditCard,
+      route: '/admin/loans',
+      moduleKey: 'loan_list',
+      color: 'text-green-600',
+      bgColor: 'bg-green-50'
+    },
+    {
+      title: 'Gestión de Pagos',
+      description: 'Pagos Openpay y efectivo',
+      icon: Wallet,
+      route: '/admin/payments',
+      moduleKey: 'payment_history',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50'
+    }
+  ];
+
+  const analyticsModules = [
+    {
+      title: 'Analytics Avanzado',
+      description: 'KPIs y métricas financieras',
+      icon: BarChart3,
+      route: '/admin/analytics',
+      moduleKey: 'admin_analytics',
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50'
+    },
+    {
+      title: 'Scoring Crediticio',
+      description: 'Evaluación de riesgo',
+      icon: Calculator,
+      route: '/admin/scoring',
+      moduleKey: 'credit_scoring',
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50'
+    },
+    {
+      title: 'Reportes',
+      description: 'Generar reportes detallados',
+      icon: FileText,
+      route: '/admin/reports',
+      moduleKey: 'report_portfolio',
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50'
+    },
+    {
+      title: 'Auditoría',
+      description: 'Logs y trazabilidad',
+      icon: Shield,
+      route: '/admin/audit',
+      moduleKey: 'audit_log',
+      color: 'text-red-600',
+      bgColor: 'bg-red-50'
+    }
+  ];
+
+  const whatsappModules = [
+    {
+      title: 'Config. EvolutionAPI',
+      description: 'Configurar integración',
+      icon: Settings,
+      route: '/admin/whatsapp',
+      moduleKey: 'whatsapp_config',
+      color: 'text-green-600',
+      bgColor: 'bg-green-50'
+    },
+    {
+      title: 'Config. Clientes',
+      description: 'Preferencias por cliente',
+      icon: UserCheck,
+      route: '/admin/whatsapp/clients',
+      moduleKey: 'whatsapp_client_settings',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
+    },
+    {
+      title: 'Dashboard Mensajes',
+      description: 'Monitor de envíos',
+      icon: MessageCircle,
+      route: '/admin/whatsapp/messages',
+      moduleKey: 'whatsapp_dashboard',
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50'
+    },
+    {
+      title: 'Recarga Mensajes',
+      description: 'Gestionar paquetes',
+      icon: Plus,
+      route: '/admin/message-recharges',
+      moduleKey: 'message_recharges',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50'
+    }
+  ];
+
+  const systemModules = [
     {
       title: 'Gestionar Usuarios',
-      description: 'Administrar cuentas de usuario',
+      description: 'Administrar cuentas',
       icon: Users,
       route: '/admin/users',
       moduleKey: 'user_management',
@@ -105,49 +230,43 @@ export function EnhancedAdminDashboard() {
       bgColor: 'bg-blue-50'
     },
     {
-      title: 'Gestionar Módulos',
+      title: 'Gestión Archivos',
+      description: 'Documentos en Google Drive',
+      icon: FolderOpen,
+      route: '/admin/files',
+      moduleKey: 'file_manager',
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50'
+    },
+    {
+      title: 'Gestión Módulos',
       description: 'Configurar módulos PWA',
-      icon: Settings,
+      icon: Database,
       route: '/admin/modules',
-      moduleKey: 'system_settings',
+      moduleKey: 'module_management',
       color: 'text-purple-600',
       bgColor: 'bg-purple-50'
     },
     {
-      title: 'Ver Préstamos',
-      description: 'Revisar todos los préstamos',
-      icon: CreditCard,
-      route: '/loans',
-      moduleKey: 'loan_list',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    },
-    {
-      title: 'Generar Reportes',
-      description: 'Crear reportes del sistema',
-      icon: FileText,
-      route: '/reports',
-      moduleKey: 'report_portfolio',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
-    },
-    {
-      title: 'Notificaciones WhatsApp',
-      description: 'Configurar mensajería',
-      icon: MessageSquare,
-      route: '/whatsapp',
-      moduleKey: 'whatsapp_notifications',
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-50'
-    },
-    {
-      title: 'Configuración Sistema',
-      description: 'Ajustes generales',
+      title: 'Configuración',
+      description: 'Ajustes del sistema',
       icon: Settings,
       route: '/admin/settings',
       moduleKey: 'system_settings',
       color: 'text-gray-600',
       bgColor: 'bg-gray-50'
+    }
+  ];
+
+  const mobileModules = [
+    {
+      title: 'Cobro Móvil',
+      description: 'App PWA para cobradores',
+      icon: Smartphone,
+      route: '/pwa',
+      moduleKey: 'cash_collection',
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-50'
     }
   ];
 
@@ -202,7 +321,7 @@ export function EnhancedAdminDashboard() {
             ¡Bienvenido, {session?.user?.name?.split(' ')[0] || 'Administrador'}!
           </h2>
           <p className="text-blue-100">
-            Tienes acceso a {modules.length} módulos habilitados. Gestiona tu plataforma desde aquí.
+            Tienes acceso completo a {modules.length} módulos. Panel de administración integral.
           </p>
         </div>
 
@@ -230,32 +349,32 @@ export function EnhancedAdminDashboard() {
           </div>
         </ModuleWrapper>
 
-        {/* Quick Actions */}
+        {/* MÓDULOS PRINCIPALES (CORE) */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Wrench className="h-5 w-5 mr-2" />
-              Acciones Rápidas
+            <CardTitle className="flex items-center text-lg">
+              <CreditCard className="h-5 w-5 mr-2 text-green-600" />
+              Módulos Principales - Gestión de Cartera
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {quickActions.map((action, index) => (
-                <ModuleWrapper key={index} moduleKey={action.moduleKey}>
-                  <Link href={action.route}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {coreModules.map((module, index) => (
+                <ModuleWrapper key={index} moduleKey={module.moduleKey}>
+                  <Link href={module.route}>
                     <Card className="hover:shadow-md transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary/20">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-3">
-                          <div className={`${action.bgColor} p-2 rounded-lg`}>
-                            <action.icon className={`h-5 w-5 ${action.color}`} />
+                          <div className={`${module.bgColor} p-2 rounded-lg`}>
+                            <module.icon className={`h-5 w-5 ${module.color}`} />
                           </div>
                           <ArrowRight className="h-4 w-4 text-gray-400" />
                         </div>
                         <h3 className="font-semibold text-gray-900 mb-1">
-                          {action.title}
+                          {module.title}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          {action.description}
+                          {module.description}
                         </p>
                       </CardContent>
                     </Card>
@@ -266,71 +385,189 @@ export function EnhancedAdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
+        {/* ANALYTICS Y SCORING */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Activity className="h-5 w-5 mr-2" />
-              Actividad Reciente
+            <CardTitle className="flex items-center text-lg">
+              <BarChart3 className="h-5 w-5 mr-2 text-purple-600" />
+              Analytics, Reportes y Auditoría
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity, index) => (
-                <ModuleWrapper key={index} moduleKey={activity.moduleKey}>
-                  <div className="flex items-center justify-between p-3 rounded-lg border">
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-full ${
-                        activity.status === 'success' ? 'bg-green-100' :
-                        activity.status === 'warning' ? 'bg-yellow-100' : 'bg-blue-100'
-                      }`}>
-                        {activity.status === 'success' ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : activity.status === 'warning' ? (
-                          <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                        ) : (
-                          <Activity className="h-4 w-4 text-blue-600" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{activity.action}</p>
-                        <p className="text-sm text-gray-600">{activity.details}</p>
-                      </div>
-                    </div>
-                    <Badge variant="outline">{activity.time}</Badge>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {analyticsModules.map((module, index) => (
+                <ModuleWrapper key={index} moduleKey={module.moduleKey}>
+                  <Link href={module.route}>
+                    <Card className="hover:shadow-md transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary/20">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className={`${module.bgColor} p-2 rounded-lg`}>
+                            <module.icon className={`h-5 w-5 ${module.color}`} />
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {module.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {module.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 </ModuleWrapper>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Module Analytics and Quick Controls */}
+        {/* MÓDULOS WHATSAPP */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <MessageSquare className="h-5 w-5 mr-2 text-green-600" />
+              Comunicaciones WhatsApp (EvolutionAPI)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {whatsappModules.map((module, index) => (
+                <ModuleWrapper key={index} moduleKey={module.moduleKey}>
+                  <Link href={module.route}>
+                    <Card className="hover:shadow-md transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary/20">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className={`${module.bgColor} p-2 rounded-lg`}>
+                            <module.icon className={`h-5 w-5 ${module.color}`} />
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {module.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {module.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </ModuleWrapper>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* SISTEMA Y CONFIGURACIÓN */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <Settings className="h-5 w-5 mr-2 text-gray-600" />
+              Sistema, Archivos y Configuración
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {systemModules.map((module, index) => (
+                <ModuleWrapper key={index} moduleKey={module.moduleKey}>
+                  <Link href={module.route}>
+                    <Card className="hover:shadow-md transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary/20">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className={`${module.bgColor} p-2 rounded-lg`}>
+                            <module.icon className={`h-5 w-5 ${module.color}`} />
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {module.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {module.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </ModuleWrapper>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* PWA MÓVIL */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <Smartphone className="h-5 w-5 mr-2 text-teal-600" />
+              Aplicaciones Móviles (PWA)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {mobileModules.map((module, index) => (
+                <ModuleWrapper key={index} moduleKey={module.moduleKey}>
+                  <Link href={module.route}>
+                    <Card className="hover:shadow-md transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary/20">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className={`${module.bgColor} p-2 rounded-lg`}>
+                            <module.icon className={`h-5 w-5 ${module.color}`} />
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {module.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {module.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </ModuleWrapper>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity & Module Analytics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ModuleWrapper moduleKey="admin_analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2" />
-                  Análisis de Módulos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  {Object.entries(modulesByCategory).slice(0, 6).map(([category, categoryModules]) => (
-                    <div key={category} className="text-center p-4 border rounded-lg">
-                      <p className="text-2xl font-bold text-primary">
-                        {categoryModules.length}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {category.toLowerCase().replace('_', ' ')}
-                      </p>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Activity className="h-5 w-5 mr-2" />
+                Actividad Reciente
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentActivities.map((activity, index) => (
+                  <ModuleWrapper key={index} moduleKey={activity.moduleKey}>
+                    <div className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-full ${
+                          activity.status === 'success' ? 'bg-green-100' :
+                          activity.status === 'warning' ? 'bg-yellow-100' : 'bg-blue-100'
+                        }`}>
+                          {activity.status === 'success' ? (
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          ) : activity.status === 'warning' ? (
+                            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                          ) : (
+                            <Activity className="h-4 w-4 text-blue-600" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{activity.action}</p>
+                          <p className="text-sm text-gray-600">{activity.details}</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline">{activity.time}</Badge>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </ModuleWrapper>
+                  </ModuleWrapper>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           <ModuleWrapper moduleKey="system_settings">
             <Card>
@@ -338,7 +575,7 @@ export function EnhancedAdminDashboard() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center">
                     <Settings className="h-5 w-5 mr-2" />
-                    Control Rápido
+                    Control Rápido de Módulos
                   </CardTitle>
                   <Link href="/admin/modules">
                     <Button variant="outline" size="sm">
