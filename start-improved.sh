@@ -77,6 +77,9 @@ if [ -n "$DATABASE_URL" ]; then
     if [ "$USER_COUNT" = "0" ]; then
         echo "  🌱 Configurando usuarios de prueba..."
         if [ -f "scripts/setup-users-production.js" ]; then
+            # Configurar NODE_PATH para que Node.js encuentre los módulos
+            export NODE_PATH=/app/node_modules:$NODE_PATH
+            echo "  📍 NODE_PATH configurado: $NODE_PATH"
             node scripts/setup-users-production.js || echo "  ⚠️  Error configurando usuarios, continuando..."
         else
             echo "  ⚠️  scripts/setup-users-production.js no encontrado, continuando..."

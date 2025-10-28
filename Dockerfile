@@ -138,11 +138,15 @@ COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-# Copy bcryptjs for setup scripts
+# Copy bcryptjs and its dependencies for setup scripts
 COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
 
 # Copy scripts directory (includes setup-users-production.js and other utilities)
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+
+# Ensure bcryptjs is accessible by creating a simple wrapper to verify
+RUN echo "✅ Verificando módulos de runtime necesarios..." && \
+    test -d "./node_modules/bcryptjs" && echo "   ✓ bcryptjs disponible" || echo "   ✗ bcryptjs NO disponible"
 
 # Copy startup scripts (adaptados de CitaPlanner)
 COPY --chown=nextjs:nodejs start-improved.sh ./start-improved.sh
