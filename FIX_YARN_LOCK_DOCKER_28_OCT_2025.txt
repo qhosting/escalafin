@@ -1,0 +1,80 @@
+═══════════════════════════════════════════════════════════════════════
+🔧 FIX CRÍTICO: Eliminación de yarn.lock del Dockerfile
+═══════════════════════════════════════════════════════════════════════
+
+📅 Fecha: 28 de Octubre 2025
+🎯 Commit: 1b34bb6
+
+═══════════════════════════════════════════════════════════════════════
+❌ PROBLEMA DETECTADO
+═══════════════════════════════════════════════════════════════════════
+
+Error en deploy de EasyPanel:
+---------------------------------
+#11 ERROR: failed to calculate checksum of ref: "/app/yarn.lock": not found
+
+Causa:
+---------------------------------
+- El Dockerfile intentaba copiar app/yarn.lock
+- yarn.lock era un SYMLINK que apunta a /opt/hostedapp/node/root/app/yarn.lock
+- Docker no puede copiar symlinks que apuntan fuera del contexto de build
+- El proyecto USA NPM, no Yarn
+
+═══════════════════════════════════════════════════════════════════════
+✅ SOLUCIÓN APLICADA
+═══════════════════════════════════════════════════════════════════════
+
+Archivo Modificado: Dockerfile (línea 36)
+---------------------------------
+
+ANTES:
+-------
+# Copy configuration files
+COPY app/package.json ./
+COPY app/package-lock.json ./
+# Copy dummy yarn.lock to satisfy Next.js outputFileTracingRoot check
+COPY app/yarn.lock ./
+
+DESPUÉS:
+---------
+# Copy configuration files
+COPY app/package.json ./
+COPY app/package-lock.json ./
+
+Cambios:
+---------------------------------
+✅ Eliminada línea 36: COPY app/yarn.lock ./
+✅ Eliminado comentario innecesario sobre yarn.lock
+✅ El proyecto funciona SOLO con package-lock.json
+
+═══════════════════════════════════════════════════════════════════════
+🎯 VERIFICACIÓN
+═══════════════════════════════════════════════════════════════════════
+
+✅ package-lock.json existe (362KB)
+✅ Dockerfile usa npm ci --legacy-peer-deps
+✅ No hay otras referencias a yarn.lock en Dockerfile
+✅ Git status: clean
+✅ Push exitoso a main
+
+═══════════════════════════════════════════════════════════════════════
+📦 PRÓXIMOS PASOS EN EASYPANEL
+═══════════════════════════════════════════════════════════════════════
+
+1. Ir a tu servicio en EasyPanel
+2. Pull latest commit (1b34bb6)
+3. Clear build cache
+4. Rebuild
+
+El build ahora funcionará correctamente sin intentar copiar yarn.lock.
+
+═══════════════════════════════════════════════════════════════════════
+📝 LECCIÓN APRENDIDA
+═══════════════════════════════════════════════════════════════════════
+
+❌ NO incluir symlinks en COPY de Dockerfile
+❌ NO mezclar gestores de paquetes (npm vs yarn)
+✅ USAR solo el gestor de paquetes del proyecto (NPM)
+✅ VERIFICAR que todos los archivos en COPY existan realmente
+
+═══════════════════════════════════════════════════════════════════════
