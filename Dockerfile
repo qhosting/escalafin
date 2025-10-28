@@ -54,22 +54,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
 ENV NEXT_OUTPUT_MODE=standalone
 
-# Limpiar y regenerar Prisma Client
-RUN echo "🔧 Limpiando y generando Prisma Client..." && \
-    rm -rf node_modules/.prisma node_modules/@prisma/client && \
+# Generar Prisma Client
+RUN echo "🔧 Generando Prisma Client..." && \
     npx prisma generate && \
-    echo "✅ Prisma Client generado" && \
-    echo "📋 Verificando tipos generados..." && \
-    if [ -d "node_modules/.prisma/client" ]; then \
-        echo "✅ Directorio node_modules/.prisma/client encontrado"; \
-        ls -la node_modules/.prisma/client/ | head -10; \
-    else \
-        echo "❌ ERROR: Directorio node_modules/.prisma/client NO encontrado"; \
-        echo "🔍 Buscando archivos de Prisma..."; \
-        find node_modules -name "index.d.ts" -path "*/.prisma/*" 2>/dev/null | head -5; \
-        exit 1; \
-    fi && \
-    echo ""
+    echo "✅ Prisma Client generado correctamente"
 
 # Build Next.js application
 RUN echo "🏗️  Building Next.js..." && \
