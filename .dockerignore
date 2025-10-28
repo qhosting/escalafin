@@ -66,9 +66,30 @@ CHANGELOG*
 README*
 LICENSE
 
-# Scripts
-*.sh
+# Scripts de testing/desarrollo (excluir)
 test-scripts/
+test-*.sh
+deploy-*.sh
+build-*.sh
+verify-*.sh
+diagnostico-*.sh
+PROBAR_*.sh
+TEST_*.sh
+COMANDOS_*.sh
+comandos-*.sh
+completar-*.sh
+fix-*.sh
+final-*.sh
+push-*.sh
+setup-*.sh
+coolify-*.sh
+backup-*.sh
+restore-*.sh
+
+# Scripts de producción (INCLUIR - no excluir)
+# start-improved.sh
+# emergency-start.sh
+# healthcheck.sh
 
 # Backups
 *.backup
