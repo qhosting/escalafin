@@ -3,9 +3,9 @@
 ╚═══════════════════════════════════════════════════════════════════╝
 
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃  ✅ FIX APLICADO: Scripts folder ahora incluido en contenedor   ┃
-┃  📦 Commits: 3 nuevos commits pusheados a GitHub                ┃
-┃  🎯 Último commit: f9bdd6f                                       ┃
+┃  ✅ FIX APLICADO: Scripts folder + bcryptjs incluidos           ┃
+┃  📦 Commits: 6 nuevos commits pusheados a GitHub                ┃
+┃  🎯 Último commit: 115f3c5                                       ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 ═══════════════════════════════════════════════════════════════════
@@ -23,8 +23,8 @@
   1. En la página del proyecto, busca la pestaña "Source" o "GitHub"
   2. Verás tu repositorio: github.com/qhosting/escalafin
   3. Haz clic en el botón "Pull Latest" o "Sync"
-  4. Espera a que aparezca el commit f9bdd6f
-     (o verifica que sea del 28 de octubre, 19:35 UTC)
+  4. Espera a que aparezca el commit 115f3c5
+     (o verifica que sea del 28 de octubre, 19:50 UTC aprox)
 
 ═══════════════════════════════════════════════════════════════════
   PASO 3: LIMPIAR CACHE DE BUILD
@@ -126,9 +126,10 @@
   📊 CHECKLIST DE VERIFICACIÓN
 ═══════════════════════════════════════════════════════════════════
 
-  □ Pull latest commit (f9bdd6f)
+  □ Pull latest commit (115f3c5 o posterior)
   □ Clear build cache
   □ Rebuild completado exitosamente
+  □ Logs NO muestran "Error: Cannot find module 'bcryptjs'"
   □ Logs muestran "🔧 CONFIGURANDO USUARIOS DE PRUEBA"
   □ Logs muestran los 3 usuarios creados
   □ Login exitoso con admin@escalafin.com
@@ -149,7 +150,8 @@
   📚 DOCUMENTACIÓN RELACIONADA
 ═══════════════════════════════════════════════════════════════════
 
-  → FIX_SCRIPTS_FOLDER_MISSING.md (guía técnica detallada)
+  → FIX_SCRIPTS_FOLDER_MISSING.md (Fix #1: scripts folder)
+  → FIX_BCRYPTJS_MODULE_MISSING.md (Fix #2: bcryptjs module)
   → ESTADO_FINAL_FIX_SCRIPTS_28_OCT_2025.txt (resumen ejecutivo)
   → INSTRUCCIONES_REBUILD_EASYPANEL.md (guía visual EasyPanel)
 
