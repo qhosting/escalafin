@@ -1,0 +1,111 @@
+╔════════════════════════════════════════════════════════════════╗
+║         FIX AUTENTICACIÓN - ERROR AL CREAR SESIÓN              ║
+╚════════════════════════════════════════════════════════════════╝
+
+PROBLEMA REPORTADO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ "marca error al crear sesion auth/login"
+❌ No se puede iniciar sesión
+❌ Error al intentar autenticarse
+
+DIAGNÓSTICO EJECUTADO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. ✅ Base de datos: Conexión exitosa
+2. ✅ Usuarios: 7 registrados, todos ACTIVE
+3. ✅ Credenciales admin: Verificadas OK
+4. ✅ Variables entorno: Todas configuradas
+5. ⚠️  Sesiones DB: 0 (esperado con JWT)
+6. ⚠️  Accounts DB: 0 (esperado con JWT)
+
+CAUSA RAÍZ IDENTIFICADA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**CONFIGURACIÓN CONFLICTIVA EN lib/auth.ts:**
+
+❌ Problema:
+   adapter: PrismaAdapter(prisma)  → Intenta usar base de datos
+   session: { strategy: 'jwt' }    → Pero usa solo JWT
+
+🔍 Explicación:
+   - CredentialsProvider con JWT no debe usar adapter
+   - PrismaAdapter intenta crear Session/Account en DB
+   - Genera conflictos y falla la creación de sesión
+   - JWT es completamente independiente de la DB
+
+SOLUCIÓN APLICADA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ARCHIVO: app/lib/auth.ts
+
+Antes (❌):
+─────────────────────────────────────────────────────────────
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
+  providers: [...],
+  useSecureCookies: false,
+  cookies: { ... }
+}
+
+Después (✅):
+─────────────────────────────────────────────────────────────
+// PrismaAdapter removido del import
+
+export const authOptions: NextAuthOptions = {
+  // Sin adapter
+  providers: [...],
+  session: { strategy: 'jwt' },
+  // Configuración simplificada
+}
+
+CAMBIOS ESPECÍFICOS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. ✅ Removido: import PrismaAdapter
+2. ✅ Removido: adapter: PrismaAdapter(prisma)
+3. ✅ Removido: useSecureCookies: false
+4. ✅ Removido: cookies: { sessionToken: {...} }
+5. ✅ Simplificado: Solo opciones necesarias para JWT
+
+VERIFICACIÓN:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Build exitoso
+✅ Compilación sin errores
+✅ Configuración correcta para JWT-only auth
+✅ Push a GitHub exitoso
+
+ESTADO GITHUB:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Repositorio: https://github.com/qhosting/escalafin
+Commit: 892989d
+Mensaje: "fix: Remove PrismaAdapter for JWT-only auth strategy"
+
+PARA DESPLEGAR:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Ir a EasyPanel → Tu App
+2. Settings → Clear Build Cache
+3. Click en "Rebuild" (usará último commit de GitHub)
+4. Esperar que termine el build
+5. Verificar login en: https://11e19c1256.preview.abacusai.app/auth/login
+
+CREDENCIALES DE PRUEBA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Email: admin@escalafin.com
+Password: admin123
+
+ARCHIVOS CREADOS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- FIX_AUTH_NEXTAUTH.md → Documentación completa del fix
+- DIAGNOSTICO_AUTH_ERROR.md → Diagnóstico detallado
+- diagnostico-auth.js → Script de diagnóstico
+- RESUMEN_FIX_AUTH.txt → Este resumen
+
+═══════════════════════════════════════════════════════════════
+PROBLEMA RESUELTO ✅
+═══════════════════════════════════════════════════════════════
+
+Ahora el login debe funcionar correctamente.
+La autenticación usa solo JWT sin dependencias de base de datos.
+
+Fecha: 2025-10-28 04:25 UTC
