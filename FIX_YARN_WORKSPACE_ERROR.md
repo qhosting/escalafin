@@ -3,7 +3,8 @@
 
 **Fecha**: 28 de octubre de 2025  
 **Tipo**: Fix Crítico  
-**Commit**: Pendiente
+**Commit**: Pendiente  
+**Update**: Corregido - ahora usa Yarn 4.x con packageManager explícito
 
 ---
 
@@ -34,11 +35,11 @@ El error ocurría porque:
 
 ## ✅ Solución Aplicada
 
-### 1. Limpieza de Configuración de Yarn
+### 1. Configuración Corregida de Yarn 4.x
 
-**Eliminado del `package.json`:**
+**Agregado al `package.json`:**
 ```json
-"packageManager": "yarn@4.9.4"
+"packageManager": "yarn@4.10.3"
 ```
 
 **Actualizado `.yarnrc.yml`:**
@@ -47,6 +48,7 @@ nodeLinker: node-modules
 enableGlobalCache: false
 ```
 
+- ✅ Especificada versión explícita de Yarn 4.x para Corepack
 - ✅ Removida la ruta de caché problemática
 - ✅ Mantenido `nodeLinker: node-modules` para compatibilidad
 - ✅ Deshabilitada la caché global para evitar conflictos
@@ -79,20 +81,15 @@ yarn prisma generate
 
 ### 4. Actualización del Dockerfile
 
-**Cambios aplicados:**
+**Configuración final:**
 
 ```dockerfile
-# ANTES:
-# Instalar yarn 4.9.4
-RUN corepack enable && corepack prepare yarn@4.9.4 --activate
-
-# DESPUÉS:
 # Instalar yarn 4.x (corepack usa la última estable)
 RUN corepack enable
 ```
 
 **Razón:**  
-Permite que Corepack use la versión de Yarn compatible con el lockfile actual (4.x Berry), eliminando conflictos de versión específica.
+Con el campo `packageManager: "yarn@4.10.3"` en package.json, Corepack automáticamente usa la versión especificada (Yarn 4.10.3), garantizando compatibilidad total con el lockfile Berry v8.
 
 ---
 
@@ -101,9 +98,9 @@ Permite que Corepack use la versión de Yarn compatible con el lockfile actual (
 | Archivo | Cambio | Estado |
 |---------|--------|--------|
 | `app/.yarnrc.yml` | Limpiado, sin ruta de caché custom | ✅ |
-| `app/package.json` | Eliminado `packageManager` | ✅ |
-| `app/yarn.lock` | Regenerado completamente | ✅ |
-| `Dockerfile` | Actualizado para usar Yarn 4.x genérico | ✅ |
+| `app/package.json` | Agregado `"packageManager": "yarn@4.10.3"` | ✅ |
+| `app/yarn.lock` | Regenerado completamente con Yarn 4.10.3 (Berry v8) | ✅ |
+| `Dockerfile` | Usa Yarn 4.x vía Corepack + packageManager field | ✅ |
 
 ---
 
@@ -208,21 +205,22 @@ enableGlobalCache: false
 - `nodeLinker: node-modules` → Usa node_modules clásicos (no PnP)
 - `enableGlobalCache: false` → No usa caché global (evita problemas en Docker)
 
-### Por qué NO usamos package.json "packageManager"
+### Por qué SÍ usamos package.json "packageManager"
 
-El campo `"packageManager": "yarn@4.9.4"` causa:
-- Fuerza una versión específica vía Corepack
-- Si el lockfile se generó con versión diferente → ERROR
-- Solución: Omitir versión específica, dejar que Corepack use la compatible
+El campo `"packageManager": "yarn@4.10.3"` es NECESARIO porque:
+- Sin él, Corepack usa Yarn 1.x por defecto (incompatible con lockfile Berry)
+- Con él, Corepack usa exactamente Yarn 4.10.3 (compatible con lockfile v8)
+- Garantiza consistencia entre desarrollo local y Docker build
+- Es la forma oficial recomendada para proyectos con Corepack
 
 ---
 
 ## ✅ Checklist Pre-Deploy
 
 - [x] `.yarnrc.yml` actualizado (sin ruta custom de caché)
-- [x] `package.json` sin campo `packageManager`
-- [x] `yarn.lock` regenerado con Yarn 4.x
-- [x] `Dockerfile` actualizado (usa Yarn 4.x genérico)
+- [x] `package.json` con campo `"packageManager": "yarn@4.10.3"`
+- [x] `yarn.lock` regenerado con Yarn 4.10.3 (Berry v8)
+- [x] `Dockerfile` actualizado (usa Corepack que respeta packageManager)
 - [x] Prisma Client regenerado localmente
 - [x] Changelog documentado
 - [ ] Commit y push a GitHub
