@@ -51,7 +51,7 @@ export function StorageConfig() {
   const [settings, setSettings] = useState<StorageSettings>({
     type: 'local',
     local: {
-      uploadDir: '/home/ubuntu/escalafin_mvp/uploads',
+      uploadDir: '/app/uploads',
       baseUrl: '/api/files/serve',
       maxSize: 10
     },
@@ -267,7 +267,7 @@ export function StorageConfig() {
                     id="upload-dir"
                     value={settings.local.uploadDir}
                     onChange={(e) => updateLocalSettings('uploadDir', e.target.value)}
-                    placeholder="/home/ubuntu/escalafin_mvp/uploads"
+                    placeholder="/app/uploads"
                   />
                   <p className="text-sm text-muted-foreground">
                     Ruta completa donde se almacenarán los archivos
