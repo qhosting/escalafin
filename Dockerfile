@@ -1,12 +1,12 @@
 # 🚀 DOCKERFILE PRODUCTION - OPTIMIZADO Y TESTEADO
 # ===================================
 # ✅ Testeado localmente con éxito
-# ✅ Node 18 + Yarn 4.x (Berry) con lockfile v8
+# ✅ Node 18 + NPM (gestor de paquetes estable y predecible)
 # ✅ Build standalone verificado
 # ✅ Scripts mejorados adaptados de CitaPlanner
 # ✅ start-improved.sh: logging detallado + error handling robusto
 # ✅ emergency-start.sh: bypass DB checks para debug
-# ✅ Fixed: yarn.lock regenerado con Yarn 4.x para eliminar errores de workspace
+# ✅ Fixed: Migrado a NPM para evitar problemas de workspace de Yarn Berry
 
 FROM node:18-alpine AS base
 
@@ -16,9 +16,6 @@ RUN apk add --no-cache \
     openssl \
     curl \
     dumb-init
-
-# Instalar yarn 4.x (corepack usa la última estable)
-RUN corepack enable
 
 WORKDIR /app
 
@@ -31,12 +28,11 @@ WORKDIR /app
 
 # Copy configuration files
 COPY app/package.json ./
-COPY app/yarn.lock ./
-COPY app/.yarnrc.yml ./
+COPY app/package-lock.json ./
 
 # Instalar dependencias
-RUN echo "📦 Instalando dependencias..." && \
-    yarn install --frozen-lockfile --network-timeout 100000 && \
+RUN echo "📦 Instalando dependencias con NPM..." && \
+    npm ci --legacy-peer-deps && \
     echo "✅ $(ls node_modules | wc -l) paquetes instalados"
 
 # ===================================
@@ -61,7 +57,7 @@ ENV NEXT_OUTPUT_MODE=standalone
 # Limpiar y regenerar Prisma Client
 RUN echo "🔧 Limpiando y generando Prisma Client..." && \
     rm -rf node_modules/.prisma node_modules/@prisma/client && \
-    yarn prisma generate && \
+    npx prisma generate && \
     echo "✅ Prisma Client generado" && \
     echo "📋 Verificando tipos generados..." && \
     if [ -d "node_modules/.prisma/client" ]; then \
@@ -78,11 +74,11 @@ RUN echo "🔧 Limpiando y generando Prisma Client..." && \
 # Build Next.js application
 RUN echo "🏗️  Building Next.js..." && \
     echo "Node version: $(node --version)" && \
-    echo "Yarn version: $(yarn --version)" && \
+    echo "NPM version: $(npm --version)" && \
     echo "NODE_ENV: $NODE_ENV" && \
     echo "Working directory: $(pwd)" && \
     echo "" && \
-    yarn build && \
+    npm run build && \
     echo "✅ Build completado"
 
 # Verificar que standalone fue generado

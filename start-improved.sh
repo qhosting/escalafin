@@ -15,9 +15,12 @@ echo "🔍 Detectando Prisma CLI..."
 if [ -x "node_modules/.bin/prisma" ]; then
     PRISMA_CMD="node_modules/.bin/prisma"
     echo "  ✅ Usando: node_modules/.bin/prisma"
-elif command -v yarn >/dev/null 2>&1; then
+elif [ -f "package-lock.json" ] && command -v npm >/dev/null 2>&1; then
+    PRISMA_CMD="npx prisma"
+    echo "  ✅ Usando: npx prisma (NPM project detected)"
+elif [ -f "yarn.lock" ] && command -v yarn >/dev/null 2>&1; then
     PRISMA_CMD="yarn prisma"
-    echo "  ✅ Usando: yarn prisma"
+    echo "  ✅ Usando: yarn prisma (Yarn project detected)"
 else
     PRISMA_CMD="npx prisma"
     echo "  ⚠️  Fallback: npx prisma"
