@@ -1,0 +1,76 @@
+🔧 FIX: HEADER DUPLICADO EN DASHBOARDS
+======================================
+Fecha: 28 de Octubre 2025
+Commit: bbf4a7f
+Autor: DeepAgent
+
+📋 PROBLEMA IDENTIFICADO
+========================
+Los dashboards de Asesor y Cliente tenían un header interno que duplicaba
+la información del navbar principal:
+- Logo EscalaFin
+- Nombre del usuario
+- Rol (Asesor/Cliente)
+- Botón de cerrar sesión
+
+Esto causaba confusión visual y desperdiciaba espacio en pantalla.
+
+✅ SOLUCIÓN APLICADA
+====================
+
+1. DASHBOARD ASESOR (asesor-dashboard.tsx)
+   - Eliminado header interno (líneas 60-89)
+   - Removidas importaciones no utilizadas:
+     * Building2 (ícono)
+     * LogOut (ícono)
+     * signOut (función)
+     * toast (notificación)
+   - Eliminada función handleSignOut()
+
+2. DASHBOARD CLIENTE (cliente-dashboard.tsx)
+   - Eliminado header interno (líneas 58-87)
+   - Removidas importaciones no utilizadas:
+     * Building2 (ícono)
+     * LogOut (ícono)
+     * signOut (función)
+     * toast (notificación)
+   - Eliminada función handleSignOut()
+
+📈 BENEFICIOS
+=============
+✓ Interfaz más limpia sin duplicación
+✓ Mejor aprovechamiento del espacio vertical
+✓ Navegación consistente con navbar principal
+✓ Código más limpio (-85 líneas)
+✓ Mantenimiento simplificado
+
+🔄 ESTADO
+=========
+✅ Cambios aplicados
+✅ Código limpiado
+✅ Commit realizado: bbf4a7f
+✅ Push a GitHub: main branch
+⏳ Pendiente: Deploy en EasyPanel
+
+📝 INSTRUCCIONES PARA EASYPANEL
+================================
+1. Pull del último commit (bbf4a7f)
+2. Clear build cache
+3. Rebuild
+4. Verificar que los dashboards se vean correctamente
+5. Confirmar que el navbar principal funciona
+
+🎯 RESULTADO ESPERADO
+=====================
+Los dashboards de Asesor y Cliente ahora solo mostrarán:
+- Welcome message
+- Estadísticas
+- Tarjetas de acción
+- Contenido principal
+
+El navbar principal (arriba) manejará:
+- Logo
+- Información del usuario
+- Navegación
+- Cerrar sesión
+
