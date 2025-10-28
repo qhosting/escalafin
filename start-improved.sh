@@ -34,10 +34,28 @@ if [ -n "$DATABASE_URL" ]; then
     
     # Sincronizar esquema con base de datos
     echo "🔄 Sincronizando esquema con base de datos..."
-    if $PRISMA_CMD db push --accept-data-loss --skip-generate 2>&1; then
+    echo "  📍 Usando comando: $PRISMA_CMD"
+    echo "  📍 Working directory: $(pwd)"
+    echo "  📍 Schema location: $(pwd)/prisma/schema.prisma"
+    
+    # Verificar que el schema existe
+    if [ ! -f "prisma/schema.prisma" ]; then
+        echo "  ❌ ERROR: prisma/schema.prisma no encontrado"
+        exit 1
+    fi
+    
+    # Ejecutar db push con captura completa de output
+    echo "  🚀 Ejecutando: $PRISMA_CMD db push --accept-data-loss --skip-generate"
+    DB_PUSH_OUTPUT=$($PRISMA_CMD db push --accept-data-loss --skip-generate 2>&1)
+    DB_PUSH_EXIT_CODE=$?
+    
+    echo "  📋 Output completo del comando:"
+    echo "$DB_PUSH_OUTPUT"
+    
+    if [ $DB_PUSH_EXIT_CODE -eq 0 ]; then
         echo "  ✅ Esquema sincronizado exitosamente"
     else
-        echo "  ❌ ERROR: No se pudo sincronizar el esquema"
+        echo "  ❌ ERROR: db push falló con código: $DB_PUSH_EXIT_CODE"
         echo "  💡 Verifica que DATABASE_URL sea correcta y la base de datos esté accesible"
         exit 1
     fi
