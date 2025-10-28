@@ -1,287 +1,227 @@
 
-# 🛠️ Scripts de Deploy - EscalaFin MVP
+# Scripts de Utilidad - EscalaFin MVP
 
-Scripts automatizados para facilitar el proceso de deploy y troubleshooting.
+Scripts automatizados para facilitar el desarrollo y deployment de EscalaFin.
+
+## 📋 Scripts Disponibles
+
+### 1. `diagnose-db.sh`
+**Diagnóstico de Base de Datos PostgreSQL**
+
+Verifica la conectividad y estado de la base de datos.
+
+```bash
+# Uso
+export DATABASE_URL="your_database_url"
+./scripts/diagnose-db.sh
+```
+
+**Características:**
+- ✅ Verifica conectividad de red
+- ✅ Valida credenciales de acceso
+- ✅ Lista tablas existentes
+- ✅ Verifica migraciones de Prisma
+- ✅ Muestra estadísticas de la base de datos
 
 ---
 
-## 📁 Scripts Disponibles
+### 2. `generate-env.js`
+**Generador de Archivo .env**
 
-### 1. `pre-deploy-check.sh` ✅
+Genera un archivo `.env` completo con valores seguros aleatorios.
 
-**Propósito:** Verificar que todo está listo antes de hacer deploy
-
-**Cuándo usar:** SIEMPRE antes de cada deploy
-
-**Uso:**
 ```bash
-cd /home/ubuntu/escalafin_mvp
-./scripts/pre-deploy-check.sh
+# Uso básico
+node scripts/generate-env.js
+
+# Con opciones personalizadas
+node scripts/generate-env.js \
+  --db-host db.example.com \
+  --db-name escalafin \
+  --app-url https://escalafin.com
+
+# Ver todas las opciones
+node scripts/generate-env.js --help
 ```
 
-**Qué verifica:**
-- ✅ Archivos críticos existen (Dockerfile, package.json, etc.)
-- ✅ Dockerfile está en versión correcta (v16.0+)
-- ✅ package.json tiene scripts necesarios
-- ✅ next.config.js tiene output: 'standalone'
-- ✅ Prisma schema existe
-- ✅ Scripts de inicio tienen permisos correctos
-- ✅ Git status (cambios sin commitear)
-- ✅ Dependencias críticas en package.json
-- ✅ Configuración Docker es correcta
-- ✅ Variables de entorno en .env.example
+**Características:**
+- ✅ Genera secretos criptográficamente seguros
+- ✅ Configura DATABASE_URL automáticamente
+- ✅ Crea backup si el archivo ya existe
+- ✅ Genera archivo de resumen con credenciales
 
-**Salida esperada:**
-```
-✅ PRE-DEPLOY CHECK EXITOSO
-
-Tu proyecto está listo para hacer deploy en EasyPanel! 🚀
-```
-
-**Si falla:**
-- Lee los mensajes de error
-- Corrige los problemas identificados
-- Vuelve a ejecutar el script
-- Consulta ESTRATEGIA_DEPLOY_EASYPANEL.md para más ayuda
+**Opciones disponibles:**
+- `--output <path>` - Ruta del archivo de salida (default: .env)
+- `--db-host <host>` - Host de la base de datos
+- `--db-port <port>` - Puerto de la base de datos
+- `--db-name <name>` - Nombre de la base de datos
+- `--db-user <user>` - Usuario de la base de datos
+- `--db-pass <pass>` - Password de la base de datos
+- `--app-url <url>` - URL de la aplicación
 
 ---
 
-### 2. `post-deploy-check.sh` ✅
+### 3. `pg_backup.sh`
+**Backup de PostgreSQL**
 
-**Propósito:** Verificar que el deploy fue exitoso
+Crea backups automáticos comprimidos de la base de datos.
 
-**Cuándo usar:** Inmediatamente después de cada deploy
-
-**Uso:**
 ```bash
-cd /home/ubuntu/escalafin_mvp
-./scripts/post-deploy-check.sh https://tu-dominio.com
+# Uso básico
+export DATABASE_URL="your_database_url"
+./scripts/pg_backup.sh
+
+# Con configuración personalizada
+export BACKUP_DIR="./my-backups"
+export RETENTION_DAYS="30"
+./scripts/pg_backup.sh
 ```
 
-**Qué verifica:**
-- 🌐 Conectividad (DNS, HTTP response)
-- ⏱️ Tiempo de respuesta
-- 🔒 Certificado SSL
-- 📄 Contenido de la página
-- 🔌 Endpoints críticos (/api/health, /api/auth, /login)
-- 📦 Recursos estáticos (_next/static)
-- 🔒 Headers de seguridad
+**Características:**
+- ✅ Crea dumps SQL comprimidos (gzip)
+- ✅ Limpia backups antiguos automáticamente
+- ✅ Nomenclatura con timestamp
+- ✅ Validación de credenciales
 
-**Salida esperada:**
-```
-✅ POST-DEPLOY CHECK EXITOSO
-
-Tu aplicación está corriendo correctamente! 🎉
-```
-
-**Si falla:**
-- Revisa logs en EasyPanel
-- Verifica variables de entorno
-- Consulta la sección de errores comunes
-- Considera hacer rollback si el problema persiste
+**Variables de entorno:**
+- `BACKUP_DIR` - Directorio de backups (default: ./backups)
+- `RETENTION_DAYS` - Días para retener backups (default: 7)
 
 ---
 
-### 3. `emergency-rollback.sh` 🚨
+### 4. `test-hash.js`
+**Test de Hashing de Passwords**
 
-**Propósito:** Restaurar la aplicación a un estado anterior estable
+Verifica el funcionamiento del hashing bcrypt y genera hashes de prueba.
 
-**Cuándo usar:**
-- Deploy crítico falló
-- Aplicación en producción no funciona
-- Necesitas restaurar rápidamente
-
-**Uso:**
 ```bash
-cd /home/ubuntu/escalafin_mvp
-./scripts/emergency-rollback.sh
+node scripts/test-hash.js
 ```
 
-**Qué hace:**
-1. Lista backups disponibles
-2. Muestra el backup más reciente
-3. Solicita confirmación (escribir "SI")
-4. Crea backup del estado actual (por si acaso)
-5. Restaura archivos desde el backup
-6. Verifica archivos críticos
-
-**ADVERTENCIA:**
-- Este script sobrescribe el código actual
-- Se crea un backup antes de restaurar
-- Solo funciona si existen backups previos
-
-**Después del rollback:**
-- Verifica el código restaurado
-- Redeploy en EasyPanel si es necesario
-- Investiga la causa del problema original
+**Características:**
+- ✅ Prueba generación de hash
+- ✅ Verifica comparación de passwords
+- ✅ Genera hashes para usuarios de prueba
+- ✅ Validación de seguridad
 
 ---
 
-### 4. `subir-github.sh` (Existente)
+## 🚀 Setup Inicial
 
-**Propósito:** Subir cambios a GitHub
-
-**Uso:**
+### 1. Instalar dependencias
 ```bash
-cd /home/ubuntu/escalafin_mvp
-./scripts/subir-github.sh
+cd /home/ubuntu/escalafin_mvp/scripts
+chmod +x *.sh
 ```
 
----
-
-### 5. `verificacion-github.sh` (Existente)
-
-**Propósito:** Verificar configuración de GitHub
-
-**Uso:**
+### 2. Configurar variables de entorno
 ```bash
-cd /home/ubuntu/escalafin_mvp
-./scripts/verificacion-github.sh
+# Crear archivo .env en /app
+cd ../app
+node ../scripts/generate-env.js --output .env
+```
+
+### 3. Verificar base de datos
+```bash
+export DATABASE_URL="your_database_url"
+../scripts/diagnose-db.sh
 ```
 
 ---
 
-## 🎯 Flujo de Trabajo Recomendado
+## 📝 Uso en EasyPanel
 
-### Deploy Normal
+### Setup Automatizado
 
+1. **Generar variables de entorno:**
 ```bash
-# 1. Pre-deploy check
-./scripts/pre-deploy-check.sh
+node scripts/generate-env.js --db-host your-db-host --db-pass your-db-pass
+```
 
-# 2. Si pasa, commit y push
-git add .
-git commit -m "feat: nuevas funcionalidades"
-git push origin main
+2. **Copiar variables a EasyPanel:**
+   - Abrir `ENV_SUMMARY.txt`
+   - Copiar cada variable a EasyPanel → Environment Variables
 
-# 3. Deploy en EasyPanel (manual o automático)
-# - Ve a EasyPanel
-# - Click en "Deploy"
-# - Monitorea logs
-
-# 4. Post-deploy check
-./scripts/post-deploy-check.sh https://tu-dominio.com
-
-# 5. Si pasa, ¡listo! 🎉
+3. **Verificar deployment:**
+```bash
+export DATABASE_URL="..."
+./scripts/diagnose-db.sh
 ```
 
 ---
 
-### Deploy con Problemas
+## 🔧 Troubleshooting
 
+### Error: "DATABASE_URL no está configurada"
 ```bash
-# 1. Pre-deploy check
-./scripts/pre-deploy-check.sh
-# ❌ FALLÓ
+# Exportar variable temporalmente
+export DATABASE_URL="postgresql://user:pass@host:5432/dbname"
 
-# 2. Revisar errores
-# - Lee los mensajes de error en consola
-# - Corrige los problemas
+# O agregar al .env
+echo 'DATABASE_URL="..."' >> .env
+source .env
+```
 
-# 3. Volver a verificar
-./scripts/pre-deploy-check.sh
-# ✅ AHORA PASA
+### Error: "psql no está instalado"
+```bash
+# Ubuntu/Debian
+sudo apt-get update
+sudo apt-get install -y postgresql-client
 
-# 4. Continuar con deploy...
+# macOS
+brew install postgresql
+```
+
+### Error de permisos en scripts .sh
+```bash
+chmod +x scripts/*.sh
 ```
 
 ---
 
-### Rollback de Emergencia
+## 📦 Dependencias Requeridas
+
+- **Node.js** >= 14.x
+- **PostgreSQL Client** (psql)
+- **Paquetes npm:**
+  - bcryptjs
+  - crypto (built-in)
 
 ```bash
-# 1. Algo salió muy mal en producción
-./scripts/emergency-rollback.sh
-
-# 2. Confirmar rollback
-# Escribe: SI
-
-# 3. Verificar código restaurado
-git status
-./scripts/pre-deploy-check.sh
-
-# 4. Redeploy en EasyPanel
-# - Ve a EasyPanel
-# - Click en "Redeploy"
+cd app
+yarn add bcryptjs
 ```
 
 ---
 
-## 🔧 Mantenimiento de Scripts
+## 🔐 Seguridad
 
-### Hacer Scripts Ejecutables
+### ⚠️ Importante
 
-Si los scripts pierden permisos de ejecución:
+- **NUNCA** subas archivos `.env` a Git
+- Guarda `ENV_SUMMARY.txt` en lugar seguro
+- Rota secretos periódicamente en producción
+- Usa diferentes secretos para cada entorno
 
-```bash
-chmod +x /home/ubuntu/escalafin_mvp/scripts/*.sh
-```
-
-### Verificar Permisos
-
-```bash
-ls -lh /home/ubuntu/escalafin_mvp/scripts/*.sh
-```
-
-Deberías ver `-rwxr-xr-x` al inicio de cada línea.
-
----
-
-## 📚 Documentación Relacionada
-
-- **ESTRATEGIA_DEPLOY_EASYPANEL.md** - Estrategia completa de deploy
-- **CHECKLIST_DEPLOY_EASYPANEL.md** - Checklist visual rápido
-- **FIX_NPM_CI_LOCKFILEVERSION.md** - Fix error npm ci
-- **MULTI_INSTANCE_GUIDE.md** - Deploy multi-instancia
-
----
-
-## 🐛 Troubleshooting
-
-### Script no se ejecuta
+### Recomendaciones
 
 ```bash
-# Verificar permisos
-ls -l scripts/pre-deploy-check.sh
-
-# Si no es ejecutable
-chmod +x scripts/pre-deploy-check.sh
-
-# Ejecutar de nuevo
-./scripts/pre-deploy-check.sh
-```
-
-### Script muestra errores de sintaxis
-
-```bash
-# Verificar fin de línea (debe ser LF, no CRLF)
-file scripts/pre-deploy-check.sh
-
-# Si muestra CRLF, convertir a LF
-dos2unix scripts/pre-deploy-check.sh
-```
-
-### Script no encuentra archivos
-
-```bash
-# Asegúrate de estar en el directorio correcto
-cd /home/ubuntu/escalafin_mvp
-
-# Luego ejecuta
-./scripts/pre-deploy-check.sh
+# Agregar a .gitignore
+echo ".env" >> .gitignore
+echo "ENV_SUMMARY.txt" >> .gitignore
+echo "backups/" >> .gitignore
 ```
 
 ---
 
-## ✅ Resumen
+## 📚 Referencias
 
-| Script | Cuándo Usar | Duración |
-|--------|-------------|----------|
-| `pre-deploy-check.sh` | Antes de CADA deploy | ~10s |
-| `post-deploy-check.sh` | Después de CADA deploy | ~15s |
-| `emergency-rollback.sh` | Solo si todo falla | ~30s |
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [PostgreSQL Backup & Restore](https://www.postgresql.org/docs/current/backup.html)
+- [bcrypt.js](https://github.com/dcodeIO/bcrypt.js)
 
 ---
 
-**Última actualización:** 16 de octubre de 2025  
-**Mantenido por:** Equipo EscalaFin
+## 🤝 Soporte
+
+Para más información, consulta la documentación principal del proyecto en `/DOCUMENTACION_TECNICA_COMPLETA_FINAL.md`
