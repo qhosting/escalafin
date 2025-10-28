@@ -138,6 +138,9 @@ COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
+# Copy bcryptjs for setup scripts
+COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
+
 # Copy scripts directory (includes setup-users-production.js and other utilities)
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 
