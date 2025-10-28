@@ -32,17 +32,15 @@ echo "🔌 Verificando conexión a base de datos..."
 if [ -n "$DATABASE_URL" ]; then
     echo "  ✅ DATABASE_URL configurada"
     
-    # Intentar aplicar migraciones
-    echo "🔄 Aplicando migraciones..."
-    if $PRISMA_CMD migrate deploy 2>&1; then
-        echo "  ✅ Migraciones aplicadas"
+    # Sincronizar esquema con base de datos
+    echo "🔄 Sincronizando esquema con base de datos..."
+    if $PRISMA_CMD db push --accept-data-loss --skip-generate 2>&1; then
+        echo "  ✅ Esquema sincronizado exitosamente"
     else
-        echo "  ⚠️  Error en migraciones, continuando..."
+        echo "  ❌ ERROR: No se pudo sincronizar el esquema"
+        echo "  💡 Verifica que DATABASE_URL sea correcta y la base de datos esté accesible"
+        exit 1
     fi
-    
-    # Verificar estado
-    echo "📊 Estado de migraciones:"
-    $PRISMA_CMD migrate status || echo "  ⚠️  No se pudo verificar estado"
     
     # Ejecutar seed si es necesario
     echo ""
