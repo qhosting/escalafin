@@ -35,6 +35,7 @@ git push origin main
 
 ## Estado Actual
 
+**Repositorio:** https://github.com/qhosting/escalafin
 **Commit:** 53c213b - Fix yarn.lock symlink
 **Rama:** main
 **Listo para:** Deploy en EasyPanel desde GitHub

@@ -273,7 +273,7 @@ $ git push origin main
 
 ✅ Verificaciones completadas - OK para push
 
-To https://github.com/qhosting/escalafin-mvp.git
+To https://github.com/qhosting/escalafin.git
    af51bf1..7d3f00b  main -> main
 ```
 
@@ -416,7 +416,7 @@ ls -la app/yarn.lock
 
 1. **Instalar git hooks al clonar el repo:**
    ```bash
-   git clone https://github.com/qhosting/escalafin-mvp.git
+   git clone https://github.com/qhosting/escalafin.git
    cd escalafin-mvp
    ./scripts/setup-git-hooks.sh
    ```

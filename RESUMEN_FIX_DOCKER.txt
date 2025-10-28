@@ -53,7 +53,7 @@ f15388b 📚 Guías de despliegue completas
 1563c89 e93c039e-d99e-41ff-8632-5f4188769015
 86c1ed6 Multi-instance deployment & local testing
 
-Repositorio: https://github.com/qhosting/escalafin-mvp
+Repositorio: https://github.com/qhosting/escalafin
 
 
 🧪 CÓMO PROBAR EL FIX

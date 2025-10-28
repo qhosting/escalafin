@@ -422,7 +422,7 @@ Descarga desde el botón **"Files"** en la esquina superior derecha.
 ea16a97 - 🔥 Fix crítico v9.1: NEXT_OUTPUT_MODE para standalone
 ```
 
-**Repositorio**: https://github.com/qhosting/escalafin-mvp
+**Repositorio**: https://github.com/qhosting/escalafin
 
 ---
 

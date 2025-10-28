@@ -53,7 +53,7 @@ fi
 - **Commit:** `117f1de`
 - **Branch:** `main`
 - **Estado:** ✅ Pusheado a GitHub
-- **URL:** https://github.com/qhosting/escalafin-mvp
+- **URL:** https://github.com/qhosting/escalafin
 
 ### Archivos Sincronizados
 
@@ -71,7 +71,7 @@ fi
 ### 1. Verificar GitHub Actions
 
 ```
-https://github.com/qhosting/escalafin-mvp/actions
+https://github.com/qhosting/escalafin/actions
 ```
 
 El CI/CD automáticamente hará build con el nuevo Dockerfile.
@@ -318,10 +318,10 @@ git push
 
 | Recurso | URL |
 |---------|-----|
-| **Repositorio** | https://github.com/qhosting/escalafin-mvp |
-| **Commits** | https://github.com/qhosting/escalafin-mvp/commits/main |
-| **GitHub Actions** | https://github.com/qhosting/escalafin-mvp/actions |
-| **Último Commit** | https://github.com/qhosting/escalafin-mvp/commit/117f1de |
+| **Repositorio** | https://github.com/qhosting/escalafin |
+| **Commits** | https://github.com/qhosting/escalafin/commits/main |
+| **GitHub Actions** | https://github.com/qhosting/escalafin/actions |
+| **Último Commit** | https://github.com/qhosting/escalafin/commit/117f1de |
 
 ---
 

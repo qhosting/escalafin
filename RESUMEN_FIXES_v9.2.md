@@ -4,7 +4,7 @@
 ## 🎯 Estado Final: Listo para Deploy
 
 **Versión actual**: 9.2  
-**Repositorio**: https://github.com/qhosting/escalafin-mvp  
+**Repositorio**: https://github.com/qhosting/escalafin  
 **Último commit**: `52f3990`
 
 ---
@@ -297,4 +297,4 @@ Todos los problemas críticos identificados han sido resueltos:
 **Estado**: ✅ **LISTO PARA DEPLOY**  
 **Fecha**: 2025-10-15  
 **Commit**: `52f3990`  
-**Repositorio**: https://github.com/qhosting/escalafin-mvp
+**Repositorio**: https://github.com/qhosting/escalafin

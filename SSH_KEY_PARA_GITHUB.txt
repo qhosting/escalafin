@@ -55,7 +55,7 @@ la key a GitHub, y continuaré automáticamente con:
   
 - No sabes qué cuenta usar:
   La cuenta que tiene acceso al repo:
-  https://github.com/qhosting/escalafin-mvp
+  https://github.com/qhosting/escalafin
   
 - La key no se copia completa:
   Asegúrate de copiar desde "ssh-rsa" hasta el final

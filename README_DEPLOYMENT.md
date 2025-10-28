@@ -278,7 +278,7 @@ https://adm.escalafin.com
 - Next.js docs: https://nextjs.org/docs
 
 ### Issues
-- GitHub: https://github.com/qhosting/escalafin-mvp/issues
+- GitHub: https://github.com/qhosting/escalafin/issues
 - Check troubleshooting sections in guides
 
 ## 🎯 Next Steps

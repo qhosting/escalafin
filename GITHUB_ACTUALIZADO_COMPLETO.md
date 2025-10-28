@@ -9,7 +9,7 @@
 ## 🎉 PUSH EXITOSO
 
 ```
-Repository: https://github.com/qhosting/escalafin-mvp.git
+Repository: https://github.com/qhosting/escalafin.git
 Branch: main
 Previous Commit: 0c83853
 Current Commit: 8bdba1b
@@ -210,7 +210,7 @@ Dockerfile.step3-full
 1. Crear PostgreSQL en EasyPanel
 2. Crear App desde GitHub
 3. Configurar:
-   - Repository: qhosting/escalafin-mvp
+   - Repository: qhosting/escalafin
    - Branch: main
    - Build Path: /app ⚠️ IMPORTANTE
    - Dockerfile: Dockerfile.step3-full
@@ -220,7 +220,7 @@ Dockerfile.step3-full
 
 ### 2. O Testing Local con Docker:
 ```bash
-git clone https://github.com/qhosting/escalafin-mvp.git
+git clone https://github.com/qhosting/escalafin.git
 cd escalafin-mvp
 ./test-dockerfiles.sh
 ```
@@ -234,7 +234,7 @@ cd escalafin-mvp
 │  ✅ GITHUB COMPLETAMENTE ACTUALIZADO │
 └─────────────────────────────────────┘
 
-📍 Repository: qhosting/escalafin-mvp
+📍 Repository: qhosting/escalafin
 📍 Branch: main
 📍 Commit: 8bdba1b
 📍 Status: 🟢 Ready for Production
@@ -263,7 +263,7 @@ cd escalafin-mvp
 
 ### GitHub:
 ```
-https://github.com/qhosting/escalafin-mvp
+https://github.com/qhosting/escalafin
 ```
 
 ### Documentación Principal:

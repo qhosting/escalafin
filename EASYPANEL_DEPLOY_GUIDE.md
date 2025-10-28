@@ -5,7 +5,7 @@
 
 - Servidor con EasyPanel instalado
 - Dominio configurado (ej: `app.escalafin.com`)
-- Repositorio en GitHub: `https://github.com/qhosting/escalafin-mvp`
+- Repositorio en GitHub: `https://github.com/qhosting/escalafin`
 - Base de datos PostgreSQL (puede ser creada en EasyPanel)
 
 ## 🔧 Paso 1: Preparar el Repositorio en GitHub
@@ -51,7 +51,7 @@ git push origin main
 2. Selecciona **"Application"**
 3. Elige **"From GitHub"**
 4. Configuración Básica:
-   - **Repository**: `qhosting/escalafin-mvp`
+   - **Repository**: `qhosting/escalafin`
    - **Branch**: `main`
    - **Build Method**: `Dockerfile`
    - **Dockerfile Path**: `Dockerfile.easypanel`

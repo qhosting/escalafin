@@ -95,7 +95,7 @@ git push origin main
 
 Después de hacer push, verifica en GitHub que los archivos se subieron correctamente:
 
-1. Ve a: https://github.com/qhosting/escalafin-mvp
+1. Ve a: https://github.com/qhosting/escalafin
 2. Verifica que aparezcan los nuevos archivos:
    - ✅ `Dockerfile.production`
    - ✅ `start.sh`

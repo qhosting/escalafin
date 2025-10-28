@@ -71,7 +71,7 @@ git push origin main
 
 #### Conectar GitHub
 1. Sources → + Add → GitHub
-2. Autorizar y seleccionar repo `qhosting/escalafin-mvp`
+2. Autorizar y seleccionar repo `qhosting/escalafin`
 
 #### Configurar Aplicación
 - **Name**: escalafin-app

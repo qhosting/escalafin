@@ -226,7 +226,7 @@ Fix: Dockerfile v8.0 - Resuelve error de yarn y warnings de seguridad
 - ✅ `DOCKERFILE_v8_MEJORAS.pdf` - Versión PDF
 
 ### Repositorio
-- **URL:** https://github.com/qhosting/escalafin-mvp
+- **URL:** https://github.com/qhosting/escalafin
 - **Branch:** main
 - **Último commit:** cd1ede3
 - **Estado:** ✅ Sincronizado

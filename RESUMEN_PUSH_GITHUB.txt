@@ -7,7 +7,7 @@
 ✅ Build exitoso (sin errores)
 ✅ 4 commits pendientes de subir
 ✅ Checkpoint creado
-🔗 Repositorio: https://github.com/qhosting/escalafin-mvp
+🔗 Repositorio: https://github.com/qhosting/escalafin
 
 
 📦 COMMITS PENDIENTES (4)
@@ -49,7 +49,7 @@
   
   Descarga este archivo y desde una máquina con GitHub:
   
-  git clone https://github.com/qhosting/escalafin-mvp.git
+  git clone https://github.com/qhosting/escalafin.git
   cd escalafin-mvp
   git pull /path/to/escalafin-update-20251016-005142.bundle main
   git push origin main
@@ -79,7 +79,7 @@
 🎯 DESPUÉS DEL PUSH
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. Verifica en GitHub: https://github.com/qhosting/escalafin-mvp/commits/main
+1. Verifica en GitHub: https://github.com/qhosting/escalafin/commits/main
 
 2. Despliega usando cualquiera:
    • Vercel: https://vercel.com

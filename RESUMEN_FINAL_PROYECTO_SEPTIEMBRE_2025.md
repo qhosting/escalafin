@@ -112,7 +112,7 @@ Deploy: ✅ Ready for deployment
 Branch: main
 Commits ahead: 8 commits
 Status: Ready to push to GitHub
-Repository: https://github.com/qhosting/escalafin-mvp.git
+Repository: https://github.com/qhosting/escalafin.git
 ```
 
 ### **Último Commit Realizado**

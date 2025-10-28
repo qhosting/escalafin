@@ -12,7 +12,7 @@ f124ba2 Multi-instance Coolify deployment ready
 309e2d5 47049d1c-8047-461e-8d06-585240fa0e88
 ```
 
-🔗 **Repositorio:** https://github.com/qhosting/escalafin-mvp
+🔗 **Repositorio:** https://github.com/qhosting/escalafin
 
 ---
 
@@ -55,7 +55,7 @@ Luego, desde una máquina con acceso a GitHub:
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/qhosting/escalafin-mvp.git
+git clone https://github.com/qhosting/escalafin.git
 cd escalafin-mvp
 
 # Aplicar el bundle
@@ -135,7 +135,7 @@ cat ~/.ssh/id_ed25519.pub
 
 ```bash
 cd /home/ubuntu/escalafin_mvp
-git remote set-url origin git@github.com:qhosting/escalafin-mvp.git
+git remote set-url origin git@github.com:qhosting/escalafin.git
 git push origin main
 ```
 
@@ -153,7 +153,7 @@ git log origin/main..HEAD
 Si no muestra commits, ¡todo está sincronizado! ✅
 
 También puedes verificar en GitHub:
-https://github.com/qhosting/escalafin-mvp/commits/main
+https://github.com/qhosting/escalafin/commits/main
 
 ---
 
@@ -226,7 +226,7 @@ Si tienes problemas:
 2. Verifica los logs: `git --version` y `git config --list`
 3. Asegúrate de tener conexión a internet
 
-**Repositorio:** https://github.com/qhosting/escalafin-mvp
+**Repositorio:** https://github.com/qhosting/escalafin
 **Commits pendientes:** 4
 
 ¡Éxito con tu despliegue! 🚀

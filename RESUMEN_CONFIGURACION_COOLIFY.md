@@ -104,7 +104,7 @@ Este cambio permite que Next.js genere un build que incluye todas las dependenci
 ```
 escalafin-mvp (Proyecto)
 ├── escalafin-app (Aplicación Next.js)
-│   ├── Source: GitHub - qhosting/escalafin-mvp
+│   ├── Source: GitHub - qhosting/escalafin
 │   ├── Branch: main
 │   ├── Dockerfile: Dockerfile.production ← IMPORTANTE
 │   ├── Port: 3000
@@ -270,7 +270,7 @@ curl http://localhost:3000/api/health
 ## 📞 Soporte
 
 - **Documentación Coolify**: https://coolify.io/docs
-- **GitHub Repo**: https://github.com/qhosting/escalafin-mvp
+- **GitHub Repo**: https://github.com/qhosting/escalafin
 - **Guía Completa**: Ver `EASYPANEL-COMPLETE-GUIDE.md`
 
 ---

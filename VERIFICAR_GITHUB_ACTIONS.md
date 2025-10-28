@@ -45,7 +45,7 @@ Después del push, GitHub Actions automáticamente:
 
 1. **Abrir en tu navegador:**
    ```
-   https://github.com/qhosting/escalafin-mvp/actions
+   https://github.com/qhosting/escalafin/actions
    ```
 
 2. **Buscar el workflow más reciente:**
@@ -98,9 +98,9 @@ Cuando el workflow complete:
 
 2. **Mensaje final:**
    ```
-   successfully pushed to docker.io/qhosting/escalafin-mvp:main
-   successfully pushed to docker.io/qhosting/escalafin-mvp:latest
-   successfully pushed to docker.io/qhosting/escalafin-mvp:main-ab50611
+   successfully pushed to docker.io/qhosting/escalafin:main
+   successfully pushed to docker.io/qhosting/escalafin:latest
+   successfully pushed to docker.io/qhosting/escalafin:main-ab50611
    ```
 
 3. **Duración esperada:** ~10-15 minutos
@@ -113,7 +113,7 @@ Cuando el workflow complete:
 
 1. **Abrir en tu navegador:**
    ```
-   https://hub.docker.com/r/qhosting/escalafin-mvp/tags
+   https://hub.docker.com/r/qhosting/escalafin/tags
    ```
 
 2. **Verificar nuevos tags:**
@@ -138,7 +138,7 @@ Los labels deben incluir:
 ```yaml
 org.opencontainers.image.version: main
 org.opencontainers.image.revision: ab50611...
-org.opencontainers.image.source: https://github.com/qhosting/escalafin-mvp
+org.opencontainers.image.source: https://github.com/qhosting/escalafin
 org.opencontainers.image.licenses: MIT
 ```
 
@@ -343,14 +343,14 @@ Use esta lista para verificar que todo funcione:
 
 ### GitHub
 
-- **Actions:** https://github.com/qhosting/escalafin-mvp/actions
-- **Último commit:** https://github.com/qhosting/escalafin-mvp/commit/ab50611
-- **Workflow file:** https://github.com/qhosting/escalafin-mvp/blob/main/.github/workflows/docker-build.yml
+- **Actions:** https://github.com/qhosting/escalafin/actions
+- **Último commit:** https://github.com/qhosting/escalafin/commit/ab50611
+- **Workflow file:** https://github.com/qhosting/escalafin/blob/main/.github/workflows/docker-build.yml
 
 ### Docker Hub
 
-- **Repository:** https://hub.docker.com/r/qhosting/escalafin-mvp
-- **Tags:** https://hub.docker.com/r/qhosting/escalafin-mvp/tags
+- **Repository:** https://hub.docker.com/r/qhosting/escalafin
+- **Tags:** https://hub.docker.com/r/qhosting/escalafin/tags
 
 ### Coolify
 
@@ -422,7 +422,7 @@ git push origin main
 
 **OPCIÓN 1: Monitorear (Opcional)**
 
-Ir a: https://github.com/qhosting/escalafin-mvp/actions
+Ir a: https://github.com/qhosting/escalafin/actions
 
 Observar el workflow completarse (~10-15 minutos)
 

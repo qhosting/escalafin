@@ -85,7 +85,7 @@ Build Resources:
 
 ```yaml
 Source:
-  Repository: https://github.com/qhosting/escalafin-mvp
+  Repository: https://github.com/qhosting/escalafin
   Branch: main
 
 Build:

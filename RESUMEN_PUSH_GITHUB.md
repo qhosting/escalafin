@@ -41,8 +41,8 @@ git filter-repo --path escalafin-demo-instance.tar.gz --invert-paths --force
 
 #### Paso 3: Push Forzado
 ```bash
-git remote add origin https://github.com/qhosting/escalafin-mvp.git
-git push --force https://ghp_xxx@github.com/qhosting/escalafin-mvp.git main
+git remote add origin https://github.com/qhosting/escalafin.git
+git push --force https://ghp_xxx@github.com/qhosting/escalafin.git main
 ```
 - **Resultado**: ✅ Exitoso
 - **Confirmación**: `44795c0..210bdf9  main -> main`
@@ -58,7 +58,7 @@ git push --force https://ghp_xxx@github.com/qhosting/escalafin-mvp.git main
 - **Commits totales procesados**: 189
 
 ### Repositorio Remoto
-- **URL**: https://github.com/qhosting/escalafin-mvp
+- **URL**: https://github.com/qhosting/escalafin
 - **Estado**: Actualizado y sincronizado
 - **Historial**: Limpio, sin archivos grandes
 
@@ -93,10 +93,10 @@ El repositorio ahora incluye:
 Para verificar el estado del repositorio:
 ```bash
 # Ver el repositorio en GitHub
-https://github.com/qhosting/escalafin-mvp
+https://github.com/qhosting/escalafin
 
 # Clonar en otra ubicación para verificar
-git clone https://github.com/qhosting/escalafin-mvp.git verify-repo
+git clone https://github.com/qhosting/escalafin.git verify-repo
 cd verify-repo
 ls -la
 ```
@@ -133,7 +133,7 @@ El repositorio está listo para:
 
 ## 🔗 Enlaces Útiles
 
-- **Repositorio**: https://github.com/qhosting/escalafin-mvp
+- **Repositorio**: https://github.com/qhosting/escalafin
 - **Guía de Despliegue**: `MULTI_INSTANCE_GUIDE.md`
 - **Guía de Coolify**: `COOLIFY_DEPLOYMENT_GUIDE.md`
 - **Configuración Docker**: `Dockerfile.production`

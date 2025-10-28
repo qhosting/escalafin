@@ -21,7 +21,7 @@ f124ba2 Multi-instance Coolify deployment ready
 ```
 
 ### Repositorio
-🔗 **GitHub:** https://github.com/qhosting/escalafin-mvp
+🔗 **GitHub:** https://github.com/qhosting/escalafin
 
 ### Rama
 🌿 **Rama principal:** `main`
@@ -51,7 +51,7 @@ vercel --prod
 
 1. Ve a: **https://vercel.com/new**
 2. Click en **"Import Git Repository"**
-3. Selecciona `qhosting/escalafin-mvp`
+3. Selecciona `qhosting/escalafin`
 4. Configura las variables de entorno (ver sección abajo)
 5. Click en **"Deploy"**
 
@@ -66,7 +66,7 @@ vercel --prod
 1. Ve a: **https://railway.app**
 2. Click en **"New Project"**
 3. Selecciona **"Deploy from GitHub repo"**
-4. Elige `qhosting/escalafin-mvp`
+4. Elige `qhosting/escalafin`
 5. Railway detectará automáticamente Next.js
 6. Configura variables de entorno
 7. Click en **"Deploy"**
@@ -110,7 +110,7 @@ Sigue la guía completa: `MULTI_INSTANCE_GUIDE.md`
 1. Ve a: **https://render.com**
 2. Click en **"New"** → **"Web Service"**
 3. Conecta tu cuenta de GitHub
-4. Selecciona `qhosting/escalafin-mvp`
+4. Selecciona `qhosting/escalafin`
 5. Configuración:
    - **Build Command:** `cd app && yarn install && yarn build`
    - **Start Command:** `cd app && yarn start`
@@ -218,7 +218,7 @@ Una vez desplegado, cualquier push a `main` activará automáticamente un nuevo 
 ### GitHub Actions está configurado
 
 El proyecto incluye workflows de CI/CD. Verifica en:
-https://github.com/qhosting/escalafin-mvp/actions
+https://github.com/qhosting/escalafin/actions
 
 ---
 

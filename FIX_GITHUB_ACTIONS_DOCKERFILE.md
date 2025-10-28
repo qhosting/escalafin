@@ -169,13 +169,13 @@ head -5 Dockerfile
 ### Después del Push
 
 1. **En GitHub Actions:**
-   - Ir a: https://github.com/qhosting/escalafin-mvp/actions
+   - Ir a: https://github.com/qhosting/escalafin/actions
    - Verificar que el workflow "Build and Push Docker Image" inicie
    - Monitorear logs para confirmar uso de NPM
    - Confirmar build exitoso
 
 2. **En Docker Hub:**
-   - Ir a: https://hub.docker.com/r/qhosting/escalafin-mvp
+   - Ir a: https://hub.docker.com/r/qhosting/escalafin
    - Verificar nueva imagen con tags:
      - `latest`
      - `main`
@@ -240,7 +240,7 @@ git push origin main
 
 Después del push:
 
-1. Ir a: https://github.com/qhosting/escalafin-mvp/actions
+1. Ir a: https://github.com/qhosting/escalafin/actions
 2. Esperar que el workflow "Build and Push Docker Image" inicie automáticamente
 3. Click en el workflow para ver logs en vivo
 4. Verificar que:

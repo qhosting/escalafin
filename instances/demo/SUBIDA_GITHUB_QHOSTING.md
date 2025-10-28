@@ -1,7 +1,7 @@
 
 # 🚀 Guía para Subir EscalaFin MVP a GitHub
 
-> **Repositorio destino:** https://github.com/qhosting/escalafin-mvp  
+> **Repositorio destino:** https://github.com/qhosting/escalafin  
 > **Estado:** Código preparado y listo para push
 
 ---
@@ -11,7 +11,7 @@
 El proyecto EscalaFin MVP está **completamente preparado** para GitHub:
 
 - ✅ **Git inicializado** y configurado
-- ✅ **Remote configurado** → `https://github.com/qhosting/escalafin-mvp.git`
+- ✅ **Remote configurado** → `https://github.com/qhosting/escalafin.git`
 - ✅ **Commits creados** (5 commits listos)
 - ✅ **Archivos seguros** - Sin credenciales expuestas
 - ✅ **Rama preparada** - `main` lista para push
@@ -64,7 +64,7 @@ He creado un bundle completo del repositorio:
 # Para usar el bundle:
 git clone escalafin-mvp.bundle escalafin-temp
 cd escalafin-temp
-git remote set-url origin https://github.com/qhosting/escalafin-mvp.git
+git remote set-url origin https://github.com/qhosting/escalafin.git
 git push -u origin main
 ```
 
@@ -160,7 +160,7 @@ git ls-remote origin
 
 # Opción 2: SSH
 # Configurar SSH key y usar:
-git remote set-url origin git@github.com:qhosting/escalafin-mvp.git
+git remote set-url origin git@github.com:qhosting/escalafin.git
 ```
 
 ### **Error de permisos:**
@@ -197,5 +197,5 @@ Una vez subido, el repositorio contendrá:
 ---
 
 > **Creado:** Septiembre 22, 2025  
-> **Repositorio:** https://github.com/qhosting/escalafin-mvp  
+> **Repositorio:** https://github.com/qhosting/escalafin  
 > **Estado:** ✅ LISTO PARA PUSH

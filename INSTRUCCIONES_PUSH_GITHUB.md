@@ -82,7 +82,7 @@ cat ~/.ssh/id_rsa.pub
 cd /home/ubuntu/escalafin_mvp
 
 # Cambiar de HTTPS a SSH
-git remote set-url origin git@github.com:qhosting/escalafin-mvp.git
+git remote set-url origin git@github.com:qhosting/escalafin.git
 
 # Verificar
 git remote -v
@@ -101,7 +101,7 @@ Si solo necesitas hacer push una vez y tienes tu token:
 cd /home/ubuntu/escalafin_mvp
 
 # Reemplazar TU_TOKEN por tu token de GitHub
-git push https://TU_TOKEN@github.com/qhosting/escalafin-mvp.git main
+git push https://TU_TOKEN@github.com/qhosting/escalafin.git main
 ```
 
 ⚠️ **Advertencia:** No guardes este comando en el historial si el servidor es compartido.
@@ -120,13 +120,13 @@ Compressing objects: 100% (XX/XX), done.
 Writing objects: 100% (XX/XX), XX.XX KiB | XX.XX MiB/s, done.
 Total XX (delta XX), reused XX (delta XX), pack-reused 0
 remote: Resolving deltas: 100% (XX/XX), completed with XX local objects.
-To https://github.com/qhosting/escalafin-mvp.git
+To https://github.com/qhosting/escalafin.git
    76ce82a..9faa0b3  main -> main
 ```
 
 Luego verifica en GitHub:
 ```
-https://github.com/qhosting/escalafin-mvp/commits/main
+https://github.com/qhosting/escalafin/commits/main
 ```
 
 Deberías ver tus nuevos commits:

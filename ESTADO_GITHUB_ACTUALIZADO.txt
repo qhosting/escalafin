@@ -10,7 +10,7 @@
 ✅ Código en GitHub actualizado
 ✅ Listo para desplegar
 
-🔗 Repositorio: https://github.com/qhosting/escalafin-mvp
+🔗 Repositorio: https://github.com/qhosting/escalafin
 🌿 Rama: main
 
 
@@ -53,7 +53,7 @@ Elige una plataforma y despliega tu aplicación:
 
   1. Ve a: https://railway.app
   2. New Project → Deploy from GitHub
-  3. Selecciona: qhosting/escalafin-mvp
+  3. Selecciona: qhosting/escalafin
   4. Configura variables de entorno
   5. Deploy
 
@@ -79,7 +79,7 @@ Elige una plataforma y despliega tu aplicación:
   1. Ve a: https://render.com
   2. New → Web Service
   3. Conecta GitHub
-  4. Selecciona: qhosting/escalafin-mvp
+  4. Selecciona: qhosting/escalafin
   5. Deploy
 
 
@@ -119,8 +119,8 @@ O visita: https://generate-secret.vercel.app/32
 📊 VERIFICAR EN GITHUB
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Commits: https://github.com/qhosting/escalafin-mvp/commits/main
-Actions: https://github.com/qhosting/escalafin-mvp/actions
+Commits: https://github.com/qhosting/escalafin/commits/main
+Actions: https://github.com/qhosting/escalafin/actions
 
 
 ═══════════════════════════════════════════════════════════════
