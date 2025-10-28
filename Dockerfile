@@ -1,13 +1,13 @@
 # 🚀 DOCKERFILE PRODUCTION - OPTIMIZADO Y TESTEADO
 # ===================================
 # ✅ Testeado localmente con éxito
-# ✅ Node 22 + Yarn 4.9.4
+# ✅ Node 18 + Yarn 4.9.4 (alineado con CitaPlanner)
 # ✅ Build standalone verificado
 # ✅ Scripts mejorados adaptados de CitaPlanner
 # ✅ start-improved.sh: logging detallado + error handling robusto
 # ✅ emergency-start.sh: bypass DB checks para debug
 
-FROM node:22-alpine AS base
+FROM node:18-alpine AS base
 
 RUN apk add --no-cache \
     bash \
