@@ -6,6 +6,7 @@ import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Building2, LogIn, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function LoginForm() {
   const [email, setEmail] = useState('admin@escalafin.com');
@@ -87,32 +88,39 @@ export function LoginForm() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Hero Section */}
-      <div className="lg:flex-1 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 flex flex-col justify-center px-8 lg:px-12 py-12">
+      {/* Hero Section - Brand Colors */}
+      <div className="lg:flex-1 bg-gradient-to-br from-primary via-primary/90 to-secondary flex flex-col justify-center px-8 lg:px-12 py-12">
         <div className="max-w-md mx-auto text-white">
-          <div className="flex items-center gap-3 mb-8">
-            <Building2 className="w-10 h-10" />
-            <h1 className="text-3xl font-bold">EscalaFin</h1>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 inline-block">
+            <div className="relative h-16 w-64">
+              <Image 
+                src="/logoescalafin.png" 
+                alt="EscalaFin Logo" 
+                fill
+                className="object-contain brightness-0 invert"
+                priority
+              />
+            </div>
           </div>
           <h2 className="text-2xl font-semibold mb-4">
             Sistema de Gestión de Préstamos y Créditos
           </h2>
-          <p className="text-blue-100 text-lg leading-relaxed">
+          <p className="text-white/90 text-lg leading-relaxed">
             Plataforma integral para administrar tu cartera de clientes, procesar solicitudes de crédito 
             y gestionar préstamos de manera eficiente y segura.
           </p>
           <div className="mt-8 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-blue-300 rounded-full"></div>
-              <span className="text-blue-100">Gestión completa de clientes</span>
+              <div className="w-2 h-2 bg-secondary rounded-full"></div>
+              <span className="text-white/90">Gestión completa de clientes</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-blue-300 rounded-full"></div>
-              <span className="text-blue-100">Workflow de solicitudes automatizado</span>
+              <div className="w-2 h-2 bg-secondary rounded-full"></div>
+              <span className="text-white/90">Workflow de solicitudes automatizado</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-blue-300 rounded-full"></div>
-              <span className="text-blue-100">Tablas de amortización dinámicas</span>
+              <div className="w-2 h-2 bg-secondary rounded-full"></div>
+              <span className="text-white/90">Tablas de amortización dinámicas</span>
             </div>
           </div>
         </div>
@@ -131,12 +139,19 @@ export function LoginForm() {
 
         <div className="w-full max-w-md bg-white rounded-xl shadow-lg border-0 p-8">
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Building2 className="w-8 h-8 text-blue-600" />
-              <h1 className="text-xl font-bold text-gray-900">EscalaFin</h1>
+            <div className="flex items-center justify-center mb-6">
+              <div className="relative h-12 w-56">
+                <Image 
+                  src="/logoescalafin.png" 
+                  alt="EscalaFin Logo" 
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Iniciar Sesión</h2>
-            <p className="text-gray-600">Ingresa tus credenciales para acceder al sistema</p>
+            <h2 className="text-2xl font-bold text-primary mb-2">Iniciar Sesión</h2>
+            <p className="text-muted-foreground">Ingresa tus credenciales para acceder al sistema</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -188,7 +203,7 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              className="w-full bg-primary text-primary-foreground py-3 px-4 rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">

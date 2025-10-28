@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   LayoutDashboard,
   Users,
@@ -268,14 +269,19 @@ export function DesktopNavbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo y Brand */}
           <div className="flex items-center space-x-8">
-            <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-              <Building2 className="h-8 w-8 text-primary" />
-              <div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">EscalaFin</span>
-                <Badge variant="outline" className="ml-2 text-xs">
-                  {loading ? 'Cargando...' : `${enabledModulesCount} módulos`}
-                </Badge>
+            <Link href="/" className="flex items-center space-x-3 hover:opacity-90 transition-opacity">
+              <div className="relative h-10 w-48">
+                <Image 
+                  src="/logoescalafin.png" 
+                  alt="EscalaFin Logo" 
+                  fill
+                  className="object-contain"
+                  priority
+                />
               </div>
+              <Badge variant="outline" className="text-xs">
+                {loading ? 'Cargando...' : `${enabledModulesCount} módulos`}
+              </Badge>
             </Link>
 
             {/* Navegación principal */}
