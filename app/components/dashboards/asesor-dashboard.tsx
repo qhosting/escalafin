@@ -1,23 +1,15 @@
 
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Users, FileText, DollarSign, TrendingUp, Plus, LogOut, CreditCard, ArrowRight } from 'lucide-react';
-import { toast } from 'sonner';
+import { Users, FileText, DollarSign, TrendingUp, Plus, CreditCard, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export function AsesorDashboard() {
   const { data: session, status } = useSession() || {};
-
-
-
-  const handleSignOut = async () => {
-    await signOut({ redirect: true, callbackUrl: '/auth/login' });
-    toast.success('Sesión cerrada');
-  };
 
   const stats = [
     {
@@ -56,38 +48,6 @@ export function AsesorDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <Building2 className="w-8 h-8 text-blue-600" />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">EscalaFin</h1>
-                <p className="text-xs text-gray-500">Portal del Asesor</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">
-                  {session?.user?.name}
-                </p>
-                <p className="text-xs text-gray-500">Asesor</p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="w-4 h-4" />
-                Salir
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
