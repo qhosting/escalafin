@@ -24,7 +24,12 @@ import {
   CheckCircle,
   MessageSquare,
   Settings,
-  Bell
+  Bell,
+  Folder,
+  Box,
+  Layers,
+  Cloud,
+  Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -403,6 +408,164 @@ export function AdminDashboard() {
                   </p>
                   <Badge variant="secondary" className="bg-purple-50 text-purple-700">
                     Dashboard
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+
+        {/* Gestión de Sistema y Archivos */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Folder className="h-5 w-5 text-purple-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Gestión de Sistema</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Link href="/admin/files">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <Folder className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Gestión de Archivos</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Administrar documentos y archivos del sistema
+                  </p>
+                  <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                    Archivos
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/notifications">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-orange-100 rounded-lg">
+                      <Bell className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Notificaciones</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Centro de notificaciones del sistema
+                  </p>
+                  <Badge variant="secondary" className="bg-orange-50 text-orange-700">
+                    Sistema
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/storage">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-purple-100 rounded-lg">
+                      <Cloud className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Almacenamiento</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Configurar servicios de almacenamiento
+                  </p>
+                  <Badge variant="secondary" className="bg-purple-50 text-purple-700">
+                    Config
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/message-recharges">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-green-100 rounded-lg">
+                      <Zap className="h-6 w-6 text-green-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Recarga Mensajes</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Gestionar recargas de mensajes WhatsApp
+                  </p>
+                  <Badge variant="secondary" className="bg-green-50 text-green-700">
+                    WhatsApp
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+
+        {/* Configuración Avanzada */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Settings className="h-5 w-5 text-gray-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Configuración Avanzada</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Link href="/admin/settings">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-gray-100 rounded-lg">
+                      <Settings className="h-6 w-6 text-gray-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Configuración</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Ajustes generales del sistema
+                  </p>
+                  <Badge variant="secondary" className="bg-gray-50 text-gray-700">
+                    Sistema
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/modules">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-indigo-100 rounded-lg">
+                      <Layers className="h-6 w-6 text-indigo-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Módulos</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Activar/desactivar módulos del sistema
+                  </p>
+                  <Badge variant="secondary" className="bg-indigo-50 text-indigo-700">
+                    Control
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/config">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-teal-100 rounded-lg">
+                      <Box className="h-6 w-6 text-teal-600" />
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Config. Sistema</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Configuración avanzada del sistema
+                  </p>
+                  <Badge variant="secondary" className="bg-teal-50 text-teal-700">
+                    Avanzado
                   </Badge>
                 </CardContent>
               </Card>
