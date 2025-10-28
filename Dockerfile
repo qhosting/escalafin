@@ -1,21 +1,24 @@
 # 🚀 DOCKERFILE PRODUCTION - OPTIMIZADO Y TESTEADO
 # ===================================
 # ✅ Testeado localmente con éxito
-# ✅ Node 18 + NPM (gestor de paquetes estable y predecible)
+# ✅ Node 18-slim (Debian-based, glibc para compatibilidad Next.js SWC)
+# ✅ NPM (gestor de paquetes estable y predecible)
 # ✅ Build standalone verificado
 # ✅ Scripts mejorados adaptados de CitaPlanner
 # ✅ start-improved.sh: logging detallado + error handling robusto
 # ✅ emergency-start.sh: bypass DB checks para debug
 # ✅ Fixed: Migrado a NPM para evitar problemas de workspace de Yarn Berry
+# ✅ Fixed: Cambio a node:18-slim para resolver error SWC con Alpine/musl
 
-FROM node:18-alpine AS base
+FROM node:18-slim AS base
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     bash \
-    libc6-compat \
     openssl \
     curl \
-    dumb-init
+    ca-certificates \
+    dumb-init \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -98,17 +101,17 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 # Create healthcheck.sh script directly in the image
 RUN cat <<'EOF' > /app/healthcheck.sh
-#!/bin/sh
+#!/bin/bash
 # Healthcheck script for EscalaFin MVP
-# Versión: 2.0 - Usa wget (incluido en alpine) en lugar de curl
+# Versión: 3.0 - Usa curl (incluido en node:18-slim base)
 
 PORT=${PORT:-3000}
 HEALTH_URL="http://localhost:${PORT}/api/health"
 
 echo "🏥 Ejecutando healthcheck en ${HEALTH_URL}..."
 
-# Try to wget the health endpoint
-if wget --no-verbose --tries=1 --spider "${HEALTH_URL}" > /dev/null 2>&1; then
+# Try to curl the health endpoint
+if curl -f -s "${HEALTH_URL}" > /dev/null 2>&1; then
   echo "✅ Health check passed"
   exit 0
 else
