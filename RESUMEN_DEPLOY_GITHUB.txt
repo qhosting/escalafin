@@ -1,0 +1,52 @@
+╔════════════════════════════════════════════════════════════════╗
+║           DEPLOY GITHUB - CORRECCIÓN COMPLETADA                ║
+╚════════════════════════════════════════════════════════════════╝
+
+PROBLEMA CRÍTICO DETECTADO:
+✗ yarn.lock era un SYMLINK (no funciona en Docker/GitHub)
+
+SOLUCIÓN APLICADA:
+✓ Convertido a archivo regular (498KB)
+✓ Commit: 53c213b
+✓ Push exitoso a GitHub
+✓ Build local verificado - OK
+
+ESTADO ACTUAL:
+┌─────────────────────────────────────────────────────────────┐
+│ Repositorio: https://github.com/qhosting/escalafin-mvp     │
+│ Rama: main                                                   │
+│ Último commit: Fix yarn.lock symlink                        │
+│ Estado: ✅ LISTO PARA DEPLOY                                │
+└─────────────────────────────────────────────────────────────┘
+
+PASOS PARA DESPLEGAR EN EASYPANEL:
+
+1. Ir a EasyPanel → Tu App
+2. Settings → Clear Build Cache
+3. Rebuild from GitHub (usará commit 53c213b)
+4. Verificar puerto 3000 está expuesto
+5. Verificar NEXTAUTH_URL correcto
+
+VERIFICACIONES COMPLETADAS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Git limpio (no hay cambios pendientes)
+✅ yarn.lock archivo regular
+✅ Build exitoso localmente
+✅ Prisma schema correcto (sin output)
+✅ Dockerfile correcto (outputFileTracingRoot)
+✅ Standalone output generado
+✅ Push a GitHub exitoso
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ERRORES HISTÓRICOS CORREGIDOS:
+1. yarn.lock symlink → regular file ✅
+2. Prisma output hardcodeado → removido ✅
+3. Dockerfile copy paths → corregidos ✅
+4. start.sh syntax error → corregido ✅
+5. Login redirect NEXTAUTH_URL → corregido ✅
+
+═══════════════════════════════════════════════════════════════
+ PROYECTO LISTO PARA PRODUCCIÓN
+═══════════════════════════════════════════════════════════════
+
+Fecha: 2025-10-28 04:06 UTC
