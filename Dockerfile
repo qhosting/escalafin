@@ -57,6 +57,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
 ENV NEXT_OUTPUT_MODE=standalone
 
+# Crear yarn.lock dummy para satisfacer outputFileTracingRoot de Next.js
+# outputFileTracingRoot busca en directorio padre (../) entonces necesitamos en /
+RUN echo "# Dummy yarn.lock for Next.js outputFileTracingRoot" > /yarn.lock && \
+    echo "# Dummy yarn.lock for Next.js outputFileTracingRoot" > /app/yarn.lock && \
+    echo "✅ yarn.lock dummy creado en / y /app"
+
 # Generar Prisma Client
 RUN echo "🔧 Generando Prisma Client..." && \
     npx prisma generate && \
