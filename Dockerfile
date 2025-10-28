@@ -32,6 +32,8 @@ WORKDIR /app
 # Copy configuration files
 COPY app/package.json ./
 COPY app/package-lock.json ./
+# Copy dummy yarn.lock to satisfy Next.js outputFileTracingRoot check
+COPY app/yarn.lock ./
 
 # Instalar dependencias
 RUN echo "📦 Instalando dependencias con NPM..." && \
