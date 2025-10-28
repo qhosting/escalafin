@@ -3,6 +3,9 @@
 # ✅ Testeado localmente con éxito
 # ✅ Node 22 + Yarn 4.9.4
 # ✅ Build standalone verificado
+# ✅ Scripts mejorados adaptados de CitaPlanner
+# ✅ start-improved.sh: logging detallado + error handling robusto
+# ✅ emergency-start.sh: bypass DB checks para debug
 
 FROM node:22-alpine AS base
 
@@ -108,93 +111,6 @@ ENV HOSTNAME="0.0.0.0"
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Create start.sh script directly in the image to avoid COPY issues
-RUN cat <<'EOF' > /app/start.sh
-#!/bin/sh
-
-echo "🚀 Iniciando ESCALAFIN..."
-
-# Configurar PATH to include node_modules/.bin for Prisma CLI
-export PATH="$PATH:/app/node_modules/.bin"
-echo "📦 PATH configurado: $PATH"
-
-# Use npx to run prisma commands at runtime
-PRISMA_CMD="npx prisma"
-
-# Aplicar migraciones. El cliente Prisma ya fue generado durante el build.
-echo "🔄 Aplicando migraciones si es necesario..."
-$PRISMA_CMD migrate deploy || echo "⚠️ Error en migraciones, continuando..."
-
-# Verificar estado de migraciones
-echo "📋 Verificando estado de migraciones..."
-$PRISMA_CMD migrate status || echo "⚠️ No se pudo verificar estado de migraciones"
-
-# Ejecutar seed solo si no hay usuarios
-echo "🌱 Verificando si necesita seed..."
-echo "📋 Consultando tabla users..."
-
-# Check if users table is empty using node script
-USER_COUNT=$(node -e "
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-prisma.user.count()
-  .then(count => { console.log(count); process.exit(0); })
-  .catch(err => { console.error('0'); process.exit(0); })
-  .finally(() => prisma.\$disconnect());
-" 2>/dev/null || echo "0")
-
-echo "👥 Usuarios en la base de datos: $USER_COUNT"
-
-if [ "$USER_COUNT" = "0" ]; then
-    echo "🌱 Base de datos vacía - ejecutando seed..."
-    yarn prisma db seed || echo "⚠️ Error ejecutando seed, continuando..."
-else
-    echo "✅ Base de datos ya tiene usuarios, omitiendo seed"
-fi
-
-# Verificar archivos necesarios
-echo "🔍 Verificando archivos de Next.js standalone..."
-
-# Verify server.js exists in the correct location (/app/server.js)
-if [ ! -f "/app/server.js" ]; then
-    echo "❌ ERROR CRITICO: server.js NO ENCONTRADO en /app/server.js"
-    echo "📂 Estructura del directorio /app:"
-    ls -la /app/ | head -30
-    echo ""
-    echo "🔍 Buscando server.js en todo el filesystem:"
-    find /app -name "server.js" -type f 2>/dev/null | head -10
-    echo ""
-    echo "❌ El Dockerfile no copió correctamente el standalone build"
-    echo "🔧 Intentando fallback con next start..."
-    exit 1
-fi
-
-echo "✅ server.js encontrado en /app/server.js (CORRECTO)"
-echo "📂 Contenido del directorio /app:"
-ls -la /app/ | head -20
-
-# Verificar archivos necesarios
-echo ""
-echo "🔍 Verificando archivos críticos de ESCALAFIN..."
-
-# Iniciar la aplicacion desde /app con server.js
-echo ""
-echo "🚀 Iniciando servidor Next.js standalone..."
-echo "   📂 Working directory: /app"
-echo "   🖥️ Server: /app/server.js"
-echo "   🌐 Hostname: 0.0.0.0"
-echo "   🔌 Port: 3000"
-echo ""
-
-cd /app || {
-    echo "❌ ERROR: No se puede cambiar a /app"
-    exit 1
-}
-
-echo "🎉 EJECUTANDO: node server.js"
-exec node server.js
-EOF
-
 # Create healthcheck.sh script directly in the image
 RUN cat <<'EOF' > /app/healthcheck.sh
 #!/bin/sh
@@ -216,8 +132,8 @@ else
 fi
 EOF
 
-# Make scripts executable
-RUN chmod +x /app/start.sh /app/healthcheck.sh
+# Make healthcheck script executable
+RUN chmod +x /app/healthcheck.sh
 
 # Copy standalone build (con outputFileTracingRoot, standalone contiene carpeta app/)
 COPY --from=builder /app/.next/standalone/app ./
@@ -227,6 +143,13 @@ COPY --from=builder /app/public ./public
 # Copy Prisma for migrations
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Copy startup scripts (adaptados de CitaPlanner)
+COPY --chown=nextjs:nodejs start-improved.sh ./start-improved.sh
+COPY --chown=nextjs:nodejs emergency-start.sh ./emergency-start.sh
+
+# Make startup scripts executable
+RUN chmod +x /app/start-improved.sh /app/emergency-start.sh
 
 # Create directories
 RUN mkdir -p /app/uploads && \
@@ -240,4 +163,6 @@ USER nextjs
 
 EXPOSE 3000
 
-CMD ["dumb-init", "sh", "/app/start.sh"]
+# Use start-improved.sh for better logging and error handling
+# To use emergency mode (bypass DB checks), change to: ./emergency-start.sh
+CMD ["dumb-init", "sh", "/app/start-improved.sh"]
