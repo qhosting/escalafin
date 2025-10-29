@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Building2, LogIn, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { LogIn, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -87,74 +87,46 @@ export function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Hero Section - Brand Colors */}
-      <div className="lg:flex-1 bg-gradient-to-br from-primary via-primary/90 to-secondary flex flex-col justify-center px-8 lg:px-12 py-12">
-        <div className="max-w-md mx-auto text-white">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 inline-block">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 px-4 py-12 relative">
+      {/* Botón volver al inicio */}
+      <Link 
+        href="/"
+        className="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-primary transition-colors z-10"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span className="text-sm font-medium">Volver al inicio</span>
+      </Link>
+
+      {/* Formulario de Login */}
+      <div className="w-full max-w-md">
+        {/* Card con fondo */}
+        <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 sm:p-10">
+          {/* Logotipo centrado */}
+          <div className="flex justify-center mb-8">
             <div className="relative h-16 w-64">
               <Image 
                 src="/logoescalafin.png" 
                 alt="EscalaFin Logo" 
                 fill
-                className="object-contain brightness-0 invert"
+                className="object-contain"
                 priority
               />
             </div>
           </div>
-          <h2 className="text-2xl font-semibold mb-4">
-            Sistema de Gestión de Préstamos y Créditos
-          </h2>
-          <p className="text-white/90 text-lg leading-relaxed">
-            Plataforma integral para administrar tu cartera de clientes, procesar solicitudes de crédito 
-            y gestionar préstamos de manera eficiente y segura.
-          </p>
-          <div className="mt-8 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-secondary rounded-full"></div>
-              <span className="text-white/90">Gestión completa de clientes</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-secondary rounded-full"></div>
-              <span className="text-white/90">Workflow de solicitudes automatizado</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-secondary rounded-full"></div>
-              <span className="text-white/90">Tablas de amortización dinámicas</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Login Form */}
-      <div className="lg:flex-1 flex items-center justify-center px-8 py-12 bg-gray-50 relative">
-        {/* Botón volver */}
-        <Link 
-          href="/"
-          className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Volver al inicio</span>
-        </Link>
-
-        <div className="w-full max-w-md bg-white rounded-xl shadow-lg border-0 p-8">
+          {/* Título y subtítulo */}
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-6">
-              <div className="relative h-12 w-56">
-                <Image 
-                  src="/logoescalafin.png" 
-                  alt="EscalaFin Logo" 
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-primary mb-2">Iniciar Sesión</h2>
-            <p className="text-muted-foreground">Ingresa tus credenciales para acceder al sistema</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Iniciar Sesión
+            </h1>
+            <p className="text-gray-600 text-sm">
+              Ingresa tus credenciales para acceder al sistema
+            </p>
           </div>
 
+          {/* Formulario */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Campo de Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Correo Electrónico
@@ -165,11 +137,12 @@ export function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="tu@email.com"
               />
             </div>
             
+            {/* Campo de Contraseña */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Contraseña
@@ -181,53 +154,61 @@ export function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-3 py-3 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
+            {/* Mensaje de Error */}
             {error && (
-              <div className="text-red-600 text-sm text-center bg-red-50 p-2 rounded">
+              <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-200">
                 {error}
               </div>
             )}
 
+            {/* Botón de Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary text-primary-foreground py-3 px-4 rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              className="w-full bg-primary text-white py-3.5 px-4 rounded-lg font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Verificando...
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Verificando...</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2">
-                  <LogIn className="w-4 h-4" />
-                  Iniciar Sesión
+                  <LogIn className="w-5 h-5" />
+                  <span>Iniciar Sesión</span>
                 </div>
               )}
             </button>
 
-            <div className="text-center">
-              <p className="text-gray-600">
+            {/* Link de Registro */}
+            <div className="text-center pt-2">
+              <p className="text-gray-600 text-sm">
                 ¿No tienes cuenta?{' '}
-                <Link href="/auth/register" className="text-blue-600 hover:text-blue-700 font-medium">
+                <Link href="/auth/register" className="text-primary hover:text-primary/80 font-medium transition-colors">
                   Registrarse
                 </Link>
               </p>
             </div>
           </form>
         </div>
+
+        {/* Texto adicional debajo del formulario */}
+        <p className="text-center text-gray-500 text-xs mt-6">
+          Sistema de Gestión de Préstamos y Créditos
+        </p>
       </div>
     </div>
   );
