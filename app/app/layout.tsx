@@ -5,6 +5,7 @@ import './globals.css'
 import { Providers } from './providers'
 import { Toaster } from 'sonner'
 import { MainLayout } from '@/components/layout/main-layout'
+import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget'
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             closeButton
             theme="light"
           />
+          <ChatwootWidget enabled={true} autoLoadUser={true} />
         </Providers>
       </body>
     </html>

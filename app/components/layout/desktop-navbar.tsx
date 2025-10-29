@@ -187,6 +187,13 @@ export function DesktopNavbar() {
         roles: ['ADMIN', 'ASESOR']
       },
       {
+        title: 'Chat (Chatwoot)',
+        icon: MessageSquare,
+        href: '/admin/chatwoot',
+        moduleKey: 'chatwoot_chat',
+        roles: ['ADMIN']
+      },
+      {
         title: 'Notificaciones',
         icon: Bell,
         href: '/notifications',
