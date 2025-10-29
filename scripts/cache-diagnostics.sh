@@ -108,20 +108,22 @@ if [ -f "Dockerfile" ]; then
     # Verificar que los archivos que copia el Dockerfile existan
     MISSING_FILES=0
     
-    while IFS= read -r line; do
-        if [[ $line =~ ^COPY[[:space:]]+([^[:space:]]+) ]]; then
-            FILE="${BASH_REMATCH[1]}"
-            if [[ ! "$FILE" =~ ^\. ]] && [ ! -f "$FILE" ] && [ ! -d "$FILE" ]; then
+    # Extraer archivos COPY del Dockerfile de forma más simple
+    COPY_FILES=$(grep "^COPY " Dockerfile | awk '{print $2}' | grep -v "^\." | grep -v "^--")
+    
+    if [ -n "$COPY_FILES" ]; then
+        for FILE in $COPY_FILES; do
+            if [ ! -f "$FILE" ] && [ ! -d "$FILE" ]; then
                 echo -e "${RED}   ⚠ Archivo referenciado pero no existe: $FILE${NC}"
-                ((MISSING_FILES++))
+                MISSING_FILES=$((MISSING_FILES + 1))
             fi
-        fi
-    done < Dockerfile
+        done
+    fi
     
     if [ $MISSING_FILES -gt 0 ]; then
         echo -e "${RED}   ⚠ PROBLEMA: $MISSING_FILES archivo(s) faltantes${NC}"
         echo -e "${YELLOW}     → El build en EasyPanel fallará${NC}"
-        ((CACHE_ISSUES++))
+        CACHE_ISSUES=$((CACHE_ISSUES + 1))
     else
         echo -e "${GREEN}   ✓ Todos los archivos del Dockerfile existen${NC}"
     fi
