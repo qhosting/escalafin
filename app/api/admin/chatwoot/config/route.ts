@@ -20,10 +20,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
+    // Obtener configuración de Chatwoot (await necesario)
     const config = await getChatwootConfig();
     const source = await getConfigSource();
     
-    return NextResponse.json({
+    // Preparar respuesta
+    const response = {
       baseUrl: config.baseUrl || '',
       websiteToken: config.websiteToken || '',
       accountId: config.accountId || '1',
@@ -31,7 +33,9 @@ export async function GET(request: NextRequest) {
       enabled: config.enabled || false,
       isConfigured: !!(config.baseUrl && config.websiteToken),
       source: source,
-    });
+    };
+    
+    return NextResponse.json(response);
   } catch (error: any) {
     console.error('Error fetching Chatwoot config:', error);
     return NextResponse.json(
@@ -122,9 +126,11 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Obtener configuración actualizada
     const updatedConfig = await getChatwootConfig();
     
-    return NextResponse.json({
+    // Preparar respuesta
+    const responseData = {
       success: true,
       message: 'Configuración guardada exitosamente',
       config: {
@@ -135,7 +141,9 @@ export async function POST(request: NextRequest) {
         enabled: updatedConfig.enabled || false,
         isConfigured: true,
       },
-    });
+    };
+    
+    return NextResponse.json(responseData);
   } catch (error: any) {
     console.error('Error saving Chatwoot config:', error);
     return NextResponse.json(

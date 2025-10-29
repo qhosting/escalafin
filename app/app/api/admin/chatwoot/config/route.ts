@@ -19,14 +19,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const config = getChatwootConfig();
+    // Obtener configuración de Chatwoot (await necesario)
+    const config = await getChatwootConfig();
 
-    // No enviar tokens sensibles al frontend
-    return NextResponse.json({
-      baseUrl: config.baseUrl,
-      accountId: config.accountId,
+    // Preparar respuesta sin tokens sensibles
+    const response = {
+      baseUrl: config.baseUrl || '',
+      websiteToken: config.websiteToken || '',
+      accountId: config.accountId || '1',
+      enabled: config.enabled || false,
       isConfigured: !!(config.baseUrl && config.websiteToken),
-    });
+    };
+    
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Error getting Chatwoot config:', error);
     return NextResponse.json(

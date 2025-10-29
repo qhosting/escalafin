@@ -260,7 +260,7 @@ export async function getChatwootConfig(): Promise<ChatwootConfig> {
       },
     });
 
-    const configMap = configs.reduce((acc, config) => {
+    const configMap = configs.reduce((acc: Record<string, string>, config: { key: string; value: string }) => {
       acc[config.key] = config.value;
       return acc;
     }, {} as Record<string, string>);

@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const chatwoot = getChatwootClient();
+    // Obtener cliente de Chatwoot (await necesario)
+    const chatwoot = await getChatwootClient();
     
     // Intentar obtener conversaciones como prueba
     // Esto solo funcionará si hay un API access token configurado
