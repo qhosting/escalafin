@@ -5,13 +5,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { toast } from 'sonner';
-import { Eye, EyeOff, UserPlus, Building2, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -107,9 +108,9 @@ export default function RegisterPage() {
 
   if (checkingRegistration) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Verificando disponibilidad del registro...</p>
         </div>
       </div>
@@ -117,122 +118,132 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Hero Section */}
-      <div className="lg:flex-1 bg-gradient-to-br from-indigo-600 via-purple-700 to-blue-800 flex flex-col justify-center px-8 lg:px-12 py-12 relative">
-        {/* Botón volver */}
-        <Link 
-          href="/auth/login"
-          className="absolute top-6 left-6 flex items-center gap-2 text-indigo-100 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Volver al login</span>
-        </Link>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 px-4 py-12 relative">
+      {/* Botón volver al inicio */}
+      <Link 
+        href="/"
+        className="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-primary transition-colors z-10"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span className="text-sm font-medium">Volver al inicio</span>
+      </Link>
 
-        <div className="max-w-md mx-auto text-white">
-          <div className="flex items-center gap-3 mb-8">
-            <Building2 className="w-10 h-10" />
-            <h1 className="text-3xl font-bold">EscalaFin</h1>
-          </div>
-          <h2 className="text-2xl font-semibold mb-4">
-            {registrationEnabled ? 'Registro de Clientes' : 'Registro Temporalmente Deshabilitado'}
-          </h2>
-          <p className="text-blue-100 text-lg leading-relaxed">
-            {registrationEnabled 
-              ? 'Crea tu cuenta como cliente y accede a la plataforma. Solicita préstamos, consulta tu historial crediticio y gestiona tus pagos de manera fácil y segura.'
-              : 'El registro de nuevos clientes está temporalmente deshabilitado. Si necesitas acceso a la plataforma, contacta al administrador del sistema.'
-            }
-          </p>
-          {registrationEnabled && (
-            <div className="mt-8 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
-                <span className="text-blue-100">Solicita préstamos de forma digital</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
-                <span className="text-blue-100">Consulta tu historial crediticio</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-purple-300 rounded-full"></div>
-                <span className="text-blue-100">Gestiona tus pagos online</span>
+      {/* Formulario de Registro */}
+      <div className="w-full max-w-lg">
+        {!registrationEnabled ? (
+          /* Mensaje cuando el registro está deshabilitado */
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 sm:p-10">
+            {/* Logotipo */}
+            <div className="flex justify-center mb-6">
+              <div className="relative h-16 w-64">
+                <Image 
+                  src="/logoescalafin.png" 
+                  alt="EscalaFin Logo" 
+                  fill
+                  className="object-contain"
+                  priority
+                />
               </div>
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* Register Form or Disabled Message */}
-      <div className="lg:flex-1 flex items-center justify-center px-8 py-12 bg-gray-50">
-        {!registrationEnabled ? (
-          <Card className="w-full max-w-md shadow-lg border-0">
-            <CardHeader className="text-center pb-2">
-              <div className="flex justify-center mb-4">
-                <AlertTriangle className="h-12 w-12 text-amber-500" />
-              </div>
-              <CardTitle className="text-xl font-bold text-gray-900">
-                Registro No Disponible
-              </CardTitle>
-              <CardDescription className="text-gray-600">
-                El registro está temporalmente deshabilitado
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-4">
+            {/* Icono de advertencia */}
+            <div className="flex justify-center mb-6">
+              <AlertTriangle className="h-16 w-16 text-amber-500" />
+            </div>
+
+            {/* Título */}
+            <h1 className="text-2xl font-bold text-center text-gray-900 mb-3">
+              Registro No Disponible
+            </h1>
+            <p className="text-center text-gray-600 mb-6">
+              El registro está temporalmente deshabilitado
+            </p>
+
+            {/* Contenido */}
+            <div className="text-center space-y-6">
               <p className="text-sm text-gray-600">
                 El administrador ha deshabilitado temporalmente el registro de nuevos usuarios. 
                 Esta medida es temporal y el registro será habilitado nuevamente pronto.
               </p>
-              <div className="space-y-3">
-                <Button 
-                  asChild 
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
-                >
-                  <Link href="/auth/login">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Volver al Login
-                  </Link>
-                </Button>
-                <p className="text-xs text-gray-500">
-                  Si necesitas una cuenta, contacta al administrador del sistema.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+              
+              <Button 
+                asChild 
+                className="w-full bg-primary hover:bg-primary/90 text-white py-3.5 shadow-lg hover:shadow-xl transition-all"
+              >
+                <Link href="/auth/login">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Volver al Login
+                </Link>
+              </Button>
+              
+              <p className="text-xs text-gray-500">
+                Si necesitas una cuenta, contacta al administrador del sistema.
+              </p>
+            </div>
+          </div>
         ) : (
-          <Card className="w-full max-w-md shadow-lg border-0">
-          <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl font-bold text-center">Crear Cuenta de Cliente</CardTitle>
-            <CardDescription className="text-center text-gray-600">
-              Completa tus datos para registrarte como cliente
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          /* Formulario de registro cuando está habilitado */
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 sm:p-10">
+            {/* Logotipo centrado */}
+            <div className="flex justify-center mb-8">
+              <div className="relative h-16 w-64">
+                <Image 
+                  src="/logoescalafin.png" 
+                  alt="EscalaFin Logo" 
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </div>
+
+            {/* Título y subtítulo */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Crear Cuenta
+              </h1>
+              <p className="text-gray-600 text-sm">
+                Completa tus datos para registrarte como cliente
+              </p>
+            </div>
+
+            {/* Formulario */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Nombre y Apellido */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">Nombre</Label>
+                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                    Nombre
+                  </Label>
                   <Input
                     id="firstName"
                     value={formData.firstName}
                     onChange={(e) => handleChange('firstName', e.target.value)}
                     required
                     placeholder="Juan"
+                    className="px-4 py-3 rounded-lg focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Apellido</Label>
+                  <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+                    Apellido
+                  </Label>
                   <Input
                     id="lastName"
                     value={formData.lastName}
                     onChange={(e) => handleChange('lastName', e.target.value)}
                     required
                     placeholder="Pérez"
+                    className="px-4 py-3 rounded-lg focus:ring-2 focus:ring-primary"
                   />
                 </div>
               </div>
 
+              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email">Correo Electrónico</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Correo Electrónico
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -240,23 +251,30 @@ export default function RegisterPage() {
                   onChange={(e) => handleChange('email', e.target.value)}
                   required
                   placeholder="tu@email.com"
+                  className="px-4 py-3 rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
 
+              {/* Teléfono */}
               <div className="space-y-2">
-                <Label htmlFor="phone">Teléfono</Label>
+                <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                  Teléfono
+                </Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => handleChange('phone', e.target.value)}
                   placeholder="+52 555 123 4567"
+                  className="px-4 py-3 rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
 
-              {/* Rol fijo como CLIENTE - no seleccionable */}
+              {/* Tipo de Usuario - Fijo como CLIENTE */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Tipo de Usuario</Label>
-                <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-600">
+                <Label className="text-sm font-medium text-gray-700">
+                  Tipo de Usuario
+                </Label>
+                <div className="px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 text-sm">
                   Cliente - Registro público solo para clientes
                 </div>
                 <p className="text-xs text-gray-500">
@@ -264,8 +282,11 @@ export default function RegisterPage() {
                 </p>
               </div>
 
+              {/* Contraseña */}
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  Contraseña
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -274,20 +295,23 @@ export default function RegisterPage() {
                     onChange={(e) => handleChange('password', e.target.value)}
                     required
                     placeholder="••••••••"
-                    className="pr-12"
+                    className="px-4 py-3 pr-12 rounded-lg focus:ring-2 focus:ring-primary"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
 
+              {/* Confirmar Contraseña */}
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                  Confirmar Contraseña
+                </Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -296,48 +320,54 @@ export default function RegisterPage() {
                     onChange={(e) => handleChange('confirmPassword', e.target.value)}
                     required
                     placeholder="••••••••"
-                    className="pr-12"
+                    className="px-4 py-3 pr-12 rounded-lg focus:ring-2 focus:ring-primary"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                   >
-                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
 
+              {/* Botón Submit */}
               <Button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-700"
+                className="w-full bg-primary text-white py-3.5 px-4 rounded-lg font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
                 disabled={loading}
               >
                 {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Creando cuenta...
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Creando cuenta...</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <UserPlus className="w-4 h-4" />
-                    Crear Cuenta
+                  <div className="flex items-center justify-center gap-2">
+                    <UserPlus className="w-5 h-5" />
+                    <span>Crear Cuenta</span>
                   </div>
                 )}
               </Button>
 
-              <div className="text-center">
-                <p className="text-gray-600">
+              {/* Link de Login */}
+              <div className="text-center pt-2">
+                <p className="text-gray-600 text-sm">
                   ¿Ya tienes cuenta?{' '}
-                  <Link href="/auth/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
+                  <Link href="/auth/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
                     Iniciar Sesión
                   </Link>
                 </p>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
         )}
+
+        {/* Texto adicional debajo del formulario */}
+        <p className="text-center text-gray-500 text-xs mt-6">
+          Sistema de Gestión de Préstamos y Créditos
+        </p>
       </div>
     </div>
   );
