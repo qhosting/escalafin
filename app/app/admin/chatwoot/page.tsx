@@ -1,18 +1,21 @@
-
 import { Metadata } from 'next';
 import { ChatwootConfig } from '@/components/admin/chatwoot-config';
 
 export const metadata: Metadata = {
-  title: 'Chatwoot - EscalaFin',
-  description: 'Configuración de chat en tiempo real',
+  title: 'Chatwoot - Configuración | EscalaFin',
+  description: 'Configuración de Chatwoot para chat en tiempo real',
 };
 
-export default function ChatwootPage() {
+export default function ChatwootConfigPage() {
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Chatwoot</h2>
+    <div className="container mx-auto py-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Chatwoot</h1>
+        <p className="text-muted-foreground mt-2">
+          Configura el sistema de chat en tiempo real para soporte a clientes
+        </p>
       </div>
+      
       <ChatwootConfig />
     </div>
   );

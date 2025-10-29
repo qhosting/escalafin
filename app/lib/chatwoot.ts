@@ -2,13 +2,17 @@
 /**
  * Chatwoot API Client
  * Maneja la integración con Chatwoot para chat en tiempo real
+ * Configuración desde BD o variables de entorno
  */
+
+import { prisma } from './prisma';
 
 interface ChatwootConfig {
   baseUrl: string;
   websiteToken: string;
   accountId: string;
   apiAccessToken?: string;
+  enabled: boolean;
 }
 
 interface ChatwootUser {
@@ -193,25 +197,121 @@ class ChatwootClient {
       return null;
     }
   }
+
+  /**
+   * Prueba la conexión con Chatwoot
+   */
+  async testConnection(): Promise<{ success: boolean; message: string }> {
+    if (!this.config.baseUrl || !this.config.accountId) {
+      return {
+        success: false,
+        message: 'Configuración incompleta: faltan baseUrl o accountId',
+      };
+    }
+
+    try {
+      const response = await fetch(
+        `${this.config.baseUrl}/api/v1/accounts/${this.config.accountId}`,
+        {
+          headers: {
+            'api_access_token': this.config.apiAccessToken || '',
+          },
+        }
+      );
+
+      if (response.ok) {
+        return {
+          success: true,
+          message: 'Conexión exitosa con Chatwoot',
+        };
+      } else {
+        return {
+          success: false,
+          message: `Error de conexión: ${response.status} ${response.statusText}`,
+        };
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: `Error de conexión: ${error.message}`,
+      };
+    }
+  }
 }
 
-// Configuración desde variables de entorno
-export function getChatwootConfig(): ChatwootConfig {
+/**
+ * Obtiene la configuración de Chatwoot desde BD o variables de entorno
+ * Prioridad: Base de datos > Variables de entorno
+ */
+export async function getChatwootConfig(): Promise<ChatwootConfig> {
+  try {
+    // Intentar obtener desde la base de datos primero
+    const configs = await prisma.systemConfig.findMany({
+      where: {
+        key: {
+          in: [
+            'chatwoot_base_url',
+            'chatwoot_website_token',
+            'chatwoot_account_id',
+            'chatwoot_api_access_token',
+            'chatwoot_enabled',
+          ],
+        },
+      },
+    });
+
+    const configMap = configs.reduce((acc, config) => {
+      acc[config.key] = config.value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    // Si hay configuración en BD, usarla
+    if (configMap['chatwoot_base_url']) {
+      return {
+        baseUrl: configMap['chatwoot_base_url'] || '',
+        websiteToken: configMap['chatwoot_website_token'] || '',
+        accountId: configMap['chatwoot_account_id'] || '1',
+        apiAccessToken: configMap['chatwoot_api_access_token'],
+        enabled: configMap['chatwoot_enabled'] === 'true',
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching Chatwoot config from DB:', error);
+  }
+
+  // Fallback a variables de entorno
   return {
     baseUrl: process.env.CHATWOOT_BASE_URL || '',
     websiteToken: process.env.CHATWOOT_WEBSITE_TOKEN || '',
     accountId: process.env.CHATWOOT_ACCOUNT_ID || '1',
     apiAccessToken: process.env.CHATWOOT_API_ACCESS_TOKEN,
+    enabled: process.env.CHATWOOT_ENABLED === 'true' || !!process.env.CHATWOOT_BASE_URL,
+  };
+}
+
+/**
+ * Obtiene la configuración de Chatwoot desde variables de entorno (solo servidor)
+ */
+function getChatwootConfigFromEnv(): ChatwootConfig {
+  return {
+    baseUrl: process.env.CHATWOOT_BASE_URL || '',
+    websiteToken: process.env.CHATWOOT_WEBSITE_TOKEN || '',
+    accountId: process.env.CHATWOOT_ACCOUNT_ID || '1',
+    apiAccessToken: process.env.CHATWOOT_API_ACCESS_TOKEN,
+    enabled: process.env.CHATWOOT_ENABLED === 'true' || !!process.env.CHATWOOT_BASE_URL,
   };
 }
 
 // Cliente singleton
 let chatwootClient: ChatwootClient | null = null;
 
-export function getChatwootClient(): ChatwootClient {
-  if (!chatwootClient) {
-    chatwootClient = new ChatwootClient(getChatwootConfig());
+export async function getChatwootClient(): Promise<ChatwootClient> {
+  const config = await getChatwootConfig();
+  
+  if (!chatwootClient || chatwootClient['config'] !== config) {
+    chatwootClient = new ChatwootClient(config);
   }
+  
   return chatwootClient;
 }
 
