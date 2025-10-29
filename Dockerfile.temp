@@ -1,6 +1,0 @@
-# Dockerfile temporal para generar yarn.lock
-FROM node:22-alpine AS deps
-RUN corepack enable && corepack prepare yarn@4.9.4 --activate
-WORKDIR /app
-COPY app/package.json ./
-RUN yarn install
