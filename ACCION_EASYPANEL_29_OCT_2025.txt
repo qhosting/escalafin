@@ -1,0 +1,40 @@
+═══════════════════════════════════════════════════════════════
+  ACCIÓN REQUERIDA EN EASYPANEL - 29 OCT 2025
+═══════════════════════════════════════════════════════════════
+
+✅ FIX COMPLETADO Y PUSHEADO A GITHUB
+
+PROBLEMA RESUELTO:
+------------------
+Error: Module '@prisma/client' has no exported member 'UserRole'
+
+CAUSA: 
+------
+Ruta absoluta hardcodeada en schema.prisma que no existía en Docker
+
+SOLUCIÓN:
+---------
+Eliminado output path, Prisma usa ubicación por defecto
+
+COMMITS:
+--------
+- 310f7b1: fix: remove hardcoded output path from Prisma schema
+- e454819: docs: add fix documentation
+
+SIGUIENTE PASO EN EASYPANEL:
+-----------------------------
+1. Ir a tu proyecto en EasyPanel
+2. Pull latest commit desde GitHub (main branch)
+3. Clear build cache (importante!)
+4. Rebuild
+5. Verificar logs de build - debe completar sin errores
+6. Verificar que la app inicie correctamente
+7. Probar acceso público
+
+DOCUMENTACIÓN GENERADA:
+-----------------------
+- FIX_PRISMA_OUTPUT_PATH_29_OCT_2025.txt (este archivo)
+- FIX_DOCKER_BUILD_29_OCT_2025.md
+- VALIDACION_RUTAS_ABSOLUTAS_IMPLEMENTADA.md
+
+═══════════════════════════════════════════════════════════════
