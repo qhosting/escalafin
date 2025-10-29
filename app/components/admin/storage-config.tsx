@@ -30,19 +30,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 
 interface StorageSettings {
-  type: 'local' | 's3'
+  type: 'local' | 'google-drive'
   local: {
     uploadDir: string
     baseUrl: string
     maxSize: number
   }
-  s3: {
-    bucketName: string
-    region: string
-    folderPrefix: string
+  googleDrive: {
+    clientId: string
+    clientSecret: string
+    redirectUri: string
+    refreshToken: string
     maxSize: number
-    accessKeyId: string
-    secretAccessKey: string
   }
 }
 
@@ -55,13 +54,12 @@ export function StorageConfig() {
       baseUrl: '/api/files/serve',
       maxSize: 10
     },
-    s3: {
-      bucketName: 'escalafin-uploads',
-      region: 'us-east-1',
-      folderPrefix: 'escalafin-mvp/',
-      maxSize: 10,
-      accessKeyId: '',
-      secretAccessKey: ''
+    googleDrive: {
+      clientId: '',
+      clientSecret: '',
+      redirectUri: 'https://demo.escalafin.com/api/auth/google/callback',
+      refreshToken: '',
+      maxSize: 10
     }
   })
   
@@ -171,11 +169,11 @@ export function StorageConfig() {
     }))
   }
 
-  const updateS3Settings = (key: keyof StorageSettings['s3'], value: string | number) => {
+  const updateGoogleDriveSettings = (key: keyof StorageSettings['googleDrive'], value: string | number) => {
     setSettings(prev => ({
       ...prev,
-      s3: {
-        ...prev.s3,
+      googleDrive: {
+        ...prev.googleDrive,
         [key]: value
       }
     }))
@@ -205,7 +203,7 @@ export function StorageConfig() {
             <Label htmlFor="storage-type">Tipo de almacenamiento:</Label>
             <Select
               value={settings.type}
-              onValueChange={(value: 'local' | 's3') => 
+              onValueChange={(value: 'local' | 'google-drive') => 
                 setSettings(prev => ({ ...prev, type: value }))
               }
             >
@@ -219,10 +217,10 @@ export function StorageConfig() {
                     Almacenamiento Local
                   </div>
                 </SelectItem>
-                <SelectItem value="s3">
+                <SelectItem value="google-drive">
                   <div className="flex items-center gap-2">
                     <Cloud className="h-4 w-4" />
-                    AWS S3
+                    Google Drive
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -236,7 +234,7 @@ export function StorageConfig() {
           <div className="text-sm text-muted-foreground">
             {settings.type === 'local' 
               ? 'Los archivos se almacenarán en el servidor local. Ideal para desarrollo o servidores dedicados.'
-              : 'Los archivos se almacenarán en AWS S3. Recomendado para producción y escalabilidad.'
+              : 'Los archivos se almacenarán en Google Drive. Recomendado para producción y escalabilidad.'
             }
           </div>
         </CardContent>
@@ -248,9 +246,9 @@ export function StorageConfig() {
             <HardDrive className="h-4 w-4" />
             Almacenamiento Local
           </TabsTrigger>
-          <TabsTrigger value="s3" className="flex items-center gap-2">
+          <TabsTrigger value="google-drive" className="flex items-center gap-2">
             <Cloud className="h-4 w-4" />
-            AWS S3
+            Google Drive
           </TabsTrigger>
         </TabsList>
 
@@ -306,88 +304,106 @@ export function StorageConfig() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="s3">
+        <TabsContent value="google-drive">
           <Card>
             <CardHeader>
-              <CardTitle>Configuración AWS S3</CardTitle>
+              <CardTitle>Configuración Google Drive</CardTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                Para obtener estas credenciales, sigue la{' '}
+                <a 
+                  href="/GOOGLE_DRIVE_SETUP_GUIDE.md" 
+                  target="_blank"
+                  className="text-primary hover:underline"
+                >
+                  Guía de Configuración de Google Drive
+                </a>
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="bucket-name">Nombre del bucket</Label>
+                  <Label htmlFor="client-id">Client ID</Label>
                   <Input
-                    id="bucket-name"
-                    value={settings.s3.bucketName}
-                    onChange={(e) => updateS3Settings('bucketName', e.target.value)}
-                    placeholder="escalafin-uploads"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="region">Región</Label>
-                  <Select
-                    value={settings.s3.region}
-                    onValueChange={(value) => updateS3Settings('region', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="us-east-1">US East (N. Virginia)</SelectItem>
-                      <SelectItem value="us-west-1">US West (N. California)</SelectItem>
-                      <SelectItem value="us-west-2">US West (Oregon)</SelectItem>
-                      <SelectItem value="eu-west-1">Europe (Ireland)</SelectItem>
-                      <SelectItem value="eu-central-1">Europe (Frankfurt)</SelectItem>
-                      <SelectItem value="ap-southeast-1">Asia Pacific (Singapore)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="folder-prefix">Prefijo de carpeta</Label>
-                  <Input
-                    id="folder-prefix"
-                    value={settings.s3.folderPrefix}
-                    onChange={(e) => updateS3Settings('folderPrefix', e.target.value)}
-                    placeholder="escalafin-mvp/"
+                    id="client-id"
+                    value={settings.googleDrive.clientId}
+                    onChange={(e) => updateGoogleDriveSettings('clientId', e.target.value)}
+                    placeholder="123456789.apps.googleusercontent.com"
                   />
                   <p className="text-sm text-muted-foreground">
-                    Prefijo para organizar archivos en el bucket
+                    ID de cliente de OAuth 2.0
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="s3-max-size">Tamaño máximo (MB)</Label>
+                  <Label htmlFor="client-secret">Client Secret</Label>
                   <Input
-                    id="s3-max-size"
+                    id="client-secret"
+                    type="password"
+                    value={settings.googleDrive.clientSecret}
+                    onChange={(e) => updateGoogleDriveSettings('clientSecret', e.target.value)}
+                    placeholder="GOCSPX-..."
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Secreto de cliente de OAuth 2.0
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="redirect-uri">Redirect URI</Label>
+                  <Input
+                    id="redirect-uri"
+                    value={settings.googleDrive.redirectUri}
+                    onChange={(e) => updateGoogleDriveSettings('redirectUri', e.target.value)}
+                    placeholder="https://demo.escalafin.com/api/auth/google/callback"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    URI de redirección configurada en Google Cloud
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="refresh-token">Refresh Token</Label>
+                  <Input
+                    id="refresh-token"
+                    type="password"
+                    value={settings.googleDrive.refreshToken}
+                    onChange={(e) => updateGoogleDriveSettings('refreshToken', e.target.value)}
+                    placeholder="1//..."
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Token de actualización obtenido tras autorización
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gdrive-max-size">Tamaño máximo (MB)</Label>
+                  <Input
+                    id="gdrive-max-size"
                     type="number"
-                    value={settings.s3.maxSize}
-                    onChange={(e) => updateS3Settings('maxSize', parseInt(e.target.value) || 10)}
+                    value={settings.googleDrive.maxSize}
+                    onChange={(e) => updateGoogleDriveSettings('maxSize', parseInt(e.target.value) || 10)}
                     min="1"
                     max="100"
                   />
+                  <p className="text-sm text-muted-foreground">
+                    Tamaño máximo por archivo
+                  </p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="access-key">Access Key ID</Label>
-                  <Input
-                    id="access-key"
-                    type="password"
-                    value={settings.s3.accessKeyId}
-                    onChange={(e) => updateS3Settings('accessKeyId', e.target.value)}
-                    placeholder="AKIA..."
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="secret-key">Secret Access Key</Label>
-                  <Input
-                    id="secret-key"
-                    type="password"
-                    value={settings.s3.secretAccessKey}
-                    onChange={(e) => updateS3Settings('secretAccessKey', e.target.value)}
-                    placeholder="..."
-                  />
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <div className="flex gap-2">
+                  <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-900">
+                    <p className="font-medium mb-1">Estructura de carpetas automática:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>EscalaFin/Sistema: Documentos del sistema</li>
+                      <li>EscalaFin/Clientes: Documentos organizados por cliente</li>
+                    </ul>
+                    <p className="mt-2">
+                      La estructura se creará automáticamente al subir el primer archivo.
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
