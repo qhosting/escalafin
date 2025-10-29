@@ -1,0 +1,59 @@
+═══════════════════════════════════════════════════════════════
+  FIX: PRISMA OUTPUT PATH - 29 OCT 2025
+═══════════════════════════════════════════════════════════════
+
+PROBLEMA DETECTADO:
+-------------------
+Error en build Docker:
+"Type error: Module '@prisma/client' has no exported member 'UserRole'"
+
+CAUSA RAÍZ:
+-----------
+El schema.prisma tenía un output path HARDCODEADO con ruta absoluta:
+  output = "/home/ubuntu/escalafin_mvp/app/node_modules/.prisma/client"
+
+Esta ruta NO EXISTE en el contenedor Docker, por lo que el cliente de 
+Prisma se generaba en una ubicación incorrecta y los types no estaban 
+disponibles para Next.js.
+
+SOLUCIÓN APLICADA:
+------------------
+1. Eliminado el output path del generator en schema.prisma
+2. Ahora Prisma usa la ubicación por defecto: node_modules/@prisma/client
+3. Regenerado el cliente de Prisma localmente
+4. Commit y push exitoso a GitHub (commit 310f7b1)
+
+ARCHIVO MODIFICADO:
+-------------------
+app/prisma/schema.prisma
+
+CAMBIO:
+-------
+ANTES:
+  generator client {
+      provider = "prisma-client-js"
+      binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+      output = "/home/ubuntu/escalafin_mvp/app/node_modules/.prisma/client"
+  }
+
+DESPUÉS:
+  generator client {
+      provider = "prisma-client-js"
+      binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+  }
+
+PREVENCIÓN FUTURA:
+------------------
+- Nunca usar rutas absolutas en configuraciones de build
+- El script scripts/validate-absolute-paths.sh ahora valida esto
+- Hook pre-push ejecuta validación automáticamente
+
+ESTADO:
+-------
+✅ Fix aplicado
+✅ Push exitoso a GitHub
+✅ Listo para rebuild en EasyPanel
+
+SIGUIENTE PASO:
+---------------
+Hacer rebuild en EasyPanel para validar el fix
