@@ -1,254 +1,552 @@
 
-# 📋 Guía de Uso del Script de Revisión de Fixes
+# 📘 Guía de Uso: Scripts de Verificación y Diagnóstico
 
-## 🎯 Propósito
+## 🎯 Resumen de Scripts Creados
 
-El script `scripts/revision-fix.sh` es una herramienta automatizada que verifica todos los problemas que hemos corregido durante el desarrollo, previniendo regresiones en futuros cambios.
+He creado **2 scripts poderosos** que te ayudarán a prevenir y diagnosticar problemas de cache en EasyPanel:
 
-## 🚀 Uso Rápido
+### 1️⃣ `pre-deploy-verification.sh` - Verificación Pre-Deploy
+**Úsalo ANTES de cada push a GitHub**
 
-```bash
-# Hacer el script ejecutable (solo la primera vez)
-chmod +x scripts/revision-fix.sh
-
-# Ejecutar la revisión
-./scripts/revision-fix.sh
-```
-
-## 📝 ¿Qué Verifica?
-
-### 1. **Rutas Absolutas** ❌→✅
-- **Problema**: Rutas absolutas en `schema.prisma` o `next.config.js` causan errores en Docker
-- **Verifica**:
-  - `output = "/app/..."` en schema.prisma (INCORRECTO)
-  - Debe ser: `output = "../node_modules/.prisma/client"` (CORRECTO)
-  - `outputFileTracingRoot` en next.config.js
-
-### 2. **Referencias a Yarn** ❌→✅
-- **Problema**: El proyecto usa NPM, no Yarn
-- **Verifica**:
-  - Referencias a `yarn.lock` en Dockerfile
-  - Comandos `yarn` en scripts shell
-  - Conflictos entre `package-lock.json` y `yarn.lock`
-
-### 3. **Scripts Necesarios** 📜
-- **Problema**: Scripts faltantes causan errores en runtime
-- **Verifica existencia de**:
-  - `app/scripts/setup-users-production.js`
-  - `app/scripts/seed.ts`
-  - `start-improved.sh`
-  - `emergency-start.sh`
-  - `healthcheck.sh`
-
-### 4. **.dockerignore Correcto** 🐳
-- **Problema**: Archivos críticos excluidos del build
-- **Verifica que NO estén excluidos**:
-  - `start-improved.sh`
-  - `emergency-start.sh`
-  - `healthcheck.sh`
-  - Carpeta `scripts/`
-
-### 5. **Dependencias Críticas** 📦
-- **Problema**: Módulos necesarios no instalados
-- **Verifica en package.json**:
-  - `bcryptjs`
-  - `jsonwebtoken`
-  - `next-auth`
-  - `@prisma/client`
-
-### 6. **NODE_PATH en Scripts** 🛤️
-- **Problema**: Node no encuentra módulos en standalone mode
-- **Verifica**:
-  - `export NODE_PATH=/app/node_modules` en `start-improved.sh`
-
-### 7. **Estructura Dockerfile** 🏗️
-- **Problema**: Dockerfile mal configurado
-- **Verifica**:
-  - Multi-stage build
-  - Copia de carpeta `scripts/`
-  - Copia de scripts `.sh`
-  - NO copia `yarn.lock`
-
-### 8. **Configuración Prisma** 💎
-- **Problema**: Output path incorrecto
-- **Verifica**:
-  - Ruta relativa en generator
-  - No rutas absolutas
-
-### 9. **Variables de Entorno** 🔐
-- **Problema**: Variables no documentadas
-- **Verifica documentación de**:
-  - `DATABASE_URL`
-  - `NEXTAUTH_SECRET`
-  - `NEXTAUTH_URL`
-
-### 10. **Package Manager Consistencia** 📦
-- **Problema**: Mezcla de NPM y Yarn
-- **Verifica**:
-  - Existencia de `package-lock.json`
-  - No conflicto con `yarn.lock`
-
-## 📊 Interpretando los Resultados
-
-### ✅ Sin Problemas
-```
-✨ ¡Todo está en orden! No se encontraron problemas.
-Exit code: 0
-```
-
-### ⚠️ Con Advertencias
-```
-⚠️  Se encontraron advertencias pero no errores críticos.
-Advertencias encontradas: 2
-Exit code: 0
-```
-**Acción**: Revisar y corregir si es posible, pero no bloquea el deploy.
-
-### ❌ Con Errores
-```
-❌ Se encontraron errores críticos que deben ser corregidos.
-Errores encontrados: 3
-Exit code: 1
-```
-**Acción**: DEBE corregir antes de hacer deploy.
-
-## 🔄 Flujo de Trabajo Recomendado
-
-### Antes de Commit/Push
-```bash
-# 1. Ejecutar revisión
-./scripts/revision-fix.sh
-
-# 2. Si hay errores, corregir
-# 3. Ejecutar nuevamente hasta que pase
-./scripts/revision-fix.sh
-
-# 4. Commit y push
-git add .
-git commit -m "Fix: correcciones detectadas por revision-fix.sh"
-git push origin main
-```
-
-### Antes de Deploy en EasyPanel
-```bash
-# Verificación final
-./scripts/revision-fix.sh
-
-# Si pasa, proceder con deploy
-# Si no pasa, NO hacer deploy hasta corregir
-```
-
-### Integración con CI/CD
-```yaml
-# .github/workflows/pre-deploy.yml
-jobs:
-  check-fixes:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run Fix Revision
-        run: |
-          chmod +x scripts/revision-fix.sh
-          ./scripts/revision-fix.sh
-```
-
-## 🛠️ Correcciones Comunes
-
-### Error: schema.prisma con ruta absoluta
-```prisma
-// ❌ INCORRECTO
-generator client {
-  provider = "prisma-client-js"
-  output   = "/app/node_modules/.prisma/client"
-}
-
-// ✅ CORRECTO
-generator client {
-  provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
-}
-```
-
-### Error: Dockerfile referencia yarn.lock
-```dockerfile
-# ❌ INCORRECTO
-COPY package*.json yarn.lock ./
-
-# ✅ CORRECTO
-COPY package*.json ./
-```
-
-### Error: Script excluido en .dockerignore
-```bash
-# ❌ INCORRECTO (.dockerignore)
-*.sh
-
-# ✅ CORRECTO (.dockerignore)
-# Excluir scripts de desarrollo pero NO de producción
-test-*.sh
-build-*.sh
-```
-
-### Error: NODE_PATH no configurado
-```bash
-# ❌ INCORRECTO (start-improved.sh)
-node app/server.js
-
-# ✅ CORRECTO (start-improved.sh)
-export NODE_PATH=/app/node_modules
-node app/server.js
-```
-
-## 📈 Historial de Fixes Incluidos
-
-| Fix | Fecha | Problema Original | Solución |
-|-----|-------|-------------------|----------|
-| Ruta absoluta schema.prisma | Oct 28, 2025 | Prisma no genera client en Docker | Usar ruta relativa |
-| yarn.lock en Dockerfile | Oct 28, 2025 | Next.js busca yarn.lock | Eliminar referencias a yarn |
-| Scripts excluidos | Oct 27, 2025 | Archivos .sh no en container | Actualizar .dockerignore |
-| bcryptjs missing | Oct 27, 2025 | Módulo no disponible en runtime | Verificar dependencias |
-| NODE_PATH incorrecto | Oct 27, 2025 | Node no encuentra módulos | Configurar NODE_PATH |
-
-## 🎯 Checklist Manual Adicional
-
-Además del script automático, verificar manualmente:
-
-- [ ] Las credenciales de prueba funcionan
-- [ ] Los endpoints de API responden
-- [ ] El login funciona correctamente
-- [ ] Las migraciones de base de datos están aplicadas
-- [ ] Los archivos estáticos se cargan correctamente
-- [ ] Los logs no muestran errores críticos
-
-## 📞 Soporte
-
-Si el script reporta errores que no entiendes:
-
-1. **Lee el mensaje de error completo**: El script indica ubicación y acción recomendada
-2. **Consulta la sección de Correcciones Comunes** arriba
-3. **Revisa la documentación técnica** en `DOCUMENTACION_TECNICA_COMPLETA_FINAL.md`
-4. **Busca en el historial de commits** para ver cómo se corrigió anteriormente
-
-## 🔄 Actualización del Script
-
-Para añadir nuevas verificaciones al script:
-
-1. Editar `scripts/revision-fix.sh`
-2. Añadir nueva sección con formato:
-```bash
-section "N. Título de la Verificación"
-# Lógica de verificación
-if [ condición_problema ]; then
-    error "Descripción del problema"
-else
-    success "Verificación pasada"
-fi
-```
-3. Actualizar esta documentación
-4. Commit y push
+### 2️⃣ `cache-diagnostics.sh` - Diagnóstico de Cache
+**Úsalo cuando sospeches problemas de cache**
 
 ---
 
-**Última actualización**: 29 de Octubre, 2025  
-**Versión del script**: 1.0  
-**Mantenedor**: Equipo EscalaFin
+## 🚀 Uso Rápido
+
+### Escenario 1: Deploy Normal (Sin Problemas)
+
+```bash
+# 1. Verificar ANTES de hacer push
+cd /home/ubuntu/escalafin_mvp
+./scripts/pre-deploy-verification.sh
+
+# Si todo está verde ✓, continuar con:
+git add .
+git commit -m "tu mensaje"
+git push origin main
+
+# 3. En EasyPanel: Rebuild normal (sin limpiar cache)
+```
+
+**Salida esperada:**
+```
+╔════════════════════════════════════════════════════════════╗
+║  ✓ TODO CORRECTO - LISTO PARA HACER PUSH Y REBUILD       ║
+╚════════════════════════════════════════════════════════════╝
+
+✓ Exitosos: 28
+⚠ Advertencias: 0
+✗ Errores: 0
+```
+
+---
+
+### Escenario 2: Deploy con Errores de Build
+
+```bash
+# 1. Si el build en EasyPanel falla, diagnosticar:
+cd /home/ubuntu/escalafin_mvp
+./scripts/cache-diagnostics.sh
+
+# 2. El script te dirá qué está mal. Ejemplos:
+
+# Si dice: "package-lock.json desactualizado"
+cd app
+npm install
+cd ..
+
+# Si dice: "Cambios sin commitear"
+git add .
+git commit -m "fix: corregir dependencias"
+git push origin main
+
+# 3. Verificar nuevamente
+./scripts/pre-deploy-verification.sh
+
+# 4. Si ahora todo está verde ✓:
+#    → Ve a EasyPanel
+#    → Marca "Clear build cache"
+#    → Haz clic en "Rebuild"
+```
+
+---
+
+### Escenario 3: Cache Antiguo (App Funciona Local pero NO en EasyPanel)
+
+```bash
+# 1. Diagnosticar
+./scripts/cache-diagnostics.sh
+
+# 2. Buscar la sección "RESUMEN DEL DIAGNÓSTICO"
+#    Si dice: "Se detectaron N problema(s)"
+#    → Lee los problemas detectados arriba
+
+# 3. Corregir cada problema detectado
+
+# 4. Verificar que todo esté correcto
+./scripts/pre-deploy-verification.sh
+
+# 5. Push a GitHub (si había cambios)
+git push origin main
+
+# 6. En EasyPanel:
+#    ✓ Clear build cache (OBLIGATORIO)
+#    → Rebuild
+```
+
+---
+
+## 📊 Qué Verifica Cada Script
+
+### Script 1: `pre-deploy-verification.sh`
+
+#### ✅ Verifica:
+
+1. **Archivos Críticos**
+   - ✓ `package.json` existe
+   - ✓ `package-lock.json` existe y está sincronizado
+   - ✓ `Dockerfile` existe
+   - ✓ `docker-compose.yml` existe
+   - ✓ `schema.prisma` existe
+
+2. **Scripts de Producción**
+   - ✓ `start-improved.sh` existe
+   - ✓ `emergency-start.sh` existe
+   - ✓ `healthcheck.sh` existe
+   - ⚠️ `setup-users-production.js` (opcional pero recomendado)
+
+3. **Directorios Esenciales**
+   - ✓ `app/` existe
+   - ✓ `app/components/` existe
+   - ✓ `app/lib/` existe
+   - ✓ `app/api/` existe
+   - ✓ `app/prisma/` existe
+
+4. **Contenido de Dockerfile**
+   - ✓ `WORKDIR /app` configurado
+   - ✓ `package-lock.json` referenciado
+   - ✓ Scripts de inicio copiados
+
+5. **Archivo .dockerignore**
+   - ✓ Scripts de inicio NO están ignorados
+   - ✓ Archivos de producción NO están ignorados
+
+6. **Sincronización de Dependencias**
+   - ✓ Google Drive (`googleapis`) en package-lock.json
+   - ✓ Chatwoot en package-lock.json
+   - ✓ Todas las dependencias sincronizadas
+
+7. **Estado del Repositorio Git**
+   - ✓ No hay cambios sin commitear
+   - ✓ No hay commits sin hacer push
+   - ✓ Rama actual es `main`
+
+8. **Permisos de Scripts**
+   - ✓ Todos los scripts tienen permisos de ejecución
+
+#### 🎨 Códigos de Salida:
+
+- **0** = Todo perfecto, listo para deploy
+- **1** = Advertencias menores, revisar pero puede continuar
+- **2** = Errores críticos, NO hacer push hasta corregir
+
+---
+
+### Script 2: `cache-diagnostics.sh`
+
+#### 🔍 Diagnostica:
+
+1. **Timestamps de Archivos**
+   - Compara fechas de `Dockerfile`, `package.json`, `package-lock.json`
+   - Detecta si `package-lock.json` es más antiguo que `package.json`
+   - **Problema común**: Si package.json cambió pero package-lock.json no, causará error en EasyPanel
+
+2. **Sincronización con GitHub**
+   - Verifica último commit local vs GitHub
+   - Detecta commits sin hacer push
+   - **Problema común**: Cambios locales que no llegaron a GitHub
+
+3. **Cambios sin Commitear**
+   - Lista archivos críticos modificados pero sin commitear
+   - **Problema común**: Modificaste Dockerfile pero olvidaste hacer commit
+
+4. **Coherencia de Dockerfile**
+   - Verifica que todos los archivos que el Dockerfile copia existan
+   - **Problema común**: Dockerfile referencia `start-improved.sh` pero el archivo no existe
+
+5. **Síntomas de Cache Antiguo**
+   - Calcula cuánto tiempo pasó desde el último commit
+   - Si fue hace más de 1 hora, sugiere verificar
+
+6. **Hashes de Verificación**
+   - Genera hashes MD5 de archivos críticos
+   - Puedes comparar estos hashes con lo que EasyPanel está usando
+
+#### 🎨 Salida Final:
+
+```
+╔════════════════════════════════════════════════════════════╗
+║                  RESUMEN DEL DIAGNÓSTICO                   ║
+╚════════════════════════════════════════════════════════════╝
+
+✓ NO se detectaron problemas de cache
+```
+
+O si hay problemas:
+
+```
+⚠ Se detectaron 3 problema(s) que pueden causar cache antiguo
+
+Acciones recomendadas:
+1. Corrige los problemas indicados arriba
+2. Haz commit y push de todos los cambios
+3. En EasyPanel: Clear build cache + Rebuild
+```
+
+---
+
+## 🎯 Casos de Uso Reales
+
+### Caso 1: Agregaste Nueva Dependencia
+
+```bash
+# 1. Instalaste nueva dependencia
+cd app
+npm install nueva-dependencia
+cd ..
+
+# 2. Verificar que se sincronizó
+./scripts/pre-deploy-verification.sh
+
+# Debe mostrar:
+# ✓ package-lock.json está sincronizado
+
+# 3. Commit y push
+git add app/package.json app/package-lock.json
+git commit -m "feat: agregar nueva-dependencia"
+git push origin main
+
+# 4. Deploy normal en EasyPanel
+```
+
+---
+
+### Caso 2: Modificaste el Dockerfile
+
+```bash
+# 1. Después de modificar Dockerfile
+./scripts/pre-deploy-verification.sh
+
+# Debe mostrar:
+# ✓ WORKDIR configurado correctamente
+# ✓ Scripts de inicio copiados en Dockerfile
+
+# 2. Si todo está verde ✓
+git add Dockerfile
+git commit -m "fix: actualizar Dockerfile"
+git push origin main
+
+# 3. En EasyPanel:
+#    → Clear build cache (OBLIGATORIO al cambiar Dockerfile)
+#    → Rebuild
+```
+
+---
+
+### Caso 3: EasyPanel Dice "archivo no encontrado" pero el archivo existe
+
+```bash
+# 1. Diagnosticar
+./scripts/cache-diagnostics.sh
+
+# Posibles causas detectadas:
+# ⚠ Hay cambios sin commitear
+# ⚠ Hay commits sin hacer push
+# ⚠ Archivo está en .dockerignore
+
+# 2. Corregir según lo detectado
+git add .
+git commit -m "fix: incluir archivos faltantes"
+git push origin main
+
+# 3. En EasyPanel:
+#    ✓ Clear build cache
+#    → Rebuild
+```
+
+---
+
+## 🛠️ Interpretación de Mensajes
+
+### Mensajes Verdes (✓) - Todo Bien
+
+```
+✓ package.json principal
+✓ package-lock.json sincronizado
+✓ Dockerfile principal
+✓ Scripts de inicio copiados en Dockerfile
+```
+
+**Acción**: ¡Ninguna! Todo está perfecto.
+
+---
+
+### Mensajes Amarillos (⚠) - Advertencias
+
+```
+⚠ setup-users-production.js - RECOMENDADO
+⚠ Hay cambios sin commitear
+⚠ start-improved.sh NO tiene permisos de ejecución
+```
+
+**Acción**: Revisar pero no es crítico. Puede continuar si entiendes el riesgo.
+
+**Corrección ejemplo**:
+```bash
+# Para permisos:
+chmod +x start-improved.sh
+
+# Para cambios sin commitear:
+git add .
+git commit -m "mensaje"
+```
+
+---
+
+### Mensajes Rojos (✗) - Errores Críticos
+
+```
+✗ package-lock.json sincronizado - FALTA
+✗ Scripts de inicio NO copiados en Dockerfile
+✗ Google Drive: falta en package-lock.json
+```
+
+**Acción**: OBLIGATORIO corregir antes de hacer deploy.
+
+**Corrección ejemplo**:
+```bash
+# Para dependencias desincronizadas:
+cd app
+npm install
+cd ..
+
+# Verificar nuevamente:
+./scripts/pre-deploy-verification.sh
+```
+
+---
+
+## 📝 Buenas Prácticas
+
+### ✅ SIEMPRE:
+
+1. **Ejecuta verificación ANTES de push**
+   ```bash
+   ./scripts/pre-deploy-verification.sh
+   ```
+
+2. **Si hay errores rojos (✗), corrígelos primero**
+
+3. **Después de instalar dependencias, verifica**
+   ```bash
+   cd app && npm install && cd ..
+   ./scripts/pre-deploy-verification.sh
+   ```
+
+4. **Si modificas Dockerfile, limpia cache en EasyPanel**
+
+---
+
+### ❌ NUNCA:
+
+1. **No hagas push sin verificar primero**
+   - Causa: Problemas en EasyPanel que podrías haber evitado
+
+2. **No ignores errores rojos (✗)**
+   - Causa: Build fallará en EasyPanel 100%
+
+3. **No olvides `npm install` después de cambiar package.json**
+   - Causa: package-lock.json desactualizado → build falla
+
+4. **No modifiques .dockerignore sin verificar**
+   - Causa: Archivos críticos pueden ser ignorados
+
+---
+
+## 🎨 Flujo de Trabajo Completo (Recomendado)
+
+```bash
+# ════════════════════════════════════════════════
+#  ANTES DE CADA DEPLOY
+# ════════════════════════════════════════════════
+
+# 1. Verificar estado actual
+cd /home/ubuntu/escalafin_mvp
+./scripts/pre-deploy-verification.sh
+
+# 2. Si hay errores, corregirlos
+# ... (según lo que indique el script)
+
+# 3. Verificar nuevamente
+./scripts/pre-deploy-verification.sh
+
+# 4. Si todo está verde ✓
+git add .
+git commit -m "tu mensaje descriptivo"
+git push origin main
+
+# 5. En EasyPanel:
+#    - Deploy normal: Rebuild
+#    - Si cambios en Dockerfile: Clear cache + Rebuild
+
+# ════════════════════════════════════════════════
+#  SI HAY PROBLEMAS EN EASYPANEL
+# ════════════════════════════════════════════════
+
+# 1. Diagnosticar el problema
+./scripts/cache-diagnostics.sh
+
+# 2. Leer el RESUMEN DEL DIAGNÓSTICO
+
+# 3. Corregir problemas detectados
+
+# 4. Verificar que se corrigieron
+./scripts/pre-deploy-verification.sh
+
+# 5. Push si es necesario
+git push origin main
+
+# 6. En EasyPanel:
+#    ✓ Clear build cache
+#    → Rebuild
+```
+
+---
+
+## 🚨 Solución de Problemas
+
+### Problema: Script dice "archivo no encontrado"
+
+**Causa**: Ruta incorrecta
+
+**Solución**:
+```bash
+cd /home/ubuntu/escalafin_mvp
+./scripts/pre-deploy-verification.sh
+```
+
+---
+
+### Problema: "Permission denied" al ejecutar script
+
+**Causa**: Sin permisos de ejecución
+
+**Solución**:
+```bash
+chmod +x scripts/pre-deploy-verification.sh
+chmod +x scripts/cache-diagnostics.sh
+```
+
+---
+
+### Problema: Script muestra muchos errores rojos (✗)
+
+**Causa**: Archivos críticos faltan o están mal configurados
+
+**Solución**:
+1. Lee cada error rojo cuidadosamente
+2. Corrige uno por uno
+3. Ejecuta el script nuevamente después de cada corrección
+4. Cuando todos estén verdes ✓, haz push
+
+---
+
+### Problema: "package-lock.json desactualizado"
+
+**Causa**: Modificaste package.json pero no ejecutaste `npm install`
+
+**Solución**:
+```bash
+cd app
+npm install
+cd ..
+git add app/package-lock.json
+git commit -m "fix: actualizar package-lock.json"
+git push origin main
+```
+
+---
+
+## 📚 Documentación Adicional
+
+### Archivos Relacionados:
+
+- `GUIA_LIMPIAR_CACHE_EASYPANEL.md` - Guía completa para limpiar cache
+- `COMANDOS_UTILES_CACHE.md` - Comandos útiles de Git, Docker, etc.
+- `scripts/pre-deploy-verification.sh` - Script de verificación
+- `scripts/cache-diagnostics.sh` - Script de diagnóstico
+
+---
+
+## ✅ Checklist de Uso
+
+### Antes de CADA deploy:
+```
+□ cd /home/ubuntu/escalafin_mvp
+□ ./scripts/pre-deploy-verification.sh
+□ Revisar salida - TODO debe estar verde ✓
+□ Si hay errores rojos ✗, corregirlos
+□ git add . && git commit && git push
+```
+
+### Después de cambios en dependencias:
+```
+□ cd app && npm install
+□ cd .. && ./scripts/pre-deploy-verification.sh
+□ Verificar: "✓ package-lock.json sincronizado"
+□ git add . && git commit && git push
+```
+
+### Si hay problemas en EasyPanel:
+```
+□ ./scripts/cache-diagnostics.sh
+□ Leer RESUMEN DEL DIAGNÓSTICO
+□ Corregir problemas detectados
+□ ./scripts/pre-deploy-verification.sh
+□ En EasyPanel: Clear cache + Rebuild
+```
+
+---
+
+## 🎯 Resumen Final
+
+**Los 2 scripts creados:**
+
+1. **`pre-deploy-verification.sh`**
+   - ✓ Verifica 28+ puntos críticos
+   - ✓ Detecta problemas ANTES de push
+   - ✓ Ejecutar SIEMPRE antes de deploy
+
+2. **`cache-diagnostics.sh`**
+   - 🔍 Diagnostica problemas de cache
+   - 🔍 Detecta desincronizaciones
+   - 🔍 Ejecutar cuando hay errores en EasyPanel
+
+**¡Con estos scripts, los problemas de cache serán cosa del pasado!**
+
+---
+
+## 📞 Soporte
+
+Si un script muestra un error que no entiendes:
+
+1. **Lee el mensaje completo** - Siempre explica qué está mal
+2. **Busca en esta guía** - Casos comunes están documentados
+3. **Revisa los archivos de documentación** relacionados
+
+---
+
+*Guía actualizada: 29 de Octubre, 2025*  
+*Proyecto: EscalaFin MVP - Sistema de Gestión de Préstamos*
