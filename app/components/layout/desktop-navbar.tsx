@@ -26,7 +26,6 @@ import {
   LogOut,
   User,
   ChevronDown,
-  Home,
   HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -93,11 +92,6 @@ export function DesktopNavbar() {
 
   // Configuración de navegación principal
   const mainNavItems: NavigationItem[] = [
-    {
-      title: 'Inicio',
-      icon: Home,
-      href: '/',
-    },
     {
       title: 'Dashboard',
       icon: LayoutDashboard,
@@ -263,8 +257,6 @@ export function DesktopNavbar() {
     return pathname.startsWith(href);
   };
 
-  const enabledModulesCount = modules.length;
-
   // Si no hay sesión, no mostrar navegación
   if (!session) {
     return null;
@@ -276,7 +268,7 @@ export function DesktopNavbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo y Brand */}
           <div className="flex items-center space-x-8">
-            <Link href="/" className="flex items-center space-x-3 hover:opacity-90 transition-opacity">
+            <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
               <div className="relative h-10 w-48">
                 <Image 
                   src="/logoescalafin.png" 
@@ -286,9 +278,6 @@ export function DesktopNavbar() {
                   priority
                 />
               </div>
-              <Badge variant="outline" className="text-xs">
-                {loading ? 'Cargando...' : `${enabledModulesCount} módulos`}
-              </Badge>
             </Link>
 
             {/* Navegación principal */}

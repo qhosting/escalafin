@@ -27,7 +27,6 @@ import {
   Wrench,
   LogOut,
   User,
-  Home,
   HelpCircle,
   RefreshCw
 } from 'lucide-react';
@@ -90,11 +89,6 @@ export function MobileSidebar() {
     {
       category: 'Principal',
       items: [
-        {
-          title: 'Inicio',
-          icon: Home,
-          href: '/',
-        },
         {
           title: 'Dashboard',
           icon: LayoutDashboard,
@@ -296,8 +290,6 @@ export function MobileSidebar() {
     return pathname.startsWith(href);
   };
 
-  const enabledModulesCount = modules.length;
-
   // Si no hay sesión, no mostrar navegación móvil
   if (!session) {
     return null;
@@ -309,12 +301,7 @@ export function MobileSidebar() {
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center space-x-3">
           <Building2 className="h-6 w-6 text-primary" />
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">EscalaFin</h2>
-            <Badge variant="outline" className="text-xs">
-              {loading ? 'Cargando...' : `${enabledModulesCount} módulos`}
-            </Badge>
-          </div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">EscalaFin</h2>
         </div>
         
         <div className="flex items-center space-x-2">
