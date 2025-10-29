@@ -26,7 +26,8 @@ import {
   LogOut,
   User,
   ChevronDown,
-  HelpCircle
+  HelpCircle,
+  HardDrive
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -200,6 +201,13 @@ export function DesktopNavbar() {
         icon: UserPlus,
         href: '/admin/users',
         moduleKey: 'user_management',
+        roles: ['ADMIN']
+      },
+      {
+        title: 'Google Drive',
+        icon: HardDrive,
+        href: '/admin/storage',
+        moduleKey: 'file_management',
         roles: ['ADMIN']
       },
       {

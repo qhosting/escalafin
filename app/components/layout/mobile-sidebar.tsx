@@ -28,7 +28,8 @@ import {
   LogOut,
   User,
   HelpCircle,
-  RefreshCw
+  RefreshCw,
+  HardDrive
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -203,6 +204,13 @@ export function MobileSidebar() {
           roles: ['ADMIN', 'ASESOR']
         },
         {
+          title: 'Chat (Chatwoot)',
+          icon: MessageSquare,
+          href: '/admin/chatwoot',
+          moduleKey: 'chatwoot_chat',
+          roles: ['ADMIN']
+        },
+        {
           title: 'Recargas de Mensajes',
           icon: RefreshCw,
           href: '/admin/message-recharges',
@@ -234,6 +242,13 @@ export function MobileSidebar() {
     {
       category: 'Configuración',
       items: [
+        {
+          title: 'Google Drive',
+          icon: HardDrive,
+          href: '/admin/storage',
+          moduleKey: 'file_management',
+          roles: ['ADMIN']
+        },
         {
           title: 'Configuración',
           icon: Settings,
