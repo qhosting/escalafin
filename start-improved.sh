@@ -76,13 +76,37 @@ if [ -n "$DATABASE_URL" ]; then
     
     if [ "$USER_COUNT" = "0" ]; then
         echo "  🌱 Configurando usuarios de prueba..."
+        echo "  📂 Directorio actual: $(pwd)"
+        echo "  📂 Verificando existencia de archivos..."
+        ls -la scripts/ 2>/dev/null || echo "  ⚠️  Directorio scripts/ no encontrado"
+        
+        # Intentar con ruta relativa primero
         if [ -f "scripts/setup-users-production.js" ]; then
+            echo "  ✅ Script encontrado (ruta relativa)"
+            SCRIPT_PATH="scripts/setup-users-production.js"
+        # Intentar con ruta absoluta
+        elif [ -f "/app/scripts/setup-users-production.js" ]; then
+            echo "  ✅ Script encontrado (ruta absoluta)"
+            SCRIPT_PATH="/app/scripts/setup-users-production.js"
+        else
+            echo "  ⚠️  setup-users-production.js no encontrado en:"
+            echo "       - $(pwd)/scripts/setup-users-production.js"
+            echo "       - /app/scripts/setup-users-production.js"
+            echo "  ⚠️  Listando contenido de directorios..."
+            ls -la . 2>/dev/null || true
+            ls -la scripts/ 2>/dev/null || true
+            SCRIPT_PATH=""
+        fi
+        
+        if [ -n "$SCRIPT_PATH" ]; then
             # Configurar NODE_PATH para que Node.js encuentre los módulos
             export NODE_PATH=/app/node_modules:$NODE_PATH
             echo "  📍 NODE_PATH configurado: $NODE_PATH"
-            node scripts/setup-users-production.js || echo "  ⚠️  Error configurando usuarios, continuando..."
+            echo "  🚀 Ejecutando: node $SCRIPT_PATH"
+            node "$SCRIPT_PATH" || echo "  ⚠️  Error configurando usuarios, continuando..."
         else
-            echo "  ⚠️  scripts/setup-users-production.js no encontrado, continuando..."
+            echo "  ⚠️  No se puede configurar usuarios automáticamente"
+            echo "  💡 Configura manualmente usando el panel de administración"
         fi
     else
         echo "  ✅ DB ya inicializada con usuarios"
