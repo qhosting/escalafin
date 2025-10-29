@@ -59,8 +59,9 @@ ENV NEXT_OUTPUT_MODE=standalone
 
 # Crear yarn.lock dummy para Next.js outputFileTracingRoot
 # Next.js busca lockfiles en el directorio padre debido a outputFileTracingRoot
-RUN echo "# Dummy lockfile for Next.js outputFileTracingRoot" > /app/yarn.lock && \
-    echo "✅ yarn.lock dummy creado en /app"
+RUN mkdir -p /app && \
+    echo "# Dummy lockfile for Next.js outputFileTracingRoot" > ./yarn.lock && \
+    echo "✅ yarn.lock dummy creado en $(pwd)"
 
 # Generar Prisma Client
 RUN echo "🔧 Generando Prisma Client..." && \
