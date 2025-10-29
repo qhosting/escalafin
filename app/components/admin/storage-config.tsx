@@ -129,6 +129,8 @@ export function StorageConfig() {
       setTesting(true)
       setTestResults(null)
       
+      const config = settings.type === 'local' ? settings.local : settings.googleDrive
+      
       const response = await fetch('/api/admin/storage/test', {
         method: 'POST',
         headers: {
@@ -136,7 +138,7 @@ export function StorageConfig() {
         },
         body: JSON.stringify({
           type: settings.type,
-          config: settings[settings.type]
+          config: config
         })
       })
 
