@@ -112,6 +112,30 @@ else
     echo "   Tamaño: ${SIZE_KB}KB ✓"
 fi
 
+# Validar rutas absolutas problemáticas
+echo ""
+echo "🔍 Validando rutas absolutas..."
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/validate-absolute-paths.sh" ]; then
+    if bash "$SCRIPT_DIR/validate-absolute-paths.sh" > /dev/null 2>&1; then
+        echo "✅ Sin rutas absolutas problemáticas"
+    else
+        echo "⚠️  Se encontraron rutas absolutas problemáticas"
+        echo "   Ejecuta: bash scripts/validate-absolute-paths.sh"
+        echo "   Para ver detalles"
+        echo ""
+        read -p "¿Deseas continuar con el push de todas formas? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "❌ Push cancelado"
+            exit 1
+        fi
+    fi
+else
+    echo "⚠️  validate-absolute-paths.sh no encontrado, saltando validación"
+fi
+
 echo ""
 echo "✅ Verificaciones completadas - OK para push"
 echo ""
