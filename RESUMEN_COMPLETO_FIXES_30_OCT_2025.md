@@ -477,7 +477,45 @@ rm .github/workflows/docker-build.yml
 
 ---
 
-**Última actualización:** 30 de octubre de 2025, 04:45 AM  
-**Último commit:** 0527297  
+---
+
+## 🔧 FIX #7: Limpiar Prisma Client anterior antes de regenerar - Commit 6f966d9
+
+### ❌ Problema:
+```
+Type error: Module '"@prisma/client"' has no exported member 'UserRole'.
+./api/admin/users/[id]/route.ts:7:10
+```
+
+**Causa raíz:** El Prisma Client copiado del stage `deps` es VIEJO (generado sin schema.prisma). Cuando se ejecuta `prisma generate` en el stage `builder`, no sobrescribe completamente el cliente anterior, causando inconsistencias de tipos.
+
+### ✅ Solución:
+
+**Limpiar completamente el Prisma Client anterior** antes de regenerar:
+
+```dockerfile
+RUN echo "🔄 Limpiando Prisma Client anterior..." && \
+    rm -rf node_modules/.prisma node_modules/@prisma/client && \
+    echo "✅ Prisma Client anterior eliminado" && \
+    ./node_modules/.bin/prisma generate
+```
+
+**Además, agregar verificaciones:**
+- Verificar que `prisma/schema.prisma` existe
+- Mostrar el enum `UserRole` para confirmar que está en el schema
+- Verificar que el cliente se generó en `node_modules/.prisma/client`
+
+### 📊 Resultado:
+- ✅ Prisma Client anterior eliminado completamente
+- ✅ Nuevo Prisma Client generado desde cero
+- ✅ Types de TypeScript correctos (UserRole, UserStatus, etc.)
+- ✅ Build de Next.js exitoso
+
+**Commit:** 6f966d9
+
+---
+
+**Última actualización:** 30 de octubre de 2025, 04:50 AM  
+**Último commit:** 6f966d9  
 **Estado:** ✅ TODOS LOS FIXES APLICADOS - LISTO PARA DEPLOY
 
