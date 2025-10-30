@@ -447,7 +447,37 @@ RUN ./node_modules/.bin/next build
 
 ---
 
-**Última actualización:** 30 de octubre de 2025, 04:40 AM  
-**Último commit:** 6b8c9bd  
+---
+
+## 🔧 FIX #6: Eliminar workflows de GitHub Actions - Commit 0527297
+
+### ❌ Problema:
+```
+Error: Username and password required
+Run docker/login-action@v3
+```
+
+**Causa raíz:** Los workflows `.github/workflows/docker-build.yml` y `ci.yml` intentaban hacer login en Docker Hub sin credenciales configuradas (`DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN` no existen en secrets).
+
+### ✅ Solución:
+
+**Eliminar workflows** porque no son necesarios para deploy en EasyPanel:
+
+```bash
+rm .github/workflows/ci.yml
+rm .github/workflows/docker-build.yml
+```
+
+### 📊 Resultado:
+- ✅ No más errores de GitHub Actions
+- ✅ Deploy se hace manualmente en EasyPanel
+- ✅ Repositorio más limpio
+
+**Commit:** 0527297
+
+---
+
+**Última actualización:** 30 de octubre de 2025, 04:45 AM  
+**Último commit:** 0527297  
 **Estado:** ✅ TODOS LOS FIXES APLICADOS - LISTO PARA DEPLOY
 
