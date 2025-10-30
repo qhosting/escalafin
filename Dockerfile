@@ -36,10 +36,17 @@ WORKDIR /app
 COPY app/package.json ./
 COPY app/yarn.lock ./
 
-# Instalar dependencias con Yarn
+# Instalar dependencias con Yarn y verificar que node_modules fue generado
 RUN echo "📦 Instalando dependencias con Yarn..." && \
     yarn install --immutable && \
-    echo "✅ $(ls node_modules 2>/dev/null | wc -l) paquetes instalados"
+    echo "✅ Yarn install completado" && \
+    echo "" && \
+    echo "🔍 Verificando node_modules..." && \
+    test -d "node_modules" || (echo "❌ ERROR: node_modules no fue generado" && exit 1) && \
+    PACKAGE_COUNT=$(ls node_modules 2>/dev/null | wc -l) && \
+    echo "✅ node_modules generado: $PACKAGE_COUNT paquetes instalados" && \
+    test "$PACKAGE_COUNT" -gt 10 || (echo "❌ ERROR: node_modules parece vacío (solo $PACKAGE_COUNT paquetes)" && exit 1) && \
+    echo "✅ Dependencias instaladas correctamente"
 
 # ===================================
 # STAGE 2: Build de producción

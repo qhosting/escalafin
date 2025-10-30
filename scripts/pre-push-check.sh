@@ -136,6 +136,62 @@ else
     echo "⚠️  validate-absolute-paths.sh no encontrado, saltando validación"
 fi
 
+# Verificar archivos críticos para Docker build
+echo ""
+echo "🔍 Verificando archivos críticos para Docker..."
+
+CRITICAL_ERRORS=0
+
+# Verificar Dockerfile
+if [ ! -f "$PROJECT_ROOT/Dockerfile" ]; then
+    echo "❌ ERROR: Dockerfile no encontrado"
+    CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+else
+    # Verificar que Dockerfile tenga verificación de node_modules
+    if grep -q "test -d \"node_modules\"" "$PROJECT_ROOT/Dockerfile"; then
+        echo "✅ Dockerfile tiene verificación de node_modules"
+    else
+        echo "⚠️  WARNING: Dockerfile sin verificación explícita de node_modules"
+    fi
+fi
+
+# Verificar package.json
+if [ ! -f "$PROJECT_ROOT/app/package.json" ]; then
+    echo "❌ ERROR: app/package.json no encontrado"
+    CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+fi
+
+# Verificar next.config.js
+if [ ! -f "$PROJECT_ROOT/app/next.config.js" ]; then
+    echo "❌ ERROR: app/next.config.js no encontrado"
+    CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+fi
+
+# Verificar prisma schema
+if [ ! -f "$PROJECT_ROOT/app/prisma/schema.prisma" ]; then
+    echo "❌ ERROR: app/prisma/schema.prisma no encontrado"
+    CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+fi
+
+# Verificar scripts de startup
+if [ ! -f "$PROJECT_ROOT/start-improved.sh" ]; then
+    echo "❌ ERROR: start-improved.sh no encontrado"
+    CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+fi
+
+if [ $CRITICAL_ERRORS -gt 0 ]; then
+    echo ""
+    echo "❌ $CRITICAL_ERRORS error(es) crítico(s) detectado(s)"
+    echo "   El build de Docker fallará con estos errores"
+    echo ""
+    echo "Para verificación completa, ejecuta:"
+    echo "   bash scripts/pre-build-check.sh"
+    echo ""
+    exit 1
+fi
+
+echo "✅ Archivos críticos verificados"
+
 echo ""
 echo "✅ Verificaciones completadas - OK para push"
 echo ""
