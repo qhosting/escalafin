@@ -462,20 +462,33 @@ const rolePermissionsTemplate = [
 ];
 
 export async function seedModules() {
-  console.log('🌱 Seeding PWA modules...');
+  console.log('🌱 Seeding PWA modules (idempotent - safe for production)...');
 
   try {
-    // Clear existing modules (optional - comment out in production)
-    // await prisma.moduleRolePermission.deleteMany();
-    // await prisma.moduleChangeLog.deleteMany();
-    // await prisma.pWAModule.deleteMany();
+    let modulesCreated = 0;
+    let modulesUpdated = 0;
 
     for (const moduleData of modules) {
-      console.log(`Creating module: ${moduleData.name}`);
+      console.log(`Processing module: ${moduleData.name} (${moduleData.moduleKey})`);
       
-      // Create the module
-      const module = await prisma.pWAModule.create({
-        data: {
+      // Upsert the module (create if new, update if exists)
+      const module = await prisma.pWAModule.upsert({
+        where: { 
+          moduleKey: moduleData.moduleKey 
+        },
+        update: {
+          name: moduleData.name,
+          description: moduleData.description,
+          category: moduleData.category as any,
+          status: moduleData.status as any,
+          isCore: moduleData.isCore,
+          requiredFor: moduleData.requiredFor,
+          availableFor: moduleData.availableFor,
+          icon: moduleData.icon,
+          route: moduleData.route,
+          sortOrder: moduleData.sortOrder,
+        },
+        create: {
           moduleKey: moduleData.moduleKey,
           name: moduleData.name,
           description: moduleData.description,
@@ -490,27 +503,67 @@ export async function seedModules() {
         },
       });
 
-      // Create role permissions for each available role
+      // Check if it was created or updated
+      const existingModule = await prisma.pWAModule.findUnique({
+        where: { moduleKey: moduleData.moduleKey },
+        select: { createdAt: true, updatedAt: true }
+      });
+      
+      if (existingModule && existingModule.createdAt.getTime() === existingModule.updatedAt.getTime()) {
+        modulesCreated++;
+        console.log(`  ✨ Created new module: ${moduleData.name}`);
+      } else {
+        modulesUpdated++;
+        console.log(`  🔄 Updated existing module: ${moduleData.name}`);
+      }
+
+      // Upsert role permissions for each available role
       for (const role of moduleData.availableFor) {
         const permissionTemplate = rolePermissionsTemplate.find(p => p.role === role);
         const enabled = moduleData.requiredFor.includes(role) || moduleData.isCore;
 
-        await prisma.moduleRolePermission.create({
-          data: {
+        // Check if permission already exists
+        const existingPermission = await prisma.moduleRolePermission.findFirst({
+          where: {
             moduleId: module.id,
             role: role as any,
-            enabled,
-            permissions: JSON.stringify(permissionTemplate?.permissions || ['read']),
           },
         });
+
+        if (existingPermission) {
+          // Update existing permission
+          await prisma.moduleRolePermission.update({
+            where: { id: existingPermission.id },
+            data: {
+              enabled,
+              permissions: JSON.stringify(permissionTemplate?.permissions || ['read']),
+            },
+          });
+        } else {
+          // Create new permission
+          await prisma.moduleRolePermission.create({
+            data: {
+              moduleId: module.id,
+              role: role as any,
+              enabled,
+              permissions: JSON.stringify(permissionTemplate?.permissions || ['read']),
+            },
+          });
+        }
       }
 
-      console.log(`✅ Created module: ${moduleData.name} with permissions`);
+      console.log(`  ✅ Permissions configured for ${moduleData.availableFor.length} roles`);
     }
 
+    console.log('');
+    console.log('═══════════════════════════════════════════');
     console.log('🎉 PWA modules seeded successfully!');
+    console.log(`  ✨ New modules created: ${modulesCreated}`);
+    console.log(`  🔄 Existing modules updated: ${modulesUpdated}`);
+    console.log(`  📊 Total modules: ${modules.length}`);
+    console.log('═══════════════════════════════════════════');
   } catch (error) {
-    console.error('Error seeding modules:', error);
+    console.error('❌ Error seeding modules:', error);
     throw error;
   }
 }

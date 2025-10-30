@@ -60,6 +60,38 @@ if [ -n "$DATABASE_URL" ]; then
         exit 1
     fi
     
+    # Sincronizar módulos PWA (automático en cada deploy)
+    echo ""
+    echo "🔄 Sincronizando módulos PWA..."
+    if [ -f "scripts/seed-modules.ts" ]; then
+        echo "  📂 Script encontrado: scripts/seed-modules.ts"
+        export NODE_PATH=/app/node_modules:$NODE_PATH
+        echo "  🚀 Ejecutando seed de módulos..."
+        
+        # Usar yarn si está disponible, si no tsx directamente
+        if command -v yarn >/dev/null 2>&1; then
+            yarn tsx scripts/seed-modules.ts 2>&1 | while IFS= read -r line; do
+                echo "  $line"
+            done
+            MODULE_SEED_EXIT_CODE=${PIPESTATUS[0]}
+        else
+            node_modules/.bin/tsx scripts/seed-modules.ts 2>&1 | while IFS= read -r line; do
+                echo "  $line"
+            done
+            MODULE_SEED_EXIT_CODE=${PIPESTATUS[0]}
+        fi
+        
+        if [ $MODULE_SEED_EXIT_CODE -eq 0 ]; then
+            echo "  ✅ Módulos PWA sincronizados exitosamente"
+        else
+            echo "  ⚠️  Error sincronizando módulos (código: $MODULE_SEED_EXIT_CODE)"
+            echo "  💡 El sistema continuará, pero algunos módulos pueden no estar disponibles"
+        fi
+    else
+        echo "  ⚠️  scripts/seed-modules.ts no encontrado"
+        echo "  💡 Los módulos PWA no se sincronizarán automáticamente"
+    fi
+    
     # Ejecutar setup de usuarios si es necesario
     echo ""
     echo "🌱 Verificando necesidad de configurar usuarios..."
