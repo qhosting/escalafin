@@ -277,6 +277,19 @@ const modules = [
     route: '/integrations/whatsapp',
     sortOrder: 71,
   },
+  {
+    moduleKey: 'chatwoot_chat',
+    name: 'Chatwoot',
+    description: 'Sistema de chat en tiempo real para soporte a clientes',
+    category: 'INTEGRATIONS',
+    status: 'ENABLED',
+    isCore: false,
+    requiredFor: [],
+    availableFor: ['ADMIN'],
+    icon: 'MessageSquare',
+    route: '/admin/chatwoot',
+    sortOrder: 72,
+  },
 
   // Tools Modules
   {
