@@ -62,25 +62,17 @@ if [ -n "$DATABASE_URL" ]; then
     # Sincronizar módulos PWA (automático en cada deploy)
     echo ""
     echo "🔄 Sincronizando módulos PWA..."
-    if [ -f "scripts/seed-modules.ts" ]; then
-        echo "  📂 Script encontrado: scripts/seed-modules.ts"
+    
+    # Preferir versión JavaScript (producción) sobre TypeScript (desarrollo)
+    if [ -f "scripts/seed-modules.js" ]; then
+        echo "  📂 Script encontrado: scripts/seed-modules.js (producción)"
         echo "  🚀 Ejecutando seed de módulos..."
-        
-        # Usar tsx directamente con NODE_PATH (evita problemas de workspace de Yarn)
-        if [ -x "node_modules/.bin/tsx" ]; then
-            TSX_CMD="node_modules/.bin/tsx"
-        elif command -v tsx >/dev/null 2>&1; then
-            TSX_CMD="tsx"
-        else
-            echo "  ⚠️  tsx no encontrado, intentando con node + ts-node"
-            TSX_CMD="node -r ts-node/register"
-        fi
         
         # Configurar NODE_PATH para que encuentre @prisma/client
         export NODE_PATH=/app/node_modules:$NODE_PATH
         
         # Ejecutar con captura de output
-        $TSX_CMD scripts/seed-modules.ts 2>&1 | while IFS= read -r line; do
+        node scripts/seed-modules.js 2>&1 | while IFS= read -r line; do
             echo "  $line"
         done
         MODULE_SEED_EXIT_CODE=${PIPESTATUS[0]}
@@ -91,8 +83,40 @@ if [ -n "$DATABASE_URL" ]; then
             echo "  ⚠️  Error sincronizando módulos (código: $MODULE_SEED_EXIT_CODE)"
             echo "  💡 El sistema continuará, pero algunos módulos pueden no estar disponibles"
         fi
+    elif [ -f "scripts/seed-modules.ts" ]; then
+        echo "  📂 Script encontrado: scripts/seed-modules.ts (desarrollo)"
+        echo "  🚀 Ejecutando seed de módulos..."
+        
+        # Usar tsx directamente con NODE_PATH (evita problemas de workspace de Yarn)
+        if [ -x "node_modules/.bin/tsx" ]; then
+            TSX_CMD="node_modules/.bin/tsx"
+        elif command -v tsx >/dev/null 2>&1; then
+            TSX_CMD="tsx"
+        else
+            echo "  ⚠️  tsx/ts-node no disponibles en producción"
+            echo "  💡 Use la versión JavaScript (seed-modules.js) para producción"
+            MODULE_SEED_EXIT_CODE=1
+        fi
+        
+        if [ -n "$TSX_CMD" ]; then
+            # Configurar NODE_PATH para que encuentre @prisma/client
+            export NODE_PATH=/app/node_modules:$NODE_PATH
+            
+            # Ejecutar con captura de output
+            $TSX_CMD scripts/seed-modules.ts 2>&1 | while IFS= read -r line; do
+                echo "  $line"
+            done
+            MODULE_SEED_EXIT_CODE=${PIPESTATUS[0]}
+            
+            if [ $MODULE_SEED_EXIT_CODE -eq 0 ]; then
+                echo "  ✅ Módulos PWA sincronizados exitosamente"
+            else
+                echo "  ⚠️  Error sincronizando módulos (código: $MODULE_SEED_EXIT_CODE)"
+                echo "  💡 El sistema continuará, pero algunos módulos pueden no estar disponibles"
+            fi
+        fi
     else
-        echo "  ⚠️  scripts/seed-modules.ts no encontrado"
+        echo "  ⚠️  scripts/seed-modules.js/ts no encontrado"
         echo "  💡 Los módulos PWA no se sincronizarán automáticamente"
     fi
     
