@@ -1,0 +1,38 @@
+# Core dumps
+core
+core.*
+*.core
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory
+coverage/
+*.lcov
+
+# Testing
+.nyc_output
+
+# IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
