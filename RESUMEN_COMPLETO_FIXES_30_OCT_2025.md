@@ -404,7 +404,50 @@ Error: Cannot find module 'yarn.js'
 
 ---
 
-**Última actualización:** 30 de octubre de 2025, 04:30 AM  
-**Último commit:** b783d3e  
+---
+
+## 🔧 FIX #5: No copiar .yarn/ (Conflicto install-state) - Commits 73ba919, 6b8c9bd
+
+### ❌ Problema:
+```
+Internal Error: app@workspace:.: This package doesn't seem to be present in your lockfile
+```
+
+**Causa raíz:** Copiar `.yarn/install-state.gz` del stage `deps` causaba conflicto porque este archivo esperaba que `package.json`/`yarn.lock` estuvieran en la misma ubicación donde se hizo el install original.
+
+### ✅ Solución:
+
+**NO copiar `.yarn/`** del stage deps. Solo copiar `node_modules` y usar binarios directos:
+
+```dockerfile
+# ANTES:
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/.yarn ./.yarn    # ← PROBLEMA
+
+# DESPUÉS:
+COPY --from=deps /app/node_modules ./node_modules  # ← SOLO node_modules
+```
+
+**Usar binarios directos en lugar de Yarn:**
+```dockerfile
+# ANTES:
+RUN yarn build
+
+# DESPUÉS:
+RUN ./node_modules/.bin/next build
+```
+
+### 📊 Resultado:
+- ✅ No hay conflicto de install-state
+- ✅ Stage builder no depende de Yarn
+- ✅ Más simple y robusto
+- ✅ Prisma y Next.js usan binarios directos
+
+**Commits:** 73ba919, 6b8c9bd
+
+---
+
+**Última actualización:** 30 de octubre de 2025, 04:40 AM  
+**Último commit:** 6b8c9bd  
 **Estado:** ✅ TODOS LOS FIXES APLICADOS - LISTO PARA DEPLOY
 
