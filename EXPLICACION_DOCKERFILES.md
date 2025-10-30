@@ -18,26 +18,28 @@
 
 ## 📂 Archivos Dockerfile en el Proyecto
 
-El proyecto tiene **5 archivos** Dockerfile:
+El proyecto tiene **1 único archivo** Dockerfile:
 
 | Archivo | Ubicación | Estado | Uso |
 |---------|-----------|--------|-----|
 | **`Dockerfile`** | `/Dockerfile` | ✅ **ACTIVO** | **Producción (EasyPanel)** |
-| `Dockerfile.easypanel` | `/Dockerfile.easypanel` | 🔄 Desactualizado | Versión antigua (27 oct) |
-| `Dockerfile.coolify` | `/Dockerfile.coolify` | 📦 Alternativo | Para deploy en Coolify |
-| `Dockerfile.production` | `/Dockerfile.production` | 📦 Alternativo | Versión antigua |
-| `app/Dockerfile` | `/app/Dockerfile` | 📦 Alternativo | Versión antigua |
+
+**✅ Archivos eliminados (commit `b3864f2`):**
+- ~~`Dockerfile.easypanel`~~ (desactualizado)
+- ~~`Dockerfile.coolify`~~ (alternativo)
+- ~~`Dockerfile.production`~~ (antiguo)
+- ~~`app/Dockerfile`~~ (antiguo)
 
 ---
 
-## 🔍 Diferencias Principales
+## 🔍 Características del Dockerfile Único
 
-### ✅ Dockerfile (RAÍZ - ACTUAL)
+### ✅ Dockerfile (RAÍZ - PRODUCCIÓN)
 
 **Características:**
 - Base: `node:18-slim` (Debian-based, glibc)
 - Package Manager: Yarn 4.10.3
-- Último update: 30 oct 2025 (commit `6f966d9`)
+- Último update: 30 oct 2025 (commit `9481b4c`)
 - Tamaño: 198 líneas
 - Fixes incluidos:
   - ✅ Prisma Client con ruta relativa
@@ -54,15 +56,6 @@ El proyecto tiene **5 archivos** Dockerfile:
 # ✅ Node 18-slim (Debian-based, glibc para compatibilidad Next.js SWC)
 # ✅ YARN (gestor de paquetes del proyecto)
 ```
-
-### 🔄 Dockerfile.easypanel (DESACTUALIZADO)
-
-**Características:**
-- Base: `node:18-alpine` (Alpine Linux, musl)
-- Package Manager: Yarn 4.9.4
-- Último update: 27 oct 2025 (commit `2a1418f`)
-- Tamaño: 80 líneas
-- **NO tiene los fixes recientes** (Prisma ruta relativa, limpieza, etc.)
 
 ---
 
@@ -96,38 +89,38 @@ a51ebcf - fix: agregar .yarnrc.yml para forzar modo node-modules
 
 ## ✅ Confirmación
 
-**Todos los archivos Dockerfile están en Git:**
+**Solo hay UN archivo Dockerfile en Git:**
 
 ```bash
 $ git ls-files | grep Dockerfile
-Dockerfile                  ← ESTE ES EL ACTIVO
-Dockerfile.coolify
-Dockerfile.easypanel
-Dockerfile.production
-app/Dockerfile
+Dockerfile                  ← ÚNICO ARCHIVO
 ```
 
-**Todos se suben a GitHub**, pero el que se está usando y actualizando es **`Dockerfile`** en la raíz.
+**Este es el único Dockerfile** que se sube a GitHub y se usa en todos los ambientes (local, EasyPanel).
 
 ---
 
-## 🎯 Recomendación
+## 🎯 Uso del Dockerfile
 
 ### Para EasyPanel:
 
-1. ✅ **Usar:** `Dockerfile` (raíz del proyecto)
-2. ✅ **Verificar** en EasyPanel Settings que el path sea:
-   - `Dockerfile` o `./Dockerfile`
-3. ✅ **NO usar** `Dockerfile.easypanel` (está desactualizado)
+**Configuración en EasyPanel Settings:**
+```
+Dockerfile path: Dockerfile
+```
+o simplemente:
+```
+Dockerfile path: ./Dockerfile
+```
 
 ### Para Local Testing:
 
 ```bash
-# Build con el Dockerfile principal
-docker build -f Dockerfile -t escalafin-mvp:test .
-
-# O simplemente (usa Dockerfile por defecto)
+# Build (usa Dockerfile por defecto)
 docker build -t escalafin-mvp:test .
+
+# O especificando el archivo
+docker build -f Dockerfile -t escalafin-mvp:test .
 ```
 
 ---
@@ -136,13 +129,14 @@ docker build -t escalafin-mvp:test .
 
 | Pregunta | Respuesta |
 |----------|-----------|
-| ¿Cuál se usa en local? | `Dockerfile` (raíz) |
-| ¿Cuál se sube a GitHub? | **Todos** (pero el activo es `Dockerfile`) |
-| ¿Cuál usa EasyPanel? | `Dockerfile` (raíz) |
-| ¿Cuál tiene los fixes recientes? | `Dockerfile` (raíz) |
-| ¿Cuál debo modificar? | `Dockerfile` (raíz) |
+| ¿Cuál se usa en local? | `Dockerfile` (raíz) - **ÚNICO** |
+| ¿Cuál se sube a GitHub? | `Dockerfile` (raíz) - **ÚNICO** |
+| ¿Cuál usa EasyPanel? | `Dockerfile` (raíz) - **ÚNICO** |
+| ¿Cuál tiene los fixes recientes? | `Dockerfile` (raíz) - **ÚNICO** |
+| ¿Cuál debo modificar? | `Dockerfile` (raíz) - **ÚNICO** |
 
 ---
 
-**Última actualización:** 30 de octubre de 2025, 05:10 AM  
-**Dockerfile activo:** `/Dockerfile` (commit `9481b4c`)
+**Última actualización:** 30 de octubre de 2025, 05:30 AM  
+**Dockerfile único:** `/Dockerfile` (commit `9481b4c`)  
+**Cleanup realizado:** Commit `b3864f2` (eliminados 4 Dockerfiles alternativos)
