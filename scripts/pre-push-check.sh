@@ -153,6 +153,21 @@ else
     else
         echo "⚠️  WARNING: Dockerfile sin verificación explícita de node_modules"
     fi
+    
+    # Verificar que Dockerfile copie .yarn/ en stage builder (CRÍTICO para Yarn 4)
+    if grep -q "COPY --from=deps /app/.yarn ./.yarn" "$PROJECT_ROOT/Dockerfile"; then
+        echo "✅ Dockerfile copia .yarn/ correctamente (requerido para Yarn 4)"
+    else
+        echo "❌ ERROR CRÍTICO: Dockerfile NO copia .yarn/ en stage builder"
+        echo "   Esto causará error: 'yarn prisma generate' fallará"
+        echo ""
+        echo "🔧 SOLUCIÓN:"
+        echo "   Agregar después de 'COPY --from=deps /app/node_modules ./node_modules':"
+        echo "   COPY --from=deps /app/.yarn ./.yarn"
+        echo ""
+        echo "   Ref: FIX_PRISMA_GENERATE_YARN_30_OCT_2025.md"
+        CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+    fi
 fi
 
 # Verificar package.json

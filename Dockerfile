@@ -56,8 +56,9 @@ FROM base AS builder
 
 WORKDIR /app
 
-# Copy dependencies
+# Copy dependencies and Yarn 4 metadata (CRITICAL for Yarn to work)
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/.yarn ./.yarn
 
 # Copy application source
 COPY app/ ./
