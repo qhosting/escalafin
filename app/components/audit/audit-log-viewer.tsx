@@ -74,7 +74,7 @@ const AuditLogViewer: React.FC = () => {
 
   // Filtros
   const [filters, setFilters] = useState({
-    action: '',
+    action: 'all',
     userId: '',
     resource: '',
     startDate: '',
@@ -98,7 +98,7 @@ const AuditLogViewer: React.FC = () => {
         page: currentPage.toString(),
         limit: logsPerPage.toString(),
         ...Object.entries(filters).reduce((acc, [key, value]) => {
-          if (value) acc[key] = value;
+          if (value && value !== 'all') acc[key] = value;
           return acc;
         }, {} as Record<string, string>),
       });
@@ -140,7 +140,7 @@ const AuditLogViewer: React.FC = () => {
 
   const clearFilters = () => {
     setFilters({
-      action: '',
+      action: 'all',
       userId: '',
       resource: '',
       startDate: '',
@@ -242,7 +242,7 @@ const AuditLogViewer: React.FC = () => {
                       <SelectValue placeholder="Acción" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todas</SelectItem>
+                      <SelectItem value="all">Todas</SelectItem>
                       <SelectItem value="LOGIN">Login</SelectItem>
                       <SelectItem value="LOGOUT">Logout</SelectItem>
                       <SelectItem value="LOAN_CREATE">Crear Préstamo</SelectItem>

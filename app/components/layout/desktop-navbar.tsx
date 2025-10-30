@@ -331,15 +331,14 @@ export function DesktopNavbar() {
           {/* Logo y Brand */}
           <div className="flex items-center space-x-6">
             <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
-              <div className="relative h-10 w-48">
-                <Image 
-                  src="/logoescalafin.png" 
-                  alt="EscalaFin Logo" 
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
+              <Image 
+                src="/logoescalafin.png" 
+                alt="EscalaFin Logo" 
+                width={192}
+                height={40}
+                className="object-contain"
+                priority
+              />
             </Link>
 
             {/* Navegación principal */}

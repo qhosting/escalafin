@@ -75,7 +75,7 @@ export function LoanList({ userRole }: LoanListProps) {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -91,7 +91,7 @@ export function LoanList({ userRole }: LoanListProps) {
         limit: pagination.limit.toString()
       });
 
-      if (statusFilter) params.append('status', statusFilter);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
 
       const response = await fetch(`/api/loans?${params}`);
       if (!response.ok) throw new Error('Error al cargar préstamos');
@@ -182,7 +182,7 @@ export function LoanList({ userRole }: LoanListProps) {
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos los estados</SelectItem>
+                <SelectItem value="all">Todos los estados</SelectItem>
                 <SelectItem value="ACTIVE">Activo</SelectItem>
                 <SelectItem value="PAID_OFF">Liquidado</SelectItem>
                 <SelectItem value="DEFAULTED">En Mora</SelectItem>
