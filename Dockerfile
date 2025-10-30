@@ -75,7 +75,20 @@ RUN echo "# Dummy lockfile for Next.js outputFileTracingRoot" > /app/yarn.lock &
 
 # Generar Prisma Client (usando binario directo, no Yarn)
 RUN echo "🔧 Generando Prisma Client..." && \
+    echo "📂 Verificando schema.prisma..." && \
+    test -f "prisma/schema.prisma" || (echo "❌ ERROR: schema.prisma no encontrado" && exit 1) && \
+    echo "✅ schema.prisma encontrado" && \
+    cat prisma/schema.prisma | grep -A 3 "enum UserRole" && \
+    echo "" && \
+    echo "🔄 Limpiando Prisma Client anterior..." && \
+    rm -rf node_modules/.prisma node_modules/@prisma/client && \
+    echo "✅ Prisma Client anterior eliminado" && \
+    echo "" && \
+    echo "🎯 Generando nuevo Prisma Client..." && \
     ./node_modules/.bin/prisma generate && \
+    echo "" && \
+    echo "🔍 Verificando generación..." && \
+    test -d "node_modules/.prisma/client" || (echo "❌ ERROR: Cliente no generado" && exit 1) && \
     echo "✅ Prisma Client generado correctamente"
 
 # Build Next.js application (usando binario directo, no Yarn)
