@@ -56,9 +56,8 @@ FROM base AS builder
 
 WORKDIR /app
 
-# Copy dependencies and Yarn cache
+# Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/.yarn ./.yarn
 
 # Copy application source
 COPY app/ ./
@@ -79,14 +78,13 @@ RUN echo "🔧 Generando Prisma Client..." && \
     ./node_modules/.bin/prisma generate && \
     echo "✅ Prisma Client generado correctamente"
 
-# Build Next.js application
+# Build Next.js application (usando binario directo, no Yarn)
 RUN echo "🏗️  Building Next.js..." && \
     echo "Node version: $(node --version)" && \
-    echo "Yarn version: $(yarn --version)" && \
     echo "NODE_ENV: $NODE_ENV" && \
     echo "Working directory: $(pwd)" && \
     echo "" && \
-    yarn build && \
+    ./node_modules/.bin/next build && \
     echo "✅ Build completado"
 
 # Verificar que standalone fue generado
