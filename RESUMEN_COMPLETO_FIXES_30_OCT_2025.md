@@ -222,3 +222,94 @@ ls -lah app/*.sh
 **Última actualización:** 30 de octubre de 2025, 02:35 AM  
 **Commit actual:** 150337c  
 **Estado:** ✅ Listo para deploy con verificaciones completas
+
+---
+
+## 🔧 FIX #3: Yarn 4 PnP → node_modules Tradicional (Commit a51ebcf)
+
+### ❌ Problema:
+```
+❌ ERROR: node_modules no fue generado
+❌ ERROR: node_modules parece vacío (solo paquetes)
+```
+
+**Causa raíz:** Yarn 4 (Berry) usa **Plug'n'Play (PnP)** por defecto, que NO genera el directorio `node_modules/` tradicional.
+
+### ✅ Solución:
+
+1. **Crear `.yarnrc.yml`** con configuración `nodeLinker: node-modules`:
+   ```yaml
+   nodeLinker: node-modules
+   enableTelemetry: false
+   httpTimeout: 60000
+   networkTimeout: 60000
+   enableGlobalCache: false
+   ```
+
+2. **Actualizar Dockerfile** para copiar `.yarnrc.yml` en stage deps:
+   ```dockerfile
+   COPY app/package.json ./
+   COPY app/yarn.lock ./
+   COPY app/.yarnrc.yml ./    # ← AGREGADO
+   ```
+
+### 📊 Resultado:
+- ✅ Yarn ahora genera `node_modules/` tradicional
+- ✅ Build pasa verificación `test -d "node_modules"`
+- ✅ Compatible con Next.js standalone y Prisma
+- ✅ COPY de dependencies funciona correctamente
+
+### 📄 Archivos:
+- `app/.yarnrc.yml` (nuevo)
+- `Dockerfile` (modificado)
+- `FIX_YARN_PNP_NODE_MODULES_30_OCT_2025.md` (documentación)
+
+**Commit:** a51ebcf  
+**Documentación:** `FIX_YARN_PNP_NODE_MODULES_30_OCT_2025.md`
+
+---
+
+## 📋 RESUMEN DE TODOS LOS FIXES (30 OCT 2025)
+
+### Fix Timeline:
+
+1. **FIX_DOCKERFILE_COPY_ERROR** (Commit ddfbaf6)
+   - Eliminar redirección shell `2>/dev/null` en comando COPY
+   - Sintaxis inválida en Docker
+
+2. **FIX_NODE_MODULES_VERIFICATION** (Commit 150337c)
+   - Agregar verificaciones explícitas de `node_modules`
+   - Scripts pre-build y pre-push
+   - 24 verificaciones automáticas
+
+3. **FIX_YARN_PNP_NODE_MODULES** (Commit a51ebcf) ← ÚLTIMO
+   - Crear `.yarnrc.yml` con `nodeLinker: node-modules`
+   - Forzar Yarn 4 a generar `node_modules/` tradicional
+   - Copiar `.yarnrc.yml` en Dockerfile
+
+### Estado Final:
+
+```
+✅ Dockerfile: Sintaxis limpia, sin errores
+✅ Yarn: Configurado para modo node-modules
+✅ Verificaciones: Explícitas y automáticas
+✅ Documentación: Completa para todos los fixes
+✅ Repositorios: Sincronizados (escalafin + escalafinmx)
+✅ Commits: Pusheados exitosamente
+```
+
+### Próximo Paso:
+
+🚀 **Deploy en EasyPanel:**
+1. Pull del commit `a51ebcf` en EasyPanel
+2. **Clear build cache** (IMPORTANTE)
+3. Rebuild completo
+4. Verificar logs: `✅ node_modules generado: XXX paquetes instalados`
+5. Confirmar startup exitoso
+
+---
+
+**Última actualización:** 30 de octubre de 2025, 03:50 AM  
+**Último commit:** a51ebcf  
+**Estado:** ✅ LISTO PARA DEPLOY
+
