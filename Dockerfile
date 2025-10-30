@@ -35,6 +35,7 @@ WORKDIR /app
 # Copy configuration files
 COPY app/package.json ./
 COPY app/yarn.lock ./
+COPY app/.yarnrc.yml ./
 
 # Instalar dependencias con Yarn y verificar que node_modules fue generado
 RUN echo "📦 Instalando dependencias con Yarn..." && \
