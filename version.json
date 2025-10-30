@@ -1,0 +1,31 @@
+
+{
+  "version": "1.1.0",
+  "buildNumber": "20251030.001",
+  "releaseDate": "2025-10-30",
+  "releaseName": "Portability & Deploy Fixes",
+  "gitCommit": "20e7fc7",
+  "environment": "production",
+  "changelog": [
+    "Eliminadas todas las rutas absolutas hardcodeadas",
+    "Corregida configuración de Prisma para portabilidad",
+    "Eliminado yarn.lock (proyecto usa NPM)",
+    "Implementadas rutas relativas con process.cwd()",
+    "Agregado soporte para variables de entorno LOCAL_UPLOAD_DIR",
+    "Verificaciones pre-deploy automatizadas",
+    "Documentación completa de fixes y deployment"
+  ],
+  "compatibility": {
+    "node": "18.x",
+    "npm": "9.x",
+    "nextjs": "14.2.28",
+    "prisma": "6.7.0",
+    "docker": ">=20.10"
+  },
+  "deployments": {
+    "docker": "compatible",
+    "easypanel": "compatible",
+    "coolify": "compatible",
+    "kubernetes": "compatible"
+  }
+}
