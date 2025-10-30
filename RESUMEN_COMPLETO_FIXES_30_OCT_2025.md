@@ -13,7 +13,17 @@
 - **Solución:** Convertido a archivo regular (495KB)
 - **Estado:** ✅ Resuelto
 
-### 3. Dockerfile usando package-lock.json (Fixes anteriores)
+### 3. node_modules not found en stage builder (Commit 150337c)
+- **Problema:** `COPY --from=deps /app/node_modules: not found`
+- **Solución:** Agregadas verificaciones explícitas en stage deps
+- **Estado:** ✅ Resuelto
+
+### 4. Sin verificaciones pre-build (Commit 150337c)
+- **Problema:** No se detectaban problemas antes de push/build
+- **Solución:** Creado script pre-build-check.sh (24 verificaciones)
+- **Estado:** ✅ Resuelto
+
+### 5. Dockerfile usando package-lock.json (Fixes anteriores)
 - **Problema:** Proyecto usa Yarn, no NPM
 - **Solución:** Actualizado Dockerfile para usar solo Yarn
 - **Estado:** ✅ Resuelto
@@ -23,19 +33,21 @@
 ```
 Repositorio: https://github.com/qhosting/escalafin (main)
 Mirror: https://github.com/qhosting/escalafinmx (main)
-Último commit: f55dd31
+Último commit: 150337c
 Versión: 1.1.1
-Build: 20251030.003
+Build: 20251030.004 (pendiente actualización)
 ```
 
 ## 🎯 Archivos Críticos Actualizados
 
 | Archivo | Estado | Descripción |
 |---------|--------|-------------|
-| `Dockerfile` | ✅ Corregido | Sin redirecciones en COPY |
+| `Dockerfile` | ✅ Actualizado | Verificaciones explícitas de node_modules |
 | `app/yarn.lock` | ✅ Archivo regular | No symlink (495KB) |
 | `app/package.json` | ✅ OK | Dependencias Yarn |
 | `.dockerignore` | ✅ OK | Incluye scripts production |
+| `scripts/pre-build-check.sh` | ✅ NUEVO | 24 verificaciones completas |
+| `scripts/pre-push-check.sh` | ✅ Actualizado | Verifica archivos críticos |
 | `scripts/push-ambos-repos.sh` | ✅ OK | Verifica yarn.lock |
 | `scripts/fix-yarn-lock-symlink.sh` | ✅ OK | Auto-convierte symlinks |
 
@@ -47,10 +59,10 @@ cd /ruta/a/escalafin
 git pull origin main
 ```
 
-Verificar que esté en commit `f55dd31`:
+Verificar que esté en commit `150337c`:
 ```bash
 git log -1 --oneline
-# Debería mostrar: f55dd31 fix: convertir yarn.lock a archivo regular
+# Debería mostrar: 150337c fix: agregar verificaciones explícitas de node_modules
 ```
 
 ### Paso 2: Clear Build Cache
@@ -61,10 +73,26 @@ En el panel de EasyPanel:
 4. Confirmar
 
 ### Paso 3: Monitorear Build
-Observar logs en tiempo real:
-- Verificar que no aparezca error `lstat /2>/dev/null`
-- Confirmar que `yarn install` completa exitosamente
-- Validar que `yarn prisma generate` funciona
+Observar logs en tiempo real. **Ahora verás mensajes claros:**
+
+**Stage DEPS (nuevo):**
+```
+📦 Instalando dependencias con Yarn...
+✅ Yarn install completado
+
+🔍 Verificando node_modules...
+✅ node_modules generado: 450 paquetes instalados
+✅ Dependencias instaladas correctamente
+```
+
+**Lo que NO debe aparecer:**
+- ❌ `lstat /2>/dev/null` (ya resuelto)
+- ❌ `node_modules no fue generado` (indica yarn install falló)
+- ❌ `node_modules parece vacío` (indica instalación parcial)
+- ❌ `COPY --from=deps /app/node_modules: not found` (ya resuelto)
+
+**Stage BUILDER:**
+- Confirmar que `yarn prisma generate` funciona
 - Verificar que Next.js build termina sin errores
 
 ### Paso 4: Verificar Scripts en Container
@@ -183,6 +211,7 @@ ls -lah app/*.sh
 
 ## 📚 Documentación Relacionada
 
+- `FIX_NODE_MODULES_VERIFICATION_30_OCT_2025.md` - ⭐ Fix verificación node_modules (NUEVO)
 - `FIX_DOCKERFILE_COPY_ERROR_30_OCT_2025.md` - Fix del error COPY
 - `FIX_DOCKERFILE_YARN_30_OCT_2025.md` - Cambios de NPM a Yarn
 - `MIGRACION_ESCALAFINMX_29_OCT_2025.md` - Setup dual repos
@@ -190,6 +219,6 @@ ls -lah app/*.sh
 
 ---
 
-**Última actualización:** 30 de octubre de 2025, 02:05 AM  
-**Commit actual:** f55dd31  
-**Estado:** ✅ Listo para deploy
+**Última actualización:** 30 de octubre de 2025, 02:35 AM  
+**Commit actual:** 150337c  
+**Estado:** ✅ Listo para deploy con verificaciones completas
