@@ -56,8 +56,9 @@ FROM base AS builder
 
 WORKDIR /app
 
-# Copy dependencies
+# Copy dependencies and Yarn cache
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/.yarn ./.yarn
 
 # Copy application source
 COPY app/ ./
@@ -73,9 +74,9 @@ ENV NEXT_OUTPUT_MODE=standalone
 RUN echo "# Dummy lockfile for Next.js outputFileTracingRoot" > /app/yarn.lock && \
     echo "✅ yarn.lock dummy creado en /app"
 
-# Generar Prisma Client
+# Generar Prisma Client (usando binario directo, no Yarn)
 RUN echo "🔧 Generando Prisma Client..." && \
-    yarn prisma generate && \
+    ./node_modules/.bin/prisma generate && \
     echo "✅ Prisma Client generado correctamente"
 
 # Build Next.js application
