@@ -25,10 +25,11 @@ export async function GET(
 
     // Construir la ruta del archivo
     const filePath = params.path.join('/')
-    const fullPath = path.join(process.env.LOCAL_UPLOAD_DIR || '/home/ubuntu/escalafin_mvp/uploads', filePath)
+    const defaultUploadDir = path.join(process.cwd(), 'uploads')
+    const fullPath = path.join(process.env.LOCAL_UPLOAD_DIR || defaultUploadDir, filePath)
     
     // Verificar que el archivo existe y está dentro del directorio permitido
-    const uploadDir = path.resolve(process.env.LOCAL_UPLOAD_DIR || '/home/ubuntu/escalafin_mvp/uploads')
+    const uploadDir = path.resolve(process.env.LOCAL_UPLOAD_DIR || defaultUploadDir)
     const resolvedPath = path.resolve(fullPath)
     
     if (!resolvedPath.startsWith(uploadDir)) {

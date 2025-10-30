@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     const mockConfig = {
       type: settings.type,
       local: settings.local || {
-        uploadDir: '/home/ubuntu/escalafin_mvp/uploads',
+        uploadDir: process.env.LOCAL_UPLOAD_DIR || './uploads',
         baseUrl: '/api/files/serve',
         maxSize: 10
       },

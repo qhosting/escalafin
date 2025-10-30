@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
 async function testLocalStorage(config: any) {
   try {
-    const uploadDir = config.uploadDir || '/home/ubuntu/escalafin_mvp/uploads'
+    const uploadDir = config.uploadDir || path.join(process.cwd(), 'uploads')
     
     // Crear directorio si no existe
     await fs.mkdir(uploadDir, { recursive: true })
