@@ -186,6 +186,26 @@ fi
 if [ ! -f "$PROJECT_ROOT/app/prisma/schema.prisma" ]; then
     echo "❌ ERROR: app/prisma/schema.prisma no encontrado"
     CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+else
+    # Verificar que no tenga rutas absolutas en output path
+    if grep -q 'output.*=.*"/home' "$PROJECT_ROOT/app/prisma/schema.prisma" || \
+       grep -q 'output.*=.*"/root' "$PROJECT_ROOT/app/prisma/schema.prisma" || \
+       grep -q 'output.*=.*"/app/' "$PROJECT_ROOT/app/prisma/schema.prisma"; then
+        echo "❌ ERROR CRÍTICO: schema.prisma tiene ruta absoluta en output path"
+        echo ""
+        echo "   Prisma NO podrá generar el cliente en Docker con rutas absolutas"
+        echo ""
+        echo "   Línea detectada:"
+        grep -n 'output.*=' "$PROJECT_ROOT/app/prisma/schema.prisma" | head -1
+        echo ""
+        echo "   Solución: Cambiar a ruta relativa"
+        echo "   output = \"../node_modules/.prisma/client\""
+        echo ""
+        echo "   Ref: FIX_PRISMA_RUTA_RELATIVA_30_OCT_2025.md"
+        CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+    else
+        echo "✅ schema.prisma tiene output path correcto (relativo)"
+    fi
 fi
 
 # Verificar scripts de startup
