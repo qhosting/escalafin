@@ -2,15 +2,18 @@
 # ===================================
 # ✅ Testeado localmente con éxito
 # ✅ Node 18-slim (Debian-based, glibc para compatibilidad Next.js SWC)
-# ✅ NPM (gestor de paquetes estable y predecible)
+# ✅ YARN (gestor de paquetes del proyecto)
 # ✅ Build standalone verificado
 # ✅ Scripts mejorados adaptados de CitaPlanner
 # ✅ start-improved.sh: logging detallado + error handling robusto
 # ✅ emergency-start.sh: bypass DB checks para debug
-# ✅ Fixed: Migrado a NPM para evitar problemas de workspace de Yarn Berry
+# ✅ Fixed: Usa Yarn como package manager oficial
 # ✅ Fixed: Cambio a node:18-slim para resolver error SWC con Alpine/musl
 
 FROM node:18-slim AS base
+
+# Install Yarn globally
+RUN corepack enable && corepack prepare yarn@4.10.3 --activate
 
 RUN apt-get update && apt-get install -y \
     bash \
@@ -29,14 +32,17 @@ FROM base AS deps
 
 WORKDIR /app
 
+# Copy yarn configuration files (if they exist)
+COPY app/.yarn* ./ 2>/dev/null || true
+
 # Copy configuration files
 COPY app/package.json ./
-COPY app/package-lock.json ./
+COPY app/yarn.lock ./
 
-# Instalar dependencias
-RUN echo "📦 Instalando dependencias con NPM..." && \
-    npm ci --legacy-peer-deps && \
-    echo "✅ $(ls node_modules | wc -l) paquetes instalados"
+# Instalar dependencias con Yarn
+RUN echo "📦 Instalando dependencias con Yarn..." && \
+    yarn install --immutable && \
+    echo "✅ $(ls node_modules 2>/dev/null | wc -l) paquetes instalados"
 
 # ===================================
 # STAGE 2: Build de producción
@@ -64,17 +70,17 @@ RUN echo "# Dummy lockfile for Next.js outputFileTracingRoot" > /app/yarn.lock &
 
 # Generar Prisma Client
 RUN echo "🔧 Generando Prisma Client..." && \
-    npx prisma generate && \
+    yarn prisma generate && \
     echo "✅ Prisma Client generado correctamente"
 
 # Build Next.js application
 RUN echo "🏗️  Building Next.js..." && \
     echo "Node version: $(node --version)" && \
-    echo "NPM version: $(npm --version)" && \
+    echo "Yarn version: $(yarn --version)" && \
     echo "NODE_ENV: $NODE_ENV" && \
     echo "Working directory: $(pwd)" && \
     echo "" && \
-    npm run build && \
+    yarn build && \
     echo "✅ Build completado"
 
 # Verificar que standalone fue generado
