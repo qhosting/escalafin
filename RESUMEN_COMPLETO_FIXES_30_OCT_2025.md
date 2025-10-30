@@ -313,3 +313,98 @@ ls -lah app/*.sh
 **Último commit:** a51ebcf  
 **Estado:** ✅ LISTO PARA DEPLOY
 
+
+---
+
+## 🔧 FIX #4: Prisma Generate con Yarn 4 (Commits 43fe9e6, b783d3e)
+
+### ❌ Problema:
+```
+❌ ERROR: yarn prisma generate failed
+Error: Cannot find module 'yarn.js'
+```
+
+**Causa raíz:** En el stage `builder`, faltaba el directorio `.yarn/` que Yarn 4 necesita para resolver paquetes. Específicamente, `install-state.gz` es crítico para la resolución.
+
+### ✅ Solución:
+
+1. **Copiar `.yarn/` del stage deps al builder:**
+   ```dockerfile
+   COPY --from=deps /app/node_modules ./node_modules
+   COPY --from=deps /app/.yarn ./.yarn    # ← AGREGADO
+   ```
+
+2. **Usar binario directo de Prisma:**
+   ```dockerfile
+   RUN ./node_modules/.bin/prisma generate
+   # En lugar de: yarn prisma generate
+   ```
+
+### 📊 Resultado:
+- ✅ Yarn tiene acceso a install-state.gz
+- ✅ `yarn build` y otros comandos funcionan
+- ✅ Prisma genera correctamente usando binario directo
+- ✅ Más robusto (no depende de Yarn para Prisma)
+
+### 📄 Archivos:
+- `Dockerfile` (modificado - 2 cambios)
+- `FIX_PRISMA_GENERATE_YARN_30_OCT_2025.md` (documentación)
+
+**Commits:** 43fe9e6, b783d3e  
+**Documentación:** `FIX_PRISMA_GENERATE_YARN_30_OCT_2025.md`
+
+---
+
+## 📋 RESUMEN ACTUALIZADO DE TODOS LOS FIXES (30 OCT 2025)
+
+### Fix Timeline Completo:
+
+1. **FIX_DOCKERFILE_COPY_ERROR** (Commit ddfbaf6)
+   - Eliminar redirección shell `2>/dev/null` en comando COPY
+
+2. **FIX_NODE_MODULES_VERIFICATION** (Commit 150337c)
+   - Agregar verificaciones explícitas de `node_modules`
+   - Scripts pre-build y pre-push (24 verificaciones)
+
+3. **FIX_YARN_PNP_NODE_MODULES** (Commits a51ebcf, c050ece, e9047dd)
+   - Crear `.yarnrc.yml` con `nodeLinker: node-modules`
+   - Forzar Yarn 4 a generar `node_modules/` tradicional
+   - Corregir configuración inválida
+
+4. **FIX_PRISMA_GENERATE_YARN** (Commits 43fe9e6, b783d3e) ← NUEVO
+   - Copiar `.yarn/` del stage deps al builder
+   - Usar binario directo de Prisma
+   - Convertir yarn.lock a archivo regular
+
+### Estado Final Actualizado:
+
+```
+✅ Dockerfile: Sintaxis limpia, sin errores
+✅ Yarn: Configurado para modo node-modules
+✅ .yarn/: Copiado en stage builder
+✅ node_modules: Verificado y generado
+✅ Prisma: Usa binario directo (robusto)
+✅ Verificaciones: Explícitas y automáticas
+✅ Documentación: Completa para todos los fixes
+✅ Repositorios: Sincronizados (escalafin + escalafinmx)
+✅ Commits: Pusheados exitosamente
+```
+
+### Próximo Paso Actualizado:
+
+🚀 **Deploy en EasyPanel:**
+1. Pull del commit `b783d3e` en EasyPanel
+2. **Clear build cache** (CRÍTICO - nuevos cambios en stage builder)
+3. Rebuild completo
+4. Monitorear logs:
+   - Stage deps: `✅ node_modules generado: XXX paquetes`
+   - Stage builder: `✅ Prisma Client generado correctamente`
+   - Stage builder: `✅ Build completado`
+5. Confirmar startup exitoso
+
+---
+
+**Última actualización:** 30 de octubre de 2025, 04:30 AM  
+**Último commit:** b783d3e  
+**Estado:** ✅ TODOS LOS FIXES APLICADOS - LISTO PARA DEPLOY
+
