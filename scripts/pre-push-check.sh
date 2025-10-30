@@ -208,6 +208,73 @@ else
     fi
 fi
 
+# Verificar shebangs de scripts con sintaxis bash
+echo ""
+echo "🔍 Verificando shebangs de scripts..."
+for script in start-improved.sh emergency-start.sh; do
+    if [ -f "$PROJECT_ROOT/$script" ]; then
+        SHEBANG=$(head -1 "$PROJECT_ROOT/$script")
+        # Si el script contiene PIPESTATUS u otra sintaxis de bash, debe usar #!/bin/bash
+        if grep -q 'PIPESTATUS\|mapfile\|\[\[' "$PROJECT_ROOT/$script"; then
+            if ! echo "$SHEBANG" | grep -q '#!/bin/bash'; then
+                echo "❌ ERROR CRÍTICO: $script usa sintaxis de bash pero tiene shebang: $SHEBANG"
+                echo ""
+                echo "   El script contiene características específicas de bash como:"
+                echo "   - PIPESTATUS (arrays de exit codes)"
+                echo "   - [[ ]] (conditional expressions)"
+                echo "   - mapfile/readarray"
+                echo ""
+                echo "   Pero el shebang es: $SHEBANG"
+                echo "   Esto causa: 'Bad substitution' en runtime"
+                echo ""
+                echo "   Solución: Cambiar primera línea a: #!/bin/bash"
+                echo "   Ref: FIX_SHELL_BASH_HOME_30_OCT_2025.md"
+                CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+            else
+                echo "✅ $script tiene shebang correcto: $SHEBANG"
+            fi
+        fi
+    fi
+done
+
+# Verificar configuración de HOME en Dockerfile
+echo ""
+echo "🔍 Verificando configuración de HOME en Dockerfile..."
+if [ -f "$PROJECT_ROOT/Dockerfile" ]; then
+    if ! grep -q 'ENV HOME=' "$PROJECT_ROOT/Dockerfile"; then
+        echo "❌ ERROR CRÍTICO: Dockerfile no configura ENV HOME"
+        echo ""
+        echo "   Sin HOME configurado, herramientas como corepack/yarn fallarán con:"
+        echo "   'EACCES: permission denied, mkdir /nonexistent/.cache/'"
+        echo ""
+        echo "   Solución: Agregar antes de USER:"
+        echo "   ENV HOME=/home/nextjs"
+        echo ""
+        echo "   Ref: FIX_SHELL_BASH_HOME_30_OCT_2025.md"
+        CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+    else
+        echo "✅ Dockerfile configura HOME correctamente"
+    fi
+    
+    # Verificar que el usuario tenga --home configurado
+    if ! grep -q 'adduser.*--home' "$PROJECT_ROOT/Dockerfile"; then
+        echo "⚠️  ADVERTENCIA: Usuario en Dockerfile podría no tener HOME directory"
+        echo "   Se recomienda usar: adduser --system --uid 1001 --home /home/nextjs nextjs"
+        echo "   Ref: FIX_SHELL_BASH_HOME_30_OCT_2025.md"
+    fi
+    
+    # Verificar que CMD use bash en lugar de sh para scripts que lo necesiten
+    if grep -q 'CMD.*\[.*"sh".*start-improved.sh' "$PROJECT_ROOT/Dockerfile"; then
+        echo "⚠️  ADVERTENCIA: Dockerfile usa 'sh' para ejecutar start-improved.sh"
+        echo "   Si el script usa sintaxis de bash, debería ser:"
+        echo "   CMD [\"dumb-init\", \"bash\", \"/app/start-improved.sh\"]"
+        echo "   Ref: FIX_SHELL_BASH_HOME_30_OCT_2025.md"
+    fi
+else
+    echo "❌ ERROR: Dockerfile no encontrado"
+    CRITICAL_ERRORS=$((CRITICAL_ERRORS + 1))
+fi
+
 # Verificar scripts de startup
 if [ ! -f "$PROJECT_ROOT/start-improved.sh" ]; then
     echo "❌ ERROR: start-improved.sh no encontrado"
