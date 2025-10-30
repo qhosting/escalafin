@@ -1,2 +1,7 @@
 refs/heads/main
+refs/remotes/escalafinmx/main
+refs/remotes/origin/fix-build-and-config-issues
+refs/remotes/origin/fix-docker-build-context
+refs/remotes/origin/fix-docker-build-error
 refs/remotes/origin/main
+refs/tags/v1.1.0
