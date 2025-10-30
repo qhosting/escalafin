@@ -124,9 +124,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Crear usuario no-root
+# Crear usuario no-root con HOME directory
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+    adduser --system --uid 1001 --home /home/nextjs nextjs && \
+    mkdir -p /home/nextjs/.cache && \
+    chown -R nextjs:nodejs /home/nextjs
 
 # Create healthcheck.sh script directly in the image
 RUN cat <<'EOF' > /app/healthcheck.sh
@@ -190,10 +192,13 @@ RUN mkdir -p /app/uploads && \
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD /app/healthcheck.sh || exit 1
 
+# Set HOME for nextjs user (required for corepack and yarn cache)
+ENV HOME=/home/nextjs
+
 USER nextjs
 
 EXPOSE 3000
 
 # Use start-improved.sh for better logging and error handling
 # To use emergency mode (bypass DB checks), change to: ./emergency-start.sh
-CMD ["dumb-init", "sh", "/app/start-improved.sh"]
+CMD ["dumb-init", "bash", "/app/start-improved.sh"]

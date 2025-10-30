@@ -1,5 +1,5 @@
 
-#!/bin/sh
+#!/bin/bash
 set -e
 
 echo "🚀 Iniciando ESCALAFIN (versión mejorada)..."
