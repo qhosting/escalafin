@@ -515,7 +515,58 @@ RUN echo "🔄 Limpiando Prisma Client anterior..." && \
 
 ---
 
-**Última actualización:** 30 de octubre de 2025, 04:50 AM  
-**Último commit:** 6f966d9  
+---
+
+## 🔧 FIX #8: Cambiar output de Prisma a ruta relativa - Commit 9481b4c
+
+### ❌ Problema:
+```
+test -d "node_modules/.prisma/client" || (echo "❌ ERROR: Cliente no generado" && exit 1)
+ERROR: failed to build: exit code: 1
+```
+
+**Causa raíz encontrada por `scripts/revision-fix.sh`:**
+
+```prisma
+generator client {
+    output = "/home/ubuntu/escalafin_mvp/app/node_modules/.prisma/client"  ❌ RUTA ABSOLUTA LOCAL
+}
+```
+
+Esta ruta **NO EXISTE** dentro del contenedor Docker. El contenedor trabaja en `/app/`, no en `/home/ubuntu/escalafin_mvp/app/`.
+
+### ✅ Solución:
+
+**Cambiar a ruta relativa** que funciona tanto en local como en Docker:
+
+```prisma
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "../node_modules/.prisma/client"  ✅ RUTA RELATIVA
+}
+```
+
+**Ruta relativa desde `app/prisma/`:**
+- `..` = sube a `app/`
+- `node_modules/.prisma/client` = destino
+
+**Resultado:**
+- En local: `/home/ubuntu/escalafin_mvp/app/node_modules/.prisma/client`
+- En Docker: `/app/node_modules/.prisma/client`
+
+Ambas rutas son correctas porque la ruta relativa se resuelve desde `prisma/schema.prisma`.
+
+### 📊 Resultado:
+- ✅ Prisma Client se generará correctamente en Docker
+- ✅ TypeScript encontrará los tipos (UserRole, UserStatus, etc.)
+- ✅ Build de Next.js completará exitosamente
+
+**Commit:** 9481b4c
+
+---
+
+**Última actualización:** 30 de octubre de 2025, 04:55 AM  
+**Último commit:** 9481b4c  
 **Estado:** ✅ TODOS LOS FIXES APLICADOS - LISTO PARA DEPLOY
 
