@@ -32,9 +32,6 @@ FROM base AS deps
 
 WORKDIR /app
 
-# Copy yarn configuration files (if they exist)
-COPY app/.yarn* ./ 2>/dev/null || true
-
 # Copy configuration files
 COPY app/package.json ./
 COPY app/yarn.lock ./
