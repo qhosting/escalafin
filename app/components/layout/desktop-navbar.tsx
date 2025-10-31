@@ -175,6 +175,12 @@ export function DesktopNavbar() {
             ]
           },
           {
+            title: 'SMS',
+            items: [
+              { title: 'LabsMobile', icon: Phone, href: '/admin/sms', moduleKey: 'labsmobile_sms' }
+            ]
+          },
+          {
             title: 'Notificaciones',
             items: [
               { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' },
@@ -253,6 +259,18 @@ export function DesktopNavbar() {
             ]
           },
           {
+            title: 'Chat',
+            items: [
+              { title: 'Chatwoot', icon: MessageSquare, href: '/admin/chatwoot', moduleKey: 'chatwoot_chat' }
+            ]
+          },
+          {
+            title: 'SMS',
+            items: [
+              { title: 'LabsMobile', icon: Phone, href: '/admin/sms', moduleKey: 'labsmobile_sms' }
+            ]
+          },
+          {
             title: 'Notificaciones',
             items: [
               { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' },
@@ -288,6 +306,12 @@ export function DesktopNavbar() {
           }
         ],
         'Comunicación': [
+          {
+            title: 'Chat',
+            items: [
+              { title: 'Chatwoot', icon: MessageSquare, href: '/admin/chatwoot', moduleKey: 'chatwoot_chat' }
+            ]
+          },
           {
             title: 'Notificaciones',
             items: [
