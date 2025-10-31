@@ -1,260 +1,154 @@
+# Fix: Módulo de Plantillas de Mensajes Faltante
 
-# Fix: Error al Crear Cliente - API Clients Route Faltante
-**Fecha**: 31 de Octubre de 2025  
-**Commit**: Pendiente
+**Fecha:** 31 de octubre de 2025  
+**Tipo:** Corrección de módulo faltante  
+**Prioridad:** Alta
 
-## Problema Detectado
+## Problema Identificado
 
-Al intentar crear un cliente en `/admin/clients/new`, se producía un error porque faltaba la ruta API principal para manejar la creación de clientes.
+El usuario reportó que no podía visualizar:
+- Chatwoot en `/admin/chatwoot`
+- Plantillas de Mensajes en `/admin/message-templates`
 
-### Errores Específicos:
+### Análisis
 
-1. **Ruta API Faltante**: No existía `/api/clients/route.ts`
-   - El formulario enviaba POST a `/api/clients`
-   - La ruta no existía, causando error 404
+1. Los enlaces en el menú están correctamente configurados en:
+   - `components/layout/desktop-navbar.tsx`
+   - `components/layout/mobile-sidebar.tsx`
 
-2. **Desajuste de Enum Employment Type**:
-   - El formulario usaba valores incorrectos:
-     - `EMPLOYEE` (incorrecto) → Debería ser `EMPLOYED`
-     - `FREELANCER` (no existe en schema)
-   - El schema de Prisma define:
-     ```prisma
-     enum EmploymentType {
-       EMPLOYED
-       SELF_EMPLOYED
-       UNEMPLOYED
-       RETIRED
-       STUDENT
-     }
-     ```
+2. **Causa raíz:** El módulo `notifications_templates` no existía en el seed de módulos (`scripts/seed-modules.js`)
+
+3. Sin el módulo en la base de datos, el sistema de control de módulos (`ModuleWrapper`) oculta automáticamente los enlaces del menú.
 
 ## Solución Implementada
 
-### 1. Creación de `/api/clients/route.ts`
+### 1. Agregado Módulo Faltante al Seed
 
-Implementamos la ruta API completa con:
+**Archivo:** `app/scripts/seed-modules.js`
 
-#### GET - Obtener Lista de Clientes
-- Paginación con `page` y `limit`
-- Filtros por `status` y `asesorId`
-- Control de acceso basado en rol:
-  - ADMIN: ve todos los clientes
-  - ASESOR: solo ve sus clientes asignados
-- Include de datos relacionados:
-  - Información del asesor
-  - Conteo de préstamos y solicitudes
-  - Lista de préstamos con saldos
-- Respuesta formateada con datos agregados
-
-#### POST - Crear Nuevo Cliente
-- Validación de campos requeridos: `firstName`, `lastName`, `phone`
-- Validación de unicidad de email y teléfono
-- Conversión de tipos de datos:
-  - Fechas: `dateOfBirth`
-  - Decimales: `monthlyIncome`
-  - Enteros: `yearsEmployed`, `creditScore`
-  - Enum: `employmentType`
-- Asignación automática de asesor según rol:
-  - ADMIN: puede asignar manualmente
-  - ASESOR: se autoasigna
-- Manejo de errores específicos:
-  - P2002: Violación de constraint único
-  - 400: Campos requeridos faltantes
-  - 409: Email/teléfono duplicado
-  - 500: Error general del servidor
-
-### 2. Corrección de Valores de Enum
-
-#### En `/app/admin/clients/new/page.tsx`:
-```typescript
-// ANTES (incorrecto)
-const EMPLOYMENT_TYPES = [
-  { value: 'EMPLOYEE', label: 'Empleado' },
-  { value: 'FREELANCER', label: 'Freelancer' },
-  ...
-];
-
-// DESPUÉS (correcto)
-const EMPLOYMENT_TYPES = [
-  { value: 'EMPLOYED', label: 'Empleado' },
-  { value: 'SELF_EMPLOYED', label: 'Autoempleado' },
-  { value: 'UNEMPLOYED', label: 'Desempleado' },
-  { value: 'RETIRED', label: 'Jubilado' },
-  { value: 'STUDENT', label: 'Estudiante' }
-];
+```javascript
+{
+  moduleKey: 'notifications_templates',
+  name: 'Plantillas de Mensajes',
+  description: 'Gestión de plantillas para SMS, WhatsApp, Chatwoot y otros canales',
+  category: 'NOTIFICATIONS',
+  status: 'ENABLED',
+  isCore: false,
+  requiredFor: [],
+  availableFor: ['ADMIN', 'ASESOR'],
+  icon: 'Mail',
+  route: '/admin/message-templates',
+  sortOrder: 52,
+}
 ```
 
-#### En `/app/admin/clients/[id]/edit/page.tsx`:
-- Mismos cambios aplicados para mantener consistencia
+### 2. Configuración del Módulo
+
+- **Categoría:** NOTIFICATIONS
+- **Estado:** ENABLED (habilitado por defecto)
+- **Disponible para:** ADMIN y ASESOR
+- **Icono:** Mail
+- **Ruta:** `/admin/message-templates`
+- **Orden:** 52 (después de WhatsApp notifications)
 
 ## Archivos Modificados
 
-```
-/home/ubuntu/escalafin_mvp/
-├── app/
-│   ├── api/
-│   │   └── clients/
-│   │       └── route.ts (NUEVO)
-│   └── app/
-│       └── admin/
-│           └── clients/
-│               ├── new/
-│               │   └── page.tsx (MODIFICADO - enum)
-│               └── [id]/
-│                   └── edit/
-│                       └── page.tsx (MODIFICADO - enum)
-└── FIX_API_CLIENTS_CREATION_31_OCT_2025.md (NUEVO)
+1. `app/scripts/seed-modules.js`
+   - Agregado módulo `notifications_templates`
+
+## Validación
+
+El módulo se agregará automáticamente a la base de datos durante el siguiente despliegue cuando se ejecute:
+
+```bash
+node scripts/seed-modules.js
 ```
 
-## Funcionalidad Implementada
+Este script se ejecuta automáticamente en:
+- `start-improved.sh` (línea de sincronización de módulos)
+- Durante el inicio de la aplicación en producción
 
-### GET /api/clients
-**Query Parameters:**
-- `page`: Número de página (default: 1)
-- `limit`: Registros por página (default: 50)
-- `status`: Filtrar por estado (ACTIVE, INACTIVE, BLACKLISTED)
-- `asesorId`: Filtrar por ID de asesor (solo ADMIN)
+## Enlaces del Menú
 
-**Response:**
-```json
-[
-  {
-    "id": "cuid123",
-    "name": "Juan Pérez",
-    "firstName": "Juan",
-    "lastName": "Pérez",
-    "email": "juan@example.com",
-    "phone": "555-1234",
-    "documentNumber": "555-1234",
-    "status": "ACTIVE",
-    "totalLoans": 2,
-    "totalAmount": 50000,
-    "createdAt": "2025-10-31T...",
-    "asesor": {
-      "id": "asesor123",
-      "name": "María López",
-      "email": "maria@escalafin.com"
-    }
-  }
-]
-```
+Los enlaces ya estaban correctamente configurados:
 
-### POST /api/clients
-**Request Body:**
-```json
+**Desktop Navbar:**
+```tsx
 {
-  "firstName": "Juan",
-  "lastName": "Pérez",
-  "email": "juan@example.com",
-  "phone": "555-1234",
-  "dateOfBirth": "1985-05-15",
-  "address": "Calle Principal 123",
-  "city": "Ciudad de México",
-  "state": "CDMX",
-  "postalCode": "01000",
-  "monthlyIncome": "15000",
-  "employmentType": "EMPLOYED",
-  "employerName": "Empresa ABC",
-  "workAddress": "Av. Reforma 456",
-  "yearsEmployed": "5",
-  "creditScore": "650",
-  "bankName": "BBVA",
-  "accountNumber": "1234567890",
-  "asesorId": "asesor123"
+  title: 'Chat',
+  items: [
+    { title: 'Chatwoot', icon: MessageSquare, href: '/admin/chatwoot', moduleKey: 'chatwoot_chat' }
+  ]
+},
+{
+  title: 'Notificaciones',
+  items: [
+    { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' },
+    { title: 'Plantillas de Mensajes', icon: Mail, href: '/admin/message-templates', moduleKey: 'notifications_templates' }
+  ]
 }
 ```
 
-**Response (201):**
-```json
-{
-  "id": "cuid123",
-  "firstName": "Juan",
-  "lastName": "Pérez",
-  ...
-  "status": "ACTIVE",
-  "asesor": {
-    "id": "asesor123",
-    "name": "María López",
-    "email": "maria@escalafin.com"
-  }
-}
-```
+## Instrucciones para Deployment
 
-## Control de Acceso
+1. **Pull del último commit:**
+   ```bash
+   git pull origin main
+   ```
 
-### GET
-- **ADMIN**: Acceso completo a todos los clientes
-- **ASESOR**: Solo sus clientes asignados
-- **CLIENTE**: No tiene acceso
+2. **Reconstruir en EasyPanel:**
+   - Ir a la aplicación en EasyPanel
+   - Click en "Rebuild"
+   - Esperar a que el build complete
 
-### POST
-- **ADMIN**: Puede crear clientes y asignar asesor
-- **ASESOR**: Puede crear clientes (se autoasigna)
-- **CLIENTE**: No tiene acceso
+3. **Verificación:**
+   - Iniciar sesión como ADMIN o ASESOR
+   - Verificar que aparezcan los enlaces:
+     - "Chatwoot" en el menú de Comunicación
+     - "Plantillas de Mensajes" en el menú de Comunicación
 
-## Validaciones Implementadas
+## Módulos de Comunicación Disponibles
 
-1. **Campos Requeridos:**
-   - firstName ✓
-   - lastName ✓
-   - phone ✓
+Después de este fix, la sección de "Comunicación" tendrá:
 
-2. **Unicidad:**
-   - email (si se proporciona)
-   - phone
+1. **WhatsApp**
+   - Mensajes (`/admin/whatsapp/messages`)
+   - Recargas (`/admin/message-recharges`)
 
-3. **Tipos de Datos:**
-   - dateOfBirth: Date
-   - monthlyIncome: Decimal(12,2)
-   - creditScore: Int (300-850)
-   - yearsEmployed: Int
-   - employmentType: EmploymentType enum
+2. **Chat**
+   - Chatwoot (`/admin/chatwoot`) - **AHORA VISIBLE**
 
-4. **Estados Válidos:**
-   - ACTIVE (default)
-   - INACTIVE
-   - BLACKLISTED
+3. **Notificaciones**
+   - Centro de Notificaciones (`/notifications`)
+   - Plantillas de Mensajes (`/admin/message-templates`) - **AHORA VISIBLE**
 
-## Testing Manual
+## Notas Técnicas
 
-### Crear Cliente (Admin)
+- El sistema de módulos PWA controla la visibilidad de características en tiempo real
+- Si un módulo no existe en la BD, el `ModuleWrapper` oculta automáticamente los enlaces
+- Todos los módulos pueden ser desactivados/activados desde `/admin/modules`
+- Los módulos marcados como `isCore: true` no pueden ser desactivados
+
+## Prevención Futura
+
+Al agregar nuevas funcionalidades con enlaces de menú:
+
+1. **Siempre agregar el módulo correspondiente en** `scripts/seed-modules.js`
+2. **Usar el mismo `moduleKey`** en:
+   - El seed de módulos
+   - Los componentes de navegación
+3. **Verificar** que el módulo se cree correctamente en la BD después del deploy
+
+## Estado
+
+✅ **Fix implementado**  
+⏳ **Pendiente de deployment en EasyPanel**  
+📋 **Documentación completa**
+
+## Commit
+
 ```bash
-curl -X POST http://localhost:3000/api/clients \
-  -H "Content-Type: application/json" \
-  -d '{
-    "firstName": "Juan",
-    "lastName": "Pérez",
-    "phone": "555-1234",
-    "email": "juan@example.com",
-    "employmentType": "EMPLOYED",
-    "asesorId": "asesor_id_aqui"
-  }'
+git add -A
+git commit -m "fix(modules): Agregar módulo faltante notifications_templates para Plantillas de Mensajes"
+git push origin main
 ```
-
-### Obtener Clientes
-```bash
-curl http://localhost:3000/api/clients?page=1&limit=10
-```
-
-### Obtener Clientes de un Asesor (Admin)
-```bash
-curl http://localhost:3000/api/clients?asesorId=asesor_id_aqui
-```
-
-## Resultado
-
-✅ **Ahora los clientes se pueden crear correctamente desde `/admin/clients/new`**
-✅ **Los valores del enum coinciden con el schema de Prisma**
-✅ **El GET de clientes funciona con paginación y filtros**
-✅ **Control de acceso implementado correctamente**
-
-## Próximos Pasos
-
-1. Verificar creación de clientes en interfaz web
-2. Probar edición de clientes existentes
-3. Verificar que la imagen del cliente se asocie correctamente
-4. Implementar validación adicional de datos bancarios si es necesario
-
----
-**Documentado por**: DeepAgent  
-**Proyecto**: EscalaFin MVP - Sistema de Gestión de Préstamos

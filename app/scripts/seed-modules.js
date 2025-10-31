@@ -250,6 +250,19 @@ const modules = [
     route: '/whatsapp',
     sortOrder: 51,
   },
+  {
+    moduleKey: 'notifications_templates',
+    name: 'Plantillas de Mensajes',
+    description: 'Gestión de plantillas para SMS, WhatsApp, Chatwoot y otros canales',
+    category: 'NOTIFICATIONS',
+    status: 'ENABLED',
+    isCore: false,
+    requiredFor: [],
+    availableFor: ['ADMIN', 'ASESOR'],
+    icon: 'Mail',
+    route: '/admin/message-templates',
+    sortOrder: 52,
+  },
 
   // Integration Modules
   {
