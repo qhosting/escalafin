@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(
   request: NextRequest,
@@ -11,14 +12,40 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
     }
 
     const notificationId = params.id;
 
-    // TODO: Implementar lógica real para archivar notificación
-    // Por ahora, simplemente devolvemos éxito
+    // Verificar que la notificación pertenece al usuario
+    const notification = await prisma.notification.findFirst({
+      where: {
+        id: notificationId,
+        userId: user.id
+      }
+    });
+
+    if (!notification) {
+      return NextResponse.json({ error: 'Notificación no encontrada' }, { status: 404 });
+    }
+
+    // Archivar = marcar como leída (por ahora no tenemos campo archived en el schema)
+    await prisma.notification.update({
+      where: { id: notificationId },
+      data: { 
+        readAt: new Date(),
+        status: 'READ'
+      }
+    });
     
     return NextResponse.json({ 
       success: true, 

@@ -1,93 +1,24 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
+import { NotificationType, NotificationChannel } from '@prisma/client'
 
-const prisma = new PrismaClient()
-
-// Simulación de notificaciones para el MVP - En producción esto vendría de la BD
-const generateMockNotifications = async (userId: string, userRole: string) => {
-  const baseNotifications = [
-    {
-      id: '1',
-      type: 'success' as const,
-      title: 'Préstamo Aprobado',
-      message: 'El préstamo de María García por $50,000 ha sido aprobado exitosamente',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 min ago
-      userId,
-      actionUrl: userRole === 'ADMIN' ? '/admin/dashboard' : '/asesor/dashboard',
-      actionLabel: 'Ver Detalles'
-    },
-    {
-      id: '2',
-      type: 'info' as const,
-      title: 'Pago Recibido',
-      message: 'Pago de $2,500 recibido de Ana Martínez',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-      userId,
-      actionUrl: '/asesor/dashboard',
-      actionLabel: 'Ver Pagos'
-    },
-    {
-      id: '3',
-      type: 'warning' as const,
-      title: 'Pago Vencido',
-      message: 'Carlos Rodríguez tiene un pago vencido hace 3 días',
-      read: userRole === 'CLIENTE',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-      userId,
-      actionUrl: '/asesor/dashboard',
-      actionLabel: 'Gestionar'
-    }
-  ]
-
-  if (userRole === 'ADMIN') {
-    baseNotifications.push({
-      id: '4',
-      type: 'info' as const,
-      title: 'Nueva Solicitud',
-      message: 'Carlos López ha enviado una nueva solicitud de crédito',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 15), // 15 min ago
-      userId,
-      actionUrl: '/admin/dashboard',
-      actionLabel: 'Revisar'
-    })
+// Mapa de tipos de notificación para el frontend
+const mapNotificationTypeToUI = (type: NotificationType) => {
+  const map = {
+    LOAN_APPROVED: 'success',
+    LOAN_REJECTED: 'error',
+    PAYMENT_OVERDUE: 'warning',
+    PAYMENT_DUE: 'info',
+    REMINDER: 'info',
+    SYSTEM_ALERT: 'warning',
+    MARKETING: 'info'
   }
-
-  if (userRole === 'CLIENTE') {
-    return [
-      {
-        id: '5',
-        type: 'info' as const,
-        title: 'Próximo Pago',
-        message: 'Tu próximo pago de $2,500 vence el 25 de septiembre',
-        read: false,
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
-        userId,
-        actionUrl: '/cliente/dashboard',
-        actionLabel: 'Ver Préstamo'
-      },
-      {
-        id: '6',
-        type: 'success' as const,
-        title: 'Pago Procesado',
-        message: 'Tu pago de $2,500 ha sido procesado exitosamente',
-        read: true,
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-        userId,
-        actionUrl: '/cliente/dashboard',
-        actionLabel: 'Ver Historial'
-      }
-    ]
-  }
-
-  return baseNotifications
+  return map[type] || 'info'
 }
 
+// GET /api/notifications - Obtener notificaciones del usuario
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -96,14 +27,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-
-    if (!userId || userId !== session.user.email) {
-      return NextResponse.json({ error: 'Usuario no válido' }, { status: 403 })
-    }
-
-    // Obtener el usuario para conocer su rol
+    // Obtener el usuario
     const user = await prisma.user.findUnique({
       where: { email: session.user.email }
     })
@@ -112,10 +36,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
     }
 
-    // Generar notificaciones mock basadas en el rol
-    const notifications = await generateMockNotifications(userId, user.role)
+    const { searchParams } = new URL(request.url)
+    const limit = parseInt(searchParams.get('limit') || '50')
+    const includeRead = searchParams.get('includeRead') === 'true'
 
-    return NextResponse.json(notifications)
+    // Obtener notificaciones de la base de datos
+    const notifications = await prisma.notification.findMany({
+      where: {
+        userId: user.id,
+        channel: NotificationChannel.IN_APP,
+        ...(includeRead ? {} : { readAt: null })
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: limit
+    })
+
+    // Transformar al formato que espera el frontend
+    const transformedNotifications = notifications.map(n => ({
+      id: n.id,
+      title: n.title,
+      message: n.message,
+      type: mapNotificationTypeToUI(n.type),
+      channel: n.channel.toLowerCase(),
+      read: !!n.readAt,
+      archived: false, // Por ahora no tenemos campo archived
+      createdAt: n.createdAt.toISOString(),
+      userId: n.userId,
+      metadata: n.data ? JSON.parse(n.data) : null
+    }))
+
+    return NextResponse.json({ 
+      notifications: transformedNotifications,
+      total: notifications.length
+    })
   } catch (error) {
     console.error('Error fetching notifications:', error)
     return NextResponse.json(
@@ -125,7 +80,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest) {
+// POST /api/notifications - Crear nueva notificación
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -133,15 +89,47 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { notificationId, action } = body
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    })
 
-    // En un entorno de producción, aquí actualizarías la base de datos
-    // Por ahora, solo devolvemos una respuesta exitosa
-    
-    return NextResponse.json({ success: true })
+    if (!user) {
+      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
+    }
+
+    // Solo admin puede crear notificaciones para otros usuarios
+    if (user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+    }
+
+    const body = await request.json()
+    const { userId, type, title, message, channel = 'IN_APP', data } = body
+
+    const notification = await prisma.notification.create({
+      data: {
+        userId,
+        type: type as NotificationType,
+        channel: channel as NotificationChannel,
+        title,
+        message,
+        data: data ? JSON.stringify(data) : null
+      }
+    })
+
+    return NextResponse.json({ 
+      success: true, 
+      notification: {
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        type: mapNotificationTypeToUI(notification.type),
+        channel: notification.channel.toLowerCase(),
+        read: false,
+        createdAt: notification.createdAt.toISOString()
+      }
+    })
   } catch (error) {
-    console.error('Error updating notification:', error)
+    console.error('Error creating notification:', error)
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
