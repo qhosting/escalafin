@@ -304,6 +304,19 @@ const modules = [
     route: '/admin/chatwoot',
     sortOrder: 72,
   },
+  {
+    moduleKey: 'labsmobile_sms',
+    name: 'LabsMobile SMS',
+    description: 'Envío de notificaciones SMS (Límite: 160 caracteres)',
+    category: 'INTEGRATIONS',
+    status: 'ENABLED',
+    isCore: false,
+    requiredFor: [],
+    availableFor: ['ADMIN'],
+    icon: 'Smartphone',
+    route: '/admin/sms',
+    sortOrder: 73,
+  },
 
   // Credit Application Modules
   {
