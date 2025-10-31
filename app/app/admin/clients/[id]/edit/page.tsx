@@ -43,9 +43,8 @@ interface ClientFormData {
 }
 
 const EMPLOYMENT_TYPES = [
-  { value: 'EMPLOYEE', label: 'Empleado' },
+  { value: 'EMPLOYED', label: 'Empleado' },
   { value: 'SELF_EMPLOYED', label: 'Autoempleado' },
-  { value: 'FREELANCER', label: 'Freelancer' },
   { value: 'UNEMPLOYED', label: 'Desempleado' },
   { value: 'RETIRED', label: 'Jubilado' },
   { value: 'STUDENT', label: 'Estudiante' }
