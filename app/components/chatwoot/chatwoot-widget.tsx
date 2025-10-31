@@ -35,23 +35,18 @@ export function ChatwootWidget({
   const [config, setConfig] = useState<ChatwootConfig | null>(null);
   const [configLoaded, setConfigLoaded] = useState(false);
 
-  // Cargar configuración desde la API
+  // Cargar configuración desde variables de entorno
   useEffect(() => {
-    const loadConfig = async () => {
-      try {
-        const response = await fetch('/api/public/chatwoot/config');
-        if (response.ok) {
-          const data = await response.json();
-          setConfig(data);
-        }
-      } catch (error) {
-        console.error('Error loading Chatwoot config:', error);
-      } finally {
-        setConfigLoaded(true);
-      }
+    // Simulación de configuración - en producción esto vendría de la BD o variables de entorno
+    const defaultConfig: ChatwootConfig = {
+      baseUrl: process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL || '',
+      websiteToken: process.env.NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN || '',
+      enabled: false, // Deshabilitado por defecto hasta configurar
+      isConfigured: false
     };
-
-    loadConfig();
+    
+    setConfig(defaultConfig);
+    setConfigLoaded(true);
   }, []);
 
   useEffect(() => {
