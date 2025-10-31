@@ -53,48 +53,25 @@ export default function TransactionsPage() {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/payments/transactions');
-      // const data = await response.json();
+      const response = await fetch('/api/payments/transactions');
+      if (!response.ok) throw new Error('Error al cargar transacciones');
       
-      // Mock data
-      const mockTransactions: Transaction[] = [
-        {
-          id: 'TRX-001',
-          type: 'PAYMENT',
-          amount: 9025,
-          status: 'COMPLETED',
-          date: new Date('2024-10-20'),
-          reference: 'REF-001-2024',
-          clientName: 'Juan Pérez',
-          loanId: 'ESF-2024-001',
-          method: 'CASH'
-        },
-        {
-          id: 'TRX-002',
-          type: 'PAYMENT',
-          amount: 12500,
-          status: 'COMPLETED',
-          date: new Date('2024-10-19'),
-          reference: 'REF-002-2024',
-          clientName: 'Ana Martínez',
-          loanId: 'ESF-2024-002',
-          method: 'OPENPAY'
-        },
-        {
-          id: 'TRX-003',
-          type: 'PAYMENT',
-          amount: 8000,
-          status: 'PENDING',
-          date: new Date('2024-10-18'),
-          reference: 'REF-003-2024',
-          clientName: 'Roberto Sánchez',
-          loanId: 'ESF-2024-003',
-          method: 'TRANSFER'
-        }
-      ];
+      const data = await response.json();
       
-      setTransactions(mockTransactions);
+      // Transformar las transacciones al formato esperado por el componente
+      const formattedTransactions: Transaction[] = (data.transactions || []).map((txn: any) => ({
+        id: txn.id,
+        type: 'PAYMENT',
+        amount: txn.amount,
+        status: txn.status,
+        date: new Date(txn.createdAt),
+        reference: txn.id,
+        clientName: `${txn.payment?.loan?.client?.firstName || ''} ${txn.payment?.loan?.client?.lastName || ''}`.trim() || 'Cliente Desconocido',
+        loanId: txn.payment?.loan?.loanNumber || 'N/A',
+        method: txn.provider
+      }));
+      
+      setTransactions(formattedTransactions);
     } catch (error) {
       console.error('Error fetching transactions:', error);
       toast.error('Error al cargar las transacciones');

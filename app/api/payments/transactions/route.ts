@@ -19,58 +19,48 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    // Buscar transacciones de pago
-    // Como no tenemos modelo de Transaction en Prisma, devolvemos datos mock
-    const transactions = [
-      {
-        id: '1',
-        amount: 9025,
-        status: 'COMPLETED',
-        provider: 'OPENPAY',
-        createdAt: new Date().toISOString(),
-        payment: {
-          loan: {
-            loanNumber: 'L-001',
+    // Buscar pagos realizados con información completa
+    const payments = await prisma.payment.findMany({
+      where: {
+        status: {
+          in: ['PAID', 'PARTIAL', 'FAILED']
+        }
+      },
+      include: {
+        loan: {
+          include: {
             client: {
-              firstName: 'María',
-              lastName: 'García'
+              select: {
+                firstName: true,
+                lastName: true
+              }
             }
           }
         }
       },
-      {
-        id: '2',
-        amount: 50000,
-        status: 'COMPLETED',
-        provider: 'OPENPAY',
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        payment: {
-          loan: {
-            loanNumber: 'L-002',
-            client: {
-              firstName: 'Juan',
-              lastName: 'Pérez'
-            }
-          }
-        }
+      orderBy: {
+        paymentDate: 'desc'
       },
-      {
-        id: '3',
-        amount: 4500,
-        status: 'FAILED',
-        provider: 'OPENPAY',
-        createdAt: new Date(Date.now() - 172800000).toISOString(),
-        payment: {
-          loan: {
-            loanNumber: 'L-003',
-            client: {
-              firstName: 'Pedro',
-              lastName: 'Martín'
-            }
+      take: 100
+    });
+
+    // Transformar pagos a formato de transacciones
+    const transactions = payments.map((payment) => ({
+      id: payment.id,
+      amount: payment.amount,
+      status: payment.status === 'PAID' ? 'COMPLETED' : payment.status === 'FAILED' ? 'FAILED' : 'PENDING',
+      provider: payment.paymentMethod || 'CASH',
+      createdAt: payment.paymentDate?.toISOString() || payment.dueDate.toISOString(),
+      payment: {
+        loan: {
+          loanNumber: payment.loan.loanNumber,
+          client: {
+            firstName: payment.loan.client.firstName,
+            lastName: payment.loan.client.lastName
           }
         }
       }
-    ];
+    }));
 
     const stats = {
       totalTransactions: transactions.length,

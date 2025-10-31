@@ -84,12 +84,12 @@ export default function ReportsPWAPage() {
       if (kpisResponse.ok) {
         const kpisData = await kpisResponse.json();
         setKpis({
-          totalClients: kpisData.totalClients || 127,
-          activeLoans: kpisData.activeLoans || 89,
-          totalPortfolio: kpisData.totalPortfolio || 2450000,
-          collectionsRate: kpisData.collectionsRate || 94.5,
-          overdueAmount: kpisData.overdueAmount || 178500,
-          monthlyGrowth: kpisData.monthlyGrowth || 12.3
+          totalClients: kpisData.totalClients || 0,
+          activeLoans: kpisData.activeLoans || 0,
+          totalPortfolio: kpisData.totalPortfolio || 0,
+          collectionsRate: kpisData.collectionsRate || 0,
+          overdueAmount: kpisData.overdueAmount || 0,
+          monthlyGrowth: kpisData.monthlyGrowth || 0
         });
       }
 
@@ -97,47 +97,138 @@ export default function ReportsPWAPage() {
       const paymentsResponse = await fetch(`/api/analytics/timeseries?type=payments&timeRange=${timeRange}`);
       if (paymentsResponse.ok) {
         const paymentsData = await paymentsResponse.json();
-        setPaymentsData(paymentsData.data || generateMockPaymentsData());
-      } else {
-        setPaymentsData(generateMockPaymentsData());
+        setPaymentsData(paymentsData.data || []);
       }
 
-      // Load portfolio distribution
-      setPortfolioData([
-        { name: 'Al día', value: 85, amount: 2080000 },
-        { name: 'Vencido 1-30', value: 10, amount: 245000 },
-        { name: 'Vencido 31-60', value: 3, amount: 73500 },
-        { name: 'Vencido >60', value: 2, amount: 51500 }
-      ]);
+      // Load portfolio distribution from real data
+      const loansResponse = await fetch('/api/loans');
+      if (loansResponse.ok) {
+        const loansData = await loansResponse.json();
+        const loans = Array.isArray(loansData) ? loansData : loansData.loans || [];
+        
+        // Calculate portfolio distribution based on loan status
+        const distribution = {
+          current: { count: 0, amount: 0 },
+          overdue1to30: { count: 0, amount: 0 },
+          overdue31to60: { count: 0, amount: 0 },
+          overdue60plus: { count: 0, amount: 0 }
+        };
+        
+        loans.forEach((loan: any) => {
+          const overduePayments = (loan.payments || []).filter((p: any) => 
+            p.status === 'PENDING' || p.status === 'OVERDUE'
+          );
+          
+          let maxOverdueDays = 0;
+          overduePayments.forEach((payment: any) => {
+            const dueDate = new Date(payment.dueDate);
+            const today = new Date();
+            const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (daysOverdue > maxOverdueDays) {
+              maxOverdueDays = daysOverdue;
+            }
+          });
+          
+          const loanAmount = Number(loan.amount || 0);
+          
+          if (maxOverdueDays === 0) {
+            distribution.current.count++;
+            distribution.current.amount += loanAmount;
+          } else if (maxOverdueDays <= 30) {
+            distribution.overdue1to30.count++;
+            distribution.overdue1to30.amount += loanAmount;
+          } else if (maxOverdueDays <= 60) {
+            distribution.overdue31to60.count++;
+            distribution.overdue31to60.amount += loanAmount;
+          } else {
+            distribution.overdue60plus.count++;
+            distribution.overdue60plus.amount += loanAmount;
+          }
+        });
+        
+        const total = distribution.current.count + distribution.overdue1to30.count + 
+                      distribution.overdue31to60.count + distribution.overdue60plus.count;
+        
+        setPortfolioData([
+          { 
+            name: 'Al día', 
+            value: total > 0 ? Math.round((distribution.current.count / total) * 100) : 0, 
+            amount: distribution.current.amount 
+          },
+          { 
+            name: 'Vencido 1-30', 
+            value: total > 0 ? Math.round((distribution.overdue1to30.count / total) * 100) : 0, 
+            amount: distribution.overdue1to30.amount 
+          },
+          { 
+            name: 'Vencido 31-60', 
+            value: total > 0 ? Math.round((distribution.overdue31to60.count / total) * 100) : 0, 
+            amount: distribution.overdue31to60.amount 
+          },
+          { 
+            name: 'Vencido >60', 
+            value: total > 0 ? Math.round((distribution.overdue60plus.count / total) * 100) : 0, 
+            amount: distribution.overdue60plus.amount 
+          }
+        ]);
+      }
 
-      // Load performance data
-      setPerformanceData([
-        { name: 'Ene', value: 220000, growth: 15 },
-        { name: 'Feb', value: 180000, growth: -18 },
-        { name: 'Mar', value: 280000, growth: 56 },
-        { name: 'Abr', value: 320000, growth: 14 },
-        { name: 'May', value: 290000, growth: -9 },
-        { name: 'Jun', value: 350000, growth: 21 }
-      ]);
+      // Load performance data from payments
+      const paymentsHistoryResponse = await fetch('/api/payments');
+      if (paymentsHistoryResponse.ok) {
+        const paymentsHistoryData = await paymentsHistoryResponse.json();
+        const payments = Array.isArray(paymentsHistoryData) ? paymentsHistoryData : paymentsHistoryData.payments || [];
+        
+        // Group payments by month
+        const monthlyData: { [key: string]: { total: number, count: number } } = {};
+        
+        payments.forEach((payment: any) => {
+          if (payment.status === 'PAID' && payment.paymentDate) {
+            const date = new Date(payment.paymentDate);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            
+            if (!monthlyData[monthKey]) {
+              monthlyData[monthKey] = { total: 0, count: 0 };
+            }
+            
+            monthlyData[monthKey].total += Number(payment.amount || 0);
+            monthlyData[monthKey].count++;
+          }
+        });
+        
+        // Convert to array and calculate growth
+        const sortedMonths = Object.keys(monthlyData).sort();
+        const last6Months = sortedMonths.slice(-6);
+        
+        const performanceArray = last6Months.map((monthKey, index) => {
+          const [year, month] = monthKey.split('-');
+          const monthName = new Date(parseInt(year), parseInt(month) - 1, 1)
+            .toLocaleString('es-ES', { month: 'short' })
+            .replace('.', '');
+          
+          let growth = 0;
+          if (index > 0) {
+            const prevMonthKey = last6Months[index - 1];
+            const prevTotal = monthlyData[prevMonthKey].total;
+            const currentTotal = monthlyData[monthKey].total;
+            growth = prevTotal > 0 ? Math.round(((currentTotal - prevTotal) / prevTotal) * 100) : 0;
+          }
+          
+          return {
+            name: monthName.charAt(0).toUpperCase() + monthName.slice(1),
+            value: monthlyData[monthKey].total,
+            growth
+          };
+        });
+        
+        setPerformanceData(performanceArray);
+      }
 
     } catch (error) {
       console.error('Error loading reports data:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const generateMockPaymentsData = (): ChartData[] => {
-    const dates = [];
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      dates.push({
-        name: date.getDate().toString(),
-        value: Math.floor(Math.random() * 50000) + 10000
-      });
-    }
-    return dates;
   };
 
   const handleRefresh = async () => {

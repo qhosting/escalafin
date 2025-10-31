@@ -52,63 +52,66 @@ export default function CollectionsReportPage() {
   const fetchCollectionRecords = async () => {
     try {
       setLoading(true);
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/reports/collections');
-      // const data = await response.json();
       
-      // Mock data
-      const mockRecords: CollectionRecord[] = [
-        {
-          id: '1',
-          clientName: 'Juan Pérez',
-          loanId: 'ESF-2024-001',
-          amountDue: 9025,
-          daysOverdue: 0,
-          lastPaymentDate: new Date('2024-09-01'),
-          nextPaymentDate: new Date('2024-10-01'),
-          phoneNumber: '+52 555 123 4567',
-          status: 'CURRENT',
-          asesorName: 'María García'
-        },
-        {
-          id: '2',
-          clientName: 'Ana Martínez',
-          loanId: 'ESF-2024-002',
-          amountDue: 12500,
-          daysOverdue: 3,
-          lastPaymentDate: new Date('2024-08-28'),
-          nextPaymentDate: new Date('2024-09-28'),
-          phoneNumber: '+52 555 234 5678',
-          status: 'WARNING',
-          asesorName: 'Carlos López'
-        },
-        {
-          id: '3',
-          clientName: 'Roberto Sánchez',
-          loanId: 'ESF-2024-003',
-          amountDue: 8000,
-          daysOverdue: 15,
-          lastPaymentDate: new Date('2024-08-15'),
-          nextPaymentDate: new Date('2024-09-15'),
-          phoneNumber: '+52 555 345 6789',
-          status: 'OVERDUE',
-          asesorName: 'María García'
-        },
-        {
-          id: '4',
-          clientName: 'Patricia Hernández',
-          loanId: 'ESF-2024-004',
-          amountDue: 15000,
-          daysOverdue: 30,
-          lastPaymentDate: new Date('2024-08-01'),
-          nextPaymentDate: new Date('2024-09-01'),
-          phoneNumber: '+52 555 456 7890',
-          status: 'CRITICAL',
-          asesorName: 'Carlos López'
-        }
-      ];
+      // Obtener préstamos con pagos pendientes o vencidos
+      const response = await fetch('/api/loans');
+      if (!response.ok) throw new Error('Error al cargar préstamos');
       
-      setRecords(mockRecords);
+      const data = await response.json();
+      const loans = Array.isArray(data) ? data : data.loans || [];
+      
+      // Transformar préstamos a formato de registros de cobranza
+      const collectionRecords: CollectionRecord[] = loans
+        .filter((loan: any) => loan.status === 'ACTIVE')
+        .flatMap((loan: any) => {
+          // Obtener todos los pagos pendientes o vencidos
+          const payments = loan.payments || [];
+          const overduePayments = payments.filter((payment: any) => 
+            payment.status === 'PENDING' || payment.status === 'OVERDUE'
+          );
+          
+          return overduePayments.map((payment: any) => {
+            const dueDate = new Date(payment.dueDate);
+            const today = new Date();
+            const daysOverdue = Math.max(0, Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)));
+            
+            let status: 'CURRENT' | 'WARNING' | 'OVERDUE' | 'CRITICAL';
+            if (daysOverdue === 0) {
+              status = 'CURRENT';
+            } else if (daysOverdue <= 7) {
+              status = 'WARNING';
+            } else if (daysOverdue <= 30) {
+              status = 'OVERDUE';
+            } else {
+              status = 'CRITICAL';
+            }
+            
+            // Encontrar el último pago realizado
+            const paidPayments = payments.filter((p: any) => p.status === 'PAID');
+            const lastPayment = paidPayments.length > 0 
+              ? paidPayments.sort((a: any, b: any) => 
+                  new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()
+                )[0]
+              : null;
+            
+            return {
+              id: payment.id,
+              clientName: `${loan.client?.firstName || ''} ${loan.client?.lastName || ''}`.trim() || 'Cliente Desconocido',
+              loanId: loan.loanNumber || loan.id,
+              amountDue: Number(payment.amount || 0),
+              daysOverdue,
+              lastPaymentDate: lastPayment ? new Date(lastPayment.paymentDate) : null,
+              nextPaymentDate: dueDate,
+              phoneNumber: loan.client?.phone || 'No disponible',
+              status,
+              asesorName: loan.asesor ? 
+                `${loan.asesor.firstName || ''} ${loan.asesor.lastName || ''}`.trim() : 
+                'Sin asignar'
+            };
+          });
+        });
+      
+      setRecords(collectionRecords);
     } catch (error) {
       console.error('Error fetching collection records:', error);
       toast.error('Error al cargar el reporte de cobranza');

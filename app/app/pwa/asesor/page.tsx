@@ -79,37 +79,119 @@ export default function AsesorPWAPage() {
     try {
       setLoading(true);
       
-      // Load clients
-      const clientsResponse = await fetch('/api/clients');
-      if (clientsResponse.ok) {
-        const clientsData = await clientsResponse.json();
-        // Transform data to include collection info
-        const transformedClients = (clientsData.clients || []).map((client: any) => ({
-          id: client.id,
-          name: `${client.firstName} ${client.lastName}`,
-          phone: client.phone,
-          address: `${client.address}, ${client.city}`,
-          overdueDays: Math.random() * 30, // Mock data
-          overdueAmount: Math.random() * 10000,
-          lastPaymentDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-          status: Math.random() > 0.7 ? 'overdue' : Math.random() > 0.5 ? 'critical' : 'current',
-          coordinates: {
-            lat: 19.4326 + (Math.random() - 0.5) * 0.1,
-            lng: -99.1332 + (Math.random() - 0.5) * 0.1
+      // Load loans with payment information
+      const loansResponse = await fetch('/api/loans');
+      if (loansResponse.ok) {
+        const loansData = await loansResponse.json();
+        const loans = Array.isArray(loansData) ? loansData : loansData.loans || [];
+        
+        // Calculate collection info for each client based on their loans
+        const clientsMap = new Map<string, any>();
+        const tasksArray: CollectionTask[] = [];
+        
+        loans.forEach((loan: any) => {
+          if (!loan.client) return;
+          
+          const clientId = loan.client.id;
+          const clientKey = `${loan.client.firstName} ${loan.client.lastName}`;
+          
+          // Calculate overdue info from payments
+          const overduePayments = (loan.payments || []).filter((p: any) => 
+            p.status === 'PENDING' || p.status === 'OVERDUE'
+          );
+          
+          const overdueAmount = overduePayments.reduce((sum: number, p: any) => 
+            sum + Number(p.amount || 0), 0
+          );
+          
+          // Calculate days overdue (oldest unpaid payment)
+          let maxOverdueDays = 0;
+          overduePayments.forEach((payment: any) => {
+            const dueDate = new Date(payment.dueDate);
+            const today = new Date();
+            const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (daysOverdue > maxOverdueDays) {
+              maxOverdueDays = daysOverdue;
+            }
+          });
+          
+          // Find last payment date
+          const paidPayments = (loan.payments || []).filter((p: any) => p.status === 'PAID');
+          const lastPayment = paidPayments.length > 0 
+            ? paidPayments.sort((a: any, b: any) => 
+                new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()
+              )[0]
+            : null;
+          
+          // Determine status
+          let status: 'current' | 'overdue' | 'critical';
+          if (maxOverdueDays === 0) {
+            status = 'current';
+          } else if (maxOverdueDays > 30) {
+            status = 'critical';
+          } else {
+            status = 'overdue';
           }
-        }));
-        setClients(transformedClients);
-
-        // Generate collection tasks
-        const mockTasks = transformedClients.slice(0, 5).map((client: Client, index: number) => ({
-          id: `task-${index}`,
-          clientName: client.name,
-          amount: client.overdueAmount,
-          dueDate: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-          priority: index < 2 ? 'high' : index < 4 ? 'medium' : 'low',
-          status: 'pending'
-        }));
-        setTasks(mockTasks);
+          
+          // Update or create client entry
+          if (!clientsMap.has(clientId)) {
+            clientsMap.set(clientId, {
+              id: clientId,
+              name: clientKey,
+              phone: loan.client.phone || 'No disponible',
+              address: `${loan.client.address || ''}, ${loan.client.city || ''}`.trim() || 'No disponible',
+              overdueDays: maxOverdueDays,
+              overdueAmount: overdueAmount,
+              lastPaymentDate: lastPayment ? lastPayment.paymentDate : new Date().toISOString(),
+              status: status,
+              coordinates: {
+                lat: 19.4326 + (Math.random() - 0.5) * 0.1,
+                lng: -99.1332 + (Math.random() - 0.5) * 0.1
+              }
+            });
+          } else {
+            // Accumulate amounts if client has multiple loans
+            const existingClient = clientsMap.get(clientId);
+            existingClient.overdueAmount += overdueAmount;
+            existingClient.overdueDays = Math.max(existingClient.overdueDays, maxOverdueDays);
+            
+            // Update status to worst case
+            if (status === 'critical' || existingClient.status === 'critical') {
+              existingClient.status = 'critical';
+            } else if (status === 'overdue' || existingClient.status === 'overdue') {
+              existingClient.status = 'overdue';
+            }
+          }
+          
+          // Create collection tasks for overdue payments
+          if (overdueAmount > 0) {
+            overduePayments.forEach((payment: any, index: number) => {
+              const dueDate = new Date(payment.dueDate);
+              const daysOverdue = Math.floor((new Date().getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+              
+              let priority: 'high' | 'medium' | 'low';
+              if (daysOverdue > 30) {
+                priority = 'high';
+              } else if (daysOverdue > 15) {
+                priority = 'medium';
+              } else {
+                priority = 'low';
+              }
+              
+              tasksArray.push({
+                id: payment.id,
+                clientName: clientKey,
+                amount: Number(payment.amount || 0),
+                dueDate: payment.dueDate,
+                priority,
+                status: 'pending'
+              });
+            });
+          }
+        });
+        
+        setClients(Array.from(clientsMap.values()));
+        setTasks(tasksArray);
       }
     } catch (error) {
       console.error('Error loading asesor data:', error);

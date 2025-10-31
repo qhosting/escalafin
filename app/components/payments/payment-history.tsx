@@ -106,42 +106,7 @@ export function PaymentHistory({ userRole = 'CLIENTE' }: PaymentHistoryProps) {
     );
   }
 
-  // Mock data para demostración
-  const mockPayments: Payment[] = [
-    {
-      id: '1',
-      amount: 9025,
-      dueDate: '2024-10-01',
-      paymentDate: '2024-09-01',
-      status: 'PAID',
-      loanId: 'ESF-2024-001',
-      loanDescription: 'Préstamo Personal',
-      reference: 'TRX-004-ESF-2024-001',
-      paymentMethod: 'Transferencia'
-    },
-    {
-      id: '2',
-      amount: 9025,
-      dueDate: '2024-11-01',
-      status: 'PENDING',
-      loanId: 'ESF-2024-001',
-      loanDescription: 'Préstamo Personal',
-      reference: 'TRX-005-ESF-2024-001'
-    },
-    {
-      id: '3',
-      amount: 9025,
-      dueDate: '2024-08-01',
-      paymentDate: '2024-08-01',
-      status: 'PAID',
-      loanId: 'ESF-2024-001',
-      loanDescription: 'Préstamo Personal',
-      reference: 'TRX-003-ESF-2024-001',
-      paymentMethod: 'Tarjeta de Crédito'
-    }
-  ];
-
-  const displayPayments = payments.length > 0 ? filteredPayments : mockPayments;
+  const displayPayments = filteredPayments;
 
   return (
     <div className="space-y-6">
