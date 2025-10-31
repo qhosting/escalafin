@@ -1,7 +1,7 @@
 generator client {
     provider = "prisma-client-js"
     binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
-    output = "/home/ubuntu/escalafin_mvp/app/node_modules/.prisma/client"
+    output = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -432,6 +432,24 @@ model WhatsAppMessage {
   @@map("whatsapp_messages")
 }
 
+model MessageTemplate {
+  id          String              @id @default(cuid())
+  name        String              @unique
+  description String?
+  category    MessageTemplateType
+  channel     MessageChannel
+  template    String
+  variables   String?
+  maxLength   Int?
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([category])
+  @@index([channel])
+  @@map("message_templates")
+}
+
 model EvolutionAPIConfig {
   id                      String   @id @default(cuid())
   instanceName            String   @unique
@@ -741,4 +759,29 @@ enum ModuleStatus {
   DISABLED
   BETA
   MAINTENANCE
+}
+
+enum MessageTemplateType {
+  ACCOUNT_CREATED
+  PAYMENT_RECEIVED
+  PAYMENT_REMINDER
+  PAYMENT_OVERDUE
+  LOAN_APPROVED
+  LOAN_DISBURSED
+  LOAN_REJECTED
+  LOAN_UPDATE
+  CREDIT_APPLICATION_RECEIVED
+  CREDIT_APPLICATION_APPROVED
+  CREDIT_APPLICATION_REJECTED
+  WELCOME
+  MARKETING
+  CUSTOM
+}
+
+enum MessageChannel {
+  SMS
+  WHATSAPP
+  CHATWOOT
+  EMAIL
+  PUSH
 }

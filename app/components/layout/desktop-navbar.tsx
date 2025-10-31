@@ -30,7 +30,8 @@ import {
   FolderOpen,
   Receipt,
   RefreshCw,
-  Building2
+  Building2,
+  Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -176,7 +177,8 @@ export function DesktopNavbar() {
           {
             title: 'Notificaciones',
             items: [
-              { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' }
+              { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' },
+              { title: 'Plantillas de Mensajes', icon: Mail, href: '/admin/message-templates', moduleKey: 'notifications_templates' }
             ]
           }
         ],
@@ -253,7 +255,8 @@ export function DesktopNavbar() {
           {
             title: 'Notificaciones',
             items: [
-              { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' }
+              { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' },
+              { title: 'Plantillas de Mensajes', icon: Mail, href: '/admin/message-templates', moduleKey: 'notifications_templates' }
             ]
           }
         ]
@@ -288,7 +291,8 @@ export function DesktopNavbar() {
           {
             title: 'Notificaciones',
             items: [
-              { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' }
+              { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' },
+              { title: 'Plantillas de Mensajes', icon: Mail, href: '/admin/message-templates', moduleKey: 'notifications_templates' }
             ]
           }
         ]

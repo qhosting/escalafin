@@ -120,6 +120,33 @@ if [ -n "$DATABASE_URL" ]; then
         echo "  💡 Los módulos PWA no se sincronizarán automáticamente"
     fi
     
+    # Ejecutar seeding de plantillas de mensajes
+    echo ""
+    echo "📝 Sincronizando plantillas de mensajes..."
+    if [ -f "scripts/seed-message-templates.js" ]; then
+        echo "  📂 Script encontrado: scripts/seed-message-templates.js"
+        echo "  🚀 Ejecutando seed de plantillas..."
+        
+        # Configurar NODE_PATH para que encuentre @prisma/client
+        export NODE_PATH=/app/node_modules:$NODE_PATH
+        
+        # Ejecutar con captura de output
+        node scripts/seed-message-templates.js 2>&1 | while IFS= read -r line; do
+            echo "  $line"
+        done
+        TEMPLATES_SEED_EXIT_CODE=${PIPESTATUS[0]}
+        
+        if [ $TEMPLATES_SEED_EXIT_CODE -eq 0 ]; then
+            echo "  ✅ Plantillas de mensajes sincronizadas exitosamente"
+        else
+            echo "  ⚠️  Error sincronizando plantillas (código: $TEMPLATES_SEED_EXIT_CODE)"
+            echo "  💡 El sistema continuará, pero las plantillas pueden no estar disponibles"
+        fi
+    else
+        echo "  ⚠️  scripts/seed-message-templates.js no encontrado"
+        echo "  💡 Las plantillas de mensajes no se sincronizarán automáticamente"
+    fi
+
     # Ejecutar setup de usuarios si es necesario
     echo ""
     echo "🌱 Verificando necesidad de configurar usuarios..."
