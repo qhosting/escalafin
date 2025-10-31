@@ -2,6 +2,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getChatwootConfig } from '@/lib/chatwoot';
 
+// Forzar renderizado dinámico
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 /**
  * Endpoint público para obtener configuración de Chatwoot
  * Solo devuelve información necesaria para el widget (no tokens sensibles)
