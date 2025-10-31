@@ -2,6 +2,7 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,47 +25,83 @@ import {
   FolderOpen,
   FilePlus,
   Receipt,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
+interface ClientDashboardData {
+  activeLoans: Array<{
+    id: string;
+    type: string;
+    originalAmount: number;
+    remainingBalance: number;
+    monthlyPayment: number;
+    nextPaymentDate?: string;
+    status: string;
+  }>;
+  recentPayments: Array<{
+    date: string;
+    amount: number;
+    status: string;
+    reference: string;
+  }>;
+  creditApplications: Array<{
+    id: string;
+    amount: number;
+    status: string;
+    createdAt: string;
+  }>;
+  summary: {
+    totalDebt: number;
+    totalMonthlyPayment: number;
+    activeLoansCount: number;
+    nextPayment: {
+      amount: number;
+      date?: string;
+      loanNumber: string;
+    } | null;
+  };
+}
+
 export function EnhancedClientDashboard() {
   const { data: session, status } = useSession() || {};
   const { modules, loading: modulesLoading } = useModules();
+  const [dashboardData, setDashboardData] = useState<ClientDashboardData | null>(null);
+  const [loadingData, setLoadingData] = useState(true);
+
+  // Cargar datos reales desde la API
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await fetch('/api/dashboard/client-stats');
+        if (response.ok) {
+          const data = await response.json();
+          setDashboardData(data);
+        } else {
+          console.error('Error al cargar datos del cliente');
+        }
+      } catch (error) {
+        console.error('Error fetching client data:', error);
+      } finally {
+        setLoadingData(false);
+      }
+    }
+
+    if (session?.user?.role === 'CLIENTE') {
+      fetchData();
+    }
+  }, [session]);
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: '/auth/login' });
     toast.success('Sesión cerrada');
   };
 
-  // Mock data for client loans and payments
-  const activeLoans = [
-    {
-      id: 'ESF-2024-001',
-      type: 'Préstamo Personal',
-      originalAmount: 100000,
-      remainingBalance: 72200,
-      monthlyPayment: 9025,
-      nextPaymentDate: '2024-10-01',
-      status: 'active'
-    }
-  ];
-
-  const recentPayments = [
-    {
-      date: '2024-09-01',
-      amount: 9025,
-      status: 'completed',
-      reference: 'TRX-004-ESF-2024-001'
-    },
-    {
-      date: '2024-08-01',
-      amount: 9025,
-      status: 'completed',
-      reference: 'TRX-003-ESF-2024-001'
-    }
-  ];
+  // Usar datos reales de la API
+  const activeLoans = dashboardData?.activeLoans || [];
+  const recentPayments = dashboardData?.recentPayments || [];
 
   // Módulos de Préstamos y Solicitudes
   const loanModules = [
@@ -334,8 +371,19 @@ export function EnhancedClientDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {activeLoans.map((loan) => (
-                  <div key={loan.id} className="border rounded-lg p-4">
+                {loadingData ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                    <span className="ml-2 text-gray-600">Cargando préstamos...</span>
+                  </div>
+                ) : activeLoans.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <CreditCard className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                    <p>No tienes préstamos activos</p>
+                  </div>
+                ) : (
+                  activeLoans.map((loan) => (
+                    <div key={loan.id} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="font-semibold text-gray-900">{loan.type}</h3>
@@ -387,7 +435,8 @@ export function EnhancedClientDashboard() {
                       </span>
                     </div>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -404,8 +453,19 @@ export function EnhancedClientDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {recentPayments.map((payment, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                {loadingData ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                    <span className="ml-2 text-gray-600">Cargando pagos...</span>
+                  </div>
+                ) : recentPayments.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <DollarSign className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                    <p>No hay pagos registrados</p>
+                  </div>
+                ) : (
+                  recentPayments.map((payment, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className="bg-green-100 p-2 rounded-full">
                         <CheckCircle className="h-4 w-4 text-green-600" />
@@ -428,7 +488,8 @@ export function EnhancedClientDashboard() {
                       </p>
                     </div>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>

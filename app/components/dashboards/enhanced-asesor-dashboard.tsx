@@ -2,6 +2,7 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,25 +30,60 @@ import {
   Smartphone,
   Wallet,
   FilePlus,
-  BarChart3
+  BarChart3,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
+interface AsesorStats {
+  myClients: number;
+  assignedPortfolio: number;
+  submittedApplications: number;
+  monthlyGoalPercentage: number;
+  activeLoans: number;
+}
+
 export function EnhancedAsesorDashboard() {
   const { data: session, status } = useSession() || {};
   const { modules, loading: modulesLoading } = useModules();
+  const [stats, setStats] = useState<AsesorStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  // Cargar estadísticas reales desde la API
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/dashboard/asesor-stats');
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        } else {
+          console.error('Error al cargar estadísticas');
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setLoadingStats(false);
+      }
+    }
+
+    if (session?.user?.role === 'ASESOR') {
+      fetchStats();
+    }
+  }, [session]);
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: '/auth/login' });
     toast.success('Sesión cerrada');
   };
 
-  const stats = [
+  // Tarjetas de estadísticas con datos reales
+  const statsCards = [
     {
       title: 'Mis Clientes',
-      value: '3',
-      change: '+1',
+      value: loadingStats ? '...' : stats?.myClients.toString() || '0',
+      change: '+0',
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
@@ -55,8 +91,8 @@ export function EnhancedAsesorDashboard() {
     },
     {
       title: 'Cartera Asignada',
-      value: '$400,000',
-      change: '+5%',
+      value: loadingStats ? '...' : `$${(stats?.assignedPortfolio || 0).toLocaleString('es-MX')}`,
+      change: '+0%',
       icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
@@ -64,8 +100,8 @@ export function EnhancedAsesorDashboard() {
     },
     {
       title: 'Solicitudes Enviadas',
-      value: '2',
-      change: '+2',
+      value: loadingStats ? '...' : stats?.submittedApplications.toString() || '0',
+      change: '+0',
       icon: FileText,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
@@ -73,8 +109,8 @@ export function EnhancedAsesorDashboard() {
     },
     {
       title: 'Meta Mensual',
-      value: '67%',
-      change: '+12%',
+      value: loadingStats ? '...' : `${stats?.monthlyGoalPercentage || 0}%`,
+      change: '+0%',
       icon: TrendingUp,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
@@ -310,27 +346,34 @@ export function EnhancedAsesorDashboard() {
           </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Datos Reales */}
         <ModuleWrapper moduleKey="dashboard_overview">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <ModuleWrapper key={index} moduleKey={stat.moduleKey}>
-                <Card className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                        <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                        <p className={`text-sm ${stat.color}`}>{stat.change}</p>
+            {loadingStats ? (
+              <div className="col-span-4 flex justify-center items-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <span className="ml-2 text-gray-600">Cargando estadísticas...</span>
+              </div>
+            ) : (
+              statsCards.map((stat, index) => (
+                <ModuleWrapper key={index} moduleKey={stat.moduleKey}>
+                  <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                          <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                          <p className={`text-sm ${stat.color}`}>{stat.change}</p>
+                        </div>
+                        <div className={`${stat.bgColor} p-3 rounded-full`}>
+                          <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                        </div>
                       </div>
-                      <div className={`${stat.bgColor} p-3 rounded-full`}>
-                        <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </ModuleWrapper>
-            ))}
+                    </CardContent>
+                  </Card>
+                </ModuleWrapper>
+              ))
+            )}
           </div>
         </ModuleWrapper>
 

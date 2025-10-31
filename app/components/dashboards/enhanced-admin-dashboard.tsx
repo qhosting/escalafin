@@ -2,6 +2,7 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -39,14 +40,49 @@ import {
   FilePlus,
   TrendingDown,
   Smartphone,
-  Database
+  Database,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
+interface DashboardStats {
+  activeLoans: number;
+  totalClients: number;
+  paymentsThisMonth: number;
+  totalPortfolio: number;
+  pendingApplications: number;
+  loanGrowth: number;
+}
+
 export function EnhancedAdminDashboard() {
   const { data: session, status } = useSession() || {};
   const { modules, loading: modulesLoading } = useModules();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  // Cargar estadísticas reales desde la API
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/dashboard/admin-stats');
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        } else {
+          console.error('Error al cargar estadísticas');
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setLoadingStats(false);
+      }
+    }
+
+    if (session?.user?.role === 'ADMIN') {
+      fetchStats();
+    }
+  }, [session]);
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: '/auth/login' });
@@ -62,11 +98,12 @@ export function EnhancedAdminDashboard() {
     return acc;
   }, {} as Record<string, any[]>);
 
-  const stats = [
+  // Tarjetas de estadísticas con datos reales
+  const statsCards = [
     {
       title: 'Préstamos Activos',
-      value: '3',
-      change: '+12%',
+      value: loadingStats ? '...' : stats?.activeLoans.toString() || '0',
+      change: loadingStats ? '...' : (stats?.loanGrowth ? `${stats.loanGrowth > 0 ? '+' : ''}${stats.loanGrowth}%` : '0%'),
       icon: CreditCard,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
@@ -74,8 +111,8 @@ export function EnhancedAdminDashboard() {
     },
     {
       title: 'Clientes Registrados',
-      value: '8',
-      change: '+25%',
+      value: loadingStats ? '...' : stats?.totalClients.toString() || '0',
+      change: '+0%',
       icon: Users,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
@@ -83,8 +120,8 @@ export function EnhancedAdminDashboard() {
     },
     {
       title: 'Pagos Este Mes',
-      value: '$45,250',
-      change: '+8%',
+      value: loadingStats ? '...' : `$${(stats?.paymentsThisMonth || 0).toLocaleString('es-MX')}`,
+      change: '+0%',
       icon: DollarSign,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',
@@ -92,8 +129,8 @@ export function EnhancedAdminDashboard() {
     },
     {
       title: 'Cartera Total',
-      value: '$250,000',
-      change: '+15%',
+      value: loadingStats ? '...' : `$${(stats?.totalPortfolio || 0).toLocaleString('es-MX')}`,
+      change: '+0%',
       icon: TrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
@@ -325,27 +362,34 @@ export function EnhancedAdminDashboard() {
           </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Datos Reales */}
         <ModuleWrapper moduleKey="dashboard_overview">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <ModuleWrapper key={index} moduleKey={stat.moduleKey}>
-                <Card className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                        <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                        <p className={`text-sm ${stat.color}`}>{stat.change}</p>
+            {loadingStats ? (
+              <div className="col-span-4 flex justify-center items-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <span className="ml-2 text-gray-600">Cargando estadísticas...</span>
+              </div>
+            ) : (
+              statsCards.map((stat, index) => (
+                <ModuleWrapper key={index} moduleKey={stat.moduleKey}>
+                  <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                          <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                          <p className={`text-sm ${stat.color}`}>{stat.change}</p>
+                        </div>
+                        <div className={`${stat.bgColor} p-3 rounded-full`}>
+                          <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                        </div>
                       </div>
-                      <div className={`${stat.bgColor} p-3 rounded-full`}>
-                        <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </ModuleWrapper>
-            ))}
+                    </CardContent>
+                  </Card>
+                </ModuleWrapper>
+              ))
+            )}
           </div>
         </ModuleWrapper>
 
