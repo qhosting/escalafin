@@ -3,6 +3,29 @@
 
 Todos los cambios notables de este proyecto serán documentados en este archivo.
 
+## [1.1.2] - 2025-10-31
+
+### 🔧 Fixed - CRÍTICO
+- **API Clients Route Faltante**: Creada ruta `/api/clients/route.ts` para creación de clientes
+  - Implementado GET con paginación, filtros y control de acceso por rol
+  - Implementado POST con validación completa y manejo de errores
+  - Control de acceso: ADMIN (todos), ASESOR (solo sus clientes)
+  - Validación de unicidad de email y teléfono
+  
+- **Enum EmploymentType Corregido**: Alineado valores con schema Prisma
+  - `EMPLOYEE` → `EMPLOYED`
+  - Eliminado `FREELANCER` (no existe en schema)
+  - Actualizado en formularios new y edit
+
+### 🎯 Funcionalidad
+- Creación de clientes desde `/admin/clients/new` ahora funciona correctamente
+- Formularios usan valores correctos del enum
+- API maneja conversión de tipos de datos correctamente
+- Errores específicos para constraints únicos (P2002)
+
+### 📝 Documentación
+- Creado `FIX_API_CLIENTS_CREATION_31_OCT_2025.md` con detalles completos del fix
+
 ## [1.1.1] - 2025-10-30
 
 ### 🔧 Fixed - CRÍTICO
