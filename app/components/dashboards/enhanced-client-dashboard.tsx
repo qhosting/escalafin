@@ -416,7 +416,7 @@ export function EnhancedClientDashboard() {
                       <div>
                         <p className="text-sm text-gray-600">Próximo Pago</p>
                         <p className="font-semibold text-orange-600">
-                          {new Date(loan.nextPaymentDate).toLocaleDateString()}
+                          {loan.nextPaymentDate ? new Date(loan.nextPaymentDate).toLocaleDateString() : 'Por definir'}
                         </p>
                       </div>
                     </div>

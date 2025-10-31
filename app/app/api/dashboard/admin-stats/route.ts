@@ -40,7 +40,7 @@ export async function GET() {
       // Cartera total (suma de saldos pendientes de préstamos activos)
       prisma.loan.aggregate({
         where: { status: 'ACTIVE' },
-        _sum: { amount: true }
+        _sum: { balanceRemaining: true }
       }),
       
       // Solicitudes pendientes
@@ -77,8 +77,8 @@ export async function GET() {
     return NextResponse.json({
       activeLoans: activeLoansCount,
       totalClients,
-      paymentsThisMonth: paymentsThisMonth._sum.amount || 0,
-      totalPortfolio: totalPortfolio._sum.amount || 0,
+      paymentsThisMonth: Number(paymentsThisMonth._sum?.amount || 0),
+      totalPortfolio: Number(totalPortfolio._sum?.balanceRemaining || 0),
       pendingApplications,
       loanGrowth
     });

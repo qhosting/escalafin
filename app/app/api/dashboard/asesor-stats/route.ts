@@ -20,29 +20,31 @@ export async function GET() {
       submittedApplications,
       myLoans
     ] = await Promise.all([
-      // Mis clientes (clientes creados por este asesor)
+      // Mis clientes (clientes asignados a este asesor)
       prisma.client.count({
-        where: { createdBy: userId }
+        where: { asesorId: userId }
       }),
       
       // Cartera asignada (suma de préstamos de mis clientes)
       prisma.loan.aggregate({
         where: {
-          client: { createdBy: userId },
+          client: { asesorId: userId },
           status: 'ACTIVE'
         },
-        _sum: { amount: true }
+        _sum: { balanceRemaining: true }
       }),
       
-      // Solicitudes enviadas
+      // Solicitudes enviadas (de clientes asignados)
       prisma.creditApplication.count({
-        where: { createdBy: userId }
+        where: {
+          client: { asesorId: userId }
+        }
       }),
       
       // Mis préstamos activos
       prisma.loan.count({
         where: {
-          client: { createdBy: userId },
+          client: { asesorId: userId },
           status: 'ACTIVE'
         }
       })
@@ -52,7 +54,7 @@ export async function GET() {
     const paymentsThisMonth = await prisma.payment.aggregate({
       where: {
         loan: {
-          client: { createdBy: userId }
+          client: { asesorId: userId }
         },
         paymentDate: {
           gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -64,12 +66,12 @@ export async function GET() {
     // Supongamos una meta de $100,000 mensual
     const monthlyGoal = 100000;
     const achievementPercentage = monthlyGoal > 0
-      ? Math.round(((paymentsThisMonth._sum.amount || 0) / monthlyGoal) * 100)
+      ? Math.round((Number(paymentsThisMonth._sum?.amount || 0) / monthlyGoal) * 100)
       : 0;
 
     return NextResponse.json({
       myClients: myClientsCount,
-      assignedPortfolio: assignedPortfolio._sum.amount || 0,
+      assignedPortfolio: Number(assignedPortfolio._sum?.balanceRemaining || 0),
       submittedApplications,
       monthlyGoalPercentage: achievementPercentage,
       activeLoans: myLoans

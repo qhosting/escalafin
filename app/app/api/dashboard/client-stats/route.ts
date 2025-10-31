@@ -31,14 +31,15 @@ export async function GET() {
       select: {
         id: true,
         loanNumber: true,
-        amount: true,
+        principalAmount: true,
         interestRate: true,
-        term: true,
+        termMonths: true,
         monthlyPayment: true,
-        outstandingBalance: true,
-        nextPaymentDate: true,
+        balanceRemaining: true,
         status: true,
-        createdAt: true
+        createdAt: true,
+        startDate: true,
+        endDate: true
       },
       orderBy: {
         createdAt: 'desc'
@@ -57,7 +58,7 @@ export async function GET() {
         amount: true,
         paymentDate: true,
         status: true,
-        transactionReference: true,
+        reference: true,
         loan: {
           select: {
             loanNumber: true
@@ -73,13 +74,10 @@ export async function GET() {
     // Obtener solicitudes de crédito
     const creditApplications = await prisma.creditApplication.findMany({
       where: {
-        client: {
-          userId
-        }
+        clientId: client.id
       },
       select: {
         id: true,
-        applicationNumber: true,
         requestedAmount: true,
         status: true,
         createdAt: true
@@ -90,39 +88,46 @@ export async function GET() {
       take: 5
     });
 
-    // Calcular totales
-    const totalDebt = activeLoans.reduce((sum, loan) => sum + (loan.outstandingBalance || 0), 0);
-    const totalMonthlyPayment = activeLoans.reduce((sum, loan) => sum + (loan.monthlyPayment || 0), 0);
+    // Calcular totales (convertir Decimal a número)
+    const totalDebt = activeLoans.reduce((sum, loan) => sum + Number(loan.balanceRemaining || 0), 0);
+    const totalMonthlyPayment = activeLoans.reduce((sum, loan) => sum + Number(loan.monthlyPayment || 0), 0);
 
-    // Obtener próximo pago
-    const nextPayment = activeLoans.length > 0
-      ? activeLoans.reduce((earliest, loan) => {
-          if (!earliest || (loan.nextPaymentDate && loan.nextPaymentDate < earliest.nextPaymentDate)) {
-            return loan;
-          }
-          return earliest;
-        })
-      : null;
+    // Calcular próximo pago (basado en el inicio del préstamo y la fecha actual)
+    const now = new Date();
+    const nextPayment = activeLoans.length > 0 ? (() => {
+      // Encontrar el préstamo con el próximo pago más cercano
+      const loanWithNextPayment = activeLoans[0]; // Por ahora, usar el primer préstamo
+      const startDate = new Date(loanWithNextPayment.startDate);
+      const monthsSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+      const nextPaymentDate = new Date(startDate);
+      nextPaymentDate.setMonth(nextPaymentDate.getMonth() + monthsSinceStart + 1);
+      
+      return {
+        amount: Number(loanWithNextPayment.monthlyPayment || 0),
+        date: nextPaymentDate.toISOString(),
+        loanNumber: loanWithNextPayment.loanNumber
+      };
+    })() : null;
 
     return NextResponse.json({
       activeLoans: activeLoans.map(loan => ({
         id: loan.loanNumber,
         type: 'Préstamo Personal',
-        originalAmount: loan.amount,
-        remainingBalance: loan.outstandingBalance || 0,
-        monthlyPayment: loan.monthlyPayment || 0,
-        nextPaymentDate: loan.nextPaymentDate?.toISOString(),
+        originalAmount: Number(loan.principalAmount),
+        remainingBalance: Number(loan.balanceRemaining || 0),
+        monthlyPayment: Number(loan.monthlyPayment || 0),
+        nextPaymentDate: nextPayment?.date,
         status: loan.status.toLowerCase()
       })),
       recentPayments: recentPayments.map(payment => ({
         date: payment.paymentDate.toISOString(),
-        amount: payment.amount,
+        amount: Number(payment.amount),
         status: payment.status.toLowerCase(),
-        reference: payment.transactionReference || `TRX-${payment.id}`
+        reference: payment.reference || `TRX-${payment.id}`
       })),
       creditApplications: creditApplications.map(app => ({
-        id: app.applicationNumber,
-        amount: app.requestedAmount,
+        id: app.id,
+        amount: Number(app.requestedAmount),
         status: app.status.toLowerCase(),
         createdAt: app.createdAt.toISOString()
       })),
@@ -130,11 +135,7 @@ export async function GET() {
         totalDebt,
         totalMonthlyPayment,
         activeLoansCount: activeLoans.length,
-        nextPayment: nextPayment ? {
-          amount: nextPayment.monthlyPayment || 0,
-          date: nextPayment.nextPaymentDate?.toISOString(),
-          loanNumber: nextPayment.loanNumber
-        } : null
+        nextPayment
       }
     });
 
