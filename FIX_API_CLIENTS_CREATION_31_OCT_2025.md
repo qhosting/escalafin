@@ -1,154 +1,207 @@
-# Fix: Módulo de Plantillas de Mensajes Faltante
+# Fix: Error al Crear Clientes - Foreign Key Constraint Violated
 
-**Fecha:** 31 de octubre de 2025  
-**Tipo:** Corrección de módulo faltante  
-**Prioridad:** Alta
+## Problema
 
-## Problema Identificado
+Error al crear clientes desde `/admin/clients/new`:
 
-El usuario reportó que no podía visualizar:
-- Chatwoot en `/admin/chatwoot`
-- Plantillas de Mensajes en `/admin/message-templates`
+```
+Foreign key constraint violated on the constraint: `clients_asesorId_fkey`
+```
 
-### Análisis
+### Causa Raíz
 
-1. Los enlaces en el menú están correctamente configurados en:
-   - `components/layout/desktop-navbar.tsx`
-   - `components/layout/mobile-sidebar.tsx`
+El formulario de creación de clientes estaba enviando `asesorId` como un **string vacío** (`""`), y la API intentaba crear el cliente con ese valor vacío sin validación, causando una violación de restricción de clave foránea en Prisma.
 
-2. **Causa raíz:** El módulo `notifications_templates` no existía en el seed de módulos (`scripts/seed-modules.js`)
+### Flujo del Error
 
-3. Sin el módulo en la base de datos, el sistema de control de módulos (`ModuleWrapper`) oculta automáticamente los enlaces del menú.
+1. Formulario inicializa `asesorId: ''` (string vacío)
+2. Usuario no selecciona un asesor
+3. Se envía el formulario con `asesorId: ""`
+4. API intenta crear cliente con `asesorId: ""`
+5. Prisma arroja error de clave foránea (no existe usuario con ID `""`)
 
 ## Solución Implementada
 
-### 1. Agregado Módulo Faltante al Seed
+### Cambios en `/api/clients/route.ts`
 
-**Archivo:** `app/scripts/seed-modules.js`
+Se agregó validación completa para el campo `asesorId`:
 
-```javascript
-{
-  moduleKey: 'notifications_templates',
-  name: 'Plantillas de Mensajes',
-  description: 'Gestión de plantillas para SMS, WhatsApp, Chatwoot y otros canales',
-  category: 'NOTIFICATIONS',
-  status: 'ENABLED',
-  isCore: false,
-  requiredFor: [],
-  availableFor: ['ADMIN', 'ASESOR'],
-  icon: 'Mail',
-  route: '/admin/message-templates',
-  sortOrder: 52,
+```typescript
+// Set asesorId - validate and handle empty strings
+if (session.user.role === UserRole.ADMIN) {
+  // Only set asesorId if provided and not empty
+  if (asesorId && asesorId.trim() !== '') {
+    // Verify the asesor exists and has ASESOR role
+    const asesorExists = await prisma.user.findFirst({
+      where: {
+        id: asesorId,
+        role: UserRole.ASESOR,
+        status: 'ACTIVE'
+      }
+    });
+
+    if (!asesorExists) {
+      return NextResponse.json(
+        { error: 'El asesor seleccionado no existe o no está activo' },
+        { status: 400 }
+      );
+    }
+
+    clientData.asesorId = asesorId;
+  }
+  // If no asesorId provided or empty, leave it as undefined (will be null in DB)
+} else if (session.user.role === UserRole.ASESOR) {
+  // Asesores always assign clients to themselves
+  clientData.asesorId = session.user.id;
 }
 ```
 
-### 2. Configuración del Módulo
+### Cambios en `/app/api/clients/route.ts`
 
-- **Categoría:** NOTIFICATIONS
-- **Estado:** ENABLED (habilitado por defecto)
-- **Disponible para:** ADMIN y ASESOR
-- **Icono:** Mail
-- **Ruta:** `/admin/message-templates`
-- **Orden:** 52 (después de WhatsApp notifications)
+Se aplicó la misma validación en la versión alternativa del endpoint:
+
+```typescript
+// Set asesorId - validate and handle empty strings
+let finalAsesorId: string | undefined = undefined;
+
+if (user.role === 'ASESOR') {
+  // Asesores always assign clients to themselves
+  finalAsesorId = user.id;
+} else if (user.role === 'ADMIN') {
+  // Only set asesorId if provided and not empty
+  if (asesorId && asesorId.trim() !== '') {
+    // Verify the asesor exists and has ASESOR role
+    const asesorExists = await prisma.user.findFirst({
+      where: {
+        id: asesorId,
+        role: 'ASESOR',
+        status: 'ACTIVE'
+      }
+    });
+
+    if (!asesorExists) {
+      return NextResponse.json(
+        { error: 'El asesor seleccionado no existe o no está activo' },
+        { status: 400 }
+      );
+    }
+
+    finalAsesorId = asesorId;
+  }
+  // If no asesorId provided or empty, leave it as undefined (will be null in DB)
+}
+```
+
+## Validaciones Agregadas
+
+### 1. Validación de String Vacío
+- Verifica que `asesorId` no sea `null`, `undefined`, o string vacío
+- Usa `.trim()` para eliminar espacios en blanco
+
+### 2. Validación de Existencia
+- Verifica que el usuario existe en la base de datos
+- Confirma que tiene el rol `ASESOR`
+- Verifica que está `ACTIVE`
+
+### 3. Manejo de Casos por Rol
+
+#### ADMIN:
+- Puede crear clientes sin asignar asesor (campo queda como `null`)
+- Puede asignar un asesor válido
+- Si intenta asignar un asesor inválido, recibe error descriptivo
+
+#### ASESOR:
+- Siempre se asigna a sí mismo automáticamente
+- No puede crear clientes sin asesor asignado
+
+## Comportamiento Esperado
+
+### Caso 1: Admin crea cliente sin asesor
+- `asesorId` se deja vacío en el formulario
+- API crea el cliente con `asesorId: null`
+- ✅ Cliente creado exitosamente sin asesor asignado
+
+### Caso 2: Admin crea cliente con asesor válido
+- `asesorId` contiene ID válido de un ASESOR
+- API valida que el asesor existe y está activo
+- ✅ Cliente creado con asesor asignado
+
+### Caso 3: Admin intenta asignar asesor inválido
+- `asesorId` contiene ID que no existe o no es ASESOR
+- API retorna error: "El asesor seleccionado no existe o no está activo"
+- ❌ Cliente no se crea
+
+### Caso 4: Asesor crea cliente
+- `asesorId` se asigna automáticamente al ID del asesor actual
+- API ignora cualquier valor enviado en `asesorId`
+- ✅ Cliente creado con el asesor actual asignado
 
 ## Archivos Modificados
 
-1. `app/scripts/seed-modules.js`
-   - Agregado módulo `notifications_templates`
+1. `/api/clients/route.ts` - Endpoint principal de creación de clientes
+2. `/app/api/clients/route.ts` - Versión alternativa del endpoint
 
-## Validación
+## Testing
 
-El módulo se agregará automáticamente a la base de datos durante el siguiente despliegue cuando se ejecute:
+Para probar el fix:
 
-```bash
-node scripts/seed-modules.js
-```
-
-Este script se ejecuta automáticamente en:
-- `start-improved.sh` (línea de sincronización de módulos)
-- Durante el inicio de la aplicación en producción
-
-## Enlaces del Menú
-
-Los enlaces ya estaban correctamente configurados:
-
-**Desktop Navbar:**
-```tsx
-{
-  title: 'Chat',
-  items: [
-    { title: 'Chatwoot', icon: MessageSquare, href: '/admin/chatwoot', moduleKey: 'chatwoot_chat' }
-  ]
-},
-{
-  title: 'Notificaciones',
-  items: [
-    { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' },
-    { title: 'Plantillas de Mensajes', icon: Mail, href: '/admin/message-templates', moduleKey: 'notifications_templates' }
-  ]
-}
-```
-
-## Instrucciones para Deployment
-
-1. **Pull del último commit:**
+1. **Como ADMIN - sin asesor:**
    ```bash
-   git pull origin main
+   curl -X POST https://escalafin.com/api/clients \
+     -H "Content-Type: application/json" \
+     -d '{
+       "firstName": "Juan",
+       "lastName": "Pérez",
+       "phone": "1234567890",
+       "asesorId": ""
+     }'
    ```
+   Resultado esperado: Cliente creado con `asesorId: null`
 
-2. **Reconstruir en EasyPanel:**
-   - Ir a la aplicación en EasyPanel
-   - Click en "Rebuild"
-   - Esperar a que el build complete
+2. **Como ADMIN - con asesor válido:**
+   ```bash
+   curl -X POST https://escalafin.com/api/clients \
+     -H "Content-Type: application/json" \
+     -d '{
+       "firstName": "María",
+       "lastName": "García",
+       "phone": "0987654321",
+       "asesorId": "clxxxxx_valid_asesor_id"
+     }'
+   ```
+   Resultado esperado: Cliente creado con asesor asignado
 
-3. **Verificación:**
-   - Iniciar sesión como ADMIN o ASESOR
-   - Verificar que aparezcan los enlaces:
-     - "Chatwoot" en el menú de Comunicación
-     - "Plantillas de Mensajes" en el menú de Comunicación
+3. **Como ADMIN - con asesor inválido:**
+   ```bash
+   curl -X POST https://escalafin.com/api/clients \
+     -H "Content-Type: application/json" \
+     -d '{
+       "firstName": "Carlos",
+       "lastName": "López",
+       "phone": "5555555555",
+       "asesorId": "invalid_id"
+     }'
+   ```
+   Resultado esperado: Error 400 - "El asesor seleccionado no existe o no está activo"
 
-## Módulos de Comunicación Disponibles
+## Prevención de Regresión
 
-Después de este fix, la sección de "Comunicación" tendrá:
-
-1. **WhatsApp**
-   - Mensajes (`/admin/whatsapp/messages`)
-   - Recargas (`/admin/message-recharges`)
-
-2. **Chat**
-   - Chatwoot (`/admin/chatwoot`) - **AHORA VISIBLE**
-
-3. **Notificaciones**
-   - Centro de Notificaciones (`/notifications`)
-   - Plantillas de Mensajes (`/admin/message-templates`) - **AHORA VISIBLE**
-
-## Notas Técnicas
-
-- El sistema de módulos PWA controla la visibilidad de características en tiempo real
-- Si un módulo no existe en la BD, el `ModuleWrapper` oculta automáticamente los enlaces
-- Todos los módulos pueden ser desactivados/activados desde `/admin/modules`
-- Los módulos marcados como `isCore: true` no pueden ser desactivados
-
-## Prevención Futura
-
-Al agregar nuevas funcionalidades con enlaces de menú:
-
-1. **Siempre agregar el módulo correspondiente en** `scripts/seed-modules.js`
-2. **Usar el mismo `moduleKey`** en:
-   - El seed de módulos
-   - Los componentes de navegación
-3. **Verificar** que el módulo se cree correctamente en la BD después del deploy
+Este fix previene:
+- ✅ Violaciones de restricciones de clave foránea
+- ✅ Creación de clientes con asesores inexistentes
+- ✅ Asignación de clientes a usuarios que no son asesores
+- ✅ Asignación de clientes a asesores inactivos
 
 ## Estado
 
-✅ **Fix implementado**  
-⏳ **Pendiente de deployment en EasyPanel**  
-📋 **Documentación completa**
+✅ **Fix implementado y probado**
+✅ **Ambos endpoints actualizados**
+✅ **Validaciones completas agregadas**
+✅ **Documentación creada**
 
-## Commit
+---
 
-```bash
-git add -A
-git commit -m "fix(modules): Agregar módulo faltante notifications_templates para Plantillas de Mensajes"
-git push origin main
-```
+**Fecha:** 31 de Octubre de 2025
+**Tipo:** Bugfix
+**Prioridad:** Alta
+**Estado:** ✅ Resuelto

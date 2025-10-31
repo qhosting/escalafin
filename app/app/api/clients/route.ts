@@ -160,8 +160,35 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Si el usuario es asesor, el cliente se asigna automáticamente a él
-    const finalAsesorId = user.role === 'ASESOR' ? user.id : asesorId;
+    // Set asesorId - validate and handle empty strings
+    let finalAsesorId: string | undefined = undefined;
+
+    if (user.role === 'ASESOR') {
+      // Asesores always assign clients to themselves
+      finalAsesorId = user.id;
+    } else if (user.role === 'ADMIN') {
+      // Only set asesorId if provided and not empty
+      if (asesorId && asesorId.trim() !== '') {
+        // Verify the asesor exists and has ASESOR role
+        const asesorExists = await prisma.user.findFirst({
+          where: {
+            id: asesorId,
+            role: 'ASESOR',
+            status: 'ACTIVE'
+          }
+        });
+
+        if (!asesorExists) {
+          return NextResponse.json(
+            { error: 'El asesor seleccionado no existe o no está activo' },
+            { status: 400 }
+          );
+        }
+
+        finalAsesorId = asesorId;
+      }
+      // If no asesorId provided or empty, leave it as undefined (will be null in DB)
+    }
 
     const client = await prisma.client.create({
       data: {

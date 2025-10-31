@@ -195,10 +195,31 @@ export async function POST(request: NextRequest) {
     if (bankName) clientData.bankName = bankName;
     if (accountNumber) clientData.accountNumber = accountNumber;
 
-    // Set asesorId
-    if (session.user.role === UserRole.ADMIN && asesorId) {
-      clientData.asesorId = asesorId;
+    // Set asesorId - validate and handle empty strings
+    if (session.user.role === UserRole.ADMIN) {
+      // Only set asesorId if provided and not empty
+      if (asesorId && asesorId.trim() !== '') {
+        // Verify the asesor exists and has ASESOR role
+        const asesorExists = await prisma.user.findFirst({
+          where: {
+            id: asesorId,
+            role: UserRole.ASESOR,
+            status: 'ACTIVE'
+          }
+        });
+
+        if (!asesorExists) {
+          return NextResponse.json(
+            { error: 'El asesor seleccionado no existe o no está activo' },
+            { status: 400 }
+          );
+        }
+
+        clientData.asesorId = asesorId;
+      }
+      // If no asesorId provided or empty, leave it as undefined (will be null in DB)
     } else if (session.user.role === UserRole.ASESOR) {
+      // Asesores always assign clients to themselves
       clientData.asesorId = session.user.id;
     }
 
