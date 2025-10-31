@@ -50,7 +50,8 @@ export async function GET(request: NextRequest) {
         asesor: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true
           }
         },
@@ -63,8 +64,8 @@ export async function GET(request: NextRequest) {
         loans: {
           select: {
             id: true,
-            loanAmount: true,
-            remainingBalance: true,
+            principalAmount: true,
+            balanceRemaining: true,
             status: true
           }
         }
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
     const formattedClients = clients.map((client: any) => {
       const totalLoans = client._count.loans;
       const totalAmount = client.loans.reduce(
-        (sum: number, loan: any) => sum + Number(loan.remainingBalance || 0), 
+        (sum: number, loan: any) => sum + Number(loan.balanceRemaining || 0), 
         0
       );
       
@@ -96,7 +97,11 @@ export async function GET(request: NextRequest) {
         totalLoans,
         totalAmount,
         createdAt: client.createdAt,
-        asesor: client.asesor
+        asesor: client.asesor ? {
+          id: client.asesor.id,
+          name: `${client.asesor.firstName} ${client.asesor.lastName}`,
+          email: client.asesor.email
+        } : null
       };
     });
 
@@ -204,7 +209,8 @@ export async function POST(request: NextRequest) {
         asesor: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true
           }
         }
