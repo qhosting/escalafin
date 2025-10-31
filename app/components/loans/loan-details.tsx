@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -27,6 +28,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 interface LoanDetail {
   id: string;
@@ -431,17 +433,4 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
       </Tabs>
     </div>
   );
-}
-
-// Label component for consistency
-function Label({ className, children, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
-  return (
-    <label className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", className)} {...props}>
-      {children}
-    </label>
-  );
-}
-
-function cn(...inputs: (string | undefined)[]) {
-  return inputs.filter(Boolean).join(' ');
 }
