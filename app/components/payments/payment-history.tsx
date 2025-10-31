@@ -44,7 +44,8 @@ export function PaymentHistory({ userRole = 'CLIENTE' }: PaymentHistoryProps) {
       if (!response.ok) throw new Error('Error al cargar pagos');
       
       const data = await response.json();
-      setPayments(data);
+      // Handle both array format (legacy) and paginated format
+      setPayments(Array.isArray(data) ? data : data.payments || []);
     } catch (error) {
       console.error('Error fetching payments:', error);
       toast.error('Error al cargar el historial de pagos');
