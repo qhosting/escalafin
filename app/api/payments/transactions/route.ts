@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const payments = await prisma.payment.findMany({
       where: {
         status: {
-          in: ['PAID', 'PARTIAL', 'FAILED']
+          not: 'PENDING'
         }
       },
       include: {
@@ -47,10 +47,10 @@ export async function GET(request: NextRequest) {
     // Transformar pagos a formato de transacciones
     const transactions = payments.map((payment) => ({
       id: payment.id,
-      amount: payment.amount,
-      status: payment.status === 'PAID' ? 'COMPLETED' : payment.status === 'FAILED' ? 'FAILED' : 'PENDING',
+      amount: Number(payment.amount),
+      status: payment.status === 'COMPLETED' ? 'COMPLETED' : payment.status === 'FAILED' ? 'FAILED' : 'PENDING',
       provider: payment.paymentMethod || 'CASH',
-      createdAt: payment.paymentDate?.toISOString() || payment.dueDate.toISOString(),
+      createdAt: payment.paymentDate?.toISOString() || payment.createdAt.toISOString(),
       payment: {
         loan: {
           loanNumber: payment.loan.loanNumber,
