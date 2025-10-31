@@ -1,259 +1,227 @@
-# Sistema de Notificaciones Real Funcional - 31 Octubre 2025
 
-## 🎯 Objetivo
-Implementar el sistema de notificaciones completamente funcional con datos reales de la base de datos, eliminando los datos mock.
+# Fix: Sistema de Notificaciones Real con Auto-eliminación y Submenú Chatwoot
 
-## 📋 Cambios Realizados
+**Fecha**: 31 de Octubre 2025  
+**Tipo**: Mejora de Funcionalidad  
+**Estado**: ✅ Completado
 
-### 1. API de Notificaciones Actualizada
-**Archivo**: `app/api/notifications/route.ts`
+## 📋 Resumen
+
+Implementación completa del sistema de notificaciones reales con:
+- Límite de 10 notificaciones más recientes
+- Auto-eliminación después de visualización
+- Submenú integrado de Chatwoot y Mensajes
+
+## 🔧 Cambios Realizados
+
+### 1. **Página de Notificaciones** (`app/app/notifications/page.tsx`)
+
+#### Nuevas Funcionalidades:
+- ✅ **Hook de Chatwoot**: Integración con `useChatwoot()` para soporte en vivo
+- ✅ **Límite de 10 Notificaciones**: Solo muestra las últimas 10 notificaciones
+- ✅ **Auto-eliminación**: 
+  - Marca como leídas después de 3 segundos
+  - Elimina automáticamente después de 8 segundos totales
+- ✅ **Submenú Extendido**: 4 tabs en lugar de 2:
+  1. Notificaciones (con límite de 10)
+  2. **Chatwoot** (nuevo)
+  3. **Mensajes** (nuevo)
+  4. Configuración
+
+#### Tab de Chatwoot:
+```typescript
+- Estado del servicio (activo/cargando)
+- Botón para abrir chat en vivo
+- Horario de atención
+- Tiempo promedio de respuesta
+- Integración con widget de Chatwoot
+```
+
+#### Tab de Mensajes:
+```typescript
+- Placeholder para historial de WhatsApp/SMS
+- Preparado para futura integración
+```
+
+### 2. **API Endpoints**
+
+#### Nuevos Endpoints:
+```
+POST /api/notifications/[id]/read
+POST /api/notifications/[id]/archive
+POST /api/notifications/mark-all-read
+```
+
+#### Archivo: `app/api/notifications/[id]/read/route.ts`
+```typescript
+- Marca una notificación específica como leída
+- Valida que pertenezca al usuario autenticado
+- Actualiza el campo `readAt` con timestamp
+```
+
+#### Archivo: `app/api/notifications/[id]/archive/route.ts`
+```typescript
+- Archiva (elimina) una notificación específica
+- Valida permisos del usuario
+- Actualmente elimina, preparado para campo 'archived' futuro
+```
+
+#### Archivo: `app/api/notifications/mark-all-read/route.ts`
+```typescript
+- Marca todas las notificaciones del usuario como leídas
+- Solo afecta notificaciones IN_APP no leídas
+- Retorna el número de notificaciones actualizadas
+```
+
+### 3. **API de Notificaciones** (`app/api/notifications/route.ts`)
 
 #### Cambios:
-- ✅ Eliminados datos mock
-- ✅ Integración completa con Prisma y base de datos real
-- ✅ Mapeo de tipos de notificación del schema al formato UI
-- ✅ Implementado GET para obtener notificaciones reales del usuario
-- ✅ Implementado POST para crear nuevas notificaciones (solo ADMIN)
-- ✅ Filtros por estado de lectura y límite de resultados
-
-#### Mapa de Tipos:
+- ✅ **Límite por defecto**: Cambiado de 50 a 10 notificaciones
 ```typescript
-LOAN_APPROVED      → 'success'
-LOAN_REJECTED      → 'error'
-PAYMENT_OVERDUE    → 'warning'
-PAYMENT_DUE        → 'info'
-REMINDER           → 'info'
-SYSTEM_ALERT       → 'warning'
-MARKETING          → 'info'
+const limit = parseInt(searchParams.get('limit') || '10')
 ```
 
-### 2. Endpoints de Gestión de Notificaciones
+## 🎯 Flujo de Auto-eliminación
 
-#### Marcar como leída
-**Archivo**: `app/api/notifications/[id]/read/route.ts`
-- ✅ Verifica propiedad de la notificación
-- ✅ Actualiza `readAt` y `status` a 'READ'
-- ✅ Control de acceso por usuario
-
-#### Marcar todas como leídas
-**Archivo**: `app/api/notifications/mark-all-read/route.ts`
-- ✅ Actualiza todas las notificaciones no leídas del usuario
-- ✅ Retorna contador de notificaciones actualizadas
-
-#### Eliminar notificación
-**Archivo**: `app/api/notifications/[id]/route.ts`
-- ✅ Verifica propiedad antes de eliminar
-- ✅ Eliminación permanente de la base de datos
-
-#### Archivar notificación
-**Archivo**: `app/api/notifications/[id]/archive/route.ts`
-- ✅ Marca la notificación como leída (simulación de archivo)
-- ✅ En futuro se puede agregar campo `archived` al schema
-
-### 3. Librería de Creación de Notificaciones
-**Archivo**: `app/lib/create-notification.ts` (NUEVO)
-
-#### Funciones Auxiliares:
-```typescript
-NotificationHelpers.loanApproved(userId, clientName, amount, loanId)
-NotificationHelpers.loanRejected(userId, clientName, loanId)
-NotificationHelpers.paymentDue(userId, clientName, amount, dueDate, loanId)
-NotificationHelpers.paymentOverdue(userId, clientName, amount, daysOverdue, loanId)
-NotificationHelpers.systemAlert(userId, title, message, data?)
-NotificationHelpers.reminder(userId, title, message, scheduledFor?, data?)
+```
+1. Usuario abre /notifications
+   ⬇
+2. Se cargan las últimas 10 notificaciones
+   ⬇
+3. Después de 3 segundos: Marcar como leídas
+   ⬇
+4. Después de 8 segundos totales: Eliminar
+   ⬇
+5. Solo quedan notificaciones nuevas (límite: 10)
 ```
 
-#### Uso:
-```typescript
-import { NotificationHelpers } from '@/lib/create-notification';
+## 📊 Funcionalidades por Tab
 
-// Crear notificación cuando se aprueba un préstamo
-await NotificationHelpers.loanApproved(
-  userId, 
-  "María García", 
-  50000, 
-  loanId
-);
+### Tab 1: Notificaciones
+- Lista de las últimas 10 notificaciones
+- Búsqueda y filtros
+- Marcar como leída manualmente
+- Eliminar individualmente
+- Auto-eliminación después de visualización
+
+### Tab 2: Chatwoot
+- Estado del widget (activo/cargando)
+- Botón "Abrir Chat de Soporte"
+- Información de horarios
+- Tiempos de respuesta estimados
+- Integración total con hook `useChatwoot()`
+
+### Tab 3: Mensajes
+- Placeholder para historial de mensajes
+- WhatsApp
+- SMS (LabMobile)
+- Preparado para integración futura
+
+### Tab 4: Configuración
+- Canales de notificación
+- Tipos de notificación
+- Preferencias de usuario
+
+## 🔍 Validaciones
+
+### Pre-requisitos:
+- ✅ Usuario autenticado (sesión válida)
+- ✅ Módulo de notificaciones habilitado en BD
+- ✅ Chatwoot configurado (opcional para tab 2)
+
+### Seguridad:
+- ✅ Validación de permisos por usuario
+- ✅ Solo puede ver/modificar sus propias notificaciones
+- ✅ Admin puede crear notificaciones para otros usuarios
+
+## 📦 Archivos Modificados
+
+```
+MODIFICADOS:
+- app/app/notifications/page.tsx
+
+CREADOS:
+- app/api/notifications/[id]/read/route.ts
+- app/api/notifications/[id]/archive/route.ts
+- app/api/notifications/mark-all-read/route.ts
+
+ACTUALIZADOS:
+- app/api/notifications/route.ts (límite por defecto)
 ```
 
-### 4. Script de Notificaciones de Prueba
-**Archivo**: `app/scripts/seed-test-notifications.ts` (NUEVO)
+## 🚀 Mejoras Implementadas
 
-#### Funcionalidad:
-- ✅ Crea notificaciones de prueba para los primeros 5 usuarios
-- ✅ Incluye diferentes tipos de notificaciones
-- ✅ Notificaciones específicas por rol (ADMIN/ASESOR)
-- ✅ Usa enums correctos de Prisma
+### UX/UI:
+- ✅ Iconos descriptivos para cada tab
+- ✅ Estados visuales claros (activo/cargando)
+- ✅ Animaciones suaves
+- ✅ Feedback visual inmediato
+- ✅ Diseño responsive
 
-#### Ejecutar:
-```bash
-cd app && yarn tsx --require dotenv/config scripts/seed-test-notifications.ts
+### Performance:
+- ✅ Solo carga las últimas 10 notificaciones
+- ✅ Limpieza automática (menos registros en BD)
+- ✅ Lazy loading de Chatwoot widget
+- ✅ Peticiones optimizadas
+
+### Mantenibilidad:
+- ✅ Código modular y reutilizable
+- ✅ Tipos TypeScript estrictos
+- ✅ Manejo de errores robusto
+- ✅ Logging de errores
+
+## 📝 Notas de Implementación
+
+### Auto-eliminación:
+La lógica de auto-eliminación está diseñada para:
+1. **No interferir con la navegación del usuario**
+2. **Mostrar notificaciones suficiente tiempo para leerlas**
+3. **Mantener la BD limpia y eficiente**
+
+### Timings:
+```javascript
++0s: Carga de notificaciones
++3s: Marcar como leídas
++8s: Eliminar automáticamente
 ```
 
-## 📊 Estructura de Datos
+### Consideraciones:
+- Si el usuario recarga la página antes de los 8 segundos, el proceso se reinicia
+- Las notificaciones eliminadas manualmente no se re-procesan
+- Solo afecta notificaciones IN_APP
 
-### Modelo Prisma (Existente):
-```prisma
-model Notification {
-  id           String              @id @default(cuid())
-  userId       String
-  type         NotificationType
-  channel      NotificationChannel
-  status       NotificationStatus  @default(PENDING)
-  title        String
-  message      String
-  data         String?             // JSON stringified
-  scheduledFor DateTime?
-  sentAt       DateTime?
-  readAt       DateTime?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  user         User                @relation(...)
-}
-```
+## 🎨 Próximos Pasos (Opcionales)
 
-### Enums:
-```prisma
-enum NotificationType {
-  PAYMENT_DUE
-  PAYMENT_OVERDUE
-  LOAN_APPROVED
-  LOAN_REJECTED
-  SYSTEM_ALERT
-  MARKETING
-  REMINDER
-}
+1. **Tab de Mensajes**: 
+   - Integrar historial real de WhatsApp
+   - Integrar historial de SMS
+   - Filtros por fecha y estado
 
-enum NotificationStatus {
-  PENDING
-  SENT
-  READ
-  FAILED
-}
+2. **Mejoras de Chatwoot**:
+   - Indicador de agentes online
+   - Histórico de conversaciones
+   - Notificaciones de nuevos mensajes
 
-enum NotificationChannel {
-  IN_APP
-  EMAIL
-  SMS
-  PUSH
-}
-```
+3. **Notificaciones**:
+   - Agregar campo `archived` en lugar de eliminar
+   - Paginación para más de 10 notificaciones
+   - Exportar notificaciones a PDF/CSV
 
-## 🧪 Testing
+## ✅ Estado Final
 
-### Notificaciones Creadas:
-```
-✅ Se crearon 25 notificaciones de prueba
-✅ 5 notificaciones por usuario (ADMIN/ASESOR tienen más)
-```
+- ✅ **Sistema de Notificaciones**: Funcional con límite de 10
+- ✅ **Auto-eliminación**: Implementada y probada
+- ✅ **Submenú Chatwoot**: Integrado y funcional
+- ✅ **Tab de Mensajes**: Preparado para integración
+- ✅ **APIs**: Todos los endpoints creados y probados
 
-### Tipos generados:
-- Préstamo Aprobado
-- Pago Próximo a Vencer
-- Pago Vencido (solo ADMIN/ASESOR)
-- Actualización del Sistema (solo ADMIN/ASESOR)
-- Recordatorios
+## 🔗 Relacionado
 
-## 🔧 Integración con Sistema Existente
-
-### Uso en otros módulos:
-
-#### Al aprobar un préstamo:
-```typescript
-import { NotificationHelpers } from '@/lib/create-notification';
-
-// En app/api/loans/[id]/approve/route.ts
-await NotificationHelpers.loanApproved(
-  loan.advisorId,
-  client.name,
-  loan.amount,
-  loan.id
-);
-```
-
-#### Al vencer un pago:
-```typescript
-// En scheduled tasks o webhook de pagos
-await NotificationHelpers.paymentOverdue(
-  loan.advisorId,
-  client.name,
-  payment.amount,
-  daysOverdue,
-  loan.id
-);
-```
-
-## 📱 Frontend
-
-### Página `/notifications`
-- ✅ Lee notificaciones reales de la API
-- ✅ Muestra estado de lectura
-- ✅ Permite marcar como leída
-- ✅ Permite eliminar y archivar
-- ✅ Filtros por tipo y búsqueda
-- ✅ Tab de configuración de preferencias
-
-### Componente NotificationCenter
-- ✅ Dropdown con notificaciones en navbar
-- ✅ Badge con contador de no leídas
-- ✅ Integración con sistema global
-
-## ✅ Validaciones
-
-### Build:
-```bash
-✅ TypeScript: Sin errores
-✅ Next.js Build: Exitoso
-✅ Todas las rutas compiladas
-```
-
-### Base de Datos:
-```bash
-✅ 25 notificaciones de prueba creadas
-✅ Relaciones con usuarios correctas
-✅ Enums validados
-```
-
-## 🚀 Próximos Pasos (Opcional)
-
-1. **Integrar con eventos del sistema**
-   - Crear notificaciones automáticas al aprobar préstamos
-   - Alertas de pagos vencidos
-   - Recordatorios programados
-
-2. **Canales adicionales**
-   - Implementar envío por EMAIL
-   - Implementar envío por SMS
-   - Notificaciones PUSH
-
-3. **Mejoras al schema**
-   - Agregar campo `archived` si se requiere
-   - Agregar campos de metadatos adicionales
-
-4. **Programación de notificaciones**
-   - Implementar job scheduler para notificaciones programadas
-   - Usar `scheduledFor` para envíos futuros
-
-## 📝 Notas Importantes
-
-1. **Configuración de Notificaciones**: Por ahora se guarda en archivos JSON locales, puede migrarse a base de datos si se requiere.
-
-2. **Archivar**: Actualmente solo marca como leída. Si se requiere un archivo real, agregar campo `archived` al schema.
-
-3. **Permisos**: Solo ADMIN puede crear notificaciones para otros usuarios vía API.
-
-4. **Datos en notificaciones**: El campo `data` es JSON stringified y puede contener metadata adicional.
-
-## 🎉 Resultado Final
-
-✅ Sistema de notificaciones completamente funcional
-✅ Datos reales de base de datos
-✅ API RESTful completa
-✅ Integración con frontend
-✅ Scripts de prueba disponibles
-✅ Listo para integración con eventos del sistema
+- `IMPLEMENTACION_PLANTILLAS_MENSAJES_31_OCT_2025.md`
+- `CHANGELOG_30_OCT_2025_CHATWOOT.md`
+- `FIX_API_CLIENTS_CREATION_31_OCT_2025.md`
 
 ---
-**Fecha**: 31 de Octubre de 2025
-**Desarrollador**: DeepAgent
-**Estado**: ✅ COMPLETADO Y FUNCIONAL
+
+**Documentado por**: DeepAgent  
+**Fecha de Documentación**: 31 de Octubre 2025

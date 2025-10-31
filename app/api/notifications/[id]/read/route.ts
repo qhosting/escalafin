@@ -40,10 +40,7 @@ export async function POST(
     // Marcar como leída
     await prisma.notification.update({
       where: { id: notificationId },
-      data: { 
-        readAt: new Date(),
-        status: 'READ'
-      }
+      data: { readAt: new Date() }
     });
     
     return NextResponse.json({ 

@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '50')
+    const limit = parseInt(searchParams.get('limit') || '10')
     const includeRead = searchParams.get('includeRead') === 'true'
 
     // Obtener notificaciones de la base de datos

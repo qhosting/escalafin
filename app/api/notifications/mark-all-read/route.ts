@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { NotificationChannel } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,15 +21,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
     }
 
-    // Marcar todas las notificaciones no leídas como leídas
+    // Marcar todas las notificaciones del usuario como leídas
     const result = await prisma.notification.updateMany({
       where: {
         userId: user.id,
+        channel: NotificationChannel.IN_APP,
         readAt: null
       },
-      data: { 
-        readAt: new Date(),
-        status: 'READ'
+      data: {
+        readAt: new Date()
       }
     });
     

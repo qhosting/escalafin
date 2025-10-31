@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useChatwoot } from '@/hooks/use-chatwoot';
 import { 
   Bell, 
   Mail, 
@@ -30,7 +31,9 @@ import {
   AlertTriangle,
   Info,
   CheckCircle,
-  Clock
+  Clock,
+  MessagesSquare,
+  Headphones
 } from 'lucide-react';
 import { 
   DropdownMenu, 
@@ -66,6 +69,7 @@ interface NotificationSettings {
 
 export default function NotificationsPage() {
   const { data: session } = useSession() || {};
+  const { isLoaded: chatwootLoaded, openChat, isOpen: chatwootOpen } = useChatwoot();
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
@@ -94,16 +98,35 @@ export default function NotificationsPage() {
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/notifications');
+      // Limitar a las últimas 10 notificaciones
+      const response = await fetch('/api/notifications?limit=10');
       if (response.ok) {
         const data = await response.json();
-        setNotifications(data.notifications || mockNotifications);
-      } else {
-        setNotifications(mockNotifications);
+        setNotifications(data.notifications || []);
+        
+        // Marcar automáticamente las notificaciones no leídas como leídas después de 3 segundos
+        setTimeout(async () => {
+          const unreadIds = (data.notifications || [])
+            .filter((n: Notification) => !n.read)
+            .map((n: Notification) => n.id);
+          
+          if (unreadIds.length > 0) {
+            // Marcar como leídas en el servidor
+            for (const id of unreadIds) {
+              await markAsRead(id, false); // false = no mostrar toast
+            }
+            
+            // Después de 5 segundos más, eliminar las notificaciones leídas
+            setTimeout(async () => {
+              for (const id of unreadIds) {
+                await deleteNotification(id, false); // false = no mostrar toast
+              }
+            }, 5000);
+          }
+        }, 3000);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      setNotifications(mockNotifications);
     } finally {
       setLoading(false);
     }
@@ -140,15 +163,19 @@ export default function NotificationsPage() {
     setFilteredNotifications(filtered);
   };
 
-  const markAsRead = async (notificationId: string) => {
+  const markAsRead = async (notificationId: string, showToast: boolean = true) => {
     try {
       await fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
       setNotifications(prev => 
         prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
       );
-      toast.success('Notificación marcada como leída');
+      if (showToast) {
+        toast.success('Notificación marcada como leída');
+      }
     } catch (error) {
-      toast.error('Error al marcar como leída');
+      if (showToast) {
+        toast.error('Error al marcar como leída');
+      }
     }
   };
 
@@ -174,13 +201,17 @@ export default function NotificationsPage() {
     }
   };
 
-  const deleteNotification = async (notificationId: string) => {
+  const deleteNotification = async (notificationId: string, showToast: boolean = true) => {
     try {
       await fetch(`/api/notifications/${notificationId}`, { method: 'DELETE' });
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      toast.success('Notificación eliminada');
+      if (showToast) {
+        toast.success('Notificación eliminada');
+      }
     } catch (error) {
-      toast.error('Error al eliminar');
+      if (showToast) {
+        toast.error('Error al eliminar');
+      }
     }
   };
 
@@ -225,40 +256,6 @@ export default function NotificationsPage() {
     }
   };
 
-  // Mock data for demonstration
-  const mockNotifications: Notification[] = [
-    {
-      id: '1',
-      title: 'Pago Vencido',
-      message: 'El cliente Juan Pérez tiene un pago vencido de $5,000 MXN',
-      type: 'warning',
-      channel: 'system',
-      read: false,
-      archived: false,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      title: 'Pago Procesado',
-      message: 'Se ha procesado exitosamente un pago de $12,500 MXN de María García',
-      type: 'success',
-      channel: 'system',
-      read: true,
-      archived: false,
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-    },
-    {
-      id: '3',
-      title: 'Recordatorio de Pago',
-      message: 'Recordatorio enviado por WhatsApp a Carlos Ruiz para pago próximo a vencer',
-      type: 'info',
-      channel: 'whatsapp',
-      read: false,
-      archived: false,
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-    }
-  ];
-
   const unreadCount = notifications.filter(n => !n.read && !n.archived).length;
 
   return (
@@ -299,6 +296,14 @@ export default function NotificationsPage() {
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <BellRing className="h-4 w-4" />
               Notificaciones
+            </TabsTrigger>
+            <TabsTrigger value="chatwoot" className="flex items-center gap-2">
+              <Headphones className="h-4 w-4" />
+              Chatwoot
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="flex items-center gap-2">
+              <MessagesSquare className="h-4 w-4" />
+              Mensajes
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -448,6 +453,110 @@ export default function NotificationsPage() {
                     )}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Chatwoot Tab */}
+          <TabsContent value="chatwoot">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Headphones className="h-5 w-5" />
+                  Soporte en Vivo - Chatwoot
+                </CardTitle>
+                <CardDescription>
+                  Abre el widget de Chatwoot para chatear con el equipo de soporte en tiempo real
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {chatwootLoaded ? (
+                    <>
+                      <div className="p-4 border rounded-lg bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                        <div className="flex items-center gap-3">
+                          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                          <div>
+                            <p className="font-medium text-green-900 dark:text-green-100">
+                              Chat en Vivo Activo
+                            </p>
+                            <p className="text-sm text-green-700 dark:text-green-300">
+                              El equipo de soporte está disponible para ayudarte
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Button 
+                        onClick={openChat} 
+                        className="w-full"
+                        size="lg"
+                      >
+                        <MessageSquare className="h-5 w-5 mr-2" />
+                        Abrir Chat de Soporte
+                      </Button>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div className="p-4 border rounded-lg">
+                          <Clock className="h-5 w-5 mb-2 text-blue-500" />
+                          <h4 className="font-medium mb-1">Horario de Atención</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Lun - Vie: 9:00 AM - 6:00 PM
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Sábado: 10:00 AM - 2:00 PM
+                          </p>
+                        </div>
+                        
+                        <div className="p-4 border rounded-lg">
+                          <Info className="h-5 w-5 mb-2 text-purple-500" />
+                          <h4 className="font-medium mb-1">Tiempo de Respuesta</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Promedio: 2-5 minutos
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Durante horario de atención
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-8 text-center border rounded-lg">
+                      <RefreshCw className="h-12 w-12 mx-auto mb-4 text-gray-400 animate-spin" />
+                      <p className="text-gray-600 dark:text-gray-400">
+                        Cargando chat de soporte...
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Messages Tab */}
+          <TabsContent value="messages">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessagesSquare className="h-5 w-5" />
+                  Historial de Mensajes
+                </CardTitle>
+                <CardDescription>
+                  Mensajes enviados por WhatsApp y SMS a clientes
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-center py-8">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p className="text-gray-600 dark:text-gray-400 mb-2">
+                      Próximamente
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500">
+                      El historial de mensajes WhatsApp y SMS estará disponible aquí
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
