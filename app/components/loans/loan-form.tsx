@@ -103,7 +103,12 @@ export function LoanForm({ loanId, userRole }: LoanFormProps) {
       const response = await fetch(`/api/loans/${loanId}`);
       if (!response.ok) throw new Error('Error al cargar el préstamo');
 
-      const loan = await response.json();
+      const data = await response.json();
+      const loan = data.loan; // Desestructurar correctamente la respuesta
+      
+      if (!loan) {
+        throw new Error('Préstamo no encontrado');
+      }
       
       reset({
         clientId: loan.clientId,
@@ -112,7 +117,7 @@ export function LoanForm({ loanId, userRole }: LoanFormProps) {
         interestRate: loan.interestRate.toString(),
         termMonths: loan.termMonths.toString(),
         startDate: new Date(loan.startDate),
-        purpose: loan.creditApplication?.purpose || ''
+        purpose: loan.purpose || ''
       });
     } catch (error) {
       console.error('Error fetching loan:', error);
@@ -150,12 +155,29 @@ export function LoanForm({ loanId, userRole }: LoanFormProps) {
     try {
       setSubmitting(true);
 
+      // Calcular campos derivados
+      const principal = parseFloat(data.principalAmount);
+      const rate = parseFloat(data.interestRate);
+      const term = parseInt(data.termMonths);
+      
+      const monthlyRate = rate / 100 / 12;
+      const calculatedMonthlyPayment = (principal * monthlyRate * Math.pow(1 + monthlyRate, term)) / 
+                                       (Math.pow(1 + monthlyRate, term) - 1);
+      const calculatedTotalAmount = calculatedMonthlyPayment * term;
+      
+      // Calcular fecha de fin
+      const endDate = new Date(data.startDate);
+      endDate.setMonth(endDate.getMonth() + term);
+
       const payload = {
         ...data,
-        principalAmount: parseFloat(data.principalAmount),
-        interestRate: parseFloat(data.interestRate),
-        termMonths: parseInt(data.termMonths),
-        startDate: data.startDate.toISOString()
+        principalAmount: principal,
+        interestRate: rate,
+        termMonths: term,
+        monthlyPayment: calculatedMonthlyPayment,
+        totalAmount: calculatedTotalAmount,
+        startDate: data.startDate.toISOString(),
+        endDate: endDate.toISOString()
       };
 
       const url = loanId ? `/api/loans/${loanId}` : '/api/loans';
@@ -176,8 +198,11 @@ export function LoanForm({ loanId, userRole }: LoanFormProps) {
 
       const result = await response.json();
       
+      // Obtener el ID del préstamo correctamente según el tipo de respuesta
+      const loanIdResult = loanId ? result.loan.id : result.loan.id;
+      
       toast.success(loanId ? 'Préstamo actualizado exitosamente' : 'Préstamo creado exitosamente');
-      router.push(`/${userRole?.toLowerCase() || 'admin'}/loans/${result.id}`);
+      router.push(`/${userRole?.toLowerCase() || 'admin'}/loans/${loanIdResult}`);
 
     } catch (error: any) {
       console.error('Error submitting loan:', error);

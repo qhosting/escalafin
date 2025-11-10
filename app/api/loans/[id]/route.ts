@@ -81,6 +81,7 @@ export async function PUT(
       termMonths,
       interestRate,
       monthlyPayment,
+      totalAmount,
       startDate,
       endDate,
       status
@@ -95,21 +96,32 @@ export async function PUT(
       return NextResponse.json({ error: 'Préstamo no encontrado' }, { status: 404 });
     }
 
+    // Preparar datos para actualizar
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    // Actualizar solo los campos que se proporcionan
+    if (loanType) updateData.loanType = loanType;
+    if (principalAmount !== undefined) updateData.principalAmount = parseFloat(principalAmount.toString());
+    if (balanceRemaining !== undefined) {
+      updateData.balanceRemaining = parseFloat(balanceRemaining.toString());
+    } else if (principalAmount !== undefined) {
+      // Si se actualiza el principal pero no el balance, actualizar el balance también
+      updateData.balanceRemaining = parseFloat(principalAmount.toString());
+    }
+    if (termMonths !== undefined) updateData.termMonths = parseInt(termMonths.toString());
+    if (interestRate !== undefined) updateData.interestRate = parseFloat(interestRate.toString());
+    if (monthlyPayment !== undefined) updateData.monthlyPayment = parseFloat(monthlyPayment.toString());
+    if (totalAmount !== undefined) updateData.totalAmount = parseFloat(totalAmount.toString());
+    if (startDate) updateData.startDate = new Date(startDate);
+    if (endDate) updateData.endDate = new Date(endDate);
+    if (status) updateData.status = status as LoanStatus;
+
     // Update loan
     const loan = await prisma.loan.update({
       where: { id: params.id },
-      data: {
-        loanType,
-        principalAmount: principalAmount ? parseFloat(principalAmount.toString()) : undefined,
-        balanceRemaining: balanceRemaining ? parseFloat(balanceRemaining.toString()) : undefined,
-        termMonths: termMonths ? parseInt(termMonths.toString()) : undefined,
-        interestRate: interestRate ? parseFloat(interestRate.toString()) : undefined,
-        monthlyPayment: monthlyPayment ? parseFloat(monthlyPayment.toString()) : undefined,
-        startDate: startDate ? new Date(startDate) : undefined,
-        endDate: endDate ? new Date(endDate) : undefined,
-        status: status as LoanStatus,
-        updatedAt: new Date(),
-      },
+      data: updateData,
       include: {
         client: {
           select: {
