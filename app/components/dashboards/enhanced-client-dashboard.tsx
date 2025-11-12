@@ -71,6 +71,7 @@ export function EnhancedClientDashboard() {
   const { modules, loading: modulesLoading } = useModules();
   const [dashboardData, setDashboardData] = useState<ClientDashboardData | null>(null);
   const [loadingData, setLoadingData] = useState(true);
+  const [clientInfo, setClientInfo] = useState<{ id: string; profileImage: string | null; name: string } | null>(null);
 
   // Cargar datos reales desde la API
   useEffect(() => {
@@ -92,6 +93,31 @@ export function EnhancedClientDashboard() {
 
     if (session?.user?.role === 'CLIENTE') {
       fetchData();
+    }
+  }, [session]);
+
+  // Cargar información del cliente (incluyendo imagen de perfil)
+  useEffect(() => {
+    async function fetchClientInfo() {
+      try {
+        const response = await fetch('/api/clients/me');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.client) {
+            setClientInfo({
+              id: data.client.id,
+              profileImage: data.client.profileImage,
+              name: `${data.client.firstName} ${data.client.lastName}`,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching client info:', error);
+      }
+    }
+
+    if (session?.user?.role === 'CLIENTE') {
+      fetchClientInfo();
     }
   }, [session]);
 
@@ -228,6 +254,15 @@ export function EnhancedClientDashboard() {
               </Button>
             </ModuleWrapper>
             <Badge variant="secondary">Cliente</Badge>
+            {clientInfo && (
+              <ClientProfileImage
+                clientId={clientInfo.id}
+                currentImage={clientInfo.profileImage}
+                clientName={clientInfo.name}
+                editable={false}
+                size="sm"
+              />
+            )}
             <span className="text-sm text-gray-600">
               {session?.user?.name}
             </span>

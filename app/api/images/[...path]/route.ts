@@ -1,8 +1,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
-import { downloadFile, getStorageType } from '@/lib/unified-storage';
+import { authOptions } from '@/lib/auth';
+import { downloadFile, getStorageInfo } from '@/lib/unified-storage';
 
 /**
  * GET /api/images/[...path]
@@ -34,7 +34,7 @@ export async function GET(
     }
 
     // Obtener el tipo de almacenamiento
-    const storageType = getStorageType();
+    const storageType = getStorageInfo().type;
 
     // Descargar el archivo
     const buffer = await downloadFile(filePath, storageType);

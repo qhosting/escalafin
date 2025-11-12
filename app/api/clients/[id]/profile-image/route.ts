@@ -1,9 +1,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { uploadFile, deleteFile, getStorageType } from '@/lib/unified-storage';
+import { uploadFile, deleteFile, getStorageInfo } from '@/lib/unified-storage';
 
 /**
  * POST /api/clients/[id]/profile-image
@@ -126,7 +126,7 @@ export async function POST(
     // Si el cliente ya tenía una imagen, eliminar la anterior
     if (client.profileImage) {
       try {
-        const storageType = getStorageType();
+        const storageType = getStorageInfo().type;
         await deleteFile(client.profileImage, storageType);
       } catch (error) {
         console.warn('Error al eliminar imagen anterior:', error);
@@ -218,7 +218,7 @@ export async function DELETE(
 
     // Eliminar archivo del almacenamiento
     try {
-      const storageType = getStorageType();
+      const storageType = getStorageInfo().type;
       await deleteFile(client.profileImage, storageType);
     } catch (error) {
       console.warn('Error al eliminar archivo de almacenamiento:', error);
@@ -297,7 +297,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       profileImage: client.profileImage,
-      storage: getStorageType(),
+      storage: getStorageInfo().type,
     });
 
   } catch (error: any) {

@@ -120,6 +120,9 @@ export default function ClientDetailPage() {
       if (!response.ok) throw new Error('Error al cargar cliente');
 
       const data = await response.json();
+      console.log('Client data loaded:', data);
+      console.log('Guarantor:', data.guarantor);
+      console.log('Collaterals:', data.collaterals);
       setClient(data);
     } catch (error) {
       console.error('Error fetching client:', error);
