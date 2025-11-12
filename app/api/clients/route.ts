@@ -141,7 +141,9 @@ export async function POST(request: NextRequest) {
       creditScore,
       bankName,
       accountNumber,
-      asesorId
+      asesorId,
+      guarantor,
+      collaterals
     } = body;
 
     // Validate required fields
@@ -223,22 +225,52 @@ export async function POST(request: NextRequest) {
       clientData.asesorId = session.user.id;
     }
 
-    // Create client
-    const client = await prisma.client.create({
-      data: clientData,
-      include: {
-        asesor: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
+    // Create client with guarantor and collaterals in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the client
+      const client = await tx.client.create({
+        data: clientData,
+        include: {
+          asesor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
           }
         }
+      });
+
+      // Create guarantor if provided
+      if (guarantor && guarantor.fullName) {
+        await tx.guarantor.create({
+          data: {
+            clientId: client.id,
+            fullName: guarantor.fullName,
+            address: guarantor.address || '',
+            phone: guarantor.phone || '',
+            relationship: guarantor.relationship || 'OTHER'
+          }
+        });
       }
+
+      // Create collaterals if provided
+      if (collaterals && Array.isArray(collaterals) && collaterals.length > 0) {
+        const collateralData = collaterals.map((description: string) => ({
+          clientId: client.id,
+          description
+        }));
+        
+        await tx.collateral.createMany({
+          data: collateralData
+        });
+      }
+
+      return client;
     });
 
-    return NextResponse.json(client, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (error: any) {
     console.error('Error creating client:', error);
     

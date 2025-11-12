@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Save, User } from 'lucide-react';
+import { ArrowLeft, Save, User, UserCheck, Package, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { ClientImageUpload } from '@/components/clients/client-image-upload';
@@ -40,6 +40,11 @@ interface ClientFormData {
   bankName: string;
   accountNumber: string;
   asesorId: string;
+  // Aval
+  guarantorFullName: string;
+  guarantorAddress: string;
+  guarantorPhone: string;
+  guarantorRelationship: string;
 }
 
 const EMPLOYMENT_TYPES = [
@@ -50,11 +55,21 @@ const EMPLOYMENT_TYPES = [
   { value: 'STUDENT', label: 'Estudiante' }
 ];
 
+const RELATIONSHIP_TYPES = [
+  { value: 'FAMILY', label: 'Familiar' },
+  { value: 'FRIEND', label: 'Amigo' },
+  { value: 'COWORKER', label: 'Compañero de Trabajo' },
+  { value: 'NEIGHBOR', label: 'Vecino' },
+  { value: 'OTHER', label: 'Otro' }
+];
+
 export default function NewClientPage() {
   const router = useRouter();
   const { data: session, status } = useSession() || {};
   const [loading, setLoading] = useState(false);
   const [asesores, setAsesores] = useState([]);
+  const [collaterals, setCollaterals] = useState<string[]>([]);
+  const [newCollateral, setNewCollateral] = useState('');
 
   const [formData, setFormData] = useState<ClientFormData>({
     firstName: '',
@@ -74,7 +89,12 @@ export default function NewClientPage() {
     creditScore: '',
     bankName: '',
     accountNumber: '',
-    asesorId: ''
+    asesorId: '',
+    // Aval
+    guarantorFullName: '',
+    guarantorAddress: '',
+    guarantorPhone: '',
+    guarantorRelationship: ''
   });
 
   const handleInputChange = (field: keyof ClientFormData, value: string) => {
@@ -82,6 +102,17 @@ export default function NewClientPage() {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleAddCollateral = () => {
+    if (newCollateral.trim()) {
+      setCollaterals(prev => [...prev, newCollateral.trim()]);
+      setNewCollateral('');
+    }
+  };
+
+  const handleRemoveCollateral = (index: number) => {
+    setCollaterals(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,12 +126,24 @@ export default function NewClientPage() {
     setLoading(true);
 
     try {
+      // Preparar datos incluyendo aval y garantías
+      const clientData = {
+        ...formData,
+        guarantor: formData.guarantorFullName ? {
+          fullName: formData.guarantorFullName,
+          address: formData.guarantorAddress,
+          phone: formData.guarantorPhone,
+          relationship: formData.guarantorRelationship
+        } : undefined,
+        collaterals: collaterals.length > 0 ? collaterals : undefined
+      };
+
       const response = await fetch('/api/clients', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(clientData),
       });
 
       if (!response.ok) {
@@ -391,6 +434,151 @@ export default function NewClientPage() {
                 rows={2}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Información del Aval */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserCheck className="h-5 w-5" />
+              Información del Aval
+            </CardTitle>
+            <CardDescription>
+              Datos de la persona que respalda el crédito (opcional)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="guarantorFullName">Nombre Completo del Aval</Label>
+              <Input
+                id="guarantorFullName"
+                value={formData.guarantorFullName}
+                onChange={(e) => handleInputChange('guarantorFullName', e.target.value)}
+                placeholder="Ej: Juan Pérez García"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="guarantorAddress">Dirección Completa</Label>
+              <Textarea
+                id="guarantorAddress"
+                value={formData.guarantorAddress}
+                onChange={(e) => handleInputChange('guarantorAddress', e.target.value)}
+                placeholder="Calle, número, colonia, ciudad, estado..."
+                rows={3}
+              />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="guarantorPhone">Teléfono</Label>
+                <Input
+                  id="guarantorPhone"
+                  type="tel"
+                  value={formData.guarantorPhone}
+                  onChange={(e) => handleInputChange('guarantorPhone', e.target.value)}
+                  placeholder="555-123-4567"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="guarantorRelationship">Parentesco</Label>
+                <Select
+                  value={formData.guarantorRelationship}
+                  onValueChange={(value) => handleInputChange('guarantorRelationship', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona parentesco" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RELATIONSHIP_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Garantías */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Garantías
+            </CardTitle>
+            <CardDescription>
+              Bienes que el cliente ofrece como garantía (opcional)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Input para agregar nueva garantía */}
+            <div className="flex gap-2">
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="newCollateral">Descripción de la Garantía</Label>
+                <Input
+                  id="newCollateral"
+                  value={newCollateral}
+                  onChange={(e) => setNewCollateral(e.target.value)}
+                  placeholder="Ej: 1 celular Samsung Galaxy"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCollateral();
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button
+                  type="button"
+                  onClick={handleAddCollateral}
+                  size="sm"
+                  variant="outline"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Agregar
+                </Button>
+              </div>
+            </div>
+
+            {/* Lista de garantías */}
+            {collaterals.length > 0 && (
+              <div className="space-y-2">
+                <Label>Garantías Agregadas ({collaterals.length})</Label>
+                <div className="space-y-2">
+                  {collaterals.map((collateral, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{collateral}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveCollateral(index)}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {collaterals.length === 0 && (
+              <div className="text-center py-6 text-muted-foreground text-sm">
+                No se han agregado garantías aún
+              </div>
+            )}
           </CardContent>
         </Card>
 

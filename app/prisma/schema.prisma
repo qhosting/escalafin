@@ -1,7 +1,7 @@
 generator client {
     provider = "prisma-client-js"
     binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
-    output = "/home/ubuntu/escalafin_mvp/app/node_modules/.prisma/client"
+    output = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -119,6 +119,8 @@ model Client {
   dualFiles                    File[]              @relation("ClientDualFiles")
   loans                        Loan[]
   personalReferences           PersonalReference[] @relation("ClientReferences")
+  guarantor                    Guarantor?          @relation("ClientGuarantor")
+  collaterals                  Collateral[]        @relation("ClientCollateral")
   whatsappMessages             WhatsAppMessage[]   @relation("ClientMessages")
 
   @@map("clients")
@@ -140,6 +142,32 @@ model PersonalReference {
 
   @@index([clientId])
   @@map("personal_references")
+}
+
+model Guarantor {
+  id           String           @id @default(cuid())
+  clientId     String           @unique
+  fullName     String
+  address      String
+  phone        String
+  relationship RelationshipType
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  client       Client           @relation("ClientGuarantor", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("guarantors")
+}
+
+model Collateral {
+  id          String   @id @default(cuid())
+  clientId    String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  client      Client   @relation("ClientCollateral", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("collaterals")
 }
 
 model CreditApplication {

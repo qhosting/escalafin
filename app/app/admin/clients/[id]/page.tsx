@@ -29,7 +29,9 @@ import {
   Calendar,
   FileText,
   User,
-  Users
+  Users,
+  UserCheck,
+  Package
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PersonalReferencesForm } from '@/components/clients/personal-references-form';
@@ -82,6 +84,18 @@ interface ClientData {
     status: string;
     createdAt: string;
     reviewedAt: string;
+  }>;
+  guarantor?: {
+    id: string;
+    fullName: string;
+    address: string;
+    phone: string;
+    relationship: string;
+  };
+  collaterals?: Array<{
+    id: string;
+    description: string;
+    createdAt: string;
   }>;
 }
 
@@ -359,6 +373,88 @@ export default function ClientDetailPage() {
                   <div className="flex items-start gap-2">
                     <span className="text-muted-foreground text-sm">Dirección:</span>
                     <span className="text-sm">{client.workAddress}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Información del Aval y Garantías */}
+          <div className="grid gap-6 md:grid-cols-2 mt-6">
+            {/* Aval */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="h-5 w-5" />
+                  Información del Aval
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {client.guarantor ? (
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Nombre Completo:</span>
+                      <span className="font-semibold">{client.guarantor.fullName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Teléfono:</span>
+                      <span className="font-semibold">{client.guarantor.phone}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Parentesco:</span>
+                      <span className="font-semibold">
+                        {client.guarantor.relationship === 'FAMILY' && 'Familiar'}
+                        {client.guarantor.relationship === 'FRIEND' && 'Amigo'}
+                        {client.guarantor.relationship === 'COWORKER' && 'Compañero de Trabajo'}
+                        {client.guarantor.relationship === 'NEIGHBOR' && 'Vecino'}
+                        {client.guarantor.relationship === 'OTHER' && 'Otro'}
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                      <div>
+                        <p className="text-sm">{client.guarantor.address || 'Sin dirección'}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <UserCheck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No hay información de aval registrada</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Garantías */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Garantías ({client.collaterals?.length || 0})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {client.collaterals && client.collaterals.length > 0 ? (
+                  <div className="space-y-2">
+                    {client.collaterals.map((collateral: any, index: number) => (
+                      <div
+                        key={collateral.id}
+                        className="flex items-center gap-3 p-3 bg-muted rounded-lg"
+                      >
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{collateral.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No hay garantías registradas</p>
                   </div>
                 )}
               </CardContent>
