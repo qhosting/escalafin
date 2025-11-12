@@ -16,9 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Save, User } from 'lucide-react';
+import { ArrowLeft, Save, User, Shield, FileText, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+
+interface GuarantorData {
+  fullName: string;
+  address: string;
+  phone: string;
+  relationship: string;
+}
 
 interface ClientFormData {
   firstName: string;
@@ -40,6 +47,8 @@ interface ClientFormData {
   accountNumber: string;
   status: string;
   asesorId: string;
+  guarantor?: GuarantorData;
+  collaterals: string[];
 }
 
 const EMPLOYMENT_TYPES = [
@@ -54,6 +63,14 @@ const CLIENT_STATUSES = [
   { value: 'ACTIVE', label: 'Activo' },
   { value: 'INACTIVE', label: 'Inactivo' },
   { value: 'SUSPENDED', label: 'Suspendido' }
+];
+
+const RELATIONSHIP_TYPES = [
+  { value: 'FAMILY', label: 'Familiar' },
+  { value: 'FRIEND', label: 'Amigo' },
+  { value: 'COWORKER', label: 'Compañero de Trabajo' },
+  { value: 'NEIGHBOR', label: 'Vecino' },
+  { value: 'OTHER', label: 'Otro' }
 ];
 
 export default function EditClientPage() {
@@ -82,8 +99,12 @@ export default function EditClientPage() {
     bankName: '',
     accountNumber: '',
     status: 'ACTIVE',
-    asesorId: ''
+    asesorId: '',
+    guarantor: undefined,
+    collaterals: []
   });
+  
+  const [newCollateral, setNewCollateral] = useState('');
 
   useEffect(() => {
     if (params?.id) {
@@ -118,7 +139,14 @@ export default function EditClientPage() {
         bankName: client.bankName || '',
         accountNumber: client.accountNumber || '',
         status: client.status || 'ACTIVE',
-        asesorId: client.asesorId || ''
+        asesorId: client.asesorId || '',
+        guarantor: client.guarantor ? {
+          fullName: client.guarantor.fullName || '',
+          address: client.guarantor.address || '',
+          phone: client.guarantor.phone || '',
+          relationship: client.guarantor.relationship || 'OTHER'
+        } : undefined,
+        collaterals: client.collaterals?.map((c: any) => c.description) || []
       });
     } catch (error) {
       console.error('Error fetching client:', error);
@@ -132,6 +160,43 @@ export default function EditClientPage() {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleGuarantorChange = (field: keyof GuarantorData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      guarantor: {
+        fullName: prev.guarantor?.fullName || '',
+        address: prev.guarantor?.address || '',
+        phone: prev.guarantor?.phone || '',
+        relationship: prev.guarantor?.relationship || 'OTHER',
+        [field]: value
+      }
+    }));
+  };
+
+  const removeGuarantor = () => {
+    setFormData(prev => ({
+      ...prev,
+      guarantor: undefined
+    }));
+  };
+
+  const addCollateral = () => {
+    if (newCollateral.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        collaterals: [...prev.collaterals, newCollateral.trim()]
+      }));
+      setNewCollateral('');
+    }
+  };
+
+  const removeCollateral = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      collaterals: prev.collaterals.filter((_, i) => i !== index)
     }));
   };
 
@@ -451,6 +516,151 @@ export default function EditClientPage() {
                 placeholder="Dirección de la empresa..."
                 rows={2}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Aval / Guarantor */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Aval / Garantía Personal
+              </CardTitle>
+              {formData.guarantor && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={removeGuarantor}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Quitar Aval
+                </Button>
+              )}
+            </div>
+            <CardDescription>
+              Información del aval del cliente (opcional)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="guarantorFullName">Nombre Completo del Aval</Label>
+                <Input
+                  id="guarantorFullName"
+                  value={formData.guarantor?.fullName || ''}
+                  onChange={(e) => handleGuarantorChange('fullName', e.target.value)}
+                  placeholder="Juan Pérez García"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="guarantorPhone">Teléfono del Aval</Label>
+                <Input
+                  id="guarantorPhone"
+                  value={formData.guarantor?.phone || ''}
+                  onChange={(e) => handleGuarantorChange('phone', e.target.value)}
+                  placeholder="555-987-6543"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="guarantorRelationship">Relación con el Cliente</Label>
+                <Select
+                  value={formData.guarantor?.relationship || 'OTHER'}
+                  onValueChange={(value) => handleGuarantorChange('relationship', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona relación" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RELATIONSHIP_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="guarantorAddress">Dirección del Aval</Label>
+                <Input
+                  id="guarantorAddress"
+                  value={formData.guarantor?.address || ''}
+                  onChange={(e) => handleGuarantorChange('address', e.target.value)}
+                  placeholder="Calle 123, Colonia..."
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Garantías / Collaterals */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Garantías / Bienes
+            </CardTitle>
+            <CardDescription>
+              Bienes o garantías proporcionadas por el cliente
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Lista de garantías existentes */}
+            {formData.collaterals.length > 0 && (
+              <div className="space-y-2">
+                <Label>Garantías Registradas</Label>
+                <div className="space-y-2">
+                  {formData.collaterals.map((collateral, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 border rounded-lg bg-muted/50"
+                    >
+                      <span className="text-sm">{collateral}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCollateral(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Agregar nueva garantía */}
+            <div className="space-y-2">
+              <Label htmlFor="newCollateral">Agregar Nueva Garantía</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="newCollateral"
+                  value={newCollateral}
+                  onChange={(e) => setNewCollateral(e.target.value)}
+                  placeholder="Ejemplo: Casa en calle principal, valor estimado $500,000"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addCollateral();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addCollateral}
+                  disabled={!newCollateral.trim()}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

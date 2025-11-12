@@ -291,6 +291,14 @@ export async function PUT(
   }
 }
 
+// PATCH - Alias for PUT (same logic)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  return PUT(request, { params });
+}
+
 // DELETE - Eliminar un cliente
 export async function DELETE(
   request: NextRequest,
