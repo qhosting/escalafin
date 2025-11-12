@@ -111,6 +111,7 @@ model Client {
   whatsappPaymentReminder      Boolean             @default(true)
   whatsappLoanUpdates          Boolean             @default(true)
   whatsappMarketingMessages    Boolean             @default(false)
+  profileImage                 String?
   asesor                       User?               @relation("AsesorClients", fields: [asesorId], references: [id])
   user                         User?               @relation("UserClient", fields: [userId], references: [id])
   creditApplications           CreditApplication[]

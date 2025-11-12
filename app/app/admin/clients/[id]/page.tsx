@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PersonalReferencesForm } from '@/components/clients/personal-references-form';
+import { ClientProfileImage } from '@/components/clients/client-profile-image';
 
 interface ClientData {
   id: string;
@@ -42,6 +43,7 @@ interface ClientData {
   lastName: string;
   email: string;
   phone: string;
+  profileImage?: string | null;
   dateOfBirth: string;
   address: string;
   city: string;
@@ -181,6 +183,16 @@ export default function ClientDetailPage() {
                 Volver
               </Button>
             </Link>
+            
+            {/* Imagen de perfil del cliente */}
+            <ClientProfileImage
+              clientId={client.id}
+              currentImage={client.profileImage}
+              clientName={`${client.firstName} ${client.lastName}`}
+              editable={false}
+              size="lg"
+            />
+            
             <div>
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
                 {client.firstName} {client.lastName}

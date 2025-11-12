@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { ClientProfileImage } from '@/components/clients/client-profile-image';
 
 interface ClientDashboardData {
   activeLoans: Array<{

@@ -19,6 +19,7 @@ import {
 import { ArrowLeft, Save, User, Shield, FileText, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { ClientProfileImage } from '@/components/clients/client-profile-image';
 
 interface GuarantorData {
   fullName: string;
@@ -105,6 +106,8 @@ export default function EditClientPage() {
   });
   
   const [newCollateral, setNewCollateral] = useState('');
+  const [clientImage, setClientImage] = useState<string | null>(null);
+  const [clientFullName, setClientFullName] = useState('');
 
   useEffect(() => {
     if (params?.id) {
@@ -148,6 +151,10 @@ export default function EditClientPage() {
         } : undefined,
         collaterals: client.collaterals?.map((c: any) => c.description) || []
       });
+      
+      // Guardar imagen y nombre completo para el componente de imagen
+      setClientImage(client.profileImage || null);
+      setClientFullName(`${client.firstName} ${client.lastName}`);
     } catch (error) {
       console.error('Error fetching client:', error);
       toast.error('Error al cargar los datos del cliente');
@@ -278,6 +285,20 @@ export default function EditClientPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Imagen de Perfil */}
+            {params?.id && (
+              <div className="flex justify-center mb-6">
+                <ClientProfileImage
+                  clientId={params.id as string}
+                  currentImage={clientImage}
+                  clientName={clientFullName}
+                  editable={true}
+                  size="xl"
+                  onImageUpdate={(newImage) => setClientImage(newImage)}
+                />
+              </div>
+            )}
+            
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="firstName">Nombre *</Label>
