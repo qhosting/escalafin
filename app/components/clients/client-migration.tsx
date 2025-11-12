@@ -28,11 +28,22 @@ interface MigrationClient {
   lastName: string;
   email: string;
   phone: string;
+  dateOfBirth?: string;
   address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
   currentBalance: number;
   lastPaymentDate?: string;
   monthlyIncome?: number;
+  employmentType?: string;
+  employerName?: string;
+  workAddress?: string;
+  yearsEmployed?: number;
   creditScore?: number;
+  bankName?: string;
+  accountNumber?: string;
+  status?: string;
   notes?: string;
   originalSystem?: string;
 }
@@ -52,11 +63,22 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
     lastName: '',
     email: '',
     phone: '',
+    dateOfBirth: '',
     address: '',
+    city: '',
+    state: '',
+    postalCode: '',
     currentBalance: 0,
     lastPaymentDate: '',
     monthlyIncome: 0,
+    employmentType: '',
+    employerName: '',
+    workAddress: '',
+    yearsEmployed: 0,
     creditScore: 0,
+    bankName: '',
+    accountNumber: '',
+    status: 'ACTIVE',
     notes: '',
     originalSystem: ''
   });
@@ -122,11 +144,22 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
         lastName: '',
         email: '',
         phone: '',
+        dateOfBirth: '',
         address: '',
+        city: '',
+        state: '',
+        postalCode: '',
         currentBalance: 0,
         lastPaymentDate: '',
         monthlyIncome: 0,
+        employmentType: '',
+        employerName: '',
+        workAddress: '',
+        yearsEmployed: 0,
         creditScore: 0,
+        bankName: '',
+        accountNumber: '',
+        status: 'ACTIVE',
         notes: '',
         originalSystem: ''
       });
@@ -178,11 +211,22 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
           lastName: values[headers.indexOf('apellido')] || '',
           email: values[headers.indexOf('email')] || '',
           phone: values[headers.indexOf('telefono')] || '',
+          dateOfBirth: values[headers.indexOf('fecha_nacimiento')] || '',
           address: values[headers.indexOf('direccion')] || '',
+          city: values[headers.indexOf('ciudad')] || '',
+          state: values[headers.indexOf('estado')] || '',
+          postalCode: values[headers.indexOf('codigo_postal')] || '',
           currentBalance: parseFloat(values[headers.indexOf('saldo_actual')] || '0'),
           lastPaymentDate: values[headers.indexOf('ultimo_pago')] || '',
           monthlyIncome: parseFloat(values[headers.indexOf('ingresos_mensuales')] || '0'),
+          employmentType: values[headers.indexOf('tipo_empleo')] || '',
+          employerName: values[headers.indexOf('nombre_empleador')] || '',
+          workAddress: values[headers.indexOf('direccion_trabajo')] || '',
+          yearsEmployed: parseInt(values[headers.indexOf('años_empleado')] || '0'),
           creditScore: parseInt(values[headers.indexOf('score_crediticio')] || '0'),
+          bankName: values[headers.indexOf('nombre_banco')] || '',
+          accountNumber: values[headers.indexOf('numero_cuenta')] || '',
+          status: values[headers.indexOf('estado_cliente')] || 'ACTIVE',
           notes: values[headers.indexOf('notas')] || '',
           originalSystem: values[headers.indexOf('sistema_origen')] || 'CSV Import'
         };
@@ -263,11 +307,22 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
       'apellido', 
       'email',
       'telefono',
+      'fecha_nacimiento',
       'direccion',
+      'ciudad',
+      'estado',
+      'codigo_postal',
       'saldo_actual',
       'ultimo_pago',
       'ingresos_mensuales',
+      'tipo_empleo',
+      'nombre_empleador',
+      'direccion_trabajo',
+      'años_empleado',
       'score_crediticio',
+      'nombre_banco',
+      'numero_cuenta',
+      'estado_cliente',
       'notas',
       'sistema_origen'
     ];
@@ -277,11 +332,22 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
       'Pérez',
       'juan.perez@email.com',
       '5551234567',
+      '1985-05-15',
       'Calle Principal 123',
+      'Ciudad de México',
+      'CDMX',
+      '01000',
       '15000.50',
       '2025-01-15',
       '25000',
+      'EMPLOYED',
+      'Empresa XYZ S.A. de C.V.',
+      'Av. Reforma 123',
+      '3',
       '750',
+      'Banco Nacional',
+      '1234567890',
+      'ACTIVE',
       'Cliente referido',
       'Sistema Anterior'
     ];
@@ -341,129 +407,265 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
                 Agregar Cliente con Saldo Existente
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Información Personal */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <EnhancedInput
-                  label="Nombre"
-                  required
-                  value={manualForm.firstName}
-                  onChange={(e) => handleManualInputChange('firstName', e.target.value)}
-                  example="Juan Carlos"
-                  hint="Nombre completo del cliente"
-                />
-                
-                <EnhancedInput
-                  label="Apellido"
-                  required
-                  value={manualForm.lastName}
-                  onChange={(e) => handleManualInputChange('lastName', e.target.value)}
-                  example="Pérez González"
-                  hint="Apellidos completos"
-                />
-                
-                <EnhancedInput
-                  label="Correo Electrónico"
-                  type="email"
-                  required
-                  value={manualForm.email}
-                  onChange={(e) => handleManualInputChange('email', e.target.value)}
-                  example="juan.perez@email.com"
-                  hint="Email válido para notificaciones"
-                />
-                
-                <EnhancedInput
-                  label="Teléfono"
-                  required
-                  value={manualForm.phone}
-                  onChange={(e) => handleManualInputChange('phone', e.target.value)}
-                  example="5551234567"
-                  hint="Número de contacto principal"
-                />
+            <CardContent className="space-y-8">
+              {/* Sección: Información Personal */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">📋 Información Personal</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <EnhancedInput
+                    label="Nombre"
+                    required
+                    value={manualForm.firstName}
+                    onChange={(e) => handleManualInputChange('firstName', e.target.value)}
+                    example="Juan Carlos"
+                    hint="Nombre completo del cliente"
+                  />
+                  
+                  <EnhancedInput
+                    label="Apellido"
+                    required
+                    value={manualForm.lastName}
+                    onChange={(e) => handleManualInputChange('lastName', e.target.value)}
+                    example="Pérez González"
+                    hint="Apellidos completos"
+                  />
+                  
+                  <EnhancedInput
+                    label="Correo Electrónico"
+                    type="email"
+                    required
+                    value={manualForm.email}
+                    onChange={(e) => handleManualInputChange('email', e.target.value)}
+                    example="juan.perez@email.com"
+                    hint="Email válido para notificaciones"
+                  />
+                  
+                  <EnhancedInput
+                    label="Teléfono"
+                    required
+                    value={manualForm.phone}
+                    onChange={(e) => handleManualInputChange('phone', e.target.value)}
+                    example="5551234567"
+                    hint="Número de contacto principal"
+                  />
+                  
+                  <EnhancedInput
+                    label="Fecha de Nacimiento"
+                    type="date"
+                    value={manualForm.dateOfBirth || ''}
+                    onChange={(e) => handleManualInputChange('dateOfBirth', e.target.value)}
+                    hint="Fecha de nacimiento del cliente"
+                  />
+                  
+                  <div className="space-y-2">
+                    <label className="input-label">Estado del Cliente</label>
+                    <EnhancedSelect
+                      value={manualForm.status || 'ACTIVE'}
+                      onValueChange={(value) => handleManualInputChange('status', value)}
+                    >
+                      <SelectItem value="ACTIVE">Activo</SelectItem>
+                      <SelectItem value="INACTIVE">Inactivo</SelectItem>
+                      <SelectItem value="BLACKLISTED">Lista Negra</SelectItem>
+                    </EnhancedSelect>
+                    <p className="example-hint">
+                      Estado actual del cliente
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <EnhancedInput
-                label="Dirección"
-                value={manualForm.address || ''}
-                onChange={(e) => handleManualInputChange('address', e.target.value)}
-                example="Calle Principal 123, Colonia Centro"
-                hint="Dirección completa del cliente"
-              />
-
-              {/* Información Financiera */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
-                    <span className="input-label required-field">Saldo Actual</span>
-                  </div>
+              {/* Sección: Información de Dirección */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">📍 Información de Dirección</h3>
+                <div className="grid grid-cols-1 gap-6">
                   <EnhancedInput
+                    label="Dirección"
+                    value={manualForm.address || ''}
+                    onChange={(e) => handleManualInputChange('address', e.target.value)}
+                    example="Calle Principal 123, Colonia Centro"
+                    hint="Dirección completa del cliente"
+                  />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <EnhancedInput
+                      label="Ciudad"
+                      value={manualForm.city || ''}
+                      onChange={(e) => handleManualInputChange('city', e.target.value)}
+                      example="Ciudad de México"
+                      hint="Ciudad donde reside"
+                    />
+                    
+                    <EnhancedInput
+                      label="Estado"
+                      value={manualForm.state || ''}
+                      onChange={(e) => handleManualInputChange('state', e.target.value)}
+                      example="CDMX"
+                      hint="Estado o entidad federativa"
+                    />
+                    
+                    <EnhancedInput
+                      label="Código Postal"
+                      value={manualForm.postalCode || ''}
+                      onChange={(e) => handleManualInputChange('postalCode', e.target.value)}
+                      example="01000"
+                      hint="Código postal de 5 dígitos"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección: Información Laboral */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">💼 Información Laboral</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="input-label">Tipo de Empleo</label>
+                    <EnhancedSelect
+                      value={manualForm.employmentType || ''}
+                      onValueChange={(value) => handleManualInputChange('employmentType', value)}
+                    >
+                      <SelectItem value="">Sin especificar</SelectItem>
+                      <SelectItem value="EMPLOYED">Empleado</SelectItem>
+                      <SelectItem value="SELF_EMPLOYED">Trabajador Independiente</SelectItem>
+                      <SelectItem value="UNEMPLOYED">Desempleado</SelectItem>
+                      <SelectItem value="RETIRED">Jubilado</SelectItem>
+                      <SelectItem value="STUDENT">Estudiante</SelectItem>
+                    </EnhancedSelect>
+                    <p className="example-hint">
+                      Situación laboral actual
+                    </p>
+                  </div>
+                  
+                  <EnhancedInput
+                    label="Nombre del Empleador"
+                    value={manualForm.employerName || ''}
+                    onChange={(e) => handleManualInputChange('employerName', e.target.value)}
+                    example="Empresa XYZ S.A. de C.V."
+                    hint="Nombre de la empresa donde trabaja"
+                  />
+                  
+                  <EnhancedInput
+                    label="Dirección de Trabajo"
+                    value={manualForm.workAddress || ''}
+                    onChange={(e) => handleManualInputChange('workAddress', e.target.value)}
+                    example="Av. Reforma 123, Piso 5"
+                    hint="Dirección del lugar de trabajo"
+                  />
+                  
+                  <EnhancedInput
+                    label="Años Empleado"
+                    type="number"
+                    value={manualForm.yearsEmployed || ''}
+                    onChange={(e) => handleManualInputChange('yearsEmployed', parseInt(e.target.value) || 0)}
+                    example="3"
+                    hint="Años trabajando en su empleo actual"
+                  />
+                </div>
+              </div>
+
+              {/* Sección: Información Financiera */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">💰 Información Financiera</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      <span className="input-label required-field">Saldo Actual</span>
+                    </div>
+                    <EnhancedInput
+                      type="number"
+                      step="0.01"
+                      value={manualForm.currentBalance}
+                      onChange={(e) => handleManualInputChange('currentBalance', parseFloat(e.target.value) || 0)}
+                      example="15000.50"
+                      hint="Saldo pendiente en el sistema anterior"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span className="input-label">Último Pago</span>
+                    </div>
+                    <EnhancedInput
+                      type="date"
+                      value={manualForm.lastPaymentDate || ''}
+                      onChange={(e) => handleManualInputChange('lastPaymentDate', e.target.value)}
+                      hint="Fecha del último pago registrado"
+                    />
+                  </div>
+                  
+                  <EnhancedInput
+                    label="Ingresos Mensuales"
                     type="number"
                     step="0.01"
-                    value={manualForm.currentBalance}
-                    onChange={(e) => handleManualInputChange('currentBalance', parseFloat(e.target.value) || 0)}
-                    example="15000.50"
-                    hint="Saldo pendiente en el sistema anterior"
+                    value={manualForm.monthlyIncome || ''}
+                    onChange={(e) => handleManualInputChange('monthlyIncome', parseFloat(e.target.value) || 0)}
+                    example="25000"
+                    hint="Ingresos mensuales reportados"
                   />
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <span className="input-label">Último Pago</span>
-                  </div>
+                  
                   <EnhancedInput
-                    type="date"
-                    value={manualForm.lastPaymentDate || ''}
-                    onChange={(e) => handleManualInputChange('lastPaymentDate', e.target.value)}
-                    hint="Fecha del último pago registrado"
+                    label="Score Crediticio"
+                    type="number"
+                    value={manualForm.creditScore || ''}
+                    onChange={(e) => handleManualInputChange('creditScore', parseInt(e.target.value) || 0)}
+                    example="750"
+                    hint="Score del sistema anterior (300-850)"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <EnhancedInput
-                  label="Ingresos Mensuales"
-                  type="number"
-                  step="0.01"
-                  value={manualForm.monthlyIncome || ''}
-                  onChange={(e) => handleManualInputChange('monthlyIncome', parseFloat(e.target.value) || 0)}
-                  example="25000"
-                  hint="Ingresos mensuales reportados"
-                />
-                
-                <EnhancedInput
-                  label="Score Crediticio"
-                  type="number"
-                  value={manualForm.creditScore || ''}
-                  onChange={(e) => handleManualInputChange('creditScore', parseInt(e.target.value) || 0)}
-                  example="750"
-                  hint="Score del sistema anterior (300-850)"
-                />
+              {/* Sección: Información Bancaria */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">🏦 Información Bancaria</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <EnhancedInput
+                    label="Nombre del Banco"
+                    value={manualForm.bankName || ''}
+                    onChange={(e) => handleManualInputChange('bankName', e.target.value)}
+                    example="Banco Nacional"
+                    hint="Nombre de la institución bancaria"
+                  />
+                  
+                  <EnhancedInput
+                    label="Número de Cuenta"
+                    value={manualForm.accountNumber || ''}
+                    onChange={(e) => handleManualInputChange('accountNumber', e.target.value)}
+                    example="1234567890"
+                    hint="Número de cuenta bancaria"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="input-label">Sistema de Origen</label>
-                <EnhancedInput
-                  value={manualForm.originalSystem || ''}
-                  onChange={(e) => handleManualInputChange('originalSystem', e.target.value)}
-                  example="Sistema Anterior v2.1"
-                  hint="Nombre del sistema o método de origen"
-                />
-              </div>
+              {/* Sección: Información Adicional */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">📝 Información Adicional</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="input-label">Sistema de Origen</label>
+                    <EnhancedInput
+                      value={manualForm.originalSystem || ''}
+                      onChange={(e) => handleManualInputChange('originalSystem', e.target.value)}
+                      example="Sistema Anterior v2.1"
+                      hint="Nombre del sistema o método de origen"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <label className="input-label">Notas Adicionales</label>
-                <Textarea
-                  value={manualForm.notes || ''}
-                  onChange={(e) => handleManualInputChange('notes', e.target.value)}
-                  placeholder="Información adicional sobre el cliente..."
-                  rows={3}
-                  className="user-input"
-                />
-                <p className="example-hint">
-                  💡 Incluye detalles importantes del historial crediticio
-                </p>
+                  <div className="space-y-2">
+                    <label className="input-label">Notas Adicionales</label>
+                    <Textarea
+                      value={manualForm.notes || ''}
+                      onChange={(e) => handleManualInputChange('notes', e.target.value)}
+                      placeholder="Información adicional sobre el cliente..."
+                      rows={3}
+                      className="user-input"
+                    />
+                    <p className="example-hint">
+                      💡 Incluye detalles importantes del historial crediticio
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <Button
@@ -527,19 +729,40 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
                 </div>
 
                 <div className="system-example">
-                  <h4 className="font-medium mb-2">Columnas requeridas en el CSV:</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                    <span>• nombre (requerido)</span>
-                    <span>• apellido (requerido)</span>
-                    <span>• email (requerido)</span>
-                    <span>• telefono (requerido)</span>
-                    <span>• direccion</span>
-                    <span>• saldo_actual</span>
-                    <span>• ultimo_pago (YYYY-MM-DD)</span>
-                    <span>• ingresos_mensuales</span>
-                    <span>• score_crediticio</span>
-                    <span>• notas</span>
-                    <span>• sistema_origen</span>
+                  <h4 className="font-medium mb-2">Columnas en el CSV:</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <h5 className="font-medium text-sm mb-1">Requeridas:</h5>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                        <span>• nombre</span>
+                        <span>• apellido</span>
+                        <span>• email</span>
+                        <span>• telefono</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h5 className="font-medium text-sm mb-1">Opcionales:</h5>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                        <span>• fecha_nacimiento</span>
+                        <span>• direccion</span>
+                        <span>• ciudad</span>
+                        <span>• estado</span>
+                        <span>• codigo_postal</span>
+                        <span>• saldo_actual</span>
+                        <span>• ultimo_pago</span>
+                        <span>• ingresos_mensuales</span>
+                        <span>• tipo_empleo</span>
+                        <span>• nombre_empleador</span>
+                        <span>• direccion_trabajo</span>
+                        <span>• años_empleado</span>
+                        <span>• score_crediticio</span>
+                        <span>• nombre_banco</span>
+                        <span>• numero_cuenta</span>
+                        <span>• estado_cliente</span>
+                        <span>• notas</span>
+                        <span>• sistema_origen</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
