@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { Camera, Trash2, Upload, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface ClientProfileImageProps {
   clientId: string;
@@ -47,6 +47,7 @@ export function ClientProfileImage({
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       toast.error('Solo se permiten imágenes (JPEG, PNG, WebP)');
+      event.target.value = ''; // Reset input
       return;
     }
 
@@ -54,6 +55,7 @@ export function ClientProfileImage({
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       toast.error('La imagen es demasiado grande. Máximo 5MB');
+      event.target.value = ''; // Reset input
       return;
     }
 
@@ -74,17 +76,26 @@ export function ClientProfileImage({
         throw new Error(data.error || 'Error al subir la imagen');
       }
 
+      // Actualizar estado local primero
       setImage(data.client.profileImage);
+      
+      // Notificar al componente padre (sin causar re-render completo)
+      if (onImageUpdate) {
+        onImageUpdate(data.client.profileImage);
+      }
+      
+      // Mostrar mensaje de éxito al final
       toast.success('Imagen actualizada correctamente');
-      onImageUpdate?.(data.client.profileImage);
 
     } catch (error: any) {
       console.error('Error al subir imagen:', error);
       toast.error(error.message || 'Error al subir la imagen');
     } finally {
       setUploading(false);
-      // Reset input
-      event.target.value = '';
+      // Reset input para permitir subir la misma imagen de nuevo si es necesario
+      if (event.target) {
+        event.target.value = '';
+      }
     }
   };
 

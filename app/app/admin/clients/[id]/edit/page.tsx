@@ -215,15 +215,33 @@ export default function EditClientPage() {
       return;
     }
 
+    // Validar aval si hay datos parciales
+    if (formData.guarantor) {
+      const { fullName, phone, address, relationship } = formData.guarantor;
+      const hasAnyData = fullName || phone || address || (relationship && relationship !== 'OTHER');
+      
+      if (hasAnyData && !fullName) {
+        toast.error('Si proporciona información del aval, el nombre completo es obligatorio');
+        return;
+      }
+    }
+
     setSaving(true);
 
     try {
+      // Preparar datos para enviar
+      const dataToSend = {
+        ...formData,
+        // Si el aval no tiene nombre, enviarlo como null para eliminarlo
+        guarantor: formData.guarantor?.fullName ? formData.guarantor : null
+      };
+
       const response = await fetch(`/api/clients/${params?.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
 
       if (!response.ok) {

@@ -213,60 +213,76 @@ export async function PUT(
 
       // Handle guarantor update/creation
       if (guarantor !== undefined) {
-        if (guarantor && guarantor.fullName) {
+        console.log('Procesando aval:', JSON.stringify(guarantor));
+        
+        if (guarantor && guarantor.fullName && guarantor.fullName.trim() !== '') {
           // Check if guarantor exists
           const existingGuarantor = await tx.guarantor.findUnique({
             where: { clientId: params.id }
           });
 
+          const guarantorData = {
+            fullName: guarantor.fullName.trim(),
+            address: guarantor.address ? guarantor.address.trim() : '',
+            phone: guarantor.phone ? guarantor.phone.trim() : '',
+            relationship: guarantor.relationship || 'OTHER'
+          };
+
           if (existingGuarantor) {
             // Update existing guarantor
+            console.log('Actualizando aval existente');
             await tx.guarantor.update({
               where: { clientId: params.id },
-              data: {
-                fullName: guarantor.fullName,
-                address: guarantor.address || '',
-                phone: guarantor.phone || '',
-                relationship: guarantor.relationship || 'OTHER'
-              }
+              data: guarantorData
             });
           } else {
             // Create new guarantor
+            console.log('Creando nuevo aval');
             await tx.guarantor.create({
               data: {
                 clientId: params.id,
-                fullName: guarantor.fullName,
-                address: guarantor.address || '',
-                phone: guarantor.phone || '',
-                relationship: guarantor.relationship || 'OTHER'
+                ...guarantorData
               }
             });
           }
-        } else if (guarantor === null) {
-          // Delete guarantor if explicitly set to null
+          console.log('Aval guardado exitosamente');
+        } else if (guarantor === null || (guarantor && !guarantor.fullName)) {
+          // Delete guarantor if explicitly set to null or if fullName is empty
+          console.log('Eliminando aval existente');
           await tx.guarantor.deleteMany({
             where: { clientId: params.id }
           });
+          console.log('Aval eliminado exitosamente');
         }
       }
 
       // Handle collaterals update
       if (collaterals !== undefined && Array.isArray(collaterals)) {
+        console.log('Procesando garantías:', JSON.stringify(collaterals));
+        
         // Delete existing collaterals
         await tx.collateral.deleteMany({
           where: { clientId: params.id }
         });
+        console.log('Garantías anteriores eliminadas');
 
         // Create new collaterals
         if (collaterals.length > 0) {
-          const collateralData = collaterals.map((description: string) => ({
-            clientId: params.id,
-            description
-          }));
+          const collateralData = collaterals
+            .filter((desc: string) => desc && desc.trim() !== '')
+            .map((description: string) => ({
+              clientId: params.id,
+              description: description.trim()
+            }));
           
-          await tx.collateral.createMany({
-            data: collateralData
-          });
+          if (collateralData.length > 0) {
+            await tx.collateral.createMany({
+              data: collateralData
+            });
+            console.log(`${collateralData.length} garantía(s) creada(s) exitosamente`);
+          }
+        } else {
+          console.log('No hay garantías para crear');
         }
       }
 
