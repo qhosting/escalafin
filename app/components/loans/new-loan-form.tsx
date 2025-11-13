@@ -31,7 +31,9 @@ import { format, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { 
   calculateInterestBasedPayment, 
-  calculateFixedFeePayment, 
+  calculateFixedFeePayment,
+  calculateWeeklyInterestPayment,
+  getWeeklyInterestAmount,
   getPaymentsPerYear,
   calculateEndDate
 } from '@/lib/loan-calculations';
@@ -70,7 +72,8 @@ const PAYMENT_FREQUENCIES = {
 
 const CALCULATION_TYPES = {
   INTERES: 'Con Interés (Tasa Anual)',
-  TARIFA_FIJA: 'Tarifa Fija por Monto'
+  TARIFA_FIJA: 'Tarifa Fija por Monto',
+  INTERES_SEMANAL: 'Interés Semanal sobre Capital'
 };
 
 const INTEREST_RATES = {
@@ -96,11 +99,12 @@ export function NewLoanForm() {
   const [formData, setFormData] = useState({
     clientId: '',
     loanType: '',
-    loanCalculationType: 'INTERES', // INTERES o TARIFA_FIJA
+    loanCalculationType: 'INTERES', // INTERES, TARIFA_FIJA o INTERES_SEMANAL
     principalAmount: '',
     termMonths: '', // número de pagos
     paymentFrequency: 'MENSUAL',
     interestRate: '',
+    weeklyInterestAmount: '', // para INTERES_SEMANAL
     monthlyPayment: '',
     initialPayment: '', // pago inicial (informativo)
     startDate: format(new Date(), 'yyyy-MM-dd'),
@@ -221,7 +225,7 @@ export function NewLoanForm() {
         totalInterest = totalAmount - principal;
         interestRate = parseFloat(formData.interestRate);
 
-      } else {
+      } else if (calculationType === 'TARIFA_FIJA') {
         // Método de tarifa fija
         const result = calculateFixedFeePayment(principal, numPayments);
         monthlyPayment = result.paymentAmount;
@@ -231,6 +235,25 @@ export function NewLoanForm() {
         // Calcular tasa efectiva para referencia
         if (totalInterest > 0) {
           interestRate = (totalInterest / principal) * 100;
+        }
+      } else if (calculationType === 'INTERES_SEMANAL') {
+        // Método de interés semanal
+        const weeklyInt = formData.weeklyInterestAmount 
+          ? parseFloat(formData.weeklyInterestAmount)
+          : undefined;
+        
+        const result = calculateWeeklyInterestPayment(principal, numPayments, weeklyInt);
+        monthlyPayment = result.paymentAmount;
+        totalAmount = result.totalAmount;
+        totalInterest = result.totalCharge;
+        interestRate = result.effectiveRate;
+
+        // Actualizar el formulario con el interés semanal calculado
+        if (!formData.weeklyInterestAmount) {
+          setFormData(prev => ({ 
+            ...prev, 
+            weeklyInterestAmount: result.weeklyInterest.toString() 
+          }));
         }
       }
 
@@ -294,6 +317,9 @@ export function NewLoanForm() {
         interestRate: formData.loanCalculationType === 'INTERES' 
           ? parseFloat(formData.interestRate) / 100 
           : 0,
+        weeklyInterestAmount: formData.loanCalculationType === 'INTERES_SEMANAL' && formData.weeklyInterestAmount
+          ? parseFloat(formData.weeklyInterestAmount)
+          : null,
         monthlyPayment: calculation.monthlyPayment,
         initialPayment: formData.initialPayment ? parseFloat(formData.initialPayment) : null,
         startDate: new Date(formData.startDate).toISOString(),
@@ -540,6 +566,36 @@ export function NewLoanForm() {
                     <li>• $5,000: $600 por pago</li>
                     <li>• Más de $5,000: +$120 por cada mil adicional</li>
                   </ul>
+                </div>
+              )}
+
+              {/* Campo de Interés Semanal */}
+              {formData.loanCalculationType === 'INTERES_SEMANAL' && (
+                <div className="space-y-3">
+                  <div className="space-y-2 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                    <h4 className="font-semibold text-sm text-green-900 dark:text-green-100 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4" />
+                      Sistema de Interés Semanal
+                    </h4>
+                    <ul className="text-xs text-green-700 dark:text-green-300 space-y-1">
+                      <li>• $3,000: $170/semana</li>
+                      <li>• $4,000: $200/semana</li>
+                      <li>• $5,000: $230/semana</li>
+                      <li>• $6,000: $260/semana</li>
+                      <li>• $7,000: $291/semana</li>
+                      <li>• $8,000+: proporcional</li>
+                    </ul>
+                  </div>
+                  
+                  <EnhancedInput
+                    label="Interés Semanal (pesos)"
+                    type="number"
+                    step="0.01"
+                    example="170.00"
+                    hint="Se calcula automáticamente según el monto, pero puedes modificarlo si es necesario"
+                    value={formData.weeklyInterestAmount}
+                    onChange={(e) => handleInputChange('weeklyInterestAmount', e.target.value)}
+                  />
                 </div>
               )}
 

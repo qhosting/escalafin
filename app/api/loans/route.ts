@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
       termMonths,
       paymentFrequency = 'MENSUAL',
       interestRate,
+      weeklyInterestAmount,
       monthlyPayment,
       initialPayment,
       startDate,
@@ -138,6 +139,18 @@ export async function POST(request: NextRequest) {
         { error: 'La tasa de interés es requerida para préstamos con interés' },
         { status: 400 }
       );
+    }
+
+    // Para INTERES_SEMANAL, el weeklyInterestAmount es opcional (se calcula automáticamente si no se proporciona)
+    // pero debe ser válido si se proporciona
+    if (loanCalculationType === 'INTERES_SEMANAL' && weeklyInterestAmount !== undefined && weeklyInterestAmount !== null) {
+      const weeklyInt = parseFloat(weeklyInterestAmount.toString());
+      if (isNaN(weeklyInt) || weeklyInt < 0) {
+        return NextResponse.json(
+          { error: 'El interés semanal debe ser un número válido no negativo' },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate clientId is not empty string
@@ -223,7 +236,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate loan calculation type
-    const validCalculationTypes = ['INTERES', 'TARIFA_FIJA'];
+    const validCalculationTypes = ['INTERES', 'TARIFA_FIJA', 'INTERES_SEMANAL'];
     if (!validCalculationTypes.includes(loanCalculationType)) {
       console.error('Tipo de cálculo inválido:', loanCalculationType);
       return NextResponse.json(
@@ -258,11 +271,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate loan parameters
+    const weeklyInt = weeklyInterestAmount !== undefined && weeklyInterestAmount !== null 
+      ? parseFloat(weeklyInterestAmount.toString()) 
+      : undefined;
+
     const validation = validateLoanParams({
       loanCalculationType: loanCalculationType as LoanCalculationType,
       principalAmount: principal,
       numberOfPayments: term,
-      annualInterestRate: rate
+      annualInterestRate: rate,
+      weeklyInterestAmount: weeklyInt
     });
 
     if (!validation.valid) {
@@ -280,6 +298,7 @@ export async function POST(request: NextRequest) {
       numberOfPayments: term,
       paymentFrequency: paymentFrequency as PaymentFrequency,
       annualInterestRate: rate,
+      weeklyInterestAmount: weeklyInt,
       startDate: start
     });
 
@@ -313,6 +332,7 @@ export async function POST(request: NextRequest) {
         termMonths: term,
         paymentFrequency: paymentFrequency as PaymentFrequency,
         interestRate: rate,
+        weeklyInterestAmount: loanDetails.weeklyInterest ? loanDetails.weeklyInterest : null,
         monthlyPayment: loanDetails.paymentAmount,
         initialPayment: initialPayment ? parseFloat(initialPayment.toString()) : null,
         totalAmount: loanDetails.totalAmount,

@@ -92,6 +92,93 @@ export function calculateFixedFeePayment(
 }
 
 /**
+ * Obtiene el interés semanal en pesos según el monto prestado
+ * Basado en tabla de tarifas predeterminadas
+ */
+export function getWeeklyInterestAmount(principalAmount: number): number {
+  // Tabla de tarifas predeterminadas según imagen proporcionada
+  const rates = [
+    { amount: 3000, weeklyInterest: 170 },
+    { amount: 4000, weeklyInterest: 200 },
+    { amount: 5000, weeklyInterest: 230 },
+    { amount: 6000, weeklyInterest: 260 },
+    { amount: 7000, weeklyInterest: 291 },
+    { amount: 8000, weeklyInterest: 320 },
+    { amount: 9000, weeklyInterest: 360 },
+    { amount: 10000, weeklyInterest: 400 },
+  ];
+
+  // Buscar la tarifa exacta o la más cercana
+  const exactMatch = rates.find(r => r.amount === principalAmount);
+  if (exactMatch) {
+    return exactMatch.weeklyInterest;
+  }
+
+  // Si no hay coincidencia exacta, interpolar o usar la más cercana
+  for (let i = 0; i < rates.length - 1; i++) {
+    if (principalAmount > rates[i].amount && principalAmount < rates[i + 1].amount) {
+      // Interpolación lineal
+      const ratio = (principalAmount - rates[i].amount) / (rates[i + 1].amount - rates[i].amount);
+      const interpolated = rates[i].weeklyInterest + ratio * (rates[i + 1].weeklyInterest - rates[i].weeklyInterest);
+      return Math.round(interpolated);
+    }
+  }
+
+  // Para montos mayores al máximo, calcular proporcionalmente
+  if (principalAmount > 10000) {
+    const ratio = principalAmount / 10000;
+    return Math.round(400 * ratio);
+  }
+
+  // Para montos menores al mínimo
+  if (principalAmount < 3000) {
+    const ratio = principalAmount / 3000;
+    return Math.round(170 * ratio);
+  }
+
+  return 170; // Default
+}
+
+/**
+ * Calcula el monto de pago periódico usando el método de INTERÉS SEMANAL
+ * Sistema de interés semanal fijo sobre el capital
+ */
+export function calculateWeeklyInterestPayment(
+  principalAmount: number,
+  numberOfWeeks: number,
+  weeklyInterestAmount?: number
+): {
+  paymentAmount: number;
+  totalAmount: number;
+  totalCharge: number;
+  weeklyInterest: number;
+  effectiveRate: number;
+} {
+  // Usar interés proporcionado o calcularlo automáticamente
+  const weeklyInterest = weeklyInterestAmount || getWeeklyInterestAmount(principalAmount);
+  
+  // Calcular cargo total (interés semanal × número de semanas)
+  const totalCharge = weeklyInterest * numberOfWeeks;
+  
+  // Total a pagar
+  const totalAmount = principalAmount + totalCharge;
+  
+  // Pago periódico
+  const paymentAmount = totalAmount / numberOfWeeks;
+  
+  // Calcular tasa efectiva anual para referencia
+  const effectiveRate = (totalCharge / principalAmount) * 100;
+
+  return {
+    paymentAmount: Math.round(paymentAmount * 100) / 100,
+    totalAmount: Math.round(totalAmount * 100) / 100,
+    totalCharge: Math.round(totalCharge * 100) / 100,
+    weeklyInterest: Math.round(weeklyInterest * 100) / 100,
+    effectiveRate: Math.round(effectiveRate * 100) / 100
+  };
+}
+
+/**
  * Calcula todos los datos del préstamo según el tipo de cálculo
  */
 export function calculateLoanDetails(params: {
@@ -100,12 +187,14 @@ export function calculateLoanDetails(params: {
   numberOfPayments: number;
   paymentFrequency: PaymentFrequency;
   annualInterestRate?: number;
+  weeklyInterestAmount?: number;
   startDate: Date;
 }): {
   paymentAmount: number;
   totalAmount: number;
   endDate: Date;
   effectiveRate?: number;
+  weeklyInterest?: number;
 } {
   const {
     loanCalculationType,
@@ -113,12 +202,14 @@ export function calculateLoanDetails(params: {
     numberOfPayments,
     paymentFrequency,
     annualInterestRate = 0,
+    weeklyInterestAmount,
     startDate
   } = params;
 
   let paymentAmount = 0;
   let totalAmount = 0;
   let effectiveRate: number | undefined = undefined;
+  let weeklyInterest: number | undefined = undefined;
 
   if (loanCalculationType === 'INTERES') {
     // Método de interés tradicional
@@ -129,7 +220,7 @@ export function calculateLoanDetails(params: {
       paymentFrequency
     );
     totalAmount = paymentAmount * numberOfPayments;
-  } else {
+  } else if (loanCalculationType === 'TARIFA_FIJA') {
     // Método de tarifa fija
     const result = calculateFixedFeePayment(principalAmount, numberOfPayments);
     paymentAmount = result.paymentAmount;
@@ -139,6 +230,17 @@ export function calculateLoanDetails(params: {
     if (result.totalFee > 0) {
       effectiveRate = (result.totalFee / principalAmount) * 100;
     }
+  } else if (loanCalculationType === 'INTERES_SEMANAL') {
+    // Método de interés semanal
+    const result = calculateWeeklyInterestPayment(
+      principalAmount,
+      numberOfPayments,
+      weeklyInterestAmount
+    );
+    paymentAmount = result.paymentAmount;
+    totalAmount = result.totalAmount;
+    effectiveRate = result.effectiveRate;
+    weeklyInterest = result.weeklyInterest;
   }
 
   // Calcular fecha de finalización
@@ -148,7 +250,8 @@ export function calculateLoanDetails(params: {
     paymentAmount: Math.round(paymentAmount * 100) / 100,
     totalAmount: Math.round(totalAmount * 100) / 100,
     endDate,
-    effectiveRate: effectiveRate ? Math.round(effectiveRate * 100) / 100 : undefined
+    effectiveRate: effectiveRate ? Math.round(effectiveRate * 100) / 100 : undefined,
+    weeklyInterest: weeklyInterest ? Math.round(weeklyInterest * 100) / 100 : undefined
   };
 }
 
@@ -189,8 +292,9 @@ export function validateLoanParams(params: {
   principalAmount: number;
   numberOfPayments: number;
   annualInterestRate?: number;
+  weeklyInterestAmount?: number;
 }): { valid: boolean; error?: string } {
-  const { loanCalculationType, principalAmount, numberOfPayments, annualInterestRate } = params;
+  const { loanCalculationType, principalAmount, numberOfPayments, annualInterestRate, weeklyInterestAmount } = params;
 
   if (principalAmount <= 0) {
     return { valid: false, error: 'El monto principal debe ser mayor a 0' };
@@ -213,6 +317,19 @@ export function validateLoanParams(params: {
     }
     if (principalAmount > 100000) {
       return { valid: false, error: 'El monto máximo para tarifa fija es $100,000' };
+    }
+  }
+
+  // Para INTERES_SEMANAL, validar rango y que tenga interés semanal
+  if (loanCalculationType === 'INTERES_SEMANAL') {
+    if (principalAmount < 1000) {
+      return { valid: false, error: 'El monto mínimo para interés semanal es $1,000' };
+    }
+    if (principalAmount > 100000) {
+      return { valid: false, error: 'El monto máximo para interés semanal es $100,000' };
+    }
+    if (weeklyInterestAmount !== undefined && weeklyInterestAmount < 0) {
+      return { valid: false, error: 'El interés semanal debe ser un número válido no negativo' };
     }
   }
 

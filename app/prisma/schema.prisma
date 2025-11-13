@@ -206,6 +206,7 @@ model Loan {
   loanCalculationType  LoanCalculationType    @default(INTERES)
   principalAmount      Decimal                @db.Decimal(12, 2)
   interestRate         Decimal                @db.Decimal(5, 4)
+  weeklyInterestAmount Decimal?               @db.Decimal(12, 2) // Para INTERES_SEMANAL
   termMonths           Int
   paymentFrequency     PaymentFrequency       @default(MENSUAL)
   monthlyPayment       Decimal                @db.Decimal(12, 2)
@@ -225,6 +226,19 @@ model Loan {
   payments             Payment[]
 
   @@map("loans")
+}
+
+model WeeklyInterestRate {
+  id                  String   @id @default(cuid())
+  minAmount           Decimal  @db.Decimal(12, 2)  // Monto mínimo
+  maxAmount           Decimal  @db.Decimal(12, 2)  // Monto máximo
+  weeklyInterestRate  Decimal  @db.Decimal(5, 2)   // Porcentaje de interés semanal
+  weeklyInterestAmount Decimal @db.Decimal(12, 2)  // Monto de interés semanal en pesos
+  isActive            Boolean  @default(true)       // Para habilitar/deshabilitar
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  @@map("weekly_interest_rates")
 }
 
 model AmortizationSchedule {
@@ -660,8 +674,9 @@ enum PaymentFrequency {
 }
 
 enum LoanCalculationType {
-  INTERES       // Sistema de interés tradicional
-  TARIFA_FIJA   // Sistema de tarifa fija por monto
+  INTERES          // Sistema de interés tradicional
+  TARIFA_FIJA      // Sistema de tarifa fija por monto
+  INTERES_SEMANAL  // Sistema de interés semanal sobre capital
 }
 
 enum PaymentStatus {
