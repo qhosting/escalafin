@@ -55,6 +55,13 @@ const LOAN_TYPES = {
   EDUCATION: 'Educativo'
 };
 
+const PAYMENT_FREQUENCIES = {
+  SEMANAL: 'Semanal (52 pagos/año)',
+  CATORCENAL: 'Catorcenal (26 pagos/año)',
+  QUINCENAL: 'Quincenal (24 pagos/año)',
+  MENSUAL: 'Mensual (12 pagos/año)'
+};
+
 const INTEREST_RATES = {
   PERSONAL: 0.18,
   BUSINESS: 0.15,
@@ -79,9 +86,11 @@ export function NewLoanForm() {
     clientId: '',
     loanType: '',
     principalAmount: '',
-    termMonths: '', // meses
+    termMonths: '', // número de pagos
+    paymentFrequency: 'MENSUAL',
     interestRate: '',
     monthlyPayment: '',
+    initialPayment: '', // pago inicial (informativo)
     startDate: format(new Date(), 'yyyy-MM-dd'),
     endDate: '',
     notes: ''
@@ -126,28 +135,75 @@ export function NewLoanForm() {
     }
   }, [formData.loanType]);
 
-  // Calculate end date when start date or termMonths changes
+  // Calculate end date when start date, termMonths or frequency changes
   useEffect(() => {
-    if (formData.startDate && formData.termMonths) {
+    if (formData.startDate && formData.termMonths && formData.paymentFrequency) {
       const startDate = new Date(formData.startDate);
-      const endDate = addMonths(startDate, parseInt(formData.termMonths));
+      const numPayments = parseInt(formData.termMonths);
+      
+      // Calculate total months based on payment frequency
+      let totalMonths = 0;
+      switch (formData.paymentFrequency) {
+        case 'SEMANAL':
+          totalMonths = Math.ceil((numPayments * 7) / 30);
+          break;
+        case 'CATORCENAL':
+          totalMonths = Math.ceil((numPayments * 14) / 30);
+          break;
+        case 'QUINCENAL':
+          totalMonths = Math.ceil((numPayments * 15) / 30);
+          break;
+        case 'MENSUAL':
+        default:
+          totalMonths = numPayments;
+          break;
+      }
+      
+      const endDate = addMonths(startDate, totalMonths);
       setFormData(prev => ({ ...prev, endDate: format(endDate, 'yyyy-MM-dd') }));
     }
-  }, [formData.startDate, formData.termMonths]);
+  }, [formData.startDate, formData.termMonths, formData.paymentFrequency]);
 
   // Calculate loan payments
   const calculateLoan = () => {
     console.log('Iniciando cálculo del préstamo', formData);
     
     const principal = parseFloat(formData.principalAmount);
-    const rate = parseFloat(formData.interestRate) / 100 / 12; // monthly rate
-    const termMonths = parseInt(formData.termMonths);
+    const annualRate = parseFloat(formData.interestRate) / 100;
+    const numPayments = parseInt(formData.termMonths);
+    const frequency = formData.paymentFrequency;
+
+    // Calculate periodic rate based on frequency
+    let periodicRate = 0;
+    let paymentsPerYear = 12;
+    
+    switch (frequency) {
+      case 'SEMANAL':
+        paymentsPerYear = 52;
+        periodicRate = annualRate / 52;
+        break;
+      case 'CATORCENAL':
+        paymentsPerYear = 26;
+        periodicRate = annualRate / 26;
+        break;
+      case 'QUINCENAL':
+        paymentsPerYear = 24;
+        periodicRate = annualRate / 24;
+        break;
+      case 'MENSUAL':
+      default:
+        paymentsPerYear = 12;
+        periodicRate = annualRate / 12;
+        break;
+    }
 
     console.log('Valores parseados:', {
       principal,
-      rate: parseFloat(formData.interestRate),
-      termMonths,
-      rateMonthly: rate
+      annualRate,
+      numPayments,
+      frequency,
+      periodicRate,
+      paymentsPerYear
     });
 
     if (!principal || principal <= 0) {
@@ -155,24 +211,24 @@ export function NewLoanForm() {
       return;
     }
 
-    if (!parseFloat(formData.interestRate) || parseFloat(formData.interestRate) <= 0) {
+    if (!annualRate || annualRate <= 0) {
       toast.error('Por favor ingresa una tasa de interés válida');
       return;
     }
 
-    if (!termMonths || termMonths <= 0) {
-      toast.error('Por favor ingresa un plazo válido en meses');
+    if (!numPayments || numPayments <= 0) {
+      toast.error('Por favor ingresa un número de pagos válido');
       return;
     }
 
     try {
-      // Monthly payment calculation using PMT formula
-      const monthlyPayment = principal * (rate * Math.pow(1 + rate, termMonths)) / (Math.pow(1 + rate, termMonths) - 1);
-      const totalAmount = monthlyPayment * termMonths;
+      // Payment calculation using PMT formula with periodic rate
+      const payment = principal * (periodicRate * Math.pow(1 + periodicRate, numPayments)) / (Math.pow(1 + periodicRate, numPayments) - 1);
+      const totalAmount = payment * numPayments;
       const totalInterest = totalAmount - principal;
 
       const calc: LoanCalculation = {
-        monthlyPayment: Math.round(monthlyPayment * 100) / 100,
+        monthlyPayment: Math.round(payment * 100) / 100,
         totalInterest: Math.round(totalInterest * 100) / 100,
         totalAmount: Math.round(totalAmount * 100) / 100,
         interestRate: parseFloat(formData.interestRate)
@@ -221,8 +277,10 @@ export function NewLoanForm() {
         loanType: formData.loanType,
         principalAmount: parseFloat(formData.principalAmount),
         termMonths: parseInt(formData.termMonths),
+        paymentFrequency: formData.paymentFrequency,
         interestRate: parseFloat(formData.interestRate) / 100,
         monthlyPayment: calculation.monthlyPayment,
+        initialPayment: formData.initialPayment ? parseFloat(formData.initialPayment) : null,
         startDate: new Date(formData.startDate).toISOString(),
         endDate: new Date(formData.endDate).toISOString(),
         status: 'ACTIVE'
@@ -397,16 +455,30 @@ export function NewLoanForm() {
                 />
               </div>
 
-              {/* Plazo en meses */}
+              {/* Periodicidad de Pago */}
+              <EnhancedSelect
+                label="Periodicidad de Pago"
+                required
+                placeholder="Selecciona la periodicidad"
+                hint="Frecuencia con la que se realizarán los pagos"
+                value={formData.paymentFrequency}
+                onValueChange={(value) => handleInputChange('paymentFrequency', value)}
+              >
+                {Object.entries(PAYMENT_FREQUENCIES).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </EnhancedSelect>
+
+              {/* Número de Pagos */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="input-label required-field">Plazo (meses)</span>
+                  <span className="input-label required-field">Número de Pagos</span>
                 </div>
                 <EnhancedInput
                   type="number"
                   example="12"
-                  hint="Número de meses para pagar el préstamo (6, 12, 18, 24, 36)"
+                  hint={`Número total de pagos según periodicidad seleccionada (${PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES]})`}
                   value={formData.termMonths}
                   onChange={(e) => handleInputChange('termMonths', e.target.value)}
                   required
@@ -424,6 +496,22 @@ export function NewLoanForm() {
                 onChange={(e) => handleInputChange('interestRate', e.target.value)}
                 required
               />
+
+              {/* Pago Inicial */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <span className="input-label">Pago Inicial (Opcional)</span>
+                </div>
+                <EnhancedInput
+                  type="number"
+                  step="0.01"
+                  example="5000.00"
+                  hint="Depósito en garantía o pago inicial (informativo, no afecta el cálculo del préstamo)"
+                  value={formData.initialPayment}
+                  onChange={(e) => handleInputChange('initialPayment', e.target.value)}
+                />
+              </div>
 
               {/* Fecha de Inicio */}
               <EnhancedInput
@@ -500,7 +588,9 @@ export function NewLoanForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="text-center p-4 bg-muted/30 rounded-lg">
                 <DollarSign className="h-6 w-6 mx-auto mb-2 text-blue-600" />
-                <p className="text-sm text-muted-foreground">Pago Mensual</p>
+                <p className="text-sm text-muted-foreground">
+                  Monto por Pago ({PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES].split(' ')[0]})
+                </p>
                 <p className="text-xl font-bold text-foreground">
                   {formatCurrency(calculation.monthlyPayment)}
                 </p>
@@ -512,6 +602,11 @@ export function NewLoanForm() {
                 <p className="text-xl font-bold text-foreground">
                   {formatCurrency(calculation.totalAmount)}
                 </p>
+                {formData.initialPayment && parseFloat(formData.initialPayment) > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    + {formatCurrency(parseFloat(formData.initialPayment))} inicial
+                  </p>
+                )}
               </div>
               
               <div className="text-center p-4 bg-muted/30 rounded-lg">
@@ -527,6 +622,9 @@ export function NewLoanForm() {
                 <p className="text-sm text-muted-foreground">Tasa de Interés</p>
                 <p className="text-xl font-bold text-foreground">
                   {calculation.interestRate.toFixed(2)}%
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {formData.termMonths} pagos
                 </p>
               </div>
             </div>

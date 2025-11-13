@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { UserRole, LoanType, LoanStatus } from '@prisma/client';
+import { UserRole, LoanType, LoanStatus, PaymentFrequency } from '@prisma/client';
 import { generateLoanNumber } from '@/lib/utils';
 
 export async function GET(request: NextRequest) {
@@ -104,8 +104,10 @@ export async function POST(request: NextRequest) {
       loanType,
       principalAmount,
       termMonths,
+      paymentFrequency = 'MENSUAL',
       interestRate,
       monthlyPayment,
+      initialPayment,
       startDate,
       endDate,
       purpose,
@@ -227,6 +229,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate payment frequency
+    const validFrequencies = ['SEMANAL', 'CATORCENAL', 'QUINCENAL', 'MENSUAL'];
+    if (!validFrequencies.includes(paymentFrequency)) {
+      console.error('Frecuencia de pago inválida:', paymentFrequency);
+      return NextResponse.json(
+        { error: 'Frecuencia de pago no válida' },
+        { status: 400 }
+      );
+    }
+
+    // Validate initialPayment if provided
+    if (initialPayment !== undefined && initialPayment !== null) {
+      const initialPmt = parseFloat(initialPayment.toString());
+      if (isNaN(initialPmt) || initialPmt < 0) {
+        console.error('Pago inicial inválido:', initialPayment);
+        return NextResponse.json(
+          { error: 'El pago inicial debe ser un número válido no negativo' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Validate client exists
     const client = await prisma.client.findUnique({
       where: { id: clientId }
@@ -267,8 +291,10 @@ export async function POST(request: NextRequest) {
         principalAmount: principal,
         balanceRemaining: principal,
         termMonths: term,
+        paymentFrequency: paymentFrequency as PaymentFrequency,
         interestRate: rate,
         monthlyPayment: payment,
+        initialPayment: initialPayment ? parseFloat(initialPayment.toString()) : null,
         totalAmount,
         startDate: start,
         endDate: end,

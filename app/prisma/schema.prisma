@@ -206,7 +206,9 @@ model Loan {
   principalAmount      Decimal                @db.Decimal(12, 2)
   interestRate         Decimal                @db.Decimal(5, 4)
   termMonths           Int
+  paymentFrequency     PaymentFrequency       @default(MENSUAL)
   monthlyPayment       Decimal                @db.Decimal(12, 2)
+  initialPayment       Decimal?               @db.Decimal(12, 2)
   totalAmount          Decimal                @db.Decimal(12, 2)
   balanceRemaining     Decimal                @db.Decimal(12, 2)
   status               LoanStatus             @default(ACTIVE)
@@ -647,6 +649,13 @@ enum LoanStatus {
   PAID_OFF
   DEFAULTED
   CANCELLED
+}
+
+enum PaymentFrequency {
+  SEMANAL
+  CATORCENAL
+  QUINCENAL
+  MENSUAL
 }
 
 enum PaymentStatus {
