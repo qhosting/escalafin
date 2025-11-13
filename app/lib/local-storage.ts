@@ -119,7 +119,9 @@ export async function saveFileLocally(
     const filePath = path.join(folderPath, fileName);
     await fs.writeFile(filePath, buffer);
 
-    return filePath;
+    // Devolver ruta relativa desde STORAGE_BASE_DIR para evitar problemas con rutas absolutas
+    const relativePath = path.relative(STORAGE_BASE_DIR, filePath);
+    return relativePath;
   } catch (error) {
     console.error('Error al guardar archivo localmente:', error);
     throw error;
@@ -128,10 +130,16 @@ export async function saveFileLocally(
 
 /**
  * Lee un archivo local
+ * Acepta tanto rutas relativas como absolutas
  */
 export async function readFileLocally(filePath: string): Promise<Buffer> {
   try {
-    return await fs.readFile(filePath);
+    // Si la ruta no es absoluta, construir desde STORAGE_BASE_DIR
+    const absolutePath = path.isAbsolute(filePath) 
+      ? filePath 
+      : path.join(STORAGE_BASE_DIR, filePath);
+    
+    return await fs.readFile(absolutePath);
   } catch (error) {
     console.error('Error al leer archivo local:', error);
     throw error;
@@ -140,10 +148,16 @@ export async function readFileLocally(filePath: string): Promise<Buffer> {
 
 /**
  * Elimina un archivo local
+ * Acepta tanto rutas relativas como absolutas
  */
 export async function deleteFileLocally(filePath: string): Promise<void> {
   try {
-    await fs.unlink(filePath);
+    // Si la ruta no es absoluta, construir desde STORAGE_BASE_DIR
+    const absolutePath = path.isAbsolute(filePath) 
+      ? filePath 
+      : path.join(STORAGE_BASE_DIR, filePath);
+    
+    await fs.unlink(absolutePath);
   } catch (error) {
     console.error('Error al eliminar archivo local:', error);
     throw error;
