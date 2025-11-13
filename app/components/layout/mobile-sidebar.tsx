@@ -234,6 +234,12 @@ export function MobileSidebar() {
               ]
             },
             {
+              title: 'Préstamos',
+              items: [
+                { title: 'Tasas de Interés Semanales', icon: Settings, href: '/admin/weekly-interest-rates', moduleKey: 'loans' }
+              ]
+            },
+            {
               title: 'Integraciones',
               items: [
                 { title: 'APIs Externas', icon: Globe, href: '/admin/whatsapp/config', moduleKey: 'api_integration' }

@@ -114,6 +114,58 @@ export function NewLoanForm() {
   
   const [calculation, setCalculation] = useState<LoanCalculation | null>(null);
   const [showCalculation, setShowCalculation] = useState(false);
+  const [suggestedWeeklyRate, setSuggestedWeeklyRate] = useState<{
+    amount: number;
+    rate: number;
+    isCalculated: boolean;
+  } | null>(null);
+
+  // Fetch suggested weekly interest rate when amount changes
+  useEffect(() => {
+    const fetchSuggestedRate = async () => {
+      if (formData.loanCalculationType !== 'INTERES_SEMANAL') {
+        setSuggestedWeeklyRate(null);
+        return;
+      }
+
+      const amount = parseFloat(formData.principalAmount);
+      if (!amount || amount <= 0) {
+        setSuggestedWeeklyRate(null);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/admin/weekly-interest-rates/find-for-amount?amount=${amount}`);
+        if (!response.ok) {
+          console.warn('No se encontró tasa configurada para este monto');
+          setSuggestedWeeklyRate(null);
+          return;
+        }
+
+        const data = await response.json();
+        setSuggestedWeeklyRate({
+          amount: parseFloat(data.weeklyInterestAmount.toString()),
+          rate: parseFloat(data.weeklyInterestRate?.toString() || '0'),
+          isCalculated: data.isCalculated || false
+        });
+
+        // Auto-llenar si no hay valor previo
+        if (!formData.weeklyInterestAmount) {
+          setFormData(prev => ({
+            ...prev,
+            weeklyInterestAmount: data.weeklyInterestAmount.toString()
+          }));
+        }
+      } catch (error) {
+        console.error('Error al buscar tasa sugerida:', error);
+        setSuggestedWeeklyRate(null);
+      }
+    };
+
+    // Debounce para evitar múltiples llamadas
+    const timer = setTimeout(fetchSuggestedRate, 500);
+    return () => clearTimeout(timer);
+  }, [formData.principalAmount, formData.loanCalculationType]);
 
   // Load clients
   useEffect(() => {
@@ -572,27 +624,56 @@ export function NewLoanForm() {
               {/* Campo de Interés Semanal */}
               {formData.loanCalculationType === 'INTERES_SEMANAL' && (
                 <div className="space-y-3">
-                  <div className="space-y-2 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-                    <h4 className="font-semibold text-sm text-green-900 dark:text-green-100 flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4" />
-                      Sistema de Interés Semanal
-                    </h4>
-                    <ul className="text-xs text-green-700 dark:text-green-300 space-y-1">
-                      <li>• $3,000: $170/semana</li>
-                      <li>• $4,000: $200/semana</li>
-                      <li>• $5,000: $230/semana</li>
-                      <li>• $6,000: $260/semana</li>
-                      <li>• $7,000: $291/semana</li>
-                      <li>• $8,000+: proporcional</li>
-                    </ul>
-                  </div>
+                  {/* Mostrar tasa sugerida si está disponible */}
+                  {suggestedWeeklyRate && (
+                    <div className="space-y-2 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                      <h4 className="font-semibold text-sm text-green-900 dark:text-green-100 flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
+                        Tasa Sugerida {suggestedWeeklyRate.isCalculated && '(calculada proporcionalmente)'}
+                      </h4>
+                      <div className="space-y-1">
+                        <p className="text-sm text-green-700 dark:text-green-300">
+                          <span className="font-semibold">Interés Semanal:</span> ${suggestedWeeklyRate.amount.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-green-600 dark:text-green-400">
+                          Equivale al {suggestedWeeklyRate.rate.toFixed(2)}% del monto prestado
+                        </p>
+                        {suggestedWeeklyRate.isCalculated && (
+                          <p className="text-xs text-green-600 dark:text-green-400 italic">
+                            * Esta tasa fue calculada proporcionalmente ya que no hay una configuración exacta para este monto
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Si no hay tasa sugerida, mostrar tabla de referencia */}
+                  {!suggestedWeeklyRate && formData.principalAmount && parseFloat(formData.principalAmount) > 0 && (
+                    <div className="space-y-2 p-4 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <h4 className="font-semibold text-sm text-amber-900 dark:text-amber-100 flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
+                        Tabla de Referencia
+                      </h4>
+                      <ul className="text-xs text-amber-700 dark:text-amber-300 space-y-1">
+                        <li>• $3,000: $170/semana (5.67%)</li>
+                        <li>• $4,000: $200/semana (5.00%)</li>
+                        <li>• $5,000: $230/semana (4.60%)</li>
+                        <li>• $6,000: $260/semana (4.34%)</li>
+                        <li>• $7,000: $291/semana (4.15%)</li>
+                        <li>• $8,000+: proporcional (aprox. 4.00%)</li>
+                      </ul>
+                    </div>
+                  )}
                   
                   <EnhancedInput
                     label="Interés Semanal (pesos)"
                     type="number"
                     step="0.01"
-                    example="170.00"
-                    hint="Se calcula automáticamente según el monto, pero puedes modificarlo si es necesario"
+                    example={suggestedWeeklyRate ? suggestedWeeklyRate.amount.toString() : "170.00"}
+                    hint={suggestedWeeklyRate 
+                      ? "Tasa sugerida basada en configuración. Puedes modificarla si es necesario" 
+                      : "Se calcula automáticamente según el monto, pero puedes modificarlo si es necesario"
+                    }
                     value={formData.weeklyInterestAmount}
                     onChange={(e) => handleInputChange('weeklyInterestAmount', e.target.value)}
                   />

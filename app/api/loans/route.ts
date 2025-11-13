@@ -141,15 +141,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Para INTERES_SEMANAL, el weeklyInterestAmount es opcional (se calcula automáticamente si no se proporciona)
-    // pero debe ser válido si se proporciona
-    if (loanCalculationType === 'INTERES_SEMANAL' && weeklyInterestAmount !== undefined && weeklyInterestAmount !== null) {
-      const weeklyInt = parseFloat(weeklyInterestAmount.toString());
-      if (isNaN(weeklyInt) || weeklyInt < 0) {
-        return NextResponse.json(
-          { error: 'El interés semanal debe ser un número válido no negativo' },
-          { status: 400 }
-        );
+    // Validate numeric fields FIRST (needed for calculations below)
+    const principal = parseFloat(principalAmount.toString());
+    const term = parseInt(termMonths.toString());
+    const rate = interestRate !== undefined && interestRate !== null 
+      ? parseFloat(interestRate.toString()) 
+      : 0;
+
+    // Para INTERES_SEMANAL, consultar la tabla de configuración si no se proporciona
+    let calculatedWeeklyInterest: number | undefined = undefined;
+    if (loanCalculationType === 'INTERES_SEMANAL') {
+      if (weeklyInterestAmount !== undefined && weeklyInterestAmount !== null) {
+        // Si se proporciona, validar que sea válido
+        const weeklyInt = parseFloat(weeklyInterestAmount.toString());
+        if (isNaN(weeklyInt) || weeklyInt < 0) {
+          return NextResponse.json(
+            { error: 'El interés semanal debe ser un número válido no negativo' },
+            { status: 400 }
+          );
+        }
+        calculatedWeeklyInterest = weeklyInt;
+      } else {
+        // Si no se proporciona, consultar la tabla de configuración
+        const rateConfig = await prisma.weeklyInterestRate.findFirst({
+          where: {
+            isActive: true,
+            minAmount: { lte: principal },
+            maxAmount: { gte: principal }
+          }
+        });
+
+        if (rateConfig) {
+          calculatedWeeklyInterest = parseFloat(rateConfig.weeklyInterestAmount.toString());
+          console.log(`Interés semanal encontrado en configuración: $${calculatedWeeklyInterest} para monto $${principal}`);
+        } else {
+          // Si no hay configuración exacta, calcular proporcionalmente
+          const nearestRate = await prisma.weeklyInterestRate.findFirst({
+            where: {
+              isActive: true,
+              minAmount: { lte: principal }
+            },
+            orderBy: {
+              maxAmount: 'desc'
+            }
+          });
+
+          if (nearestRate) {
+            const ratio = principal / parseFloat(nearestRate.maxAmount.toString());
+            calculatedWeeklyInterest = Math.round(parseFloat(nearestRate.weeklyInterestAmount.toString()) * ratio * 100) / 100;
+            console.log(`Interés semanal calculado proporcionalmente: $${calculatedWeeklyInterest} (base: $${nearestRate.weeklyInterestAmount})`);
+          } else {
+            // Valor por defecto si no hay ninguna configuración
+            calculatedWeeklyInterest = Math.round(principal * 0.04 * 100) / 100; // 4% por defecto
+            console.log(`Interés semanal calculado con valor por defecto (4%): $${calculatedWeeklyInterest}`);
+          }
+        }
       }
     }
 
@@ -162,13 +208,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate numeric fields
-    const principal = parseFloat(principalAmount.toString());
-    const term = parseInt(termMonths.toString());
-    const rate = interestRate !== undefined && interestRate !== null 
-      ? parseFloat(interestRate.toString()) 
-      : 0;
-
+    // Validate numeric fields (already declared above, just validate here)
     if (isNaN(principal) || principal <= 0) {
       console.error('Monto principal inválido:', principalAmount);
       return NextResponse.json(
@@ -271,16 +311,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate loan parameters
-    const weeklyInt = weeklyInterestAmount !== undefined && weeklyInterestAmount !== null 
-      ? parseFloat(weeklyInterestAmount.toString()) 
-      : undefined;
-
     const validation = validateLoanParams({
       loanCalculationType: loanCalculationType as LoanCalculationType,
       principalAmount: principal,
       numberOfPayments: term,
       annualInterestRate: rate,
-      weeklyInterestAmount: weeklyInt
+      weeklyInterestAmount: calculatedWeeklyInterest
     });
 
     if (!validation.valid) {
@@ -298,7 +334,7 @@ export async function POST(request: NextRequest) {
       numberOfPayments: term,
       paymentFrequency: paymentFrequency as PaymentFrequency,
       annualInterestRate: rate,
-      weeklyInterestAmount: weeklyInt,
+      weeklyInterestAmount: calculatedWeeklyInterest,
       startDate: start
     });
 

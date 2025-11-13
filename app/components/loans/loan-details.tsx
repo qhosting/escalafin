@@ -39,6 +39,7 @@ interface LoanDetail {
   balanceRemaining: number;
   termMonths: number;
   interestRate: number;
+  weeklyInterestAmount?: number;
   monthlyPayment: number;
   status: string;
   startDate: string;
@@ -86,7 +87,8 @@ const loanTypeConfig = {
 
 const calculationTypeConfig = {
   INTERES: 'Con Interés (Tasa Anual)',
-  TARIFA_FIJA: 'Tarifa Fija por Monto'
+  TARIFA_FIJA: 'Tarifa Fija por Monto',
+  INTERES_SEMANAL: 'Interés Semanal Fijo'
 };
 
 const paymentStatusConfig = {
@@ -317,17 +319,45 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
                   <Label className="text-sm font-medium text-muted-foreground">Plazo</Label>
                   <p className="text-lg font-semibold">{loan.termMonths} meses</p>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">
-                    {loan.loanCalculationType === 'TARIFA_FIJA' ? 'Tasa Efectiva' : 'Tasa de Interés'}
-                  </Label>
-                  <p className="text-lg font-semibold">
-                    {(loan.interestRate * 100).toFixed(2)}% anual
-                    {loan.loanCalculationType === 'TARIFA_FIJA' && (
-                      <span className="text-sm text-muted-foreground ml-2">(calculada)</span>
-                    )}
-                  </p>
-                </div>
+                {/* Mostrar Interés Semanal si aplica */}
+                {loan.loanCalculationType === 'INTERES_SEMANAL' && loan.weeklyInterestAmount ? (
+                  <>
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Interés Semanal
+                      </Label>
+                      <p className="text-lg font-semibold">
+                        {formatCurrency(loan.weeklyInterestAmount)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {((loan.weeklyInterestAmount / loan.principalAmount) * 100).toFixed(2)}% del monto prestado
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        Tasa Efectiva Total
+                      </Label>
+                      <p className="text-lg font-semibold">
+                        {(loan.interestRate * 100).toFixed(2)}%
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Sobre el plazo completo
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">
+                      {loan.loanCalculationType === 'TARIFA_FIJA' ? 'Tasa Efectiva' : 'Tasa de Interés'}
+                    </Label>
+                    <p className="text-lg font-semibold">
+                      {(loan.interestRate * 100).toFixed(2)}% anual
+                      {loan.loanCalculationType === 'TARIFA_FIJA' && (
+                        <span className="text-sm text-muted-foreground ml-2">(calculada)</span>
+                      )}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Fecha de Inicio</Label>
                   <p className="text-lg font-semibold">{formatDate(loan.startDate)}</p>
