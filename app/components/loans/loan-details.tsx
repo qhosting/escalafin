@@ -34,6 +34,7 @@ interface LoanDetail {
   id: string;
   loanNumber: string;
   loanType: string;
+  loanCalculationType?: string;
   principalAmount: number;
   balanceRemaining: number;
   termMonths: number;
@@ -81,6 +82,11 @@ const loanTypeConfig = {
   MORTGAGE: 'Hipotecario',
   AUTO: 'Automotriz',
   EDUCATION: 'Educativo'
+};
+
+const calculationTypeConfig = {
+  INTERES: 'Con Interés (Tasa Anual)',
+  TARIFA_FIJA: 'Tarifa Fija por Monto'
 };
 
 const paymentStatusConfig = {
@@ -280,6 +286,14 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
                   <p className="text-lg font-semibold">{loanTypeConfig[loan.loanType as keyof typeof loanTypeConfig]}</p>
                 </div>
                 <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Método de Cálculo</Label>
+                  <p className="text-lg font-semibold">
+                    {loan.loanCalculationType 
+                      ? calculationTypeConfig[loan.loanCalculationType as keyof typeof calculationTypeConfig] 
+                      : calculationTypeConfig.INTERES}
+                  </p>
+                </div>
+                <div>
                   <Label className="text-sm font-medium text-muted-foreground">Estado</Label>
                   <div className="mt-1">
                     <Badge className={statusConfig[loan.status as keyof typeof statusConfig]?.color}>
@@ -304,8 +318,15 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
                   <p className="text-lg font-semibold">{loan.termMonths} meses</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Tasa de Interés</Label>
-                  <p className="text-lg font-semibold">{(loan.interestRate * 100).toFixed(2)}% anual</p>
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    {loan.loanCalculationType === 'TARIFA_FIJA' ? 'Tasa Efectiva' : 'Tasa de Interés'}
+                  </Label>
+                  <p className="text-lg font-semibold">
+                    {(loan.interestRate * 100).toFixed(2)}% anual
+                    {loan.loanCalculationType === 'TARIFA_FIJA' && (
+                      <span className="text-sm text-muted-foreground ml-2">(calculada)</span>
+                    )}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Fecha de Inicio</Label>

@@ -29,6 +29,12 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { format, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { 
+  calculateInterestBasedPayment, 
+  calculateFixedFeePayment, 
+  getPaymentsPerYear,
+  calculateEndDate
+} from '@/lib/loan-calculations';
 
 interface Client {
   id: string;
@@ -62,6 +68,11 @@ const PAYMENT_FREQUENCIES = {
   MENSUAL: 'Mensual (12 pagos/año)'
 };
 
+const CALCULATION_TYPES = {
+  INTERES: 'Con Interés (Tasa Anual)',
+  TARIFA_FIJA: 'Tarifa Fija por Monto'
+};
+
 const INTEREST_RATES = {
   PERSONAL: 0.18,
   BUSINESS: 0.15,
@@ -85,6 +96,7 @@ export function NewLoanForm() {
   const [formData, setFormData] = useState({
     clientId: '',
     loanType: '',
+    loanCalculationType: 'INTERES', // INTERES o TARIFA_FIJA
     principalAmount: '',
     termMonths: '', // número de pagos
     paymentFrequency: 'MENSUAL',
@@ -169,50 +181,18 @@ export function NewLoanForm() {
     console.log('Iniciando cálculo del préstamo', formData);
     
     const principal = parseFloat(formData.principalAmount);
-    const annualRate = parseFloat(formData.interestRate) / 100;
     const numPayments = parseInt(formData.termMonths);
-    const frequency = formData.paymentFrequency;
+    const frequency = formData.paymentFrequency as 'SEMANAL' | 'CATORCENAL' | 'QUINCENAL' | 'MENSUAL';
+    const calculationType = formData.loanCalculationType;
 
-    // Calculate periodic rate based on frequency
-    let periodicRate = 0;
-    let paymentsPerYear = 12;
-    
-    switch (frequency) {
-      case 'SEMANAL':
-        paymentsPerYear = 52;
-        periodicRate = annualRate / 52;
-        break;
-      case 'CATORCENAL':
-        paymentsPerYear = 26;
-        periodicRate = annualRate / 26;
-        break;
-      case 'QUINCENAL':
-        paymentsPerYear = 24;
-        periodicRate = annualRate / 24;
-        break;
-      case 'MENSUAL':
-      default:
-        paymentsPerYear = 12;
-        periodicRate = annualRate / 12;
-        break;
-    }
+    let monthlyPayment = 0;
+    let totalAmount = 0;
+    let totalInterest = 0;
+    let interestRate = 0;
 
-    console.log('Valores parseados:', {
-      principal,
-      annualRate,
-      numPayments,
-      frequency,
-      periodicRate,
-      paymentsPerYear
-    });
-
+    // Validaciones básicas
     if (!principal || principal <= 0) {
       toast.error('Por favor ingresa un monto principal válido');
-      return;
-    }
-
-    if (!annualRate || annualRate <= 0) {
-      toast.error('Por favor ingresa una tasa de interés válida');
       return;
     }
 
@@ -222,16 +202,43 @@ export function NewLoanForm() {
     }
 
     try {
-      // Payment calculation using PMT formula with periodic rate
-      const payment = principal * (periodicRate * Math.pow(1 + periodicRate, numPayments)) / (Math.pow(1 + periodicRate, numPayments) - 1);
-      const totalAmount = payment * numPayments;
-      const totalInterest = totalAmount - principal;
+      if (calculationType === 'INTERES') {
+        // Método de interés tradicional
+        const annualRate = parseFloat(formData.interestRate) / 100;
+        
+        if (!annualRate || annualRate < 0) {
+          toast.error('Por favor ingresa una tasa de interés válida');
+          return;
+        }
+
+        monthlyPayment = calculateInterestBasedPayment(
+          principal,
+          annualRate,
+          numPayments,
+          frequency
+        );
+        totalAmount = monthlyPayment * numPayments;
+        totalInterest = totalAmount - principal;
+        interestRate = parseFloat(formData.interestRate);
+
+      } else {
+        // Método de tarifa fija
+        const result = calculateFixedFeePayment(principal, numPayments);
+        monthlyPayment = result.paymentAmount;
+        totalAmount = result.totalAmount;
+        totalInterest = result.totalFee;
+        
+        // Calcular tasa efectiva para referencia
+        if (totalInterest > 0) {
+          interestRate = (totalInterest / principal) * 100;
+        }
+      }
 
       const calc: LoanCalculation = {
-        monthlyPayment: Math.round(payment * 100) / 100,
+        monthlyPayment: Math.round(monthlyPayment * 100) / 100,
         totalInterest: Math.round(totalInterest * 100) / 100,
         totalAmount: Math.round(totalAmount * 100) / 100,
-        interestRate: parseFloat(formData.interestRate)
+        interestRate: Math.round(interestRate * 100) / 100
       };
 
       console.log('Cálculo completado:', calc);
@@ -239,7 +246,12 @@ export function NewLoanForm() {
       setCalculation(calc);
       setFormData(prev => ({ ...prev, monthlyPayment: calc.monthlyPayment.toString() }));
       setShowCalculation(true);
-      toast.success('¡Préstamo calculado exitosamente!');
+      
+      if (calculationType === 'TARIFA_FIJA') {
+        toast.success(`¡Préstamo calculado! ${numPayments} pagos de $${calc.monthlyPayment.toFixed(2)}`);
+      } else {
+        toast.success('¡Préstamo calculado exitosamente!');
+      }
       
     } catch (error) {
       console.error('Error en el cálculo:', error);
@@ -275,14 +287,16 @@ export function NewLoanForm() {
       const loanData = {
         clientId: formData.clientId,
         loanType: formData.loanType,
+        loanCalculationType: formData.loanCalculationType,
         principalAmount: parseFloat(formData.principalAmount),
         termMonths: parseInt(formData.termMonths),
         paymentFrequency: formData.paymentFrequency,
-        interestRate: parseFloat(formData.interestRate) / 100,
+        interestRate: formData.loanCalculationType === 'INTERES' 
+          ? parseFloat(formData.interestRate) / 100 
+          : 0,
         monthlyPayment: calculation.monthlyPayment,
         initialPayment: formData.initialPayment ? parseFloat(formData.initialPayment) : null,
         startDate: new Date(formData.startDate).toISOString(),
-        endDate: new Date(formData.endDate).toISOString(),
         status: 'ACTIVE'
       };
 
@@ -438,6 +452,20 @@ export function NewLoanForm() {
                 ))}
               </EnhancedSelect>
 
+              {/* Tipo de Cálculo */}
+              <EnhancedSelect
+                label="Tipo de Cálculo"
+                required
+                placeholder="Selecciona el método de cálculo"
+                hint="Interés: tasa anual. Tarifa Fija: cargo fijo por monto prestado"
+                value={formData.loanCalculationType}
+                onValueChange={(value) => handleInputChange('loanCalculationType', value)}
+              >
+                {Object.entries(CALCULATION_TYPES).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </EnhancedSelect>
+
               {/* Monto Principal */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -485,17 +513,35 @@ export function NewLoanForm() {
                 />
               </div>
 
-              {/* Tasa de Interés */}
-              <EnhancedInput
-                label="Tasa de Interés Anual (%)"
-                type="number"
-                step="0.01"
-                example="18.50"
-                hint="Tasa anual de interés (se calcula automáticamente según el tipo de préstamo)"
-                value={formData.interestRate}
-                onChange={(e) => handleInputChange('interestRate', e.target.value)}
-                required
-              />
+              {/* Tasa de Interés - Solo para método de interés */}
+              {formData.loanCalculationType === 'INTERES' && (
+                <EnhancedInput
+                  label="Tasa de Interés Anual (%)"
+                  type="number"
+                  step="0.01"
+                  example="18.50"
+                  hint="Tasa anual de interés (se calcula automáticamente según el tipo de préstamo)"
+                  value={formData.interestRate}
+                  onChange={(e) => handleInputChange('interestRate', e.target.value)}
+                  required
+                />
+              )}
+
+              {/* Info para Tarifa Fija */}
+              {formData.loanCalculationType === 'TARIFA_FIJA' && (
+                <div className="space-y-2 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <h4 className="font-semibold text-sm text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Sistema de Tarifa Fija
+                  </h4>
+                  <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                    <li>• $3,000 o menos: $300 por pago</li>
+                    <li>• $4,000: $425 por pago</li>
+                    <li>• $5,000: $600 por pago</li>
+                    <li>• Más de $5,000: +$120 por cada mil adicional</li>
+                  </ul>
+                </div>
+              )}
 
               {/* Pago Inicial */}
               <div className="space-y-2">
@@ -561,10 +607,12 @@ export function NewLoanForm() {
                 disabled={
                   !formData.principalAmount?.trim() || 
                   !formData.termMonths?.trim() || 
-                  !formData.interestRate?.trim() ||
                   parseFloat(formData.principalAmount || '0') <= 0 ||
                   parseInt(formData.termMonths || '0') <= 0 ||
-                  parseFloat(formData.interestRate || '0') <= 0
+                  (formData.loanCalculationType === 'INTERES' && (
+                    !formData.interestRate?.trim() ||
+                    parseFloat(formData.interestRate || '0') <= 0
+                  ))
                 }
               >
                 <Calculator className="h-4 w-4" />
@@ -619,12 +667,14 @@ export function NewLoanForm() {
               
               <div className="text-center p-4 bg-muted/30 rounded-lg">
                 <FileText className="h-6 w-6 mx-auto mb-2 text-purple-600" />
-                <p className="text-sm text-muted-foreground">Tasa de Interés</p>
+                <p className="text-sm text-muted-foreground">
+                  {formData.loanCalculationType === 'INTERES' ? 'Tasa de Interés' : 'Tasa Efectiva'}
+                </p>
                 <p className="text-xl font-bold text-foreground">
                   {calculation.interestRate.toFixed(2)}%
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {formData.termMonths} pagos
+                  {formData.termMonths} pagos • {CALCULATION_TYPES[formData.loanCalculationType as keyof typeof CALCULATION_TYPES]}
                 </p>
               </div>
             </div>

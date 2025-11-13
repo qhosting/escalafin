@@ -203,6 +203,7 @@ model Loan {
   creditApplicationId  String?                @unique
   loanNumber           String                 @unique
   loanType             LoanType
+  loanCalculationType  LoanCalculationType    @default(INTERES)
   principalAmount      Decimal                @db.Decimal(12, 2)
   interestRate         Decimal                @db.Decimal(5, 4)
   termMonths           Int
@@ -656,6 +657,11 @@ enum PaymentFrequency {
   CATORCENAL
   QUINCENAL
   MENSUAL
+}
+
+enum LoanCalculationType {
+  INTERES       // Sistema de interés tradicional
+  TARIFA_FIJA   // Sistema de tarifa fija por monto
 }
 
 enum PaymentStatus {

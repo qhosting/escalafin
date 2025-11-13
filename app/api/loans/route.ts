@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { UserRole, LoanType, LoanStatus, PaymentFrequency } from '@prisma/client';
+import { UserRole, LoanType, LoanStatus, PaymentFrequency, LoanCalculationType } from '@prisma/client';
 import { generateLoanNumber } from '@/lib/utils';
+import { calculateLoanDetails, validateLoanParams } from '@/lib/loan-calculations';
 
 export async function GET(request: NextRequest) {
   try {
@@ -102,6 +103,7 @@ export async function POST(request: NextRequest) {
     const {
       clientId,
       loanType,
+      loanCalculationType = 'INTERES',
       principalAmount,
       termMonths,
       paymentFrequency = 'MENSUAL',
@@ -109,7 +111,6 @@ export async function POST(request: NextRequest) {
       monthlyPayment,
       initialPayment,
       startDate,
-      endDate,
       purpose,
       collateral,
       notes,
@@ -117,19 +118,24 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate required fields exist
-    if (!clientId || !loanType || !principalAmount || !termMonths || !interestRate || !monthlyPayment || !startDate || !endDate) {
+    if (!clientId || !loanType || !principalAmount || !termMonths || !startDate) {
       console.error('Campos faltantes:', {
         clientId: !!clientId,
         loanType: !!loanType,
         principalAmount: !!principalAmount,
         termMonths: !!termMonths,
-        interestRate: !!interestRate,
-        monthlyPayment: !!monthlyPayment,
-        startDate: !!startDate,
-        endDate: !!endDate
+        startDate: !!startDate
       });
       return NextResponse.json(
         { error: 'Faltan campos requeridos' },
+        { status: 400 }
+      );
+    }
+
+    // Validar campos específicos según el tipo de cálculo
+    if (loanCalculationType === 'INTERES' && (interestRate === undefined || interestRate === null)) {
+      return NextResponse.json(
+        { error: 'La tasa de interés es requerida para préstamos con interés' },
         { status: 400 }
       );
     }
@@ -146,8 +152,9 @@ export async function POST(request: NextRequest) {
     // Validate numeric fields
     const principal = parseFloat(principalAmount.toString());
     const term = parseInt(termMonths.toString());
-    const rate = parseFloat(interestRate.toString());
-    const payment = parseFloat(monthlyPayment.toString());
+    const rate = interestRate !== undefined && interestRate !== null 
+      ? parseFloat(interestRate.toString()) 
+      : 0;
 
     if (isNaN(principal) || principal <= 0) {
       console.error('Monto principal inválido:', principalAmount);
@@ -160,12 +167,13 @@ export async function POST(request: NextRequest) {
     if (isNaN(term) || term <= 0) {
       console.error('Plazo inválido:', termMonths);
       return NextResponse.json(
-        { error: 'El plazo debe ser un número positivo de meses' },
+        { error: 'El plazo debe ser un número positivo' },
         { status: 400 }
       );
     }
 
-    if (isNaN(rate) || rate < 0) {
+    // Validar tasa solo para préstamos con interés
+    if (loanCalculationType === 'INTERES' && (isNaN(rate) || rate < 0)) {
       console.error('Tasa de interés inválida:', interestRate);
       return NextResponse.json(
         { error: 'La tasa de interés debe ser un número válido' },
@@ -173,38 +181,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (isNaN(payment) || payment <= 0) {
-      console.error('Pago mensual inválido:', monthlyPayment);
-      return NextResponse.json(
-        { error: 'El pago mensual debe ser un número positivo' },
-        { status: 400 }
-      );
-    }
-
-    // Validate dates
+    // Validate start date
     const start = new Date(startDate);
-    const end = new Date(endDate);
 
     if (isNaN(start.getTime())) {
       console.error('Fecha de inicio inválida:', startDate);
       return NextResponse.json(
         { error: 'La fecha de inicio no es válida' },
-        { status: 400 }
-      );
-    }
-
-    if (isNaN(end.getTime())) {
-      console.error('Fecha de fin inválida:', endDate);
-      return NextResponse.json(
-        { error: 'La fecha de fin no es válida' },
-        { status: 400 }
-      );
-    }
-
-    if (end <= start) {
-      console.error('Fecha de fin debe ser posterior a fecha de inicio');
-      return NextResponse.json(
-        { error: 'La fecha de fin debe ser posterior a la fecha de inicio' },
         { status: 400 }
       );
     }
@@ -239,6 +222,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate loan calculation type
+    const validCalculationTypes = ['INTERES', 'TARIFA_FIJA'];
+    if (!validCalculationTypes.includes(loanCalculationType)) {
+      console.error('Tipo de cálculo inválido:', loanCalculationType);
+      return NextResponse.json(
+        { error: 'Tipo de cálculo no válido' },
+        { status: 400 }
+      );
+    }
+
     // Validate initialPayment if provided
     if (initialPayment !== undefined && initialPayment !== null) {
       const initialPmt = parseFloat(initialPayment.toString());
@@ -264,21 +257,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate loan parameters
+    const validation = validateLoanParams({
+      loanCalculationType: loanCalculationType as LoanCalculationType,
+      principalAmount: principal,
+      numberOfPayments: term,
+      annualInterestRate: rate
+    });
+
+    if (!validation.valid) {
+      console.error('Validación de parámetros falló:', validation.error);
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 400 }
+      );
+    }
+
+    // Calculate loan details based on calculation type
+    const loanDetails = calculateLoanDetails({
+      loanCalculationType: loanCalculationType as LoanCalculationType,
+      principalAmount: principal,
+      numberOfPayments: term,
+      paymentFrequency: paymentFrequency as PaymentFrequency,
+      annualInterestRate: rate,
+      startDate: start
+    });
+
     // Generate loan number
     const loanNumber = await generateLoanNumber();
 
-    // Calculate total amount
-    const totalAmount = payment * term;
-
-    console.log('Creando préstamo con datos validados:', {
+    console.log('Creando préstamo con datos calculados:', {
       loanNumber,
       clientId,
       loanType,
+      loanCalculationType,
       principal,
       term,
       rate,
-      payment,
-      totalAmount,
+      paymentAmount: loanDetails.paymentAmount,
+      totalAmount: loanDetails.totalAmount,
+      endDate: loanDetails.endDate,
+      effectiveRate: loanDetails.effectiveRate,
       status
     });
 
@@ -288,16 +307,17 @@ export async function POST(request: NextRequest) {
         loanNumber,
         clientId,
         loanType: loanType as LoanType,
+        loanCalculationType: loanCalculationType as LoanCalculationType,
         principalAmount: principal,
         balanceRemaining: principal,
         termMonths: term,
         paymentFrequency: paymentFrequency as PaymentFrequency,
         interestRate: rate,
-        monthlyPayment: payment,
+        monthlyPayment: loanDetails.paymentAmount,
         initialPayment: initialPayment ? parseFloat(initialPayment.toString()) : null,
-        totalAmount,
+        totalAmount: loanDetails.totalAmount,
         startDate: start,
-        endDate: end,
+        endDate: loanDetails.endDate,
         status: status as LoanStatus,
       },
       include: {
