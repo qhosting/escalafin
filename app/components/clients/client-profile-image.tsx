@@ -40,6 +40,10 @@ export function ClientProfileImage({
   const isAdmin = session?.user?.role === 'ADMIN';
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Prevenir cualquier comportamiento por defecto
+    event.preventDefault();
+    event.stopPropagation();
+
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -65,12 +69,16 @@ export function ClientProfileImage({
       const formData = new FormData();
       formData.append('file', file);
 
+      console.log('[ClientProfileImage] Iniciando upload de imagen...');
+
       const response = await fetch(`/api/clients/${clientId}/profile-image`, {
         method: 'POST',
         body: formData,
       });
 
       const data = await response.json();
+
+      console.log('[ClientProfileImage] Respuesta del servidor:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Error al subir la imagen');
@@ -88,7 +96,7 @@ export function ClientProfileImage({
       toast.success('Imagen actualizada correctamente');
 
     } catch (error: any) {
-      console.error('Error al subir imagen:', error);
+      console.error('[ClientProfileImage] Error al subir imagen:', error);
       toast.error(error.message || 'Error al subir la imagen');
     } finally {
       setUploading(false);
@@ -161,10 +169,15 @@ export function ClientProfileImage({
       {editable && isAdmin && (
         <div className="flex gap-2">
           <Button
+            type="button"
             variant="outline"
             size="sm"
             disabled={uploading || deleting}
-            onClick={() => document.getElementById(`file-input-${clientId}`)?.click()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              document.getElementById(`file-input-${clientId}`)?.click();
+            }}
           >
             {image ? (
               <>
@@ -181,10 +194,15 @@ export function ClientProfileImage({
 
           {image && (
             <Button
+              type="button"
               variant="outline"
               size="sm"
               disabled={uploading || deleting}
-              onClick={handleDeleteImage}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleDeleteImage();
+              }}
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Eliminar
@@ -197,6 +215,10 @@ export function ClientProfileImage({
             accept="image/jpeg,image/jpg,image/png,image/webp"
             className="hidden"
             onChange={handleFileSelect}
+            onClick={(e) => {
+              // Permitir que el input funcione normalmente
+              e.stopPropagation();
+            }}
           />
         </div>
       )}
@@ -204,10 +226,15 @@ export function ClientProfileImage({
       {editable && !isAdmin && !image && (
         <div className="flex gap-2">
           <Button
+            type="button"
             variant="outline"
             size="sm"
             disabled={uploading}
-            onClick={() => document.getElementById(`file-input-${clientId}`)?.click()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              document.getElementById(`file-input-${clientId}`)?.click();
+            }}
           >
             <Upload className="w-4 h-4 mr-2" />
             Subir foto
@@ -219,6 +246,10 @@ export function ClientProfileImage({
             accept="image/jpeg,image/jpg,image/png,image/webp"
             className="hidden"
             onChange={handleFileSelect}
+            onClick={(e) => {
+              // Permitir que el input funcione normalmente
+              e.stopPropagation();
+            }}
           />
         </div>
       )}

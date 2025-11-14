@@ -178,17 +178,17 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary text-primary-foreground py-3.5 px-4 rounded-lg font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="w-full bg-blue-600 text-white py-3.5 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground"></div>
-                  <span className="text-primary-foreground">Verificando...</span>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span className="text-white">Verificando...</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2">
-                  <LogIn className="w-5 h-5" />
-                  <span className="text-primary-foreground">Iniciar Sesión</span>
+                  <LogIn className="w-5 h-5 text-white" />
+                  <span className="text-white">Iniciar Sesión</span>
                 </div>
               )}
             </button>

@@ -3,11 +3,31 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { uploadFile, deleteFile, getStorageInfo } from '@/lib/unified-storage';
+import { saveFileLocally, deleteFileLocally } from '@/lib/local-storage';
+import path from 'path';
+import { existsSync, mkdirSync } from 'fs';
+
+// Directorio base para imágenes de perfil (siempre local)
+const PROFILE_IMAGES_DIR = process.env.LOCAL_STORAGE_PATH || '/app/uploads';
+const PROFILE_FOLDER = 'profile-images';
+
+/**
+ * Asegura que existe el directorio de imágenes de perfil
+ */
+function ensureProfileDirectory(): string {
+  const profilePath = path.join(PROFILE_IMAGES_DIR, PROFILE_FOLDER);
+  
+  if (!existsSync(profilePath)) {
+    mkdirSync(profilePath, { recursive: true });
+  }
+  
+  return profilePath;
+}
 
 /**
  * POST /api/clients/[id]/profile-image
  * Sube o actualiza la imagen de perfil de un cliente
+ * SIEMPRE USA ALMACENAMIENTO LOCAL
  * 
  * Reglas:
  * - Cliente solo puede subir al registrarse (cuando no tiene imagen)
@@ -104,30 +124,16 @@ export async function POST(
     const extension = file.name.split('.').pop() || 'jpg';
     const fileName = `profile-${clientId}-${timestamp}.${extension}`;
 
-    // Subir archivo usando unified-storage
-    const uploadResult = await uploadFile(
-      buffer,
-      fileName,
-      file.type,
-      {
-        clientId: client.id,
-        clientName: `${client.firstName} ${client.lastName}`,
-        subfolder: 'profile',
-      }
-    );
+    // Asegurar que existe el directorio
+    const profileDir = ensureProfileDirectory();
 
-    if (!uploadResult.success) {
-      return NextResponse.json(
-        { error: uploadResult.error || 'Error al subir el archivo' },
-        { status: 500 }
-      );
-    }
+    // Guardar archivo localmente
+    const relativePath = await saveFileLocally(buffer, fileName, profileDir);
 
     // Si el cliente ya tenía una imagen, eliminar la anterior
     if (client.profileImage) {
       try {
-        const storageType = getStorageInfo().type;
-        await deleteFile(client.profileImage, storageType);
+        await deleteFileLocally(client.profileImage);
       } catch (error) {
         console.warn('Error al eliminar imagen anterior:', error);
         // No fallar la operación por esto
@@ -138,7 +144,7 @@ export async function POST(
     const updatedClient = await prisma.client.update({
       where: { id: clientId },
       data: {
-        profileImage: uploadResult.path,
+        profileImage: relativePath,
       },
       select: {
         id: true,
@@ -152,7 +158,7 @@ export async function POST(
       success: true,
       message: 'Imagen de perfil actualizada correctamente',
       client: updatedClient,
-      storage: uploadResult.storage,
+      storage: 'local',
     });
 
   } catch (error: any) {
@@ -167,6 +173,7 @@ export async function POST(
 /**
  * DELETE /api/clients/[id]/profile-image
  * Elimina la imagen de perfil de un cliente
+ * SIEMPRE USA ALMACENAMIENTO LOCAL
  * Solo admin puede eliminar
  */
 export async function DELETE(
@@ -216,10 +223,9 @@ export async function DELETE(
       );
     }
 
-    // Eliminar archivo del almacenamiento
+    // Eliminar archivo del almacenamiento local
     try {
-      const storageType = getStorageInfo().type;
-      await deleteFile(client.profileImage, storageType);
+      await deleteFileLocally(client.profileImage);
     } catch (error) {
       console.warn('Error al eliminar archivo de almacenamiento:', error);
       // Continuar con la actualización de la base de datos
@@ -250,6 +256,7 @@ export async function DELETE(
 /**
  * GET /api/clients/[id]/profile-image
  * Obtiene la URL de la imagen de perfil del cliente
+ * SIEMPRE USA ALMACENAMIENTO LOCAL
  */
 export async function GET(
   request: NextRequest,
@@ -297,7 +304,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       profileImage: client.profileImage,
-      storage: getStorageInfo().type,
+      storage: 'local',
     });
 
   } catch (error: any) {
