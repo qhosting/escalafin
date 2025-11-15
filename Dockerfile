@@ -1,27 +1,32 @@
 # 🚀 DOCKERFILE PRODUCTION - OPTIMIZADO Y TESTEADO
 # ===================================
 # ✅ Testeado localmente con éxito
-# ✅ Node 18-slim (Debian-based, glibc para compatibilidad Next.js SWC)
+# ✅ Node 18-bookworm-slim (Debian 12 con paquetes actualizados)
 # ✅ YARN (gestor de paquetes del proyecto)
 # ✅ Build standalone verificado
 # ✅ Scripts mejorados adaptados de CitaPlanner
 # ✅ start-improved.sh: logging detallado + error handling robusto
 # ✅ emergency-start.sh: bypass DB checks para debug
 # ✅ Fixed: Usa Yarn como package manager oficial
-# ✅ Fixed: Cambio a node:18-slim para resolver error SWC con Alpine/musl
+# ✅ Fixed: Cambio a bookworm-slim (Debian 12) con repositorios actualizados
+# ✅ Fixed: apt-get con limpieza previa y mejor manejo de errores
 
-FROM node:18-slim AS base
+FROM node:18-bookworm-slim AS base
 
 # Install Yarn globally
 RUN corepack enable && corepack prepare yarn@4.10.3 --activate
 
-RUN apt-get update && apt-get install -y \
-    bash \
-    openssl \
-    curl \
-    ca-certificates \
-    dumb-init \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies with robust error handling
+RUN rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        bash \
+        openssl \
+        curl \
+        ca-certificates \
+        dumb-init \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /app
 
