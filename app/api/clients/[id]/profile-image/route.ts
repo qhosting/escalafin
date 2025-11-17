@@ -7,6 +7,10 @@ import { saveFileLocally, deleteFileLocally } from '@/lib/local-storage';
 import path from 'path';
 import { existsSync, mkdirSync } from 'fs';
 
+// Configuración de Next.js para manejar archivos grandes
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Directorio base para imágenes de perfil (siempre local)
 const PROFILE_IMAGES_DIR = process.env.LOCAL_STORAGE_PATH || '/app/uploads';
 const PROFILE_FOLDER = 'profile-images';
@@ -38,14 +42,20 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('[profile-image POST] Inicio de request para clientId:', params.id);
+    console.log('[profile-image POST] Content-Type de request:', request.headers.get('content-type'));
+
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
+      console.log('[profile-image POST] No hay sesión activa');
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
       );
     }
+
+    console.log('[profile-image POST] Usuario autenticado:', session.user.email, 'Role:', session.user.role);
 
     const clientId = params.id;
 
@@ -88,7 +98,17 @@ export async function POST(
     }
 
     // Obtener el archivo de FormData
-    const formData = await request.formData();
+    let formData;
+    try {
+      formData = await request.formData();
+    } catch (parseError: any) {
+      console.error('[profile-image] Error al parsear FormData:', parseError);
+      return NextResponse.json(
+        { error: 'Error al procesar el archivo. Verifique que el archivo sea válido.', details: parseError.message },
+        { status: 400 }
+      );
+    }
+
     const file = formData.get('file') as File;
 
     if (!file) {
@@ -117,18 +137,52 @@ export async function POST(
     }
 
     // Convertir a Buffer
-    const buffer = Buffer.from(await file.arrayBuffer());
+    console.log('[profile-image] Convirtiendo archivo a buffer...');
+    let buffer;
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
+      console.log('[profile-image] Buffer creado correctamente:', buffer.length, 'bytes');
+    } catch (bufferError: any) {
+      console.error('[profile-image] Error al convertir a buffer:', bufferError);
+      return NextResponse.json(
+        { error: 'Error al procesar el archivo', details: bufferError.message },
+        { status: 500 }
+      );
+    }
 
     // Generar nombre de archivo único
     const timestamp = Date.now();
     const extension = file.name.split('.').pop() || 'jpg';
     const fileName = `profile-${clientId}-${timestamp}.${extension}`;
+    console.log('[profile-image] Nombre de archivo generado:', fileName);
 
     // Asegurar que existe el directorio
-    const profileDir = ensureProfileDirectory();
+    let profileDir;
+    try {
+      profileDir = ensureProfileDirectory();
+      console.log('[profile-image] Directorio de perfil:', profileDir);
+    } catch (dirError: any) {
+      console.error('[profile-image] Error al crear directorio:', dirError);
+      return NextResponse.json(
+        { error: 'Error al crear directorio de almacenamiento', details: dirError.message },
+        { status: 500 }
+      );
+    }
 
     // Guardar archivo localmente
-    const relativePath = await saveFileLocally(buffer, fileName, profileDir);
+    console.log('[profile-image] Guardando archivo...');
+    let relativePath;
+    try {
+      relativePath = await saveFileLocally(buffer, fileName, profileDir);
+      console.log('[profile-image] Archivo guardado en:', relativePath);
+    } catch (saveError: any) {
+      console.error('[profile-image] Error al guardar archivo:', saveError);
+      return NextResponse.json(
+        { error: 'Error al guardar el archivo', details: saveError.message },
+        { status: 500 }
+      );
+    }
 
     // Si el cliente ya tenía una imagen, eliminar la anterior
     if (client.profileImage) {

@@ -76,6 +76,17 @@ export function ClientProfileImage({
         body: formData,
       });
 
+      console.log('[ClientProfileImage] Status de respuesta:', response.status);
+      console.log('[ClientProfileImage] Content-Type:', response.headers.get('content-type'));
+
+      // Verificar el content-type antes de parsear
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('[ClientProfileImage] Respuesta no JSON:', textResponse);
+        throw new Error('El servidor no devolvió una respuesta JSON válida. Por favor, revise los logs del servidor.');
+      }
+
       const data = await response.json();
 
       console.log('[ClientProfileImage] Respuesta del servidor:', data);
