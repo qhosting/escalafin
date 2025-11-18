@@ -20,12 +20,12 @@ CREATE TABLE "weekly_interest_rates" (
 );
 
 -- Seed default weekly interest rates based on user requirements
-INSERT INTO "weekly_interest_rates" ("id", "minAmount", "maxAmount", "weeklyInterestRate", "weeklyInterestAmount", "isActive") VALUES
-('wir_3000', 3000, 3000, 5.67, 170, true),
-('wir_4000', 4000, 4000, 5.00, 200, true),
-('wir_5000', 5000, 5000, 4.60, 230, true),
-('wir_6000', 6000, 6000, 4.34, 260, true),
-('wir_7000', 7000, 7000, 4.15, 291, true),
-('wir_8000', 8000, 8000, 4.00, 320, true),
-('wir_9000', 9000, 9000, 4.00, 360, true),
-('wir_10000', 10000, 10000, 4.00, 400, true);
+INSERT INTO "weekly_interest_rates" ("id", "minAmount", "maxAmount", "weeklyInterestRate", "weeklyInterestAmount", "isActive", "updatedAt") VALUES
+('wir_3000', 3000, 3000, 5.67, 170, true, CURRENT_TIMESTAMP),
+('wir_4000', 4000, 4000, 5.00, 200, true, CURRENT_TIMESTAMP),
+('wir_5000', 5000, 5000, 4.60, 230, true, CURRENT_TIMESTAMP),
+('wir_6000', 6000, 6000, 4.34, 260, true, CURRENT_TIMESTAMP),
+('wir_7000', 7000, 7000, 4.15, 291, true, CURRENT_TIMESTAMP),
+('wir_8000', 8000, 8000, 4.00, 320, true, CURRENT_TIMESTAMP),
+('wir_9000', 9000, 9000, 4.00, 360, true, CURRENT_TIMESTAMP),
+('wir_10000', 10000, 10000, 4.00, 400, true, CURRENT_TIMESTAMP);
