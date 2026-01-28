@@ -20,14 +20,14 @@ export async function GET() {
       );
     }
 
-    const config = await prisma.evolutionAPIConfig.findFirst({
+    const config = await prisma.wahaConfig.findFirst({
       where: { isActive: true }
     });
 
     // No retornar información sensible como API key completa
     const sanitizedConfig = config ? {
       id: config.id,
-      instanceName: config.instanceName,
+      sessionId: config.sessionId,
       baseUrl: config.baseUrl,
       webhookUrl: config.webhookUrl,
       isActive: config.isActive,
@@ -43,7 +43,7 @@ export async function GET() {
 
     return NextResponse.json({ config: sanitizedConfig });
   } catch (error) {
-    console.error('Error obteniendo configuración EvolutionAPI:', error);
+    console.error('Error obteniendo configuración Waha:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -64,7 +64,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
-      instanceName,
+      instanceName, // Legacy
+      sessionId,
       apiKey,
       baseUrl,
       webhookUrl,
@@ -75,24 +76,27 @@ export async function POST(request: NextRequest) {
       marketingTemplate
     } = body;
 
+    // Use sessionId or fallback to instanceName (legacy) or default
+    const finalSessionId = sessionId || instanceName || 'default';
+
     // Validaciones básicas
-    if (!instanceName || !apiKey || !baseUrl) {
+    if (!baseUrl) {
       return NextResponse.json(
-        { error: 'instanceName, apiKey y baseUrl son obligatorios' },
+        { error: 'baseUrl es obligatorio' },
         { status: 400 }
       );
     }
 
     // Desactivar configuraciones existentes
-    await prisma.evolutionAPIConfig.updateMany({
+    await prisma.wahaConfig.updateMany({
       where: { isActive: true },
       data: { isActive: false }
     });
 
     // Crear nueva configuración
-    const config = await prisma.evolutionAPIConfig.create({
+    const config = await prisma.wahaConfig.create({
       data: {
-        instanceName,
+        sessionId: finalSessionId,
         apiKey,
         baseUrl,
         webhookUrl,
@@ -110,11 +114,11 @@ export async function POST(request: NextRequest) {
     await auditLogger.log({
       userId: session.user.id,
       userEmail: session.user.email,
-      action: 'EVOLUTION_API_CONFIG_CREATE',
-      resource: 'EvolutionAPIConfig',
+      action: 'WAHA_CONFIG_CREATE',
+      resource: 'WahaConfig',
       resourceId: config.id,
       details: {
-        instanceName,
+        sessionId: finalSessionId,
         baseUrl,
         webhookUrl,
         hasApiKey: !!apiKey
@@ -124,11 +128,11 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({
-      message: 'Configuración de EvolutionAPI guardada exitosamente',
+      message: 'Configuración de Waha guardada exitosamente',
       configId: config.id
     });
   } catch (error) {
-    console.error('Error configurando EvolutionAPI:', error);
+    console.error('Error configurando Waha:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -157,7 +161,13 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updatedConfig = await prisma.evolutionAPIConfig.update({
+    // Handle legacy field mapping
+    if (updateData.instanceName && !updateData.sessionId) {
+      updateData.sessionId = updateData.instanceName;
+      delete updateData.instanceName;
+    }
+
+    const updatedConfig = await prisma.wahaConfig.update({
       where: { id },
       data: updateData
     });
@@ -167,8 +177,8 @@ export async function PUT(request: NextRequest) {
     await auditLogger.log({
       userId: session.user.id,
       userEmail: session.user.email,
-      action: 'EVOLUTION_API_CONFIG_UPDATE',
-      resource: 'EvolutionAPIConfig',
+      action: 'WAHA_CONFIG_UPDATE',
+      resource: 'WahaConfig',
       resourceId: updatedConfig.id,
       details: updateData,
       ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
@@ -179,7 +189,7 @@ export async function PUT(request: NextRequest) {
       message: 'Configuración actualizada exitosamente'
     });
   } catch (error) {
-    console.error('Error actualizando configuración EvolutionAPI:', error);
+    console.error('Error actualizando configuración Waha:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

@@ -56,7 +56,7 @@ Este documento proporciona una visión detallada de la arquitectura, módulos y 
 - **Funciones**:
   - Envío de notificaciones por WhatsApp y Email.
   - Plantillas de mensajes configurables.
-  - Integración con **EvolutionAPI** para WhatsApp.
+  - Integración con **Waha (WhatsApp API)** para WhatsApp.
   - Alertas automáticas de vencimiento de pago.
 
 ### 6. 📊 Reportes y Analytics (`/admin/reports`, `/api/reports`)
@@ -85,7 +85,7 @@ Este documento proporciona una visión detallada de la arquitectura, módulos y 
 | Servicio | Propósito | Estado |
 |----------|-----------|--------|
 | **Openpay** | Procesamiento de pagos en línea | ✅ Implementado |
-| **EvolutionAPI** | Envío de mensajes de WhatsApp | ✅ Implementado |
+| **Waha (WhatsApp)** | Envío de mensajes de WhatsApp | ✅ Implementado |
 | **AWS S3** | Almacenamiento de archivos en la nube | ✅ Implementado |
 | **Google Maps** | Visualización de direcciones de clientes | ✅ Enlaces externos |
 

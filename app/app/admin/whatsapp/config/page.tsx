@@ -4,7 +4,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import EvolutionAPIConfig from '@/components/admin/evolution-api-config';
+import WahaConfig from '@/components/admin/waha-config';
 import { Loader2 } from 'lucide-react';
 
 export default function WhatsAppConfigPage() {
@@ -38,5 +38,5 @@ export default function WhatsAppConfigPage() {
     return null;
   }
 
-  return <EvolutionAPIConfig />;
+  return <WahaConfig />;
 }

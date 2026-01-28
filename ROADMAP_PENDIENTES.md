@@ -14,7 +14,7 @@ Estas tareas deben realizarse inmediatamente después del despliegue en Easypane
 ### 2. Pruebas de Funcionalidad Crítica en Producción
 - [ ] **Subida de Imágenes**: Probar la carga de imágenes de perfil de clientes. Verificar logs para confirmar que el tipo de contenido se valida correctamente.
 - [ ] **Generación de PDFs**: Confirmar que la generación de contratos y reportes PDF funciona (requiere librerías del sistema instaladas correctamente).
-- [ ] **Conexión WhatsApp**: Verificar que EvolutionAPI está conectado y enviando mensajes de prueba.
+- [ ] **Conexión WhatsApp**: Verificar que Waha está conectado y enviando mensajes de prueba.
 
 ---
 

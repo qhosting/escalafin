@@ -13,9 +13,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, AlertCircle, Send } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface EvolutionAPIConfig {
+interface WahaConfig {
   id?: string;
-  instanceName: string;
+  sessionId: string;
   baseUrl: string;
   webhookUrl?: string;
   isActive: boolean;
@@ -72,9 +72,9 @@ Tu solicitud de préstamo ha sido aprobada.
 *EscalaFin - Tu aliado financiero*`
 };
 
-export default function EvolutionAPIConfig() {
-  const [config, setConfig] = useState<EvolutionAPIConfig>({
-    instanceName: '',
+export default function WahaConfig() {
+  const [config, setConfig] = useState<WahaConfig>({
+    sessionId: 'default',
     baseUrl: '',
     webhookUrl: '',
     isActive: true,
@@ -91,7 +91,7 @@ export default function EvolutionAPIConfig() {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
   const [testPhone, setTestPhone] = useState('');
-  const [testMessage, setTestMessage] = useState('¡Prueba de conexión desde EscalaFin!');
+  const [testMessage, setTestMessage] = useState('¡Prueba de conexión desde EscalaFin (Waha)!');
 
   useEffect(() => {
     loadConfig();
@@ -100,7 +100,7 @@ export default function EvolutionAPIConfig() {
   const loadConfig = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/evolution-api/config');
+      const response = await fetch('/api/admin/waha/config');
       const data = await response.json();
       
       if (response.ok && data.config) {
@@ -116,8 +116,8 @@ export default function EvolutionAPIConfig() {
 
   const handleSave = async () => {
     try {
-      if (!config.instanceName || !config.baseUrl || !apiKey) {
-        toast.error('Por favor completa todos los campos obligatorios');
+      if (!config.baseUrl) {
+        toast.error('Por favor ingresa la URL Base');
         return;
       }
 
@@ -128,7 +128,7 @@ export default function EvolutionAPIConfig() {
         apiKey
       };
 
-      const url = config.id ? '/api/admin/evolution-api/config' : '/api/admin/evolution-api/config';
+      const url = '/api/admin/waha/config';
       const method = config.id ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -163,7 +163,7 @@ export default function EvolutionAPIConfig() {
       setTesting(true);
       setTestResult(null);
 
-      const response = await fetch('/api/admin/evolution-api/test', {
+      const response = await fetch('/api/admin/waha/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -201,9 +201,9 @@ export default function EvolutionAPIConfig() {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Configuración EvolutionAPI</h1>
+          <h1 className="text-2xl font-bold">Configuración Waha (WhatsApp API)</h1>
           <p className="text-muted-foreground">
-            Configura la integración con WhatsApp para notificaciones automáticas
+            Configura la integración con WhatsApp (Waha) para notificaciones automáticas
           </p>
         </div>
         <Button onClick={handleSave} disabled={saving}>
@@ -233,33 +233,33 @@ export default function EvolutionAPIConfig() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="instanceName">Nombre de Instancia *</Label>
+                  <Label htmlFor="sessionId">Nombre de Sesión *</Label>
                   <Input
-                    id="instanceName"
-                    value={config.instanceName}
-                    onChange={(e) => setConfig({ ...config, instanceName: e.target.value })}
-                    placeholder="mi-instancia-whatsapp"
+                    id="sessionId"
+                    value={config.sessionId}
+                    onChange={(e) => setConfig({ ...config, sessionId: e.target.value })}
+                    placeholder="default"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="apiKey">API Key *</Label>
+                  <Label htmlFor="apiKey">API Key (Opcional)</Label>
                   <Input
                     id="apiKey"
                     type="password"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    placeholder={config.apiKeyPreview || "Ingresa tu API Key"}
+                    placeholder={config.apiKeyPreview || "Ingresa tu API Key si está configurada en Waha"}
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="baseUrl">URL Base de EvolutionAPI *</Label>
+                <Label htmlFor="baseUrl">URL Base de Waha *</Label>
                 <Input
                   id="baseUrl"
                   value={config.baseUrl}
                   onChange={(e) => setConfig({ ...config, baseUrl: e.target.value })}
-                  placeholder="https://api.evolution.com"
+                  placeholder="https://waha.tu-dominio.com"
                 />
               </div>
 
@@ -269,7 +269,7 @@ export default function EvolutionAPIConfig() {
                   id="webhookUrl"
                   value={config.webhookUrl || ''}
                   onChange={(e) => setConfig({ ...config, webhookUrl: e.target.value })}
-                  placeholder="https://tu-servidor.com/webhook/whatsapp"
+                  placeholder="https://tu-servidor.com/api/webhooks/waha"
                 />
               </div>
 
@@ -404,13 +404,18 @@ export default function EvolutionAPIConfig() {
                       <p>
                         {testResult.success 
                           ? 'Mensaje enviado exitosamente' 
-                          : `Error: ${testResult.error}`
+                          : `Error: ${testResult.error || testResult.details || 'Desconocido'}`
                         }
                       </p>
                       {testResult.messageId && (
                         <p className="text-sm text-muted-foreground">
                           ID del mensaje: {testResult.messageId}
                         </p>
+                      )}
+                      {testResult.sessionStatus && (
+                        <div className="text-xs bg-gray-100 p-2 rounded mt-2">
+                            Status Sesión: {JSON.stringify(testResult.sessionStatus)}
+                        </div>
                       )}
                     </div>
                   </AlertDescription>

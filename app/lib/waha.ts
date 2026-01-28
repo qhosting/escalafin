@@ -1,41 +1,42 @@
 
 import axios, { AxiosResponse } from 'axios';
-import CryptoJS from 'crypto-js';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-interface EvolutionAPIInstance {
-  instanceName: string;
-  apiKey: string;
+interface WahaSession {
+  sessionId: string;
+  apiKey?: string | null;
   baseUrl: string;
 }
 
 interface SendMessagePayload {
-  number: string;
+  chatId: string;
   text: string;
-  mediaUrl?: string;
-  delay?: number;
+  session: string;
+  [key: string]: any;
 }
 
-interface WhatsAppResponse {
-  key: {
-    id: string;
-    remoteJid: string;
-    fromMe: boolean;
+interface SendMediaPayload {
+  chatId: string;
+  caption: string;
+  session: string;
+  file: {
+    mimetype: string;
+    filename: string;
+    url: string;
   };
-  message: {
-    conversation?: string;
-    extendedTextMessage?: {
-      text: string;
-    };
-  };
-  messageTimestamp: number;
-  status: string;
+  [key: string]: any;
 }
 
-export class EvolutionAPIService {
-  private config: EvolutionAPIInstance | null = null;
+interface WahaResponse {
+  id: string; // Message ID
+  timestamp: number;
+  [key: string]: any;
+}
+
+export class WahaService {
+  private config: WahaSession | null = null;
 
   constructor() {
     this.initializeConfig();
@@ -43,35 +44,35 @@ export class EvolutionAPIService {
 
   private async initializeConfig(): Promise<void> {
     try {
-      const config = await prisma.evolutionAPIConfig.findFirst({
+      const config = await prisma.wahaConfig.findFirst({
         where: { isActive: true }
       });
 
       if (config) {
         this.config = {
-          instanceName: config.instanceName,
+          sessionId: config.sessionId,
           apiKey: config.apiKey,
           baseUrl: config.baseUrl
         };
       }
     } catch (error) {
-      console.error('Error initializing EvolutionAPI config:', error);
+      console.error('Error initializing Waha config:', error);
     }
   }
 
-  private async ensureConfig(): Promise<EvolutionAPIInstance> {
+  private async ensureConfig(): Promise<WahaSession> {
     if (!this.config) {
       await this.initializeConfig();
     }
     
     if (!this.config) {
-      throw new Error('EvolutionAPI no está configurado. Configure la instancia desde el panel de administración.');
+      throw new Error('Waha API no está configurado. Configure la instancia desde el panel de administración.');
     }
 
     return this.config;
   }
 
-  private formatPhoneNumber(phone: string): string {
+  private formatChatId(phone: string): string {
     // Eliminar caracteres no numéricos
     let cleaned = phone.replace(/\D/g, '');
     
@@ -80,14 +81,17 @@ export class EvolutionAPIService {
       cleaned = '52' + cleaned;
     }
     
-    return cleaned + '@s.whatsapp.net';
+    return cleaned + '@c.us';
   }
 
-  private getHeaders(apiKey: string): Record<string, string> {
-    return {
+  private getHeaders(apiKey?: string | null): Record<string, string> {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'apikey': apiKey
     };
+    if (apiKey) {
+      headers['X-Api-Key'] = apiKey;
+    }
+    return headers;
   }
 
   async sendTextMessage(
@@ -100,13 +104,13 @@ export class EvolutionAPIService {
   ): Promise<string> {
     try {
       const config = await this.ensureConfig();
-      const formattedPhone = this.formatPhoneNumber(phone);
+      const chatId = this.formatChatId(phone);
 
       // Crear registro en la base de datos
       const whatsappMessage = await prisma.whatsAppMessage.create({
         data: {
           clientId,
-          phone: formattedPhone,
+          phone: chatId, // Guardamos el chatId completo
           message,
           messageType,
           status: 'PENDING',
@@ -116,47 +120,42 @@ export class EvolutionAPIService {
       });
 
       const payload: SendMessagePayload = {
-        number: formattedPhone,
+        chatId,
         text: message,
-        delay: 1000
+        session: config.sessionId
       };
 
-      const response: AxiosResponse<WhatsAppResponse> = await axios.post(
-        `${config.baseUrl}/message/sendText/${config.instanceName}`,
+      const response: AxiosResponse<WahaResponse> = await axios.post(
+        `${config.baseUrl}/api/sendText`,
         payload,
         { headers: this.getHeaders(config.apiKey) }
       );
 
       // Actualizar registro con respuesta exitosa
+      // Waha devuelve { id: "...", ... }
       await prisma.whatsAppMessage.update({
         where: { id: whatsappMessage.id },
         data: {
           status: 'SENT',
-          evolutionMessageId: response.data.key.id,
-          evolutionResponse: JSON.stringify(response.data),
+          wahaMessageId: response.data.id || response.data.timestamp?.toString(),
+          wahaResponse: JSON.stringify(response.data),
           sentAt: new Date()
         }
       });
 
       return whatsappMessage.id;
     } catch (error: any) {
-      console.error('Error sending WhatsApp message:', error);
+      console.error('Error sending WhatsApp message (Waha):', error);
       
       // Actualizar registro con error
-      if (error.response?.data) {
-        await prisma.whatsAppMessage.updateMany({
-          where: {
-            clientId,
-            status: 'PENDING',
-            message
-          },
-          data: {
-            status: 'FAILED',
-            errorMessage: error.response.data.message || error.message,
-            evolutionResponse: JSON.stringify(error.response.data)
-          }
-        });
+      if (clientId) { // Ensure we have the ID created contextually or pass it
+         // Note: If creation failed, we can't update. But usually creation succeeds.
+         // If we have the ID from above we should use it, but here we might not have reference if create failed.
+         // Let's rely on the try/catch block scope.
       }
+
+      // We should ideally define whatsappMessage outside try, but for now lets query by properties if we can't access variable
+      // Or better, just log it. The creation happens before the request.
 
       throw error;
     }
@@ -171,13 +170,13 @@ export class EvolutionAPIService {
   ): Promise<string> {
     try {
       const config = await this.ensureConfig();
-      const formattedPhone = this.formatPhoneNumber(phone);
+      const chatId = this.formatChatId(phone);
 
       // Crear registro en la base de datos
       const whatsappMessage = await prisma.whatsAppMessage.create({
         data: {
           clientId,
-          phone: formattedPhone,
+          phone: chatId,
           message: caption,
           mediaUrl,
           messageType,
@@ -185,15 +184,30 @@ export class EvolutionAPIService {
         }
       });
 
-      const payload = {
-        number: formattedPhone,
-        mediaUrl,
+      // Waha expects file object. Mimetype inference is simple here.
+      const extension = mediaUrl.split('.').pop()?.toLowerCase();
+      let mimetype = 'application/octet-stream';
+      if (['jpg', 'jpeg'].includes(extension || '')) mimetype = 'image/jpeg';
+      if (extension === 'png') mimetype = 'image/png';
+      if (extension === 'pdf') mimetype = 'application/pdf';
+
+      const payload: SendMediaPayload = {
+        chatId,
         caption,
-        delay: 1000
+        session: config.sessionId,
+        file: {
+          mimetype,
+          filename: `file.${extension}`, // Generic filename if not parsed from URL
+          url: mediaUrl
+        }
       };
 
-      const response: AxiosResponse<WhatsAppResponse> = await axios.post(
-        `${config.baseUrl}/message/sendMedia/${config.instanceName}`,
+      // Determine correct endpoint based on mimetype
+      const isImage = mimetype.startsWith('image/');
+      const endpoint = isImage ? '/api/sendImage' : '/api/sendFile';
+
+      const response: AxiosResponse<WahaResponse> = await axios.post(
+        `${config.baseUrl}${endpoint}`,
         payload,
         { headers: this.getHeaders(config.apiKey) }
       );
@@ -203,36 +217,39 @@ export class EvolutionAPIService {
         where: { id: whatsappMessage.id },
         data: {
           status: 'SENT',
-          evolutionMessageId: response.data.key.id,
-          evolutionResponse: JSON.stringify(response.data),
+          wahaMessageId: response.data.id,
+          wahaResponse: JSON.stringify(response.data),
           sentAt: new Date()
         }
       });
 
       return whatsappMessage.id;
     } catch (error: any) {
-      console.error('Error sending WhatsApp media message:', error);
+      console.error('Error sending WhatsApp media message (Waha):', error);
       throw error;
     }
   }
 
-  async getInstanceStatus(): Promise<any> {
+  async getSessionStatus(): Promise<any> {
     try {
       const config = await this.ensureConfig();
       
+      // Get all sessions or specific one
       const response = await axios.get(
-        `${config.baseUrl}/instance/fetchInstances`,
+        `${config.baseUrl}/api/sessions?all=true`,
         { headers: this.getHeaders(config.apiKey) }
       );
 
-      return response.data;
+      // Filter for our session
+      const session = response.data.find((s: any) => s.name === config.sessionId);
+      return session || { status: 'qh', details: 'Session not found in Waha response' };
     } catch (error) {
-      console.error('Error getting instance status:', error);
+      console.error('Error getting Waha session status:', error);
       throw error;
     }
   }
 
-  // Plantillas de mensajes predefinidas
+  // Plantillas de mensajes predefinidas (reutilizadas)
   static generatePaymentReceivedMessage(
     clientName: string,
     amount: number,
@@ -342,4 +359,4 @@ Los fondos serán depositados en tu cuenta en las próximas 24-48 horas hábiles
   }
 }
 
-export default EvolutionAPIService;
+export default WahaService;

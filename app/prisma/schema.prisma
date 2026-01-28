@@ -450,26 +450,26 @@ model ReportGeneration {
 }
 
 model WhatsAppMessage {
-  id                 String                @id @default(cuid())
-  clientId           String
-  phone              String
-  messageType        WhatsAppMessageType
-  status             WhatsAppMessageStatus @default(PENDING)
-  message            String
-  mediaUrl           String?
-  scheduledFor       DateTime?
-  sentAt             DateTime?
-  deliveredAt        DateTime?
-  readAt             DateTime?
-  errorMessage       String?
-  evolutionMessageId String?
-  evolutionResponse  String?
-  paymentId          String?
-  loanId             String?
-  metadata           String?
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
-  client             Client                @relation("ClientMessages", fields: [clientId], references: [id], onDelete: Cascade)
+  id            String                @id @default(cuid())
+  clientId      String
+  phone         String
+  messageType   WhatsAppMessageType
+  status        WhatsAppMessageStatus @default(PENDING)
+  message       String
+  mediaUrl      String?
+  scheduledFor  DateTime?
+  sentAt        DateTime?
+  deliveredAt   DateTime?
+  readAt        DateTime?
+  errorMessage  String?
+  wahaMessageId String?
+  wahaResponse  String?
+  paymentId     String?
+  loanId        String?
+  metadata      String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  client        Client                @relation("ClientMessages", fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
   @@index([status])
@@ -496,10 +496,10 @@ model MessageTemplate {
   @@map("message_templates")
 }
 
-model EvolutionAPIConfig {
+model WahaConfig {
   id                      String   @id @default(cuid())
-  instanceName            String   @unique
-  apiKey                  String
+  sessionId               String   @unique @default("default")
+  apiKey                  String?
   baseUrl                 String
   webhookUrl              String?
   isActive                Boolean  @default(true)
@@ -511,7 +511,7 @@ model EvolutionAPIConfig {
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 
-  @@map("evolution_api_config")
+  @@map("waha_config")
 }
 
 model File {

@@ -1,6 +1,6 @@
 
 import { PrismaClient } from '@prisma/client';
-import EvolutionAPIService from './evolution-api';
+import WahaService from './waha';
 
 const prisma = new PrismaClient();
 
@@ -12,10 +12,10 @@ interface NotificationOptions {
 }
 
 export class WhatsAppNotificationService {
-  private evolutionAPI: EvolutionAPIService;
+  private wahaService: WahaService;
 
   constructor() {
-    this.evolutionAPI = new EvolutionAPIService();
+    this.wahaService = new WahaService();
   }
 
   async sendPaymentReceivedNotification(
@@ -54,7 +54,7 @@ export class WhatsAppNotificationService {
       }
 
       // Generar mensaje
-      const message = EvolutionAPIService.generatePaymentReceivedMessage(
+      const message = WahaService.generatePaymentReceivedMessage(
         `${client.firstName} ${client.lastName}`,
         Number(payment.amount),
         loan.loanNumber,
@@ -62,7 +62,7 @@ export class WhatsAppNotificationService {
       );
 
       // Enviar mensaje
-      await this.evolutionAPI.sendTextMessage(
+      await this.wahaService.sendTextMessage(
         client.id,
         client.phone,
         message,
@@ -126,7 +126,7 @@ export class WhatsAppNotificationService {
       const daysOverdue = diffDays < 0 ? Math.abs(diffDays) : 0;
 
       // Generar mensaje
-      const message = EvolutionAPIService.generatePaymentReminderMessage(
+      const message = WahaService.generatePaymentReminderMessage(
         `${client.firstName} ${client.lastName}`,
         Number(nextPayment.totalPayment),
         loan.loanNumber,
@@ -135,7 +135,7 @@ export class WhatsAppNotificationService {
       );
 
       // Enviar mensaje
-      await this.evolutionAPI.sendTextMessage(
+      await this.wahaService.sendTextMessage(
         client.id,
         client.phone,
         message,
@@ -179,7 +179,7 @@ export class WhatsAppNotificationService {
       }
 
       // Generar mensaje
-      const message = EvolutionAPIService.generateLoanApprovedMessage(
+      const message = WahaService.generateLoanApprovedMessage(
         `${client.firstName} ${client.lastName}`,
         Number(loan.principalAmount),
         loan.loanNumber,
@@ -188,7 +188,7 @@ export class WhatsAppNotificationService {
       );
 
       // Enviar mensaje
-      await this.evolutionAPI.sendTextMessage(
+      await this.wahaService.sendTextMessage(
         client.id,
         client.phone,
         message,
@@ -227,7 +227,7 @@ export class WhatsAppNotificationService {
 
       // Enviar mensaje
       if (options.includeMedia && options.mediaUrl) {
-        await this.evolutionAPI.sendMediaMessage(
+        await this.wahaService.sendMediaMessage(
           clientId,
           client.phone,
           options.mediaUrl,
@@ -235,7 +235,7 @@ export class WhatsAppNotificationService {
           messageType
         );
       } else {
-        await this.evolutionAPI.sendTextMessage(
+        await this.wahaService.sendTextMessage(
           clientId,
           client.phone,
           message,
@@ -268,7 +268,7 @@ export class WhatsAppNotificationService {
       for (const message of scheduledMessages) {
         try {
           if (message.mediaUrl) {
-            await this.evolutionAPI.sendMediaMessage(
+            await this.wahaService.sendMediaMessage(
               message.clientId,
               message.client.phone,
               message.mediaUrl,
@@ -276,7 +276,7 @@ export class WhatsAppNotificationService {
               message.messageType
             );
           } else {
-            await this.evolutionAPI.sendTextMessage(
+            await this.wahaService.sendTextMessage(
               message.clientId,
               message.client.phone,
               message.message,
