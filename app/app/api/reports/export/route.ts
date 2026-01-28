@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import PDFDocument from 'pdfkit';
+import ExcelJS from 'exceljs';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,6 +90,69 @@ async function generatePDF(reportData: any): Promise<Buffer> {
   });
 }
 
+async function generateExcel(reportData: any): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Reporte');
+
+  // Title and Period
+  worksheet.getCell('A1').value = 'EscalaFin - ' + reportData.title;
+  worksheet.getCell('A1').font = { size: 16, bold: true };
+  worksheet.mergeCells('A1:D1');
+
+  worksheet.getCell('A2').value = 'Período: ' + reportData.period;
+  worksheet.getCell('A2').font = { size: 12 };
+  worksheet.mergeCells('A2:D2');
+
+  worksheet.addRow([]);
+
+  // Summary
+  worksheet.getCell('A4').value = 'Resumen Ejecutivo';
+  worksheet.getCell('A4').font = { size: 14, bold: true };
+
+  let currentRow = 5;
+  const summaryKeys = Object.keys(reportData.summary);
+  summaryKeys.forEach((key) => {
+    const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+    const value = reportData.summary[key];
+
+    worksheet.getCell(`A${currentRow}`).value = label;
+    worksheet.getCell(`B${currentRow}`).value = value;
+    currentRow++;
+  });
+
+  worksheet.addRow([]);
+  currentRow++;
+
+  // Details Header
+  worksheet.getCell(`A${currentRow}`).value = 'Detalles';
+  worksheet.getCell(`A${currentRow}`).font = { size: 14, bold: true };
+  currentRow++;
+
+  if (reportData.details && reportData.details.length > 0) {
+    // Generate headers from first detail item keys
+    const headers = Object.keys(reportData.details[0]).map(key =>
+      key.charAt(0).toUpperCase() + key.slice(1)
+    );
+
+    worksheet.getRow(currentRow).values = headers;
+    worksheet.getRow(currentRow).font = { bold: true };
+    currentRow++;
+
+    // Add data rows
+    reportData.details.forEach((item: any) => {
+      worksheet.addRow(Object.values(item));
+    });
+  }
+
+  // Adjust column widths
+  worksheet.columns.forEach(column => {
+    column.width = 20;
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  return buffer as Buffer;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -99,6 +163,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'general';
     const timeRange = searchParams.get('timeRange') || '30days';
+    const format = searchParams.get('format') || 'pdf'; // 'pdf' or 'excel'
 
     // Calculate date range
     const endDate = new Date();
@@ -157,7 +222,7 @@ export async function GET(request: NextRequest) {
           details: payments.map(p => ({
             date: p.paymentDate.toLocaleDateString(),
             client: `${p.loan.client.firstName} ${p.loan.client.lastName}`,
-            amount: p.amount,
+            amount: Number(p.amount),
             method: p.paymentMethod,
             status: p.status
           }))
@@ -224,7 +289,7 @@ export async function GET(request: NextRequest) {
           },
           details: monthlyData.map(d => ({
             date: d.paymentDate.toLocaleDateString(),
-            amount: d._sum.amount || 0,
+            amount: Number(d._sum.amount || 0),
             method: `Tx: ${d._count.id}`
           }))
         };
@@ -241,16 +306,24 @@ export async function GET(request: NextRequest) {
         };
     }
 
-    // Generate PDF
-    const pdfBuffer = await generatePDF(reportData);
-
-    // Return PDF
-    return new NextResponse(pdfBuffer, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${type}-report-${endDate.toISOString().split('T')[0]}.pdf"`,
-      },
-    });
+    if (format === 'excel') {
+      const excelBuffer = await generateExcel(reportData);
+      return new NextResponse(excelBuffer, {
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': `attachment; filename="${type}-report-${endDate.toISOString().split('T')[0]}.xlsx"`,
+        },
+      });
+    } else {
+      // Default to PDF
+      const pdfBuffer = await generatePDF(reportData);
+      return new NextResponse(pdfBuffer, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${type}-report-${endDate.toISOString().split('T')[0]}.pdf"`,
+        },
+      });
+    }
 
   } catch (error) {
     console.error('Error generating report:', error);

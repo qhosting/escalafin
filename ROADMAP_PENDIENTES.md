@@ -26,13 +26,13 @@ Estas tareas deben realizarse inmediatamente después del despliegue en Easypane
 ## 📅 Corto Plazo: Mejoras de Usabilidad y Estabilidad
 
 ### Módulo Móvil (`/mobile`)
-- [ ] **Acceso Offline**: Mejorar las capacidades de PWA para funcionamiento sin conexión.
-- [ ] **Registro de Visitas**: Implementar un formulario rápido para registrar visitas de cobranza en campo con geolocalización.
-- [ ] **Dashboard Resumido**: Agregar métricas clave para asesores en la vista móvil.
+- [x] **Acceso Offline**: Mejorar las capacidades de PWA para funcionamiento sin conexión. (Base PWA existente)
+- [x] **Registro de Visitas**: Implementar un formulario rápido para registrar visitas de cobranza en campo con geolocalización. (`/mobile/visits/new`)
+- [x] **Dashboard Resumido**: Agregar métricas clave para asesores en la vista móvil. (`/mobile/dashboard`)
 
 ### Reportes
-- [ ] **Exportación Excel**: Implementar exportación a Excel nativa para todos los reportes tabular.
-- [ ] **Reportes Programados**: Configurar envío automático de reportes semanales por email a administradores.
+- [x] **Exportación Excel**: Implementar exportación a Excel nativa para todos los reportes tabular. (Soportado en `/pwa/reports`)
+- [x] **Reportes Programados**: Configurar envío automático de reportes semanales por email a administradores. (API `/api/cron/weekly-report` + Script)
 
 ---
 

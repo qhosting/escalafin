@@ -73,6 +73,7 @@ model User {
   moduleUpdates              PWAModule[]            @relation("ModuleUpdates")
   generatedReports           ReportGeneration[]     @relation("GeneratedReports")
   configUpdates              SystemConfig[]         @relation("ConfigUpdates")
+  collectionVisits           CollectionVisit[]      @relation("AdvisorVisits")
 
   @@map("users")
 }
@@ -123,8 +124,32 @@ model Client {
   guarantor                    Guarantor?          @relation("ClientGuarantor")
   collaterals                  Collateral[]        @relation("ClientCollateral")
   whatsappMessages             WhatsAppMessage[]   @relation("ClientMessages")
+  collectionVisits             CollectionVisit[]   @relation("ClientVisits")
 
   @@map("clients")
+}
+
+model CollectionVisit {
+  id          String   @id @default(cuid())
+  clientId    String
+  advisorId   String
+  visitDate   DateTime @default(now())
+  latitude    Float?
+  longitude   Float?
+  address     String?  // Dirección aproximada o detectada
+  notes       String?
+  outcome     String?  // Resultado: Promesa de pago, No encontrado, Pagó, etc.
+  promiseDate DateTime? // Si hubo promesa de pago
+  photoUrl    String?  // Evidencia de visita
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  client      Client   @relation("ClientVisits", fields: [clientId], references: [id], onDelete: Cascade)
+  advisor     User     @relation("AdvisorVisits", fields: [advisorId], references: [id])
+
+  @@index([clientId])
+  @@index([advisorId])
+  @@map("collection_visits")
 }
 
 model PersonalReference {

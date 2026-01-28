@@ -237,15 +237,15 @@ export default function ReportsPWAPage() {
     setRefreshing(false);
   };
 
-  const exportReport = async (type: string) => {
+  const exportReport = async (type: string, format: 'pdf' | 'excel' = 'pdf') => {
     try {
-      const response = await fetch(`/api/reports/export?type=${type}&timeRange=${timeRange}`);
+      const response = await fetch(`/api/reports/export?type=${type}&timeRange=${timeRange}&format=${format}`);
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `reporte-${type}-${new Date().toISOString().split('T')[0]}.pdf`;
+        a.download = `reporte-${type}-${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -390,14 +390,24 @@ export default function ReportsPWAPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base">Pagos Diarios</CardTitle>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => exportReport('payments')}
-                >
-                  <Download className="h-4 w-4 mr-1" />
-                  Exportar
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => exportReport('payments', 'pdf')}
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => exportReport('payments', 'excel')}
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    Excel
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="h-64">
@@ -426,14 +436,24 @@ export default function ReportsPWAPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base">Distribución de Cartera</CardTitle>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => exportReport('portfolio')}
-                >
-                  <PieChart className="h-4 w-4 mr-1" />
-                  Exportar
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => exportReport('portfolio', 'pdf')}
+                  >
+                    <PieChart className="h-4 w-4 mr-1" />
+                    PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => exportReport('portfolio', 'excel')}
+                  >
+                    <PieChart className="h-4 w-4 mr-1" />
+                    Excel
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="h-64">
@@ -479,14 +499,24 @@ export default function ReportsPWAPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base">Rendimiento Mensual</CardTitle>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => exportReport('performance')}
-                >
-                  <LineChart className="h-4 w-4 mr-1" />
-                  Exportar
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => exportReport('performance', 'pdf')}
+                  >
+                    <LineChart className="h-4 w-4 mr-1" />
+                    PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => exportReport('performance', 'excel')}
+                  >
+                    <LineChart className="h-4 w-4 mr-1" />
+                    Excel
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="h-64">
