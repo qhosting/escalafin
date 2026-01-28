@@ -3,8 +3,91 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import PDFDocument from 'pdfkit';
 
 export const dynamic = 'force-dynamic';
+
+async function generatePDF(reportData: any): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ margin: 50 });
+      const chunks: Buffer[] = [];
+
+      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', (err) => reject(err));
+
+      // Header
+      doc.fontSize(20).text('EscalaFin', { align: 'center' });
+      doc.moveDown(0.5);
+      doc.fontSize(16).text(reportData.title, { align: 'center' });
+      doc.fontSize(12).text(`Período: ${reportData.period}`, { align: 'center' });
+      doc.moveDown();
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown();
+
+      // Summary Section
+      doc.fontSize(14).font('Helvetica-Bold').text('Resumen Ejecutivo');
+      doc.moveDown(0.5);
+      doc.fontSize(11).font('Helvetica');
+
+      const summaryKeys = Object.keys(reportData.summary);
+      summaryKeys.forEach((key) => {
+        // Format key from camelCase to Title Case
+        const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+        let value = reportData.summary[key];
+
+        // Format numbers if they look like currency
+        if (typeof value === 'number') {
+          if (key.toLowerCase().includes('amount') || key.toLowerCase().includes('average')) {
+             value = `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`;
+          } else {
+             value = value.toLocaleString('es-MX');
+          }
+        }
+
+        doc.text(`${label}: ${value}`, { indent: 20 });
+      });
+      doc.moveDown();
+
+      // Details Section
+      if (reportData.details && reportData.details.length > 0) {
+        doc.addPage();
+        doc.fontSize(14).font('Helvetica-Bold').text('Detalles');
+        doc.moveDown(0.5);
+        doc.fontSize(9).font('Helvetica');
+
+        // Simple listing for details
+        reportData.details.forEach((item: any, index: number) => {
+          // Background for alternate rows
+          if (index % 2 === 0) {
+            doc.save();
+            doc.fillColor('#f0f0f0');
+            doc.rect(50, doc.y - 2, 500, 14).fill();
+            doc.restore();
+          }
+
+          let line = '';
+          // Customize output based on report type keys
+          if (item.client) line += `${item.client} | `;
+          if (item.date) line += `${item.date} | `;
+          if (item.amount) line += `$${Number(item.amount).toFixed(2)} | `;
+          if (item.status) line += `${item.status} | `;
+          if (item.method) line += `${item.method}`;
+
+          // Remove trailing separator if exists
+          if (line.endsWith(' | ')) line = line.slice(0, -3);
+
+          doc.text(line, 50, doc.y, { width: 500, lineGap: 4 });
+        });
+      }
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -105,12 +188,10 @@ export async function GET(request: NextRequest) {
             overdueLoans: loans.filter(l => l.status === 'DEFAULTED').length
           },
           details: loans.map(l => ({
-            id: l.id.slice(-6),
             client: `${l.client.firstName} ${l.client.lastName}`,
             amount: Number(l.principalAmount || 0),
-            balance: Number(l.principalAmount || 0) - l.payments.reduce((sum, p) => sum + Number(p.amount), 0),
             status: l.status,
-            startDate: l.startDate.toLocaleDateString()
+            date: l.startDate.toLocaleDateString()
           }))
         };
         break;
@@ -142,9 +223,9 @@ export async function GET(request: NextRequest) {
             transactionsCount: monthlyData.reduce((sum, d) => sum + d._count.id, 0)
           },
           details: monthlyData.map(d => ({
-            period: d.paymentDate.toLocaleDateString(),
+            date: d.paymentDate.toLocaleDateString(),
             amount: d._sum.amount || 0,
-            transactions: d._count.id
+            method: `Tx: ${d._count.id}`
           }))
         };
         break;
@@ -153,15 +234,23 @@ export async function GET(request: NextRequest) {
         reportData = {
           title: 'Reporte General',
           period: `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`,
-          message: 'Reporte básico generado'
+          summary: {
+            message: 'Reporte básico generado'
+          },
+          details: []
         };
     }
 
-    // For now, return JSON. In a real implementation, you would generate PDF
-    const response = NextResponse.json(reportData);
-    response.headers.set('Content-Disposition', `attachment; filename="${type}-report.json"`);
-    
-    return response;
+    // Generate PDF
+    const pdfBuffer = await generatePDF(reportData);
+
+    // Return PDF
+    return new NextResponse(pdfBuffer, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${type}-report-${endDate.toISOString().split('T')[0]}.pdf"`,
+      },
+    });
 
   } catch (error) {
     console.error('Error generating report:', error);
