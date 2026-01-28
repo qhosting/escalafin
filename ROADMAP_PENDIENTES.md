@@ -2,19 +2,24 @@
 
 Este documento detalla las tareas pendientes, validaciones necesarias y mejoras planificadas para el sistema EscalaFin.
 
-## 🚨 Prioridad Alta: Verificación Post-Deploy
+## 🚨 Prioridad Alta: Verificación Post-Deploy (Inmediato)
 
 Estas tareas deben realizarse inmediatamente después del despliegue en Easypanel para asegurar la estabilidad del sistema.
 
 ### 1. Validación de Despliegue en Easypanel
+> 💡 **Herramienta disponible**: Ejecutar `./scripts/verify-deployment.sh` en la consola del contenedor para validación automática.
+
 - [ ] **Build Cache**: Verificar que se haya limpiado la caché de build en Easypanel antes del nuevo despliegue.
 - [ ] **Logs de Build**: Confirmar que el build utiliza Debian 12 Bookworm y que la instalación de paquetes (`openssl`, `curl`, `ca-certificates`) es exitosa.
 - [ ] **Startup**: Verificar que el contenedor inicia correctamente y conecta a la base de datos sin errores de Prisma.
 
 ### 2. Pruebas de Funcionalidad Crítica en Producción
 - [ ] **Subida de Imágenes**: Probar la carga de imágenes de perfil de clientes. Verificar logs para confirmar que el tipo de contenido se valida correctamente.
-- [ ] **Generación de PDFs**: Confirmar que la generación de contratos y reportes PDF funciona (requiere librerías del sistema instaladas correctamente).
-- [ ] **Conexión WhatsApp**: Verificar que Waha está conectado y enviando mensajes de prueba.
+- [x] **Generación de PDFs**: Implementado con `pdfkit`. **Pendiente**: Verificar descarga de reporte en `/pwa/reports`.
+- [x] **Conexión WhatsApp**: Migrado a **Waha**. **Pendiente**:
+    - [ ] Configurar URL y Session ID en `/admin/whatsapp/config`.
+    - [ ] Enviar mensaje de prueba.
+    - [ ] Verificar recepción de webhooks en `/api/webhooks/waha`.
 
 ---
 
