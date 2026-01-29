@@ -24,9 +24,18 @@ RUN rm -rf /var/lib/apt/lists/* && \
         bash \
         openssl \
         curl \
+        wget \
+        gnupg \
         ca-certificates \
         dumb-init \
+        postgresql-client \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Install MongoDB Database Tools (mongodump)
+RUN curl -LO https://fastdl.mongodb.org/tools/db/mongodb-database-tools-debian11-x86_64-100.9.4.tgz && \
+    tar -xzf mongodb-database-tools-debian11-x86_64-100.9.4.tgz && \
+    mv mongodb-database-tools-debian11-x86_64-100.9.4/bin/* /usr/local/bin/ && \
+    rm -rf mongodb-database-tools-debian11-x86_64-100.9.4*
 
 WORKDIR /app
 
