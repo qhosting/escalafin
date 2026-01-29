@@ -39,7 +39,7 @@ Estas tareas deben realizarse inmediatamente después del despliegue en Easypane
 ## 🔭 Largo Plazo: Expansión del Sistema
 
 ### Automatización e IA
-- [ ] **Scoring Predictivo**: Implementar modelo de ML para predecir probabilidad de impago basado en histórico.
+- [x] **Scoring Predictivo**: Implementar modelo de ML/Estadístico para predecir probabilidad de impago basado en histórico. (`/api/clients/[id]/predict-score`)
 - [ ] **Chatbot**: Integrar chatbot básico para respuestas automáticas a clientes vía WhatsApp.
 
 ### Infraestructura
