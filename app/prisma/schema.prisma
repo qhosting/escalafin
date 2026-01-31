@@ -125,8 +125,6 @@ model Client {
   collaterals                  Collateral[]        @relation("ClientCollateral")
   whatsappMessages             WhatsAppMessage[]   @relation("ClientMessages")
   collectionVisits             CollectionVisit[]   @relation("ClientVisits")
-  creditApplicationsCreated  CreditApplication[]    @relation("CreatedByAsesor")
-  creditApplicationsReviewed CreditApplication[]    @relation("ReviewedByAdmin")
 
   @@map("clients")
 }
