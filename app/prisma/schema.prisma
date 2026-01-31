@@ -125,7 +125,6 @@ model Client {
   collaterals                  Collateral[]        @relation("ClientCollateral")
   whatsappMessages             WhatsAppMessage[]   @relation("ClientMessages")
   collectionVisits             CollectionVisit[]   @relation("ClientVisits")
-  creditScores                 CreditScore[]       @relation("ClientScoring")
   creditApplicationsCreated  CreditApplication[]    @relation("CreatedByAsesor")
   creditApplicationsReviewed CreditApplication[]    @relation("ReviewedByAdmin")
 
@@ -252,7 +251,6 @@ model Loan {
   client               Client                 @relation(fields: [clientId], references: [id])
   creditApplication    CreditApplication?     @relation(fields: [creditApplicationId], references: [id])
   payments             Payment[]
-  creditScores         CreditScore[]          @relation("LoanScoring")
 
   @@map("loans")
 }
