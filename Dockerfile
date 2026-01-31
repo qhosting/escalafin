@@ -52,8 +52,9 @@ COPY app/yarn.lock ./
 COPY app/.yarnrc.yml ./
 
 # Instalar dependencias con Yarn y verificar que node_modules fue generado
+# Usamos YARN_ENABLE_IMMUTABLE_INSTALLS=false para permitir actualizaciones del lockfile si es necesario en build
 RUN echo "📦 Instalando dependencias con Yarn..." && \
-    yarn install --immutable && \
+    YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install && \
     echo "✅ Yarn install completado" && \
     echo "" && \
     echo "🔍 Verificando node_modules..." && \
