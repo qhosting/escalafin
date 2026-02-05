@@ -1,58 +1,30 @@
-# 📋 Roadmap de Pendientes y Mejoras Futuras
+# 📋 Roadmap de Pendientes y Tareas Técnicas
 
-Este documento detalla las tareas pendientes, validaciones necesarias y mejoras planificadas para el sistema EscalaFin.
+Este documento detalla las tareas específicas pendientes de implementación para la Fase 2 en adelante.
 
-## 🚨 Prioridad Alta: Verificación Post-Deploy (Inmediato)
+## 🚨 CRÍTICO: Validaciones Webhooks y Comunicación (Fase 2)
 
-Estas tareas deben realizarse inmediatamente después del despliegue en Easypanel para asegurar la estabilidad del sistema.
+### 1. WhatsApp (Waha)
+- [ ] **Configurar Endpoint**: Asegurar que la URL de Waha y el `WAHA_SESSION_ID` coincidan en las variables de entorno de producción.
+- [ ] **Test de Envío**: Usar el panel de `/admin/notifications` para enviar un mensaje de prueba a un número real.
+- [ ] **Webhooks**: Verificar si los mensajes entrantes se registran en el sistema (si aplica).
 
-### 1. Validación de Despliegue en Easypanel
-> 💡 **Herramienta disponible**: Ejecutar `./scripts/verify-deployment.sh` en la consola del contenedor para validación automática.
+### 2. Automatización (Cron Jobs)
+- [ ] **Cron Semanal**: Verificar manualmente la ejecución del script de reporte semanal (`/api/cron/weekly-report`).
+- [ ] **Logs**: Confirmar que los logs de cron se escriben correctamente en `/var/log` o salida estándar.
 
-- [ ] **Build Cache**: Verificar que se haya limpiado la caché de build en Easypanel antes del nuevo despliegue.
-- [ ] **Logs de Build**: Confirmar que el build utiliza Debian 12 Bookworm y que la instalación de paquetes (`openssl`, `curl`, `ca-certificates`) es exitosa.
-- [ ] **Startup**: Verificar que el contenedor inicia correctamente y conecta a la base de datos sin errores de Prisma.
+## 🔧 MEDIA: Mejoras y Optimizaciones
 
-### 2. Pruebas de Funcionalidad Crítica en Producción
-- [ ] **Subida de Imágenes**: Probar la carga de imágenes de perfil de clientes. Verificar logs para confirmar que el tipo de contenido se valida correctamente.
-- [x] **Generación de PDFs**: Implementado con `pdfkit`. **Pendiente**: Verificar descarga de reporte en `/pwa/reports`.
-- [x] **Conexión WhatsApp**: Migrado a **Waha**. **Pendiente**:
-    - [ ] Configurar URL y Session ID en `/admin/whatsapp/config`.
-    - [ ] Enviar mensaje de prueba.
-    - [ ] Verificar recepción de webhooks en `/api/webhooks/waha`.
+- [ ] **Refactor Tarifas Fijas**: Mover la configuración de montos y tarifas (actualmente en `loan-calculations.ts`) a una tabla de base de datos o configuración JSON editable desde admin.
+- [ ] **Simulador de Préstamos**: Crear un componente UI aislado para simular pagos antes de crear el préstamo real.
+- [ ] **Validación de Formularios**: Mejorar mensajes de error en el frontend para campos inválidos (especialmente en móviles).
 
----
+## ✅ COMPLETADO (Histórico Reciente v1.5.0)
 
-## 📅 Corto Plazo: Mejoras de Usabilidad y Estabilidad
-
-### Módulo Móvil (`/mobile`)
-- [x] **Acceso Offline**: Mejorar las capacidades de PWA para funcionamiento sin conexión. (Base PWA existente)
-- [x] **Registro de Visitas**: Implementar un formulario rápido para registrar visitas de cobranza en campo con geolocalización. (`/mobile/visits/new`)
-- [x] **Dashboard Resumido**: Agregar métricas clave para asesores en la vista móvil. (`/mobile/dashboard`)
-
-### Reportes
-- [x] **Exportación Excel**: Implementar exportación a Excel nativa para todos los reportes tabular. (Soportado en `/pwa/reports`)
-- [x] **Reportes Programados**: Configurar envío automático de reportes semanales por email a administradores. (API `/api/cron/weekly-report` + Script)
+- [x] **Infraestructura**: Migración a Debian 12 (Bookworm) para soporte EasyPanel.
+- [x] **Imágenes**: Fix de subida de imágenes de perfil (Content-Type validation).
+- [x] **Funcionalidad**: Implementación de sistema dual de Tarifas Fijas / Interés.
+- [x] **Deployment**: Scripts de verificación de despliegue (`verify-deployment.sh`).
 
 ---
-
-## 🔭 Largo Plazo: Expansión del Sistema
-
-### Automatización e IA
-- [x] **Scoring Predictivo**: Implementar modelo de ML/Estadístico para predecir probabilidad de impago basado en histórico. (`/api/clients/[id]/predict-score`)
-- [ ] **Chatbot**: Integrar chatbot básico para respuestas automáticas a clientes vía WhatsApp.
-
-### Infraestructura
-- [ ] **Scaling**: Configurar auto-scaling horizontal si la carga de usuarios aumenta significativamente.
-- [ ] **Backup Automatizado S3**: Configurar backups de base de datos directos a S3 con retención configurable.
-
-### Integraciones
-- [ ] **Buró de Crédito**: Integración vía API para consulta de historial crediticio externo (si aplica).
-- [ ] **Pasarelas Adicionales**: Añadir soporte para Stripe o MercadoPago.
-
----
-
-## 🐛 Errores Conocidos (Bugs) a Monitorear
-
-- **Sincronización de Sesión**: Ocasionalmente los usuarios reportan cierre de sesión inesperado en móviles (monitorear configuración de cookies/tokens).
-- **Timeouts en Reportes Grandes**: Reportes con >10,000 registros pueden dar timeout en generación (optimizar queries o mover a background jobs).
+**Cómo contribuir**: Al tomar una tarea, crea una rama `feature/nombre-tarea`, implementa, prueba y haz PR a `main`.
