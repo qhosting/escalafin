@@ -1,42 +1,30 @@
 # 🗺️ Roadmap General - EscalaFin
 
-Este documento define la hoja de ruta estratégica para el desarrollo y evolución del sistema EscalaFin, organizada por fases de implementación.
+Este documento define la hoja de ruta estratégica para el desarrollo y evolución del sistema EscalaFin.
 
-## 📍 Estado Actual: Fase 2 (Operatividad y Automatización)
-La **Fase 1** fue completada (v1.5.0). Actualmente estamos implementando la **Fase 2**, enfocada en la automatización de backups, reportes y comunicaciones para reducir la carga operativa.
+## 📍 Estado Actual: Fase 3 (Expansión Funcional y Negocio)
+Hemos completado la **Fase 2**. Actualmente estamos finalizando la **Fase 3**, centrada en dar flexibilidad al sistema de préstamos y herramientas de venta para asesores.
 
 ---
 
 ## ✅ Fase 1: Estabilización y Despliegue (v1.5.0)
-- [x] **Infraestructura Core**: Migración a Debian 12 Bookworm (Fix apt-get).
-- [x] **Gestión de Archivos**: Sistema robusto de subida de imágenes.
-- [x] **Sistema de Préstamos**: Tarifas Fijas vs Interés.
+- [x] Infraestructura Core (Debian 12).
+- [x] Gestión de Imágenes y Archivos.
+- [x] Soporte dual de cálculos (Fijo vs Interés).
 
-## 🚀 Fase 2: Operatividad y Automatización (En Progreso)
-**Objetivo**: Activar canales de comunicación y tareas automáticas ("set and forget").
+## ✅ Fase 2: Automatización y Operatividad
+- [x] **Comunicaciones**: Webhooks Waha y recordatorios automáticos.
+- [x] **Backups**: Respaldo automático a Google Drive (PG + Redis).
+- [x] **Cron**: Limpieza de logs y soporte de tareas programadas.
 
-- [x] **Comunicaciones (WhatsApp)**:
-    - [x] Endpoint de Webhooks Waha (`/api/webhooks/waha`).
-    - [x] Lógica de recordatorios de pago automáticos.
-    - [ ] Configuración final de URLs en Producción (Pendiente DevOps).
-- [x] **Tareas Programadas (Cron)**:
-    - [x] Endpoint de Reporte Semanal (`/api/cron/weekly-report`).
-    - [x] Lógica de generación de métricas y envío de correo.
-    - [x] Endpoint de Limpieza automática (`/api/cron/cleanup`).
-- [x] **Respaldo de Datos**:
-    - [x] Script TypeScript de Backup (`pg_dump` + Drive API).
-    - [x] Endpoint trigger (`/api/cron/backup`).
+## � Fase 3: Expansión Funcional y Negocio (Actual)
+- [x] **Configuración Dinámica**: Panel admin para tarifas y tasas sin tocar código.
+- [x] **Simulador de Préstamos**: Herramienta visual para proyección de créditos.
+- [ ] **Pasarelas de Pago**: Integración de nuevas opciones (Mercado Pago/Stripe).
 
-## 💡 Fase 3: Expansión Funcional y Negocio (Siguiente)
-**Objetivo**: Flexibilidad y herramientas de venta.
-
-- [ ] **Configuración Dinámica**: Panel admin para tarifas y plantillas.
-- [ ] **Herramientas de Venta**: Simulador/Cotizador.
-- [ ] **Expansión de Pagos**: Pasarelas adicionales.
-
-## 🔮 Fase 4: Inteligencia y Escalabilidad (Futuro)
-- [ ] **IA**: Scoring predictivo.
-- [ ] **Infraestructura**: Auto-scaling.
+## 🔮 Fase 4: Inteligencia y Escalabilidad
+- [ ] IA: Scoring predictivo de riesgo.
+- [ ] Infraestructura: Escalabilidad horizontal.
 
 ---
 *Última actualización: 05 Febrero 2026*

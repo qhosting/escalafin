@@ -53,32 +53,78 @@ export function calculateInterestBasedPayment(
   return Math.round(payment * 100) / 100; // Redondear a 2 decimales
 }
 
+// Definición de tipos para la configuración (debe coincidir con lo que se pasa, pero para mantener independencia no importamos desde config-service, definimos interfaz local o usamos any controlado, mejor interfaz local mínima)
+
+export interface LoanCalculationConfig {
+  fixedFee?: {
+    tiers: Array<{ maxAmount: number; paymentAmount: number }>;
+    overLimit: {
+      baseAmount: number;
+      basePayment: number;
+      additionalStep: number;
+      additionalFee: number;
+    };
+  };
+  weeklyInterest?: {
+    rates: Array<{ amount: number; interest: number }>;
+    fallback: {
+      minBase: number;
+      minInterest: number;
+      maxBase: number;
+      maxInterest: number;
+    };
+  };
+}
+
 /**
  * Calcula el monto de pago periódico usando el método de TARIFA FIJA
  * Sistema de tarifas escalonadas por monto prestado
  */
 export function calculateFixedFeePayment(
   principalAmount: number,
-  numberOfPayments: number = 16
+  numberOfPayments: number = 16,
+  config?: LoanCalculationConfig
 ): { paymentAmount: number; totalAmount: number; totalFee: number } {
   let totalAmount = 0;
 
-  // Aplicar tarifas escalonadas
-  if (principalAmount <= 3000) {
-    // $3,000 o menos = 16 pagos de $300
-    totalAmount = 300 * numberOfPayments;
-  } else if (principalAmount <= 4000) {
-    // $4,000 = 16 pagos de $425
-    totalAmount = 425 * numberOfPayments;
-  } else if (principalAmount <= 5000) {
-    // $5,000 = 16 pagos de $600
-    totalAmount = 600 * numberOfPayments;
+  // Usar configuración inyectada o defaults hardcoded (legacy fallback)
+  if (config?.fixedFee) {
+    const { tiers, overLimit } = config.fixedFee;
+
+    // Buscar en tiers
+    const tier = tiers.find(t => principalAmount <= t.maxAmount);
+
+    if (tier) {
+      totalAmount = tier.paymentAmount * numberOfPayments;
+    } else {
+      // Calcular excedente
+      const { baseAmount, basePayment, additionalStep, additionalFee } = overLimit;
+      const remaining = principalAmount - baseAmount;
+      // Evitar negativos si algo falla en la lógica de tiers
+      if (remaining > 0) {
+        const baseTotal = basePayment * numberOfPayments;
+        const additionalSteps = Math.ceil(remaining / additionalStep);
+        const extraFee = additionalSteps * additionalFee * numberOfPayments;
+        totalAmount = baseTotal + extraFee;
+      } else {
+        // Fallback si por alguna razón no entró en tiers pero es menor a baseAmount (no debería pasar si tiers cubre hasta baseAmount)
+        totalAmount = basePayment * numberOfPayments;
+      }
+    }
   } else {
-    // $5,000+ = $600 base + $120 por cada mil adicional
-    const baseAmount = 600 * numberOfPayments;
-    const additionalThousands = Math.ceil((principalAmount - 5000) / 1000);
-    const additionalFee = additionalThousands * 120 * numberOfPayments;
-    totalAmount = baseAmount + additionalFee;
+    // --- LÓGICA HARDCODED ORIGINAL (FALLBACK) ---
+    if (principalAmount <= 3000) {
+      totalAmount = 300 * numberOfPayments;
+    } else if (principalAmount <= 4000) {
+      totalAmount = 425 * numberOfPayments;
+    } else if (principalAmount <= 5000) {
+      totalAmount = 600 * numberOfPayments;
+    } else {
+      const baseAmount = 600 * numberOfPayments;
+      const additionalThousands = Math.ceil((principalAmount - 5000) / 1000);
+      const additionalFee = additionalThousands * 120 * numberOfPayments;
+      totalAmount = baseAmount + additionalFee;
+    }
   }
 
   const paymentAmount = totalAmount / numberOfPayments;
@@ -93,10 +139,43 @@ export function calculateFixedFeePayment(
 
 /**
  * Obtiene el interés semanal en pesos según el monto prestado
- * Basado en tabla de tarifas predeterminadas
+ * Basado en tabla de tarifas
  */
-export function getWeeklyInterestAmount(principalAmount: number): number {
-  // Tabla de tarifas predeterminadas según imagen proporcionada
+export function getWeeklyInterestAmount(
+  principalAmount: number,
+  config?: LoanCalculationConfig
+): number {
+
+  if (config?.weeklyInterest) {
+    const { rates, fallback } = config.weeklyInterest;
+
+    const exactMatch = rates.find(r => r.amount === principalAmount);
+    if (exactMatch) return exactMatch.interest;
+
+    // Interpolación
+    for (let i = 0; i < rates.length - 1; i++) {
+      if (principalAmount > rates[i].amount && principalAmount < rates[i + 1].amount) {
+        const ratio = (principalAmount - rates[i].amount) / (rates[i + 1].amount - rates[i].amount);
+        const interpolated = rates[i].interest + ratio * (rates[i + 1].interest - rates[i].interest);
+        return Math.round(interpolated);
+      }
+    }
+
+    // Extrapolación usando fallback config
+    if (principalAmount > fallback.maxBase) {
+      const ratio = principalAmount / fallback.maxBase;
+      return Math.round(fallback.maxInterest * ratio);
+    }
+
+    if (principalAmount < fallback.minBase) {
+      const ratio = principalAmount / fallback.minBase;
+      return Math.round(fallback.minInterest * ratio);
+    }
+
+    return fallback.minInterest;
+  }
+
+  // --- LÓGICA HARDCODED ORIGINAL (FALLBACK) ---
   const rates = [
     { amount: 3000, weeklyInterest: 170 },
     { amount: 4000, weeklyInterest: 200 },
@@ -108,35 +187,30 @@ export function getWeeklyInterestAmount(principalAmount: number): number {
     { amount: 10000, weeklyInterest: 400 },
   ];
 
-  // Buscar la tarifa exacta o la más cercana
   const exactMatch = rates.find(r => r.amount === principalAmount);
   if (exactMatch) {
     return exactMatch.weeklyInterest;
   }
 
-  // Si no hay coincidencia exacta, interpolar o usar la más cercana
   for (let i = 0; i < rates.length - 1; i++) {
     if (principalAmount > rates[i].amount && principalAmount < rates[i + 1].amount) {
-      // Interpolación lineal
       const ratio = (principalAmount - rates[i].amount) / (rates[i + 1].amount - rates[i].amount);
       const interpolated = rates[i].weeklyInterest + ratio * (rates[i + 1].weeklyInterest - rates[i].weeklyInterest);
       return Math.round(interpolated);
     }
   }
 
-  // Para montos mayores al máximo, calcular proporcionalmente
   if (principalAmount > 10000) {
     const ratio = principalAmount / 10000;
     return Math.round(400 * ratio);
   }
 
-  // Para montos menores al mínimo
   if (principalAmount < 3000) {
     const ratio = principalAmount / 3000;
     return Math.round(170 * ratio);
   }
 
-  return 170; // Default
+  return 170;
 }
 
 /**
@@ -156,16 +230,16 @@ export function calculateWeeklyInterestPayment(
 } {
   // Usar interés proporcionado o calcularlo automáticamente
   const weeklyInterest = weeklyInterestAmount || getWeeklyInterestAmount(principalAmount);
-  
+
   // Calcular cargo total (interés semanal × número de semanas)
   const totalCharge = weeklyInterest * numberOfWeeks;
-  
+
   // Total a pagar
   const totalAmount = principalAmount + totalCharge;
-  
+
   // Pago periódico
   const paymentAmount = totalAmount / numberOfWeeks;
-  
+
   // Calcular tasa efectiva anual para referencia
   const effectiveRate = (totalCharge / principalAmount) * 100;
 
