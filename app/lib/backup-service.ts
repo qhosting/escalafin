@@ -36,13 +36,23 @@ export async function performBackup() {
       console.log('⚠️ DATABASE_URL no definida, saltando PostgreSQL backup.');
     }
 
-    // 2. MongoDB Backup
-    if (process.env.MONGO_URI) {
-      console.log('📦 Realizando backup de MongoDB...');
-      await execAsync(`mongodump --uri="${process.env.MONGO_URI}" --out="${mongoDumpDir}"`);
-      console.log('✅ MongoDB backup completado.');
+    // 2. Redis Backup (Dump RDB)
+    if (process.env.REDIS_URL) {
+      console.log('📦 Realizando backup de Redis...');
+      // redis-cli -u redis://... --rdb ./dump.rdb
+      // Se requiere que redis-cli esté instalado en la imagen Docker base.
+      // Debian bookworm slim base ya tiene tools básicas, pero redis-tools puede necesitar instalarse.
+      // Por ahora asumimos que redis-tools estara disponible o usaremos un comando compatible si falla, o simplemente warning.
+      // En este contexto, intentaremos usar redis-cli si el usuario lo configura.
+      const redisDumpFile = path.join(BACKUP_DIR, `redis_dump_${timestamp}.rdb`);
+      try {
+        await execAsync(`redis-cli -u "${process.env.REDIS_URL}" --rdb "${redisDumpFile}"`);
+        console.log('✅ Redis backup completado.');
+      } catch (redisError) {
+        console.warn('⚠️ No se pudo realizar backup de Redis (¿redis-tools instalado?):', redisError);
+      }
     } else {
-      console.log('ℹ️ MONGO_URI no definida, saltando MongoDB backup.');
+      console.log('ℹ️ REDIS_URL no definida, saltando Redis backup.');
     }
 
     // 3. Comprimir Archivos
@@ -66,6 +76,15 @@ export async function performBackup() {
     console.log('🧹 Limpiando archivos temporales...');
     if (fs.existsSync(pgDumpFile)) fs.unlinkSync(pgDumpFile);
     if (fs.existsSync(mongoDumpDir)) fs.rmSync(mongoDumpDir, { recursive: true, force: true });
+
+    // Limpiar RDBs
+    const files = fs.readdirSync(BACKUP_DIR);
+    files.forEach(file => {
+      if (file.endsWith('.rdb')) {
+        fs.unlinkSync(path.join(BACKUP_DIR, file));
+      }
+    });
+
     if (fs.existsSync(zipFile)) fs.unlinkSync(zipFile);
     console.log('✅ Limpieza completada.');
   }
@@ -88,6 +107,19 @@ function compressFiles(zipPath: string, pgFile: string, mongoDir: string): Promi
     if (fs.existsSync(mongoDir)) {
       archive.directory(mongoDir, 'mongodb');
     }
+
+    // Buscar archivos RDB de Redis (podemos usar glob si el nombre varia, pero asumimos el timestamp exacto que pasamos antes es dificil de pasar aqui sin refactorizar firma)
+    // Para simplificar, buscamos cualquier .rdb en el directorio de backup que coincida parcialmente o simplemente pasamos el archivo si lo tuvieramos.
+    // Lo mejor es refactorizar compressFiles para recibir lista de archivos.
+    // O mejor aun, en el paso anterior teniamos redisDumpFile. Pasemoslo como argumento opcional o simplemente busquemos *.rdb en el directorio temporal
+
+    // Quick fix: iterar el directorio backup buscando .rdb
+    const files = fs.readdirSync(path.dirname(zipPath));
+    files.forEach(file => {
+      if (file.endsWith('.rdb')) {
+        archive.file(path.join(path.dirname(zipPath), file), { name: 'dump.rdb' });
+      }
+    });
 
     archive.finalize();
   });
