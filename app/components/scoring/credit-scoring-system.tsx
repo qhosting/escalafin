@@ -52,6 +52,13 @@ interface ScoringResult {
     age: number;
     amount_requested: number;
   };
+  aiInsights?: {
+    score: number;
+    probabilityOfDefault: number;
+    riskLevel: string;
+    factors: string[];
+    maxRecommendedAmount: number;
+  };
 }
 
 const CreditScoringSystem: React.FC<{
@@ -59,6 +66,7 @@ const CreditScoringSystem: React.FC<{
   applicationId?: string;
   onScoreCalculated?: (result: ScoringResult) => void;
 }> = ({ clientId, applicationId, onScoreCalculated }) => {
+  // ... (mantener estados iguales hasta el return)
   const [factors, setFactors] = useState<ScoringFactors>({
     income: 0,
     expenses: 0,
@@ -112,17 +120,25 @@ const CreditScoringSystem: React.FC<{
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 65) return 'text-blue-600';
-    if (score >= 50) return 'text-yellow-600';
+  const getScoreColor = (score: number, isAI: boolean = false) => {
+    const high = isAI ? 750 : 80;
+    const mid = isAI ? 650 : 65;
+    const low = isAI ? 550 : 50;
+
+    if (score >= high) return 'text-green-600';
+    if (score >= mid) return 'text-blue-600';
+    if (score >= low) return 'text-yellow-600';
     return 'text-red-600';
   };
 
-  const getScoreBackgroundColor = (score: number) => {
-    if (score >= 80) return 'bg-green-100';
-    if (score >= 65) return 'bg-blue-100';
-    if (score >= 50) return 'bg-yellow-100';
+  const getScoreBackgroundColor = (score: number, isAI: boolean = false) => {
+    const high = isAI ? 750 : 80;
+    const mid = isAI ? 650 : 65;
+    const low = isAI ? 550 : 50;
+
+    if (score >= high) return 'bg-green-100';
+    if (score >= mid) return 'bg-blue-100';
+    if (score >= low) return 'bg-yellow-100';
     return 'bg-red-100';
   };
 
@@ -158,21 +174,22 @@ const CreditScoringSystem: React.FC<{
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="border-t-4 border-t-primary">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
+            <Calculator className="h-5 w-5 text-primary" />
             Sistema de Scoring Crediticio
           </CardTitle>
           <CardDescription>
-            Evaluación automática del riesgo crediticio basada en múltiples factores
+            Evaluación automática del riesgo basada en reglas de negocio y modelos predictivos
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* ... (TABS CONTENT MANTIENE IGUAL HASTA EL BOTÓN DE CALCULAR) */}
           <Tabs defaultValue="personal" className="space-y-4">
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="personal">Información Personal</TabsTrigger>
-              <TabsTrigger value="financial">Información Financiera</TabsTrigger>
+              <TabsTrigger value="personal">Personal</TabsTrigger>
+              <TabsTrigger value="financial">Financiero</TabsTrigger>
               <TabsTrigger value="employment">Empleo</TabsTrigger>
               <TabsTrigger value="loan">Solicitud</TabsTrigger>
             </TabsList>
@@ -192,8 +209,8 @@ const CreditScoringSystem: React.FC<{
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="creditHistory">Historial Crediticio</Label>
-                  <Select 
-                    value={factors.creditHistory} 
+                  <Select
+                    value={factors.creditHistory}
                     onValueChange={(value: any) => handleInputChange('creditHistory', value)}
                   >
                     <SelectTrigger>
@@ -220,7 +237,7 @@ const CreditScoringSystem: React.FC<{
                     type="number"
                     step="0.01"
                     min="0"
-                    value={factors.income}
+                    value={factors.income || ''}
                     onChange={(e) => handleInputChange('income', parseFloat(e.target.value) || 0)}
                     placeholder="15000.00"
                   />
@@ -232,7 +249,7 @@ const CreditScoringSystem: React.FC<{
                     type="number"
                     step="0.01"
                     min="0"
-                    value={factors.expenses}
+                    value={factors.expenses || ''}
                     onChange={(e) => handleInputChange('expenses', parseFloat(e.target.value) || 0)}
                     placeholder="8000.00"
                   />
@@ -247,7 +264,7 @@ const CreditScoringSystem: React.FC<{
                     type="number"
                     step="0.01"
                     min="0"
-                    value={factors.existingDebts}
+                    value={factors.existingDebts || ''}
                     onChange={(e) => handleInputChange('existingDebts', parseFloat(e.target.value) || 0)}
                     placeholder="2000.00"
                   />
@@ -271,8 +288,8 @@ const CreditScoringSystem: React.FC<{
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="employmentStatus">Estado Laboral</Label>
-                  <Select 
-                    value={factors.employmentStatus} 
+                  <Select
+                    value={factors.employmentStatus}
                     onValueChange={(value: any) => handleInputChange('employmentStatus', value)}
                   >
                     <SelectTrigger>
@@ -309,7 +326,7 @@ const CreditScoringSystem: React.FC<{
                     type="number"
                     step="0.01"
                     min="0"
-                    value={factors.requestedAmount}
+                    value={factors.requestedAmount || ''}
                     onChange={(e) => handleInputChange('requestedAmount', parseFloat(e.target.value) || 0)}
                     placeholder="50000.00"
                   />
@@ -326,27 +343,13 @@ const CreditScoringSystem: React.FC<{
                   />
                 </div>
               </div>
-
-              {factors.requestedAmount > 0 && factors.income > 0 && (
-                <Alert>
-                  <Target className="h-4 w-4" />
-                  <AlertDescription>
-                    Ratio monto/ingreso anual: {((factors.requestedAmount / (factors.income * 12)) * 100).toFixed(1)}%
-                    <br />
-                    Pago mensual estimado: {new Intl.NumberFormat('es-MX', {
-                      style: 'currency',
-                      currency: 'MXN'
-                    }).format(factors.requestedAmount / factors.requestedTerm)}
-                  </AlertDescription>
-                </Alert>
-              )}
             </TabsContent>
           </Tabs>
 
           <Separator className="my-6" />
 
           <div className="flex justify-center">
-            <Button 
+            <Button
               onClick={calculateScore}
               disabled={calculating || factors.income <= 0 || factors.requestedAmount <= 0}
               className="flex items-center gap-2"
@@ -357,68 +360,88 @@ const CreditScoringSystem: React.FC<{
               ) : (
                 <Calculator className="h-5 w-5" />
               )}
-              {calculating ? 'Calculando...' : 'Calcular Score Crediticio'}
+              {calculating ? 'Analizando...' : 'Calcular Scoring Crediticio'}
             </Button>
           </div>
         </CardContent>
       </Card>
 
       {result && (
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Score Principal */}
-          <Card>
+        <div className="grid gap-6 grid-cols-1 xl:grid-cols-3">
+          {/* Análisis Predictivo IA (SI EXISTE) */}
+          {result.aiInsights && (
+            <Card className="shadow-lg border-2 border-indigo-200 bg-gradient-to-b from-indigo-50/30 to-white">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-indigo-900 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-indigo-600" />
+                    Análisis Predictivo (IA)
+                  </CardTitle>
+                  <Badge className="bg-indigo-600">Fase 4 Beta</Badge>
+                </div>
+                <CardDescription>Basado en historial conductual y recurrencia</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6 pt-4">
+                <div className="text-center space-y-2">
+                  <div className={`text-5xl font-black ${getScoreColor(result.aiInsights.score, true)} bg-white shadow-inner rounded-2xl p-6 inline-block border-2 border-indigo-100`}>
+                    {result.aiInsights.score}
+                  </div>
+                  <p className="text-xs font-bold text-indigo-400 uppercase tracking-tighter">Probabilidad de Pago: {((1 - result.aiInsights.probabilityOfDefault) * 100).toFixed(1)}%</p>
+                </div>
+
+                <div className="space-y-3">
+                  {result.aiInsights.factors.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm text-slate-700 bg-white/50 p-2 rounded-md border border-indigo-50">
+                      {result.aiInsights!.score > 600 ? <CheckCircle className="h-4 w-4 text-green-500" /> : <AlertTriangle className="h-4 w-4 text-amber-500" />}
+                      {f}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-4 bg-indigo-900 text-white rounded-xl shadow-md">
+                  <p className="text-xs opacity-70 uppercase font-bold mb-1 tracking-widest">Capacidad de Pago IA</p>
+                  <p className="text-2xl font-black">{new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(result.aiInsights.maxRecommendedAmount)}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Resultado basado en Reglas */}
+          <Card className={result.aiInsights ? 'xl:col-span-1 shadow-md' : 'md:col-span-1 shadow-md'}>
             <CardHeader>
-              <CardTitle className="text-center">Score Crediticio</CardTitle>
+              <CardTitle className="text-center">Score de Negocio</CardTitle>
+              <CardDescription className="text-center text-xs">Evaluación por política estándar</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="text-center">
-                <div className={`text-6xl font-bold ${getScoreColor(result.score)} ${getScoreBackgroundColor(result.score)} rounded-full w-32 h-32 flex items-center justify-center mx-auto`}>
+                <div className={`text-6xl font-black ${getScoreColor(result.score)} ${getScoreBackgroundColor(result.score)} rounded-full w-32 h-32 flex items-center justify-center mx-auto shadow-inner`}>
                   {result.score}
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Puntaje de 0 a 100
-                </p>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Nivel de Riesgo</span>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex justify-between p-3 bg-slate-50 rounded-lg border">
+                  <span className="text-sm font-semibold">Riesgo</span>
                   <div className="flex items-center gap-2">
                     {getRiskIcon(result.risk)}
-                    <Badge variant={result.risk === 'LOW' ? 'default' : 'secondary'}>
-                      {result.risk}
-                    </Badge>
+                    <span className="font-bold text-sm">{result.risk}</span>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Recomendación</span>
+                <div className="flex justify-between p-3 bg-slate-50 rounded-lg border">
+                  <span className="text-sm font-semibold">Decisión</span>
                   <div className="flex items-center gap-2">
                     {getRecommendationIcon(result.recommendation)}
-                    <Badge variant={result.recommendation === 'APPROVE' ? 'default' : 'destructive'}>
-                      {result.recommendation}
-                    </Badge>
+                    <span className="font-bold text-sm tracking-tight">{result.recommendation}</span>
                   </div>
                 </div>
               </div>
 
               {result.maxAmount && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Monto Máximo Recomendado</Label>
-                  <div className="text-2xl font-bold text-green-600">
-                    {new Intl.NumberFormat('es-MX', {
-                      style: 'currency',
-                      currency: 'MXN'
-                    }).format(result.maxAmount)}
-                  </div>
-                </div>
-              )}
-
-              {result.recommendedRate && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Tasa de Interés Recomendada</Label>
-                  <div className="text-xl font-bold text-blue-600">
-                    {(result.recommendedRate * 100).toFixed(2)}% anual
+                <div className="p-4 rounded-xl border-2 border-dashed border-slate-200">
+                  <Label className="text-xs font-bold text-slate-400 uppercase">Aprobación Sugerida</Label>
+                  <div className="text-2xl font-black text-slate-800">
+                    {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(result.maxAmount)}
                   </div>
                 </div>
               )}
@@ -426,53 +449,43 @@ const CreditScoringSystem: React.FC<{
           </Card>
 
           {/* Desglose de Factores */}
-          <Card>
+          <Card className={result.aiInsights ? 'xl:col-span-1 shadow-md' : 'md:col-span-1 shadow-md'}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Análisis de Factores
+                <BarChart3 className="h-5 w-5 text-slate-500" />
+                Desglose Métrico
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {Object.entries(result.factors).map(([factor, score]) => {
                 const factorNames: Record<string, string> = {
                   income: 'Ingresos',
-                  debt_to_income: 'Ratio Deuda/Ingreso',
-                  credit_history: 'Historial Crediticio',
-                  employment: 'Situación Laboral',
-                  age: 'Edad',
-                  amount_requested: 'Monto Solicitado'
+                  debt_to_income: 'Ratio Deuda/Gasto',
+                  credit_history: 'Historial',
+                  employment: 'Antigüedad Lab.',
+                  age: 'Perfil de Edad',
+                  amount_requested: 'Exposición'
                 };
 
                 return (
-                  <div key={factor} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-sm font-medium">
+                  <div key={factor} className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-slate-600 uppercase tracking-tighter">
                         {factorNames[factor] || factor}
-                      </Label>
-                      <span className={`text-sm font-bold ${getScoreColor(score)}`}>
-                        {score}/100
+                      </span>
+                      <span className={`font-black ${getScoreColor(score)}`}>
+                        {score}%
                       </span>
                     </div>
-                    <Progress value={score} className="h-2" />
+                    <Progress value={score} className="h-1.5" />
                   </div>
                 );
               })}
 
-              <Separator className="my-4" />
-
-              <Alert>
-                <DollarSign className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  <strong>Interpretación:</strong>
-                  <br />
-                  • 80-100: Excelente (Bajo riesgo)
-                  <br />
-                  • 65-79: Bueno (Riesgo medio)
-                  <br />
-                  • 50-64: Regular (Alto riesgo)
-                  <br />
-                  • 0-49: Malo (Muy alto riesgo)
+              <Alert className="mt-8 bg-slate-50 border-none">
+                <Shield className="h-4 w-4 text-slate-400" />
+                <AlertDescription className="text-[10px] leading-tight text-slate-500 font-medium">
+                  Este análisis es una sugerencia automatizada. La decisión final recae en el comité de crédito tras la verificación física de documentos.
                 </AlertDescription>
               </Alert>
             </CardContent>

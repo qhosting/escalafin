@@ -35,10 +35,27 @@ export async function POST(request: NextRequest) {
     const scoringSystem = new CreditScoringSystem(prisma);
     const result = await scoringSystem.calculateScore(factors);
 
+    // AI Predictive Scoring (Fase 4 - Early Access)
+    let aiInsights = null;
+    if (clientId) {
+      try {
+        const { PredictiveScoringModel } = await import('@/lib/predictive-model');
+        const predictiveModel = new PredictiveScoringModel();
+        aiInsights = await predictiveModel.calculateScore(clientId, factors.requestedAmount);
+      } catch (aiError) {
+        console.warn('AI Predictive scoring failed or not configured:', aiError);
+      }
+    }
+
+    const finalResponse = {
+      ...result,
+      aiInsights
+    };
+
     // Guardar el resultado si se proporciona un ID de préstamo o aplicación
     if (clientId || applicationId) {
       await scoringSystem.saveScoringResult(
-        applicationId || clientId, 
+        applicationId || clientId,
         result
       );
     }
@@ -56,11 +73,12 @@ export async function POST(request: NextRequest) {
         score: result.score,
         risk: result.risk,
         recommendation: result.recommendation,
+        hasAI: !!aiInsights
       },
       ...requestInfo,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(finalResponse);
   } catch (error) {
     console.error('Error calculating credit score:', error);
     return NextResponse.json(
