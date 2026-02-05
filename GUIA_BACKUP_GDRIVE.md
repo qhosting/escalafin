@@ -28,7 +28,7 @@ En tu panel de EasyPanel o archivo `.env`:
 ```env
 # Conexiones a Bases de Datos
 DATABASE_URL="postgresql://user:pass@host:5432/db"
-MONGO_URI="mongodb://user:pass@host:27017/db"
+REDIS_URL="redis://user:pass@host:6379"
 
 # Google Drive Backup
 GOOGLE_DRIVE_FOLDER_ID="tu_folder_id"
@@ -51,5 +51,5 @@ GOOGLE_SERVICE_ACCOUNT_JSON='{
 ## 4. Funcionamiento
 
 *   El sistema ejecutará automáticamente el backup todos los días a las **3:00 AM**.
-*   Los archivos generados son `.zip` conteniendo dumps de PostgreSQL y MongoDB.
+*   Los archivos generados son `.zip` conteniendo dumps de PostgreSQL y Redis (RDB).
 *   Los archivos se borran del servidor local inmediatamente después de subirse a Drive.

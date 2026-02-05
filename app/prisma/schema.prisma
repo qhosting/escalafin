@@ -1,12 +1,12 @@
 generator client {
-    provider = "prisma-client-js"
-    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
-    output = "../node_modules/.prisma/client"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+  output        = "../node_modules/.prisma/client"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Account {
@@ -44,36 +44,45 @@ model VerificationToken {
 }
 
 model User {
-  id                         String                 @id @default(cuid())
-  email                      String                 @unique
+  id                         String                   @id @default(cuid())
+  email                      String                   @unique
   password                   String?
   firstName                  String
   lastName                   String
   phone                      String?
-  role                       UserRole               @default(CLIENTE)
-  status                     UserStatus             @default(ACTIVE)
-  createdAt                  DateTime               @default(now())
-  updatedAt                  DateTime               @updatedAt
+  role                       UserRole                 @default(CLIENTE)
+  status                     UserStatus               @default(ACTIVE)
+  createdAt                  DateTime                 @default(now())
+  updatedAt                  DateTime                 @updatedAt
   emailVerified              DateTime?
   accounts                   Account[]
   sessions                   Session[]
-  auditLogs                  AuditLog[]             @relation("AuditLogs")
-  cashCollections            CashCollection[]       @relation("CashCollector")
-  clientsAssigned            Client[]               @relation("AsesorClients")
-  clientProfile              Client?                @relation("UserClient")
-  creditApplicationsCreated  CreditApplication[]    @relation("CreatedByAsesor")
-  creditApplicationsReviewed CreditApplication[]    @relation("ReviewedByAdmin")
-  files                      FileUpload[]           @relation("UserFiles")
-  verifiedFiles              FileUpload[]           @relation("VerifiedFiles")
-  filesUploaded              File[]                 @relation("UserDualFiles")
-  moduleChangeLogs           ModuleChangeLog[]      @relation("ModuleChangeLogs")
-  rolePermissionUpdates      ModuleRolePermission[] @relation("RolePermissionUpdates")
-  notifications              Notification[]         @relation("UserNotifications")
-  paymentsProcessed          Payment[]              @relation("ProcessedBy")
-  moduleUpdates              PWAModule[]            @relation("ModuleUpdates")
-  generatedReports           ReportGeneration[]     @relation("GeneratedReports")
-  configUpdates              SystemConfig[]         @relation("ConfigUpdates")
-  collectionVisits           CollectionVisit[]      @relation("AdvisorVisits")
+  auditLogs                  AuditLog[]               @relation("AuditLogs")
+  cashCollections            CashCollection[]         @relation("CashCollector")
+  clientsAssigned            Client[]                 @relation("AsesorClients")
+  clientProfile              Client?                  @relation("UserClient")
+  creditApplicationsCreated  CreditApplication[]      @relation("CreatedByAsesor")
+  creditApplicationsReviewed CreditApplication[]      @relation("ReviewedByAdmin")
+  files                      FileUpload[]             @relation("UserFiles")
+  verifiedFiles              FileUpload[]             @relation("VerifiedFiles")
+  filesUploaded              File[]                   @relation("UserDualFiles")
+  moduleChangeLogs           ModuleChangeLog[]        @relation("ModuleChangeLogs")
+  rolePermissionUpdates      ModuleRolePermission[]   @relation("RolePermissionUpdates")
+  notifications              Notification[]           @relation("UserNotifications")
+  paymentsProcessed          Payment[]                @relation("ProcessedBy")
+  moduleUpdates              PWAModule[]              @relation("ModuleUpdates")
+  generatedReports           ReportGeneration[]       @relation("GeneratedReports")
+  configUpdates              SystemConfig[]           @relation("ConfigUpdates")
+  collectionVisits           CollectionVisit[]        @relation("AdvisorVisits")
+  assignedConversations      Conversation[]           @relation("AssignedConversations")
+  sentMessages               ConversationMessage[]    @relation("SentMessages")
+  createdReportTemplates     ReportTemplate[]         @relation("CreatedReportTemplates")
+  customReports              CustomReportGeneration[] @relation("CustomReports")
+  
+  // Two-Factor Authentication
+  twoFactorEnabled           Boolean?                 @default(false)
+  twoFactorSecret            String?
+  twoFactorBackupCodes       String?                  // JSON array of backup codes
 
   @@map("users")
 }
@@ -125,27 +134,28 @@ model Client {
   collaterals                  Collateral[]        @relation("ClientCollateral")
   whatsappMessages             WhatsAppMessage[]   @relation("ClientMessages")
   collectionVisits             CollectionVisit[]   @relation("ClientVisits")
+  conversations                Conversation[]      @relation("ClientConversations")
 
   @@map("clients")
 }
 
 model CollectionVisit {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   clientId    String
   advisorId   String
-  visitDate   DateTime @default(now())
+  visitDate   DateTime  @default(now())
   latitude    Float?
   longitude   Float?
-  address     String?  // Dirección aproximada o detectada
+  address     String? // Dirección aproximada o detectada
   notes       String?
-  outcome     String?  // Resultado: Promesa de pago, No encontrado, Pagó, etc.
+  outcome     String? // Resultado: Promesa de pago, No encontrado, Pagó, etc.
   promiseDate DateTime? // Si hubo promesa de pago
-  photoUrl    String?  // Evidencia de visita
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  photoUrl    String? // Evidencia de visita
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  client      Client   @relation("ClientVisits", fields: [clientId], references: [id], onDelete: Cascade)
-  advisor     User     @relation("AdvisorVisits", fields: [advisorId], references: [id])
+  client  Client @relation("ClientVisits", fields: [clientId], references: [id], onDelete: Cascade)
+  advisor User   @relation("AdvisorVisits", fields: [advisorId], references: [id])
 
   @@index([clientId])
   @@index([advisorId])
@@ -254,15 +264,15 @@ model Loan {
 }
 
 model WeeklyInterestRate {
-  id                  String   @id @default(cuid())
-  minAmount           Decimal  @db.Decimal(12, 2)  // Monto mínimo
-  maxAmount           Decimal  @db.Decimal(12, 2)  // Monto máximo
-  weeklyInterestRate  Decimal  @db.Decimal(5, 2)   // Porcentaje de interés semanal
-  weeklyInterestAmount Decimal @db.Decimal(12, 2)  // Monto de interés semanal en pesos
-  isActive            Boolean  @default(true)       // Para habilitar/deshabilitar
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  
+  id                   String   @id @default(cuid())
+  minAmount            Decimal  @db.Decimal(12, 2) // Monto mínimo
+  maxAmount            Decimal  @db.Decimal(12, 2) // Monto máximo
+  weeklyInterestRate   Decimal  @db.Decimal(5, 2) // Porcentaje de interés semanal
+  weeklyInterestAmount Decimal  @db.Decimal(12, 2) // Monto de interés semanal en pesos
+  isActive             Boolean  @default(true) // Para habilitar/deshabilitar
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
   @@map("weekly_interest_rates")
 }
 
@@ -699,9 +709,9 @@ enum PaymentFrequency {
 }
 
 enum LoanCalculationType {
-  INTERES          // Sistema de interés tradicional
-  TARIFA_FIJA      // Sistema de tarifa fija por monto
-  INTERES_SEMANAL  // Sistema de interés semanal sobre capital
+  INTERES // Sistema de interés tradicional
+  TARIFA_FIJA // Sistema de tarifa fija por monto
+  INTERES_SEMANAL // Sistema de interés semanal sobre capital
 }
 
 enum PaymentStatus {
@@ -868,4 +878,229 @@ enum MessageChannel {
   CHATWOOT
   EMAIL
   PUSH
+}
+
+// ============================================
+// MODELOS NUEVOS - FEBRERO 2026
+// ============================================
+
+// 1. ENTRENAMIENTO CONTINUO DEL MODELO IA
+model MLTrainingData {
+  id              String    @id @default(cuid())
+  loanId          String
+  clientId        String
+  predictionScore Int // Score predicho
+  actualOutcome   Boolean // Resultado real (true = pagó bien, false = incumplió)
+  predictionDate  DateTime
+  outcomeDate     DateTime?
+  features        String // JSON con features usados en la predicción
+  createdAt       DateTime  @default(now())
+
+  @@index([loanId])
+  @@index([clientId])
+  @@index([predictionDate])
+  @@map("ml_training_data")
+}
+
+model MLModel {
+  id            String    @id @default(cuid())
+  version       String    @unique // v1.0.0, v1.1.0, etc.
+  weights       String // JSON con pesos del modelo
+  metrics       String // JSON con métricas (accuracy, precision, recall, etc.)
+  trainingSize  Int // Cantidad de registros usados para entrenar
+  isActive      Boolean   @default(false)
+  trainedAt     DateTime
+  activatedAt   DateTime?
+  deactivatedAt DateTime?
+  notes         String?
+  createdBy     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([isActive])
+  @@index([trainedAt])
+  @@map("ml_models")
+}
+
+// 2. WHATSAPP BIDIRECCIONAL Y CONVERSACIONES
+model Conversation {
+  id            String             @id @default(cuid())
+  clientId      String
+  phone         String
+  status        ConversationStatus @default(ACTIVE)
+  lastMessageAt DateTime           @default(now())
+  assignedToId  String? // Asesor asignado
+  notes         String?
+  metadata      String? // JSON con metadata adicional
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  client     Client                @relation("ClientConversations", fields: [clientId], references: [id], onDelete: Cascade)
+  assignedTo User?                 @relation("AssignedConversations", fields: [assignedToId], references: [id])
+  messages   ConversationMessage[]
+
+  @@index([clientId])
+  @@index([status])
+  @@index([assignedToId])
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id             String                  @id @default(cuid())
+  conversationId String
+  direction      MessageDirection // INBOUND / OUTBOUND
+  content        String
+  messageType    ConversationMessageType @default(TEXT)
+  mediaUrl       String?
+  wahaMessageId  String?
+  status         MessageStatus           @default(SENT)
+  sentBy         String? // User ID si es outbound
+  readAt         DateTime?
+  deliveredAt    DateTime?
+  metadata       String? // JSON
+  createdAt      DateTime                @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User?        @relation("SentMessages", fields: [sentBy], references: [id])
+
+  @@index([conversationId])
+  @@index([direction])
+  @@index([createdAt])
+  @@map("conversation_messages")
+}
+
+model ChatbotRule {
+  id           String       @id @default(cuid())
+  trigger      String // Palabra clave o regex
+  triggerType  TriggerType  @default(KEYWORD)
+  response     String // Respuesta automática
+  responseType ResponseType @default(TEXT)
+  priority     Int          @default(0)
+  isActive     Boolean      @default(true)
+  conditions   String? // JSON con condiciones adicionales
+  actions      String? // JSON con acciones a ejecutar
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([isActive])
+  @@index([priority])
+  @@map("chatbot_rules")
+}
+
+// 3. GENERACIÓN DE REPORTES PERSONALIZADOS
+model ReportTemplate {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  description  String?
+  category     String   @default("custom")
+  config       String // JSON con configuración del reporte (queries, filtros, etc.)
+  layoutConfig String? // JSON con layout drag-and-drop
+  pdfTemplate  String? // Path al template PDF o HTML
+  isPublic     Boolean  @default(false)
+  createdBy    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  creator     User                     @relation("CreatedReportTemplates", fields: [createdBy], references: [id])
+  schedules   ReportSchedule[]
+  generations CustomReportGeneration[]
+
+  @@index([category])
+  @@index([isPublic])
+  @@map("report_templates")
+}
+
+model ReportSchedule {
+  id         String            @id @default(cuid())
+  templateId String
+  frequency  ScheduleFrequency
+  dayOfWeek  Int? // 0-6 para WEEKLY
+  dayOfMonth Int? // 1-31 para MONTHLY
+  time       String // HH:MM formato
+  recipients String // JSON array de emails
+  isActive   Boolean           @default(true)
+  lastRunAt  DateTime?
+  nextRunAt  DateTime
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  template ReportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([isActive])
+  @@index([nextRunAt])
+  @@map("report_schedules")
+}
+
+model CustomReportGeneration {
+  id           String       @id @default(cuid())
+  templateId   String
+  userId       String
+  status       ReportStatus @default(PENDING)
+  parameters   String? // JSON con parámetros de generación
+  filePath     String?
+  fileSize     Int?
+  generatedAt  DateTime?
+  expiresAt    DateTime?
+  errorMessage String?
+  createdAt    DateTime     @default(now())
+
+  template ReportTemplate @relation(fields: [templateId], references: [id])
+  user     User           @relation("CustomReports", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("custom_report_generations")
+}
+
+// ============================================
+// NUEVOS ENUMS
+// ============================================
+
+enum ConversationStatus {
+  ACTIVE
+  RESOLVED
+  ARCHIVED
+  SPAM
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum ConversationMessageType {
+  TEXT
+  IMAGE
+  DOCUMENT
+  AUDIO
+  VIDEO
+  LOCATION
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum TriggerType {
+  KEYWORD
+  REGEX
+  INTENT
+}
+
+enum ResponseType {
+  TEXT
+  TEMPLATE
+  ACTION
+}
+
+enum ScheduleFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  CUSTOM
 }

@@ -15,7 +15,7 @@ interface WahaWebhookPayload {
 export async function POST(request: NextRequest) {
   try {
     const data: WahaWebhookPayload = await request.json();
-    
+
     // Log for debugging (optional for production to avoid log noise)
     // console.log('Waha Webhook:', JSON.stringify(data, null, 2));
 
@@ -76,13 +76,13 @@ async function handleMessageAck(payload: any) {
 
   if (newStatus) {
     await prisma.whatsAppMessage.updateMany({
-      where: { 
+      where: {
         wahaMessageId: wahaMessageId,
         // Only update if status implies progress (e.g. don't go from READ back to DELIVERED)
         // Ideally we check current status, but updateMany doesn't allow robust conditional logic easily without transaction or read-first.
         // For simplicity, we just update. WhatsApp ACKs usually come in order.
       },
-      data: { 
+      data: {
         status: newStatus,
         ...(newStatus === 'DELIVERED' ? { deliveredAt: new Date() } : {}),
         ...(newStatus === 'READ' ? { readAt: new Date() } : {}),
@@ -94,12 +94,34 @@ async function handleMessageAck(payload: any) {
 
 async function handleIncomingMessage(payload: any) {
   // Payload: { id: "...", from: "...", body: "...", type: "chat", ... }
-  // Logic to handle auto-replies or save to inbox could go here.
-  
-  // For now, we just log highly relevant info or match against a client
   const from = payload.from;
   const body = payload.body;
-  
-  // Example: simple keyword auto-reply could be triggered here via WahaService
-  console.log(`Incoming WhatsApp from ${from}: ${body}`);
+  const wahaMessageId = payload.id;
+  const messageType = payload.type || 'text'; // text, image, document, audio, video, location
+
+  console.log(`📥 Incoming WhatsApp from ${from}: ${body}`);
+
+  // Si no hay contenido de texto, skip chatbot
+  if (!body && messageType === 'text') {
+    return;
+  }
+
+  try {
+    // Importar servicio dinámicamente para evitar problemas de importación circular
+    const { conversationService } = await import('@/lib/conversation-service');
+
+    // Procesar mensaje con el servicio de conversaciones
+    // Esto guardará el mensaje y potencialmente enviará una respuesta automática
+    await conversationService.handleIncomingMessage({
+      from,
+      body: body || `[${messageType}]`, // Para mensajes multimedia sin texto
+      mediaUrl: payload.mediaUrl || payload._data?.url,
+      messageType: messageType as any,
+      wahaMessageId
+    });
+
+  } catch (error) {
+    console.error('Error procesando mensaje entrante con conversation service:', error);
+    // No lanzar error para no fallar el webhook
+  }
 }

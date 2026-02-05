@@ -1,7 +1,7 @@
 
 import { PrismaClient } from '@prisma/client';
 
-export type AuditAction = 
+export type AuditAction =
   | 'LOGIN' | 'LOGOUT' | 'SIGNUP'
   | 'LOAN_CREATE' | 'LOAN_UPDATE' | 'LOAN_DELETE' | 'LOAN_APPROVE' | 'LOAN_REJECT'
   | 'PAYMENT_CREATE' | 'PAYMENT_UPDATE' | 'PAYMENT_PROCESS'
@@ -16,7 +16,10 @@ export type AuditAction =
   | 'CLIENT_WHATSAPP_SETTINGS_UPDATE'
   | 'EVOLUTION_WEBHOOK_RECEIVED' | 'EVOLUTION_WEBHOOK_ERROR'
   | 'EVOLUTION_CONNECTION_UPDATE'
-  | 'WHATSAPP_NOTIFICATION_ERROR';
+  | 'WHATSAPP_NOTIFICATION_ERROR'
+  | 'WAHA_CONFIG_CREATE' | 'WAHA_CONFIG_UPDATE'
+  | 'WAHA_WEBHOOK_RECEIVED' | 'WAHA_WEBHOOK_ERROR'
+  | 'WAHA_SESSION_UPDATE';
 
 export interface AuditLogData {
   userId?: string;
@@ -71,7 +74,7 @@ export class AuditLogger {
 
   async getLogs(filter: AuditLogFilter = {}) {
     const where: any = {};
-    
+
     if (filter.userId) where.userId = filter.userId;
     if (filter.action) where.action = filter.action;
     if (filter.resource) where.resource = filter.resource;
@@ -116,13 +119,13 @@ export class AuditLogger {
     });
 
     // Agrupar por acción
-    const actionStats = logs.reduce((acc, log) => {
+    const actionStats = logs.reduce((acc: Record<string, number>, log) => {
       acc[log.action] = (acc[log.action] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
     // Agrupar por usuario
-    const userStats = logs.reduce((acc, log) => {
+    const userStats = logs.reduce((acc: Record<string, number>, log) => {
       if (log.userId) {
         acc[log.userId] = (acc[log.userId] || 0) + 1;
       }
@@ -130,7 +133,7 @@ export class AuditLogger {
     }, {} as Record<string, number>);
 
     // Agrupar por día
-    const dailyStats = logs.reduce((acc, log) => {
+    const dailyStats = logs.reduce((acc: Record<string, number>, log) => {
       const day = log.timestamp.toISOString().split('T')[0];
       acc[day] = (acc[day] || 0) + 1;
       return acc;
@@ -142,10 +145,10 @@ export class AuditLogger {
       userStats,
       dailyStats,
       topActions: Object.entries(actionStats)
-        .sort(([, a], [, b]) => b - a)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
         .slice(0, 10),
       topUsers: Object.entries(userStats)
-        .sort(([, a], [, b]) => b - a)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
         .slice(0, 10),
     };
   }
@@ -154,9 +157,9 @@ export class AuditLogger {
 // Helper function para obtener IP y User-Agent desde request
 export function extractRequestInfo(request: Request) {
   return {
-    ipAddress: request.headers.get('x-forwarded-for') || 
-               request.headers.get('x-real-ip') || 
-               'unknown',
+    ipAddress: request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
+      'unknown',
     userAgent: request.headers.get('user-agent') || 'unknown',
   };
 }
