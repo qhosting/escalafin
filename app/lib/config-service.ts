@@ -1,7 +1,6 @@
 
-import { PrismaClient } from '@prisma/client';
+import { getTenantPrisma } from './tenant-db';
 
-const prisma = new PrismaClient();
 
 export interface LoanTariffConfig {
     fixedFee: {
@@ -64,11 +63,17 @@ export class ConfigService {
 
     /**
      * Obtiene la configuración de tarifas de préstamo.
-     * Si no existe, la crea con los valores por defecto.
+     * Si no existe, la crea con los valores por defecto PARA EL TENANT ESPECIFICADO.
      */
-    static async getLoanTariffs(): Promise<LoanTariffConfig> {
+    static async getLoanTariffs(tenantId: string): Promise<LoanTariffConfig> {
+        if (!tenantId) return DEFAULT_LOAN_TARIFFS;
+
         try {
-            const config = await prisma.systemConfig.findUnique({
+            const db = getTenantPrisma(tenantId);
+
+            // Usamos findFirst porque findUnique requeriría la clave compuesta explícita
+            // y con getTenantPrisma ya filtramos por tenantId en findFirst.
+            const config = await db.systemConfig.findFirst({
                 where: { key: CONFIG_KEY }
             });
 
@@ -76,13 +81,14 @@ export class ConfigService {
                 return JSON.parse(config.value) as LoanTariffConfig;
             }
 
-            // Si no existe, crearla
-            await prisma.systemConfig.create({
+            // Si no existe, crearla para este tenant
+            await db.systemConfig.create({
                 data: {
                     key: CONFIG_KEY,
                     value: JSON.stringify(DEFAULT_LOAN_TARIFFS),
                     description: 'Configuración dinámica de tarifas y tasas de interés',
                     category: 'LOANS'
+                    // tenantId se inyecta automáticamente por getTenantPrisma en create
                 }
             });
 
@@ -96,20 +102,35 @@ export class ConfigService {
     /**
      * Actualiza la configuración de tarifas.
      */
-    static async updateLoanTariffs(newConfig: LoanTariffConfig, userId?: string): Promise<void> {
-        await prisma.systemConfig.upsert({
-            where: { key: CONFIG_KEY },
-            update: {
-                value: JSON.stringify(newConfig),
-                updatedBy: userId
-            },
-            create: {
-                key: CONFIG_KEY,
-                value: JSON.stringify(newConfig),
-                description: 'Configuración dinámica de tarifas y tasas de interés',
-                category: 'LOANS',
-                updatedBy: userId
-            }
+    static async updateLoanTariffs(tenantId: string, newConfig: LoanTariffConfig, userId?: string): Promise<void> {
+        if (!tenantId) throw new Error('TenantID requerido para actualizar configuración');
+
+        const db = getTenantPrisma(tenantId);
+
+        // Upsert es tricky con extensiones y claves compuestas si la extensión no maneja el WHERE exacto del upsert.
+        // Mejor usar lógica explícita find -> update OR create para seguridad.
+        const existing = await db.systemConfig.findFirst({
+            where: { key: CONFIG_KEY }
         });
+
+        if (existing) {
+            await db.systemConfig.update({
+                where: { id: existing.id },
+                data: {
+                    value: JSON.stringify(newConfig),
+                    updatedBy: userId
+                }
+            });
+        } else {
+            await db.systemConfig.create({
+                data: {
+                    key: CONFIG_KEY,
+                    value: JSON.stringify(newConfig),
+                    description: 'Configuración dinámica de tarifas y tasas de interés',
+                    category: 'LOANS',
+                    updatedBy: userId
+                }
+            });
+        }
     }
 }

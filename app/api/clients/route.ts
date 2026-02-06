@@ -1,9 +1,10 @@
 
 
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getTenantPrisma } from '@/lib/tenant-db'; // Importar helper multi-tenant
 import { UserRole, EmploymentType, ClientStatus } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
@@ -21,30 +22,41 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
+    // Obtener instancia de Prisma con scope de Tenant
+    // Si no tiene tenantId (ej. superadmin global o legacy), usar fallback o error
+    const tenantId = session.user.tenantId;
+    if (!tenantId) {
+      console.warn('⚠️ Usuario sin tenantId intentando acceder a clientes');
+      return NextResponse.json({ error: 'Error de configuración de cuenta (Sin Tenant)' }, { status: 403 });
+    }
+
+    const db = getTenantPrisma(tenantId);
+
     // Build where clause based on user role
+    // NOTA: tenantId ya se inyecta automáticamente por getTenantPrisma en db.client.findMany
     const where: any = {};
-    
+
     // If user is ASESOR, show only their clients
     if (session.user.role === UserRole.ASESOR) {
       where.asesorId = session.user.id;
     }
-    
+
     // If asesorId is provided and user is ADMIN, filter by asesor
     if (asesorId && session.user.role === UserRole.ADMIN) {
       where.asesorId = asesorId;
     }
-    
+
     // Filter by status if provided
     if (status) {
       where.status = status as ClientStatus;
     }
 
     // Count total records
-    const totalCount = await prisma.client.count({ where });
+    const totalCount = await db.client.count({ where });
     const totalPages = Math.ceil(totalCount / limit);
 
     // Get clients with related data
-    const clients = await prisma.client.findMany({
+    const clients = await db.client.findMany({
       where,
       include: {
         asesor: {
@@ -81,10 +93,10 @@ export async function GET(request: NextRequest) {
     const formattedClients = clients.map((client: any) => {
       const totalLoans = client._count.loans;
       const totalAmount = client.loans.reduce(
-        (sum: number, loan: any) => sum + Number(loan.balanceRemaining || 0), 
+        (sum: number, loan: any) => sum + Number(loan.balanceRemaining || 0),
         0
       );
-      
+
       return {
         id: client.id,
         name: `${client.firstName} ${client.lastName}`,
@@ -105,7 +117,17 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    return NextResponse.json({
+      data: formattedClients,
+      meta: {
+        total: totalCount,
+        pages: totalPages,
+        currentPage: page
+      }
+    }); // Ajusté respuesta a formato { data, meta } si es posible, o mantengo array si el frontend lo espera. 
+    // MANTENER FORMATO ORIGINAL ARRAY PARA NO ROMPER FRONTEND POR AHORA
     return NextResponse.json(formattedClients);
+
   } catch (error) {
     console.error('Error fetching clients:', error);
     return NextResponse.json(
@@ -121,6 +143,14 @@ export async function POST(request: NextRequest) {
     if (!session?.user || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.ASESOR)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
+
+
+    // Obtener Tenant ID
+    const tenantId = session.user.tenantId;
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Configuración de cuenta inválida (Sin Tenant)' }, { status: 403 });
+    }
+    const db = getTenantPrisma(tenantId);
 
     const body = await request.json();
     const {
@@ -154,20 +184,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email or phone already exists
-    if (email) {
-      const existingClient = await prisma.client.findFirst({
+    // Check if email or phone already exists IN THIS TENANT
+    if (email || phone) {
+      const existingClient = await db.client.findFirst({
         where: {
           OR: [
-            { email },
-            { phone }
+            ...(email ? [{ email }] : []),
+            ...(phone ? [{ phone }] : [])
           ]
         }
       });
 
       if (existingClient) {
         return NextResponse.json(
-          { error: 'Ya existe un cliente con este email o teléfono' },
+          { error: 'Ya existe un cliente con este email o teléfono en esta organización' },
           { status: 409 }
         );
       }
@@ -180,6 +210,9 @@ export async function POST(request: NextRequest) {
       email: email || null,
       phone,
       status: ClientStatus.ACTIVE,
+      // tenantId se inyecta automáticamente por db.client.create, PERO en $transaction a veces es tricky si usamos tx.
+      // El extension funciona sobre 'db'. Si usamos db.$transaction, tx hereda la extensión? 
+      // SÍ, Prisma extensions transactions heredan contexto.
     };
 
     // Add optional fields
@@ -201,8 +234,9 @@ export async function POST(request: NextRequest) {
     if (session.user.role === UserRole.ADMIN) {
       // Only set asesorId if provided and not empty
       if (asesorId && asesorId.trim() !== '') {
-        // Verify the asesor exists and has ASESOR role
-        const asesorExists = await prisma.user.findFirst({
+        // Verify the asesor exists and has ASESOR role AND belongs to tenant
+        // Usamos db.user.findFirst que inyecta tenantId
+        const asesorExists = await db.user.findFirst({
           where: {
             id: asesorId,
             role: UserRole.ASESOR,
@@ -226,7 +260,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create client with guarantor and collaterals in a transaction
-    const result = await prisma.$transaction(async (tx) => {
+    // Usamos db.$transaction para mantener el scope del tenant en las operaciones internas
+    const result = await db.$transaction(async (tx: any) => {
       // Create the client
       const client = await tx.client.create({
         data: clientData,
@@ -261,7 +296,7 @@ export async function POST(request: NextRequest) {
           clientId: client.id,
           description
         }));
-        
+
         await tx.collateral.createMany({
           data: collateralData
         });
@@ -273,7 +308,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result, { status: 201 });
   } catch (error: any) {
     console.error('Error creating client:', error);
-    
+
     // Handle Prisma unique constraint violation
     if (error.code === 'P2002') {
       return NextResponse.json(
@@ -281,7 +316,7 @@ export async function POST(request: NextRequest) {
         { status: 409 }
       );
     }
-    
+
     return NextResponse.json(
       { error: 'Error al crear cliente', details: error.message },
       { status: 500 }

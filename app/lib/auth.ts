@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         console.log('🔍 NextAuth authorize llamado con:', { email: credentials?.email });
-        
+
         if (!credentials?.email || !credentials?.password) {
           console.log('❌ Credenciales faltantes');
           return null;
@@ -44,10 +44,12 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          console.log('✅ Usuario autenticado exitosamente:', { 
-            id: user.id, 
-            email: user.email, 
-            role: user.role 
+
+          console.log('✅ Usuario autenticado exitosamente:', {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            tenantId: user.tenantId
           });
 
           return {
@@ -55,6 +57,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: `${user.firstName} ${user.lastName}`,
             role: user.role,
+            tenantId: user.tenantId
           };
         } catch (error) {
           console.error('💥 Auth error:', error);
@@ -72,6 +75,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.tenantId = user.tenantId;
       }
       return token;
     },
@@ -79,6 +83,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.sub!;
         session.user.role = token.role as string;
+        session.user.tenantId = token.tenantId as string | null;
       }
       return session;
     },
@@ -88,19 +93,19 @@ export const authOptions: NextAuthOptions = {
     },
     async redirect({ url, baseUrl }) {
       console.log('🔄 Redirect callback:', { url, baseUrl });
-      
+
       // Si es una URL relativa, usar baseUrl
       if (url.startsWith('/')) {
         const finalUrl = `${baseUrl}${url}`;
         console.log('✅ Usando URL relativa:', finalUrl);
         return finalUrl;
       }
-      
+
       // Si la URL es del mismo dominio, permitir
       try {
         const urlOrigin = new URL(url).origin;
         const baseOrigin = new URL(baseUrl).origin;
-        
+
         if (urlOrigin === baseOrigin) {
           console.log('✅ URL del mismo dominio:', url);
           return url;
@@ -108,7 +113,7 @@ export const authOptions: NextAuthOptions = {
       } catch (error) {
         console.error('❌ Error parseando URLs:', error);
       }
-      
+
       // Por defecto, redirigir al baseUrl
       console.log('✅ Redirigiendo a baseUrl:', baseUrl);
       return baseUrl;

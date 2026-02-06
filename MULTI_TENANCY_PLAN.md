@@ -74,24 +74,25 @@ El sistema ahora soporta tenants en BD, pero la aplicación no sabe cuál usar.
 - [x] **Contexto de Frontend**: `TenantProvider` y `useTenant` implementados.
 - [x] **Root Layout**: Actualizado para resolver tenant y proveerlo al contexto.
 
-### 🚧 Fase 3: Aislamiento de Datos (PENDIENTE IMMEDIATE)
-1.  **Prisma Client Extension**:
-    *   Crear `lib/prisma-tenant.ts`.
-    *   Implementar `$extends` para inyectar automáticamente `where: { tenantId }` en todas las queries.
-2.  **API Routes Refactor**:
-    *   Actualizar handlers para obtener `tenantId` del request (inyectado por middleware/session).
-    *   Pasar `tenantId` explícitamente a servicios que lo requieran.
+### ✅ Fase 3: Aislamiento de Datos (ARQUITECTURA LISTA)
+- [x] **Prisma Client Extension**: `lib/tenant-db.ts` implementado con `getTenantPrisma` que inyecta `where: { tenantId }` automáticamente.
+- [x] **Auth Session**: `tenantId` agregado a la sesión y token JWT (`lib/auth.ts`, `types/next-auth.d.ts`).
+- [x] **Endpoints Críticos**: 
+    - [x] `api/clients/route.ts` migrado a `getTenantPrisma`.
+    - [ ] **TODO**: Migrar resto de endpoints progresivamente.
+- [x] **Configuración**: `ConfigService` refactorizado para soportar configuraciones por tenant.
 
-### ⏳ Fase 4: Administración y Onboarding (FUTURO)
-1.  **Super Admin Dashboard**:
-    *   Vista para crear/suspender tenants.
-    *   Métricas globales.
-2.  **Configuración por Tenant**:
-    *   Interfaz para que cada admin de tenant configure su `SystemConfig` (logo, colores, tasas).
+### 🚧 Fase 4: Administración y Onboarding (EN PROGRESO)
+- [x] **Configuración por Tenant**: Backend listo (`ConfigService`).
+- [ ] **Super Admin Dashboard**:
+    - [ ] Vista para crear/suspender tenants.
+    - [ ] Métricas globales.
+- [ ] **Onboarding**: Flujo de registro de nueva organización.
 
 ---
 
-## Siguientes Pasos Inmediatos
-1.  Implementar `middleware.ts` para resolución de subdominios.
-2.  Probar flujo login con usuarios asignados a diferentes tenants.
+## Siguientes Pasos
+1.  **Migración Progresiva de APIs**: Ir actualizando cada endpoint para usar `getTenantPrisma(session.user.tenantId)`.
+2.  **Dashboard de Admin**: Crear página para gestionar tenants.
+3.  **Tests**: Verificar que un usuario del Tenant A no vea datos del Tenant B.
 
