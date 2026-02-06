@@ -48,7 +48,7 @@ export class HealthCheckService {
 
         return {
             status: anyDown ? 'unhealthy' : allUp ? 'healthy' : 'degraded',
-            timestamp: new Date().toISO(),
+            timestamp: new Date().toISOString(),
             uptime: process.uptime(),
             checks: {
                 database,
