@@ -7,18 +7,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Eye, 
-  Edit, 
-  Search, 
-  Filter, 
-  CreditCard, 
+import {
+  Eye,
+  Edit,
+  Search,
+  Filter,
+  CreditCard,
   DollarSign,
   Calendar,
   User,
   ChevronLeft,
   ChevronRight,
-  Plus
+  Plus,
+  FileText
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -249,6 +250,16 @@ export function LoanList({ userRole }: LoanListProps) {
                       Ver
                     </Button>
                   </Link>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(`/api/loans/${loan.id}/statement`, '_blank')}
+                  >
+                    <FileText className="h-4 w-4 mr-1" />
+                    Estado de Cuenta
+                  </Button>
+
                   {userRole !== 'CLIENTE' && (
                     <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}/edit`}>
                       <Button variant="outline" size="sm">

@@ -7,20 +7,22 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  CreditCard, 
-  DollarSign, 
-  Calendar, 
-  User, 
-  Building2, 
-  Phone, 
+import {
+  CreditCard,
+  DollarSign,
+  Calendar,
+  User,
+  Building2,
+  Phone,
   Mail,
   MapPin,
   Briefcase,
   TrendingUp,
   FileText,
   Edit,
-  ArrowLeft
+  Edit,
+  ArrowLeft,
+  MessageCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -188,8 +190,8 @@ export function LoanDetail({ loanId, userRole }: LoanDetailProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => router.push(`/${userRole?.toLowerCase() || 'admin'}/loans`)}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -206,14 +208,39 @@ export function LoanDetail({ loanId, userRole }: LoanDetailProps) {
           </Badge>
         </div>
 
-        {userRole !== 'CLIENTE' && (
-          <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}/edit`}>
-            <Button>
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => window.open(`/api/loans/${loanId}/statement`, '_blank')}
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Estado de Cuenta
+          </Button>
+
+          {userRole === 'CLIENTE' && (
+            <Button
+              onClick={() => {
+                // Número de soporte por defecto o configurable
+                const supportPhone = '521234567890';
+                const message = `Hola, quisiera solicitar una prórroga para mi préstamo ${loan.loanNumber}.`;
+                const url = `https://wa.me/${supportPhone}?text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+              }}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Solicitar Prórroga
             </Button>
-          </Link>
-        )}
+          )}
+
+          {userRole !== 'CLIENTE' && (
+            <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}/edit`}>
+              <Button>
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Resumen del Préstamo */}
@@ -465,6 +492,6 @@ export function LoanDetail({ loanId, userRole }: LoanDetailProps) {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </div >
   );
 }

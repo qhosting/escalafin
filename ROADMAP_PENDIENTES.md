@@ -180,15 +180,15 @@ Este documento detalla las tareas pendientes, mejoras planificadas y nuevas func
 
 ### 5.5 Mejoras en Clientes
 **Prioridad**: Media  
-**Estado**: ⏳ Planificado
+**Estado**: 🚧 **EN PROGRESO** (Febrero 2026)
 
 - [ ] **Portal del Cliente Mejorado**
-  - Historial completo de préstamos
-  - Descarga de estados de cuenta
-  - Solicitud de prórroga self-service
-  - Chat de soporte integrado
+  - ✅ Historial completo de préstamos (Disponible en lista de préstamos)
+  - ✅ Descarga de estados de cuenta (PDF generado dinámicamente)
+  - ✅ Solicitud de prórroga self-service (Integración WhatsApp)
+  - ✅ Chat de soporte integrado (Botón de contacto directo)
 
-- [ ] **Verificación de Identidad**
+- [ ] **Verificación de Identidad** (Próximamente)
   - OCR de INE/IFE automatizado
   - Comparación biométrica de foto
   - Validación con autoridades (RENAPO)
