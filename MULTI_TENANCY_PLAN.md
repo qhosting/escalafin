@@ -82,17 +82,26 @@ El sistema ahora soporta tenants en BD, pero la aplicación no sabe cuál usar.
     - [ ] **TODO**: Migrar resto de endpoints progresivamente.
 - [x] **Configuración**: `ConfigService` refactorizado para soportar configuraciones por tenant.
 
-### 🚧 Fase 4: Administración y Onboarding (EN PROGRESO)
+### ✅ Fase 4: Administración y Onboarding (ARQUITECTURA BASE LISTA)
 - [x] **Configuración por Tenant**: Backend listo (`ConfigService`).
-- [ ] **Super Admin Dashboard**:
-    - [ ] Vista para crear/suspender tenants.
-    - [ ] Métricas globales.
-- [ ] **Onboarding**: Flujo de registro de nueva organización.
+- [x] **Super Admin Dashboard**:
+    - [x] API `api/admin/tenants` creada (protegida para role SUPER_ADMIN).
+    - [x] UI `admin/tenants` implementada con lista y creación de tenant.
+    - [ ] **TODO**: Edición y suspensión de tenants (Update/Delete).
+- [ ] **Onboarding**: Flujo de registro de nueva organización (Formulario público vs Invitación).
 
 ---
 
-## Siguientes Pasos
-1.  **Migración Progresiva de APIs**: Ir actualizando cada endpoint para usar `getTenantPrisma(session.user.tenantId)`.
-2.  **Dashboard de Admin**: Crear página para gestionar tenants.
-3.  **Tests**: Verificar que un usuario del Tenant A no vea datos del Tenant B.
+## 🎯 Siguientes Pasos (Roadmap)
+1.  **Refactor Completo**: Continuar migrando todos los endpoints de `prisma` global a `getTenantPrisma`.
+2.  **PWA & Offline**: Adaptar la sincronización offline (Dexie.js) para que soporte multi-tenancy (probablemente limpiando la DB local al cambiar de tenant o namespaceando las tablas).
+3.  **Tests E2E**: Validar aislamiento rigurosamente.
+
+## 🏁 Conclusión
+La arquitectura base de Multi-tenancy está implementada. 
+- **DB**: Scoped por `tenantId`.
+- **Auth**: Scoped en sesión.
+- **Frontend**: Scoped por dominio y contexto.
+- **Backend Admin**: Panel de gestión base listo.
+
 

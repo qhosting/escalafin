@@ -676,6 +676,7 @@ model ModuleChangeLog {
 }
 
 enum UserRole {
+  SUPER_ADMIN
   ADMIN
   ASESOR
   CLIENTE
