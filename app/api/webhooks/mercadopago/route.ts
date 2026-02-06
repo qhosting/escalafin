@@ -1,8 +1,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getMercadoPagoClient } from '@/lib/mercadopago';
-import prisma from '@/lib/prisma';
-import { PaymentMethod } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
     try {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
                         if (!existingTx) {
                             // Iniciar transacción de base de datos
-                            await prisma.$transaction(async (tx) => {
+                            await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
                                 // 1. Crear el registro del pago
                                 const payment = await tx.payment.create({
                                     data: {
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
                                         amortizationScheduleId: amortizationId || null,
                                         amount: paymentData.transaction_amount,
                                         paymentDate: new Date(paymentData.date_approved),
-                                        paymentMethod: 'ONLINE' as PaymentMethod,
+                                        paymentMethod: 'ONLINE' as any,
                                         status: 'COMPLETED',
                                         reference: `MP-${id}`,
                                         processedBy: userId,
