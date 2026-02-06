@@ -34,13 +34,13 @@ export function initSentry() {
 
         // Integrations
         integrations: [
-            new Sentry.BrowserTracing({
+            Sentry.browserTracingIntegration({
                 tracePropagationTargets: [
                     'localhost',
                     /^https:\/\/[^/]*\.escalafin\.com/,
                 ],
             }),
-            new Sentry.Replay({
+            Sentry.replayIntegration({
                 maskAllText: true,
                 blockAllMedia: true,
             }),
@@ -66,7 +66,7 @@ export function initSentry() {
         ],
 
         // Filtrar información sensible
-        beforeSend(event, hint) {
+        beforeSend(event: any, hint: any) {
             // Remover información sensible de URLs
             if (event.request) {
                 event.request.url = sanitizeUrl(event.request.url);
@@ -88,7 +88,7 @@ export function initSentry() {
         },
 
         // Configurar el contexto del usuario
-        beforeBreadcrumb(breadcrumb) {
+        beforeBreadcrumb(breadcrumb: any) {
             // No guardar breadcrumbs de consola en producción
             if (breadcrumb.category === 'console' && process.env.NODE_ENV === 'production') {
                 return null;
@@ -204,27 +204,21 @@ export function withSentry<T extends (...args: any[]) => Promise<any>>(
     }
 ): T {
     return (async (...args: any[]) => {
-        const transaction = Sentry.startTransaction({
-            op: 'function',
-            name: options?.name || fn.name || 'anonymous',
-        });
-
-        if (options?.tags) {
-            Object.entries(options.tags).forEach(([key, value]) => {
-                transaction.setTag(key, value);
-            });
-        }
-
-        try {
-            const result = await fn(...args);
-            transaction.setStatus('ok');
-            return result;
-        } catch (error) {
-            transaction.setStatus('internal_error');
-            Sentry.captureException(error);
-            throw error;
-        } finally {
-            transaction.finish();
-        }
+        return Sentry.startSpan(
+            {
+                op: 'function',
+                name: options?.name || fn.name || 'anonymous',
+                attributes: options?.tags,
+            },
+            async () => {
+                try {
+                    const result = await fn(...args);
+                    return result;
+                } catch (error) {
+                    Sentry.captureException(error);
+                    throw error;
+                }
+            }
+        );
     }) as T;
 }
