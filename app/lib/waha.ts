@@ -8,6 +8,7 @@ interface WahaSession {
   sessionId: string;
   apiKey?: string | null;
   baseUrl: string;
+  n8nWebhookUrl?: string | null;
 }
 
 interface SendMessagePayload {
@@ -52,7 +53,8 @@ export class WahaService {
         this.config = {
           sessionId: config.sessionId,
           apiKey: config.apiKey,
-          baseUrl: config.baseUrl
+          baseUrl: config.baseUrl,
+          n8nWebhookUrl: config.n8nWebhookUrl
         };
       }
     } catch (error) {
@@ -64,7 +66,7 @@ export class WahaService {
     if (!this.config) {
       await this.initializeConfig();
     }
-    
+
     if (!this.config) {
       throw new Error('Waha API no está configurado. Configure la instancia desde el panel de administración.');
     }
@@ -75,12 +77,12 @@ export class WahaService {
   private formatChatId(phone: string): string {
     // Eliminar caracteres no numéricos
     let cleaned = phone.replace(/\D/g, '');
-    
+
     // Si no empieza con código de país, agregar +52 (México)
     if (!cleaned.startsWith('52') && cleaned.length === 10) {
       cleaned = '52' + cleaned;
     }
-    
+
     return cleaned + '@c.us';
   }
 
@@ -143,15 +145,29 @@ export class WahaService {
         }
       });
 
+      // Notificar a n8n si está configurado
+      if (config.n8nWebhookUrl) {
+        this.notifyN8n(config.n8nWebhookUrl, {
+          action: 'message_sent',
+          messageId: whatsappMessage.id,
+          chatId,
+          text: message,
+          messageType,
+          clientId,
+          paymentId,
+          loanId
+        });
+      }
+
       return whatsappMessage.id;
     } catch (error: any) {
       console.error('Error sending WhatsApp message (Waha):', error);
-      
+
       // Actualizar registro con error
       if (clientId) { // Ensure we have the ID created contextually or pass it
-         // Note: If creation failed, we can't update. But usually creation succeeds.
-         // If we have the ID from above we should use it, but here we might not have reference if create failed.
-         // Let's rely on the try/catch block scope.
+        // Note: If creation failed, we can't update. But usually creation succeeds.
+        // If we have the ID from above we should use it, but here we might not have reference if create failed.
+        // Let's rely on the try/catch block scope.
       }
 
       // We should ideally define whatsappMessage outside try, but for now lets query by properties if we can't access variable
@@ -233,7 +249,7 @@ export class WahaService {
   async getSessionStatus(): Promise<any> {
     try {
       const config = await this.ensureConfig();
-      
+
       // Get all sessions or specific one
       const response = await axios.get(
         `${config.baseUrl}/api/sessions?all=true`,
@@ -306,19 +322,19 @@ Hemos recibido tu pago de ${formattedAmount} para el préstamo #${loanNumber}.
 
 Hola ${clientName},
 
-${daysOverdue > 0 
-  ? `Tu pago de ${formattedAmount} para el préstamo #${loanNumber} venció hace ${daysOverdue} día(s).`
-  : `Tu pago de ${formattedAmount} para el préstamo #${loanNumber} vence el ${formattedDate}.`
-}
+${daysOverdue > 0
+        ? `Tu pago de ${formattedAmount} para el préstamo #${loanNumber} venció hace ${daysOverdue} día(s).`
+        : `Tu pago de ${formattedAmount} para el préstamo #${loanNumber} vence el ${formattedDate}.`
+      }
 
 💰 *Monto:* ${formattedAmount}
 📄 *Préstamo:* #${loanNumber}
 📅 *Fecha de vencimiento:* ${formattedDate}
 
-${daysOverdue > 0 
-  ? '⚠️ *Importante:* Para evitar cargos adicionales, realiza tu pago lo antes posible.'
-  : 'Puedes realizar tu pago a través de nuestra plataforma web o contacta a tu asesor.'
-}
+${daysOverdue > 0
+        ? '⚠️ *Importante:* Para evitar cargos adicionales, realiza tu pago lo antes posible.'
+        : 'Puedes realizar tu pago a través de nuestra plataforma web o contacta a tu asesor.'
+      }
 
 *EscalaFin - Tu aliado financiero*`;
 
@@ -356,6 +372,16 @@ Tu solicitud de préstamo ha sido aprobada.
 Los fondos serán depositados en tu cuenta en las próximas 24-48 horas hábiles.
 
 *EscalaFin - Tu aliado financiero*`;
+  }
+
+  private async notifyN8n(url: string, payload: any): Promise<void> {
+    try {
+      await axios.post(url, payload, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.error('Error notifying n8n:', error);
+    }
   }
 }
 

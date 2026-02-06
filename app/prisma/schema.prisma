@@ -543,6 +543,7 @@ model WahaConfig {
   loanApprovedTemplate    String?
   loanUpdateTemplate      String?
   marketingTemplate       String?
+  n8nWebhookUrl           String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 

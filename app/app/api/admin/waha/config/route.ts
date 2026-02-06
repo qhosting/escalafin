@@ -12,7 +12,7 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Acceso no autorizado. Solo administradores pueden acceder.' },
@@ -37,6 +37,7 @@ export async function GET() {
       loanApprovedTemplate: config.loanApprovedTemplate,
       loanUpdateTemplate: config.loanUpdateTemplate,
       marketingTemplate: config.marketingTemplate,
+      n8nWebhookUrl: config.n8nWebhookUrl,
       createdAt: config.createdAt,
       updatedAt: config.updatedAt
     } : null;
@@ -54,7 +55,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Acceso no autorizado. Solo administradores pueden configurar.' },
@@ -73,7 +74,8 @@ export async function POST(request: NextRequest) {
       paymentReminderTemplate,
       loanApprovedTemplate,
       loanUpdateTemplate,
-      marketingTemplate
+      marketingTemplate,
+      n8nWebhookUrl
     } = body;
 
     // Use sessionId or fallback to instanceName (legacy) or default
@@ -105,7 +107,8 @@ export async function POST(request: NextRequest) {
         paymentReminderTemplate,
         loanApprovedTemplate,
         loanUpdateTemplate,
-        marketingTemplate
+        marketingTemplate,
+        n8nWebhookUrl
       }
     });
 
@@ -143,7 +146,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Acceso no autorizado' },

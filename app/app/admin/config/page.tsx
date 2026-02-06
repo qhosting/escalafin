@@ -73,12 +73,12 @@ export default function AdminConfigPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Link 
-                  href="/admin/whatsapp/config" 
+                <Link
+                  href="/admin/whatsapp/config"
                   className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <div className="font-medium text-gray-900 dark:text-white">Configuración WhatsApp</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">EvolutionAPI y plantillas de mensajes</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">WhatsApp (WAHA) y plantillas de mensajes</div>
                 </Link>
                 <Link
                   href="/admin/settings"

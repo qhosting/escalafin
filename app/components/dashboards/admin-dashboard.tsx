@@ -6,14 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Building2, 
-  Users, 
-  CreditCard, 
-  DollarSign, 
-  TrendingUp, 
-  FileText, 
-  LogOut, 
+import {
+  Building2,
+  Users,
+  CreditCard,
+  DollarSign,
+  TrendingUp,
+  FileText,
+  LogOut,
   BarChart3,
   Calculator,
   Shield,
@@ -362,9 +362,9 @@ export function AdminDashboard() {
                     </div>
                     <ArrowRight className="h-4 w-4 text-gray-400" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Configurar EvolutionAPI</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Configurar WhatsApp (WAHA)</h4>
                   <p className="text-sm text-gray-600 mb-4">
-                    Configurar la integración con WhatsApp
+                    Configurar la integración con WhatsApp (WAHA)
                   </p>
                   <Badge variant="secondary" className="bg-green-50 text-green-700">
                     Configuración

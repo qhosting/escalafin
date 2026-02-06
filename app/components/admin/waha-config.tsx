@@ -25,6 +25,7 @@ interface WahaConfig {
   loanApprovedTemplate?: string;
   loanUpdateTemplate?: string;
   marketingTemplate?: string;
+  n8nWebhookUrl?: string;
 }
 
 const defaultTemplates = {
@@ -82,7 +83,8 @@ export default function WahaConfig() {
     paymentReminderTemplate: defaultTemplates.paymentReminderTemplate,
     loanApprovedTemplate: defaultTemplates.loanApprovedTemplate,
     loanUpdateTemplate: '',
-    marketingTemplate: ''
+    marketingTemplate: '',
+    n8nWebhookUrl: ''
   });
 
   const [apiKey, setApiKey] = useState('');
@@ -102,7 +104,7 @@ export default function WahaConfig() {
       setLoading(true);
       const response = await fetch('/api/admin/waha/config');
       const data = await response.json();
-      
+
       if (response.ok && data.config) {
         setConfig(data.config);
       }
@@ -273,6 +275,16 @@ export default function WahaConfig() {
                 />
               </div>
 
+              <div>
+                <Label htmlFor="n8nWebhookUrl">URL de Webhook n8n (Opcional)</Label>
+                <Input
+                  id="n8nWebhookUrl"
+                  value={config.n8nWebhookUrl || ''}
+                  onChange={(e) => setConfig({ ...config, n8nWebhookUrl: e.target.value })}
+                  placeholder="https://n8n.tu-dominio.com/webhook/..."
+                />
+              </div>
+
               <div className="flex items-center space-x-2">
                 <Switch
                   id="isActive"
@@ -402,8 +414,8 @@ export default function WahaConfig() {
                   <AlertDescription>
                     <div className="space-y-2">
                       <p>
-                        {testResult.success 
-                          ? 'Mensaje enviado exitosamente' 
+                        {testResult.success
+                          ? 'Mensaje enviado exitosamente'
                           : `Error: ${testResult.error || testResult.details || 'Desconocido'}`
                         }
                       </p>
@@ -414,7 +426,7 @@ export default function WahaConfig() {
                       )}
                       {testResult.sessionStatus && (
                         <div className="text-xs bg-gray-100 p-2 rounded mt-2">
-                            Status Sesión: {JSON.stringify(testResult.sessionStatus)}
+                          Status Sesión: {JSON.stringify(testResult.sessionStatus)}
                         </div>
                       )}
                     </div>

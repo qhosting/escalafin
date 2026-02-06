@@ -265,9 +265,9 @@ const modules = [
     sortOrder: 70,
   },
   {
-    moduleKey: 'evolution_api',
-    name: 'EvolutionAPI WhatsApp',
-    description: 'Integración con EvolutionAPI para WhatsApp',
+    moduleKey: 'evolution_api', // Mantengo la key para evitar romper referencias de base de datos existentes, pero cambio el nombre visual
+    name: 'WAHA WhatsApp',
+    description: 'Integración con WAHA para WhatsApp',
     category: 'INTEGRATIONS',
     status: 'ENABLED',
     isCore: false,
@@ -470,11 +470,11 @@ export async function seedModules() {
 
     for (const moduleData of modules) {
       console.log(`Processing module: ${moduleData.name} (${moduleData.moduleKey})`);
-      
+
       // Upsert the module (create if new, update if exists)
       const module = await prisma.pWAModule.upsert({
-        where: { 
-          moduleKey: moduleData.moduleKey 
+        where: {
+          moduleKey: moduleData.moduleKey
         },
         update: {
           name: moduleData.name,
@@ -508,7 +508,7 @@ export async function seedModules() {
         where: { moduleKey: moduleData.moduleKey },
         select: { createdAt: true, updatedAt: true }
       });
-      
+
       if (existingModule && existingModule.createdAt.getTime() === existingModule.updatedAt.getTime()) {
         modulesCreated++;
         console.log(`  ✨ Created new module: ${moduleData.name}`);

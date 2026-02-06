@@ -9,14 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { ModuleWrapper } from '@/components/ui/module-wrapper';
 import { useModules } from '@/hooks/use-modules';
 import { QuickModuleToggle } from '@/components/admin/quick-module-toggle';
-import { 
-  Building2, 
-  Users, 
-  CreditCard, 
-  DollarSign, 
-  TrendingUp, 
-  FileText, 
-  LogOut, 
+import {
+  Building2,
+  Users,
+  CreditCard,
+  DollarSign,
+  TrendingUp,
+  FileText,
+  LogOut,
   BarChart3,
   Calculator,
   Shield,
@@ -219,8 +219,8 @@ export function EnhancedAdminDashboard() {
 
   const whatsappModules = [
     {
-      title: 'Config. EvolutionAPI',
-      description: 'Configurar integración',
+      title: 'Config. WAHA WhatsApp',
+      description: 'Configurar integración WAHA',
       icon: Settings,
       route: '/admin/whatsapp',
       moduleKey: 'whatsapp_config',
@@ -308,31 +308,31 @@ export function EnhancedAdminDashboard() {
   ];
 
   const recentActivities = [
-    { 
-      action: 'Pago procesado', 
-      details: '$9,025 - Cliente: María García', 
-      time: '2 min', 
+    {
+      action: 'Pago procesado',
+      details: '$9,025 - Cliente: María García',
+      time: '2 min',
       status: 'success',
       moduleKey: 'payment_history'
     },
-    { 
-      action: 'Nuevo préstamo creado', 
-      details: '$50,000 - Cliente: Juan Pérez', 
-      time: '15 min', 
+    {
+      action: 'Nuevo préstamo creado',
+      details: '$50,000 - Cliente: Juan Pérez',
+      time: '15 min',
       status: 'info',
       moduleKey: 'loan_create'
     },
-    { 
-      action: 'Cliente registrado', 
-      details: 'Ana López - Asesor: Carlos Ruiz', 
-      time: '1 hr', 
+    {
+      action: 'Cliente registrado',
+      details: 'Ana López - Asesor: Carlos Ruiz',
+      time: '1 hr',
       status: 'success',
       moduleKey: 'client_add'
     },
-    { 
-      action: 'Pago vencido', 
-      details: '$4,500 - Cliente: Pedro Martín', 
-      time: '2 hrs', 
+    {
+      action: 'Pago vencido',
+      details: '$4,500 - Cliente: Pedro Martín',
+      time: '2 hrs',
       status: 'warning',
       moduleKey: 'report_collections'
     }
@@ -470,7 +470,7 @@ export function EnhancedAdminDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center text-lg">
               <MessageSquare className="h-5 w-5 mr-2 text-green-600" />
-              Comunicaciones WhatsApp (EvolutionAPI)
+              Comunicaciones WhatsApp (WAHA)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -588,10 +588,9 @@ export function EnhancedAdminDashboard() {
                   <ModuleWrapper key={index} moduleKey={activity.moduleKey}>
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-full ${
-                          activity.status === 'success' ? 'bg-green-100' :
-                          activity.status === 'warning' ? 'bg-yellow-100' : 'bg-blue-100'
-                        }`}>
+                        <div className={`p-2 rounded-full ${activity.status === 'success' ? 'bg-green-100' :
+                            activity.status === 'warning' ? 'bg-yellow-100' : 'bg-blue-100'
+                          }`}>
                           {activity.status === 'success' ? (
                             <CheckCircle className="h-4 w-4 text-green-600" />
                           ) : activity.status === 'warning' ? (
