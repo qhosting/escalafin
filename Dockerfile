@@ -108,7 +108,7 @@ RUN echo "🏗️  Building Next.js..." && \
     echo "NODE_ENV: $NODE_ENV" && \
     echo "Working directory: $(pwd)" && \
     echo "" && \
-    ./node_modules/.bin/next build && \
+    NODE_OPTIONS="--max-old-space-size=4096" ./node_modules/.bin/next build && \
     echo "✅ Build completado"
 
 # Verificar que standalone fue generado
