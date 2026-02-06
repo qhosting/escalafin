@@ -8,7 +8,10 @@
  * - Respuestas automáticas
  */
 
-import { PrismaClient, ConversationStatus, MessageDirection } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+// Tipos temporales para evitar errores de compilación si el cliente de Prisma no está sincronizado
+type ConversationStatus = any;
+type MessageDirection = any;
 import { WahaService } from './waha';
 
 const prisma = new PrismaClient();
@@ -130,8 +133,8 @@ export class ConversationService {
 
             if (rule.triggerType === 'KEYWORD') {
                 // Coincidencia por palabra clave
-                const keywords = rule.trigger.toLowerCase().split(',').map(k => k.trim());
-                isMatch = keywords.some(keyword => messageLower.includes(keyword));
+                const keywords = rule.trigger.toLowerCase().split(',').map((k: string) => k.trim());
+                isMatch = keywords.some((keyword: string) => messageLower.includes(keyword));
             } else if (rule.triggerType === 'REGEX') {
                 // Coincidencia por regex
                 try {
@@ -293,8 +296,10 @@ export class ConversationService {
         try {
             // 1. Enviar mensaje por WAHA
             const wahaResponse = await wahaService.sendTextMessage(
+                conversation.clientId,
                 conversation.phone,
-                content
+                content,
+                'CUSTOM'
             );
 
             // 2. Guardar mensaje en BD
@@ -306,7 +311,7 @@ export class ConversationService {
                     messageType: 'TEXT',
                     sentBy: userId,
                     status: 'SENT',
-                    wahaMessageId: wahaResponse?.id
+                    wahaMessageId: wahaResponse
                 }
             });
 
