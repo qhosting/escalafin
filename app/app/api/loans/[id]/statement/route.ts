@@ -124,7 +124,7 @@ export async function GET(
 
         let recordY = tableTop + 25;
 
-        loan.payments.forEach(payment => {
+        loan.payments.forEach((payment: any) => {
             if (recordY > 700) { // New page if near bottom
                 doc.addPage();
                 recordY = 50;
@@ -149,7 +149,7 @@ export async function GET(
         doc.fontSize(14).text('Próximos Pagos', 50, recordY + 20, { underline: true });
         recordY += 45;
 
-        const upcomingPayments = loan.amortizationSchedule.filter(s => !s.isPaid).slice(0, 5); // Show next 5
+        const upcomingPayments = loan.amortizationSchedule.filter((s: any) => !s.isPaid).slice(0, 5); // Show next 5
 
         doc.fontSize(10);
         doc.text('Fecha', 50, recordY, { width: 100 });
@@ -159,7 +159,7 @@ export async function GET(
         doc.moveTo(50, recordY + 15).lineTo(550, recordY + 15).stroke();
         recordY += 25;
 
-        upcomingPayments.forEach(sch => {
+        upcomingPayments.forEach((sch: any) => {
             doc.text(sch.paymentDate.toLocaleDateString(), 50, recordY);
             doc.text(`$${Number(sch.totalPayment).toFixed(2)}`, 150, recordY);
             doc.text(`#${sch.paymentNumber}`, 250, recordY);
@@ -174,8 +174,8 @@ export async function GET(
 
         return new Promise<NextResponse>((resolve) => {
             doc.on('end', () => {
-                const pdfData = Buffer.concat(chunks);
-                const response = new NextResponse(pdfData, {
+                const pdfData = Buffer.concat(chunks as any);
+                const response = new NextResponse(pdfData as any, {
                     status: 200,
                     headers: {
                         'Content-Type': 'application/pdf',
