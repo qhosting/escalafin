@@ -97,6 +97,7 @@ model User {
   sentMessages               ConversationMessage[]    @relation("SentMessages")
   createdReportTemplates     ReportTemplate[]         @relation("CreatedReportTemplates")
   customReports              CustomReportGeneration[] @relation("CustomReports")
+  tenantInvitationsSent      TenantInvitation[]       @relation("Inviter")
   
   // Two-Factor Authentication
   twoFactorEnabled           Boolean?                 @default(false)
@@ -1146,4 +1147,21 @@ enum ScheduleFrequency {
   WEEKLY
   MONTHLY
   CUSTOM
+}
+
+model TenantInvitation {
+  id          String   @id @default(cuid())
+  email       String
+  token       String   @unique
+  orgName     String?
+  role        UserRole @default(ADMIN)
+  status      String   @default("PENDING") // PENDING, ACCEPTED, EXPIRED
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  acceptedAt  DateTime?
+  
+  invitedBy   String?
+  inviter     User?    @relation("Inviter", fields: [invitedBy], references: [id])
+
+  @@map("tenant_invitations")
 }

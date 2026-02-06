@@ -88,7 +88,9 @@ El sistema ahora soporta tenants en BD, pero la aplicación no sabe cuál usar.
     - [x] API `api/admin/tenants` creada (protegida para role SUPER_ADMIN).
     - [x] UI `admin/tenants` implementada con lista y creación de tenant.
     - [ ] **TODO**: Edición y suspensión de tenants (Update/Delete).
-- [ ] **Onboarding**: Flujo de registro de nueva organización (Formulario público vs Invitación).
+- [x] **Onboarding**: Flujo de registro de nueva organización (Formulario público vs Invitación) **IMPLEMENTADO**.
+    - [x] API de Invitaciones y Autocompletado cargada.
+    - [x] Formulario multi-paso premium para nuevas empresas.
 
 ---
 
