@@ -16,18 +16,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { CustomReportsManager } from '@/components/reports/custom-reports-manager';
 import { ExportReports } from '@/components/export/export-reports';
-import { 
-  BarChart3, 
-  Calendar, 
-  AlertTriangle, 
-  TrendingUp, 
+import {
+  BarChart3,
+  Calendar,
+  AlertTriangle,
+  TrendingUp,
   DollarSign,
   Users,
   CreditCard,
   Clock,
   RefreshCw,
-  Filter
+  Filter,
+  FileSpreadsheet
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -181,9 +183,10 @@ export default function ReportsPage() {
       </div>
 
       <Tabs defaultValue="due-loans" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="due-loans">Vencimientos</TabsTrigger>
           <TabsTrigger value="collections">Cobranza</TabsTrigger>
+          <TabsTrigger value="custom">Personalizados</TabsTrigger>
           <TabsTrigger value="analytics">Análisis</TabsTrigger>
         </TabsList>
 
@@ -237,8 +240,8 @@ export default function ReportsPage() {
                   Lista detallada de préstamos con pagos vencidos
                 </CardDescription>
               </div>
-              <ExportReports 
-                data={dueReports} 
+              <ExportReports
+                data={dueReports}
                 filename="reporte-vencimientos"
                 reportType="loans"
               />
@@ -293,8 +296,8 @@ export default function ReportsPage() {
                               </span>
                             </TableCell>
                             <TableCell className="text-sm">
-                              {loan.lastPaymentDate ? 
-                                new Date(loan.lastPaymentDate).toLocaleDateString('es-MX') : 
+                              {loan.lastPaymentDate ?
+                                new Date(loan.lastPaymentDate).toLocaleDateString('es-MX') :
                                 'Sin pagos'
                               }
                             </TableCell>
@@ -366,8 +369,8 @@ export default function ReportsPage() {
                   Rendimiento de cobradores en el período seleccionado
                 </CardDescription>
               </div>
-              <ExportReports 
-                data={collectionReports} 
+              <ExportReports
+                data={collectionReports}
                 filename="reporte-cobranza"
                 reportType="payments"
               />
@@ -415,8 +418,8 @@ export default function ReportsPage() {
                           </TableCell>
                           <TableCell>
                             <Badge variant={
-                              (report.totalCollections / report.loansVisited) > 0.5 
-                                ? 'default' 
+                              (report.totalCollections / report.loansVisited) > 0.5
+                                ? 'default'
                                 : 'secondary'
                             }>
                               {((report.totalCollections / report.loansVisited) * 100).toFixed(1)}%
@@ -433,6 +436,11 @@ export default function ReportsPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Custom Reports */}
+        <TabsContent value="custom">
+          <CustomReportsManager />
         </TabsContent>
 
         {/* Analytics */}

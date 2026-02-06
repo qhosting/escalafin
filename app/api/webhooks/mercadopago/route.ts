@@ -1,10 +1,14 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getMercadoPagoClient } from '@/lib/mercadopago';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { applyRateLimit, rateLimiters } from '@/lib/rate-limiter';
 
 export async function POST(request: NextRequest) {
+    // Aplicar rate limiting
+    const rateLimit = await applyRateLimit(request, rateLimiters.webhook);
+    if (rateLimit) return rateLimit;
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('data.id') || searchParams.get('id');
