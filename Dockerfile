@@ -21,15 +21,15 @@ RUN rm -rf /var/lib/apt/lists/* && \
     apt-get clean && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        bash \
-        openssl \
-        curl \
-        wget \
-        gnupg \
-        ca-certificates \
-        dumb-init \
-        postgresql-client \
-        redis-tools \
+    bash \
+    openssl \
+    curl \
+    wget \
+    gnupg \
+    ca-certificates \
+    dumb-init \
+    postgresql-client \
+    redis-tools \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /app
@@ -43,7 +43,7 @@ WORKDIR /app
 
 # Copy configuration files
 COPY app/package.json ./
-COPY app/yarn.lock ./
+# COPY app/yarn.lock ./
 COPY app/.yarnrc.yml ./
 
 # Instalar dependencias con Yarn y verificar que node_modules fue generado
