@@ -4,7 +4,7 @@
  * Implementación de TOTP (Time-based One-Time Password) para 2FA
  */
 
-import { authenticator } from 'otplib';
+import { generateSecret, verifySync, generateURI } from 'otplib';
 import { PrismaClient } from '@prisma/client';
 import QRCode from 'qrcode';
 
@@ -20,8 +20,12 @@ export class TwoFactorAuthService {
         secret: string;
         otpauthUrl: string;
     } {
-        const secret = authenticator.generateSecret();
-        const otpauthUrl = authenticator.keyuri(userEmail, this.appName, secret);
+        const secret = generateSecret();
+        const otpauthUrl = generateURI({
+            secret,
+            label: userEmail,
+            issuer: this.appName,
+        });
 
         return {
             secret,
@@ -46,7 +50,7 @@ export class TwoFactorAuthService {
      */
     verifyToken(secret: string, token: string): boolean {
         try {
-            return authenticator.verify({
+            return verifySync({
                 token,
                 secret,
             });
