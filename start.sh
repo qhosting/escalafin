@@ -11,9 +11,16 @@ PRISMA_CMD="yarn prisma"
 
 echo "🔐 Comando Prisma: $PRISMA_CMD"
 
-# Aplicar migraciones
-echo "🔄 Aplicando migraciones si es necesario..."
-$PRISMA_CMD migrate deploy || echo "⚠️ Error en migraciones, continuando..."
+# Usar db push para asegurar que el esquema coincida (especialmente para Multi-tenancy)
+echo "🔄 Sincronizando esquema de base de datos..."
+$PRISMA_CMD db push --accept-data-loss || echo "⚠️ Error en db push, continuando..."
+
+# Ejecutar script de migración a Multi-tenancy
+echo "🏢 Ejecutando migración a Multi-tenancy..."
+npx ts-node scripts/migrate-to-multitenancy.ts || echo "⚠️ Error en migración Multi-tenancy, continuando..."
+
+# Aplicar migraciones (opcional si usamos db push, pero mantenemos por historial)
+# $PRISMA_CMD migrate deploy || echo "⚠️ Error en migraciones, continuando..."
 
 # Verificar estado de migraciones
 echo "📋 Verificando estado de migraciones..."

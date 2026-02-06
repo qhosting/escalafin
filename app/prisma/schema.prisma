@@ -9,6 +9,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Tenant {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  domain      String?  @unique
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  users       User[]
+  clients     Client[]
+  config      SystemConfig[]
+  wahaConfig  WahaConfig[]
+  messageTemplates MessageTemplate[]
+  reportTemplates  ReportTemplate[]
+
+  @@map("tenants")
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -84,6 +103,9 @@ model User {
   twoFactorSecret            String?
   twoFactorBackupCodes       String?                  // JSON array of backup codes
 
+  tenantId                   String?
+  tenant                     Tenant?                  @relation(fields: [tenantId], references: [id])
+
   @@map("users")
 }
 
@@ -135,6 +157,9 @@ model Client {
   whatsappMessages             WhatsAppMessage[]   @relation("ClientMessages")
   collectionVisits             CollectionVisit[]   @relation("ClientVisits")
   conversations                Conversation[]      @relation("ClientConversations")
+
+  tenantId                     String?
+  tenant                       Tenant?             @relation(fields: [tenantId], references: [id])
 
   @@map("clients")
 }
@@ -448,7 +473,7 @@ model CashCollection {
 
 model SystemConfig {
   id            String   @id @default(cuid())
-  key           String   @unique
+  key           String
   value         String
   description   String?
   category      String?
@@ -457,7 +482,11 @@ model SystemConfig {
   updatedAt     DateTime @updatedAt
   updatedBy     String?
   updatedByUser User?    @relation("ConfigUpdates", fields: [updatedBy], references: [id])
+  
+  tenantId      String?
+  tenant        Tenant?  @relation(fields: [tenantId], references: [id])
 
+  @@unique([key, tenantId])
   @@index([category])
   @@index([key])
   @@map("system_config")
@@ -515,7 +544,7 @@ model WhatsAppMessage {
 
 model MessageTemplate {
   id          String              @id @default(cuid())
-  name        String              @unique
+  name        String
   description String?
   category    MessageTemplateType
   channel     MessageChannel
@@ -526,6 +555,10 @@ model MessageTemplate {
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 
+  tenantId    String?
+  tenant      Tenant?             @relation(fields: [tenantId], references: [id])
+  
+  @@unique([name, tenantId])
   @@index([category])
   @@index([channel])
   @@map("message_templates")
@@ -533,7 +566,7 @@ model MessageTemplate {
 
 model WahaConfig {
   id                      String   @id @default(cuid())
-  sessionId               String   @unique @default("default")
+  sessionId               String   @default("default")
   apiKey                  String?
   baseUrl                 String
   webhookUrl              String?
@@ -546,7 +579,11 @@ model WahaConfig {
   n8nWebhookUrl           String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
+  
+  tenantId                String?
+  tenant                  Tenant?  @relation(fields: [tenantId], references: [id])
 
+  @@unique([sessionId, tenantId])
   @@map("waha_config")
 }
 
@@ -991,7 +1028,7 @@ model ChatbotRule {
 // 3. GENERACIÓN DE REPORTES PERSONALIZADOS
 model ReportTemplate {
   id           String   @id @default(cuid())
-  name         String   @unique
+  name         String
   description  String?
   category     String   @default("custom")
   config       String // JSON con configuración del reporte (queries, filtros, etc.)
@@ -1006,6 +1043,10 @@ model ReportTemplate {
   schedules   ReportSchedule[]
   generations CustomReportGeneration[]
 
+  tenantId    String?
+  tenant      Tenant?                  @relation(fields: [tenantId], references: [id])
+
+  @@unique([name, tenantId])
   @@index([category])
   @@index([isPublic])
   @@map("report_templates")
