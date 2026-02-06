@@ -61,24 +61,37 @@ Actualizar los endpoints para leer el `tenantId` del request y pasarlo a los ser
 
 ## 4. Plan de Trabajo
 
-### Fase 1: Fundamentos de BD (🏗️ Actual)
-1.  Crear modelo `Tenant`.
-2.  Crear script de migración para convertir datos actuales a "Default Tenant".
-3.  Actualizar `schema.prisma`.
+### ✅ Fase 1: Fundamentos de BD (COMPLETADA)
+- [x] **Modelo `Tenant`**: Implementado con slug, dominio y estado.
+- [x] **Relaciones**: Agregado `tenantId` a `User`, `Client`, `SystemConfig`, `WahaConfig`, `ReportTemplate`, `MessageTemplate`.
+- [x] **Constraints**: Actualizadas llaves únicas compuestas (ej. `[key, tenantId]` en config).
+- [x] **Script de Migración**: `scripts/migrate-to-multitenancy.ts` creado para asignar datos existentes al tenant default.
+- [x] **Pipeline de Despliegue**: Actualizado `start.sh` para soportar migraciones automáticas.
 
-### Fase 2: Lógica de Identificación
-1.  Implementar detección de tenant en Middleware.
-2.  Crear contexto de React `TenantContext`.
+### ✅ Fase 2: Lógica de Identificación (COMPLETADA)
+El sistema ahora soporta tenants en BD, pero la aplicación no sabe cuál usar.
+- [x] **Middleware de Detección**: `middleware.ts` extrae subdominio e inyecta header `x-tenant-slug`.
+- [x] **Contexto de Frontend**: `TenantProvider` y `useTenant` implementados.
+- [x] **Root Layout**: Actualizado para resolver tenant y proveerlo al contexto.
 
-### Fase 3: Seguridad y Aislamiento
-1.  Actualizar queries de Prisma.
-2.  Validar aislamiento en endpoints críticos.
+### 🚧 Fase 3: Aislamiento de Datos (PENDIENTE IMMEDIATE)
+1.  **Prisma Client Extension**:
+    *   Crear `lib/prisma-tenant.ts`.
+    *   Implementar `$extends` para inyectar automáticamente `where: { tenantId }` en todas las queries.
+2.  **API Routes Refactor**:
+    *   Actualizar handlers para obtener `tenantId` del request (inyectado por middleware/session).
+    *   Pasar `tenantId` explícitamente a servicios que lo requieran.
 
-### Fase 4: Configuración Dinámica
-1.  Hacer que `SystemConfig` sea dependiente del tenant.
-2.  Interfaz de administración de tenants (Super Admin).
+### ⏳ Fase 4: Administración y Onboarding (FUTURO)
+1.  **Super Admin Dashboard**:
+    *   Vista para crear/suspender tenants.
+    *   Métricas globales.
+2.  **Configuración por Tenant**:
+    *   Interfaz para que cada admin de tenant configure su `SystemConfig` (logo, colores, tasas).
 
 ---
 
-## ¿Proceder con cambio de esquema?
-El siguiente paso es modificar `prisma/schema.prisma` y crear el tenant default.
+## Siguientes Pasos Inmediatos
+1.  Implementar `middleware.ts` para resolución de subdominios.
+2.  Probar flujo login con usuarios asignados a diferentes tenants.
+

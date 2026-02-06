@@ -1,7 +1,0 @@
-Environment variables loaded from .env
-Prisma schema loaded from prisma\schema.prisma
-Datasource "db": PostgreSQL database "edced812a", schema "public" at "db-edced812a.db002.hosteddb.reai.io:5432"
-
-Error: P1001: Can't reach database server at `db-edced812a.db002.hosteddb.reai.io:5432`
-
-Please make sure your database server is running at `db-edced812a.db002.hosteddb.reai.io:5432`.

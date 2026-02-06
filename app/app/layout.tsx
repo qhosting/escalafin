@@ -1,11 +1,13 @@
 
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { headers } from 'next/headers'
 import './globals.css'
 import { Providers } from './providers'
 import { Toaster } from 'sonner'
 import { MainLayout } from '@/components/layout/main-layout'
 import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic';
 
@@ -28,20 +30,49 @@ interface RootLayoutProps {
   children: React.ReactNode
 }
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default async function RootLayout({ children }: RootLayoutProps) {
+  // 1. Obtener slug del header inyectado por middleware
+  const headersList = headers();
+  const tenantSlug = headersList.get('x-tenant-slug') || 'default-tenant';
+
+  // 2. Fetch tenant
+  let tenant = null;
+  try {
+    tenant = await prisma.tenant.findUnique({
+      where: { slug: tenantSlug },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        domain: true,
+        status: true
+      }
+    });
+
+    // Fallback si no existe (por seguridad)
+    if (!tenant) {
+      tenant = await prisma.tenant.findUnique({
+        where: { slug: 'default-tenant' },
+        select: { id: true, name: true, slug: true, domain: true, status: true }
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching tenant in Layout:', error);
+  }
+
   return (
     <html lang="es">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
       <body className={inter.className}>
-        <Providers>
+        <Providers tenant={tenant}>
           <MainLayout>
             {children}
           </MainLayout>
-          <Toaster 
-            position="top-right" 
-            richColors 
+          <Toaster
+            position="top-right"
+            richColors
             closeButton
             theme="light"
           />
