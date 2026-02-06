@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function seedWhatsAppConfig() {
-  console.log('🔄 Iniciando seed de configuración WhatsApp...');
+  console.log('🔄 Iniciando seed de configuración WhatsApp (WAHA)...');
 
   try {
     // Crear configuración por defecto de WAHA (activa por defecto en el seed)
