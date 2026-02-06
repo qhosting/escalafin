@@ -32,14 +32,15 @@ export function initSentry() {
         // Debug mode
         debug: process.env.NODE_ENV === 'development',
 
+        // Configuración de rastreo
+        tracePropagationTargets: [
+            'localhost',
+            /^https:\/\/[^/]*\.escalafin\.com/,
+        ],
+
         // Integrations
         integrations: [
-            Sentry.browserTracingIntegration({
-                tracePropagationTargets: [
-                    'localhost',
-                    /^https:\/\/[^/]*\.escalafin\.com/,
-                ],
-            }),
+            Sentry.browserTracingIntegration(),
             Sentry.replayIntegration({
                 maskAllText: true,
                 blockAllMedia: true,
