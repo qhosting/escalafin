@@ -2,20 +2,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { getTenantPrisma } from '@/lib/tenant-db';
 import { CreateCreditApplicationData } from '@/lib/api/credit-applications';
 import { UserRole, ApplicationStatus } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user || !['ADMIN', 'ASESOR'].includes(session.user.role)) {
+
+    if (!session?.user || !['ADMIN', 'ASESOR', 'SUPER_ADMIN'].includes(session.user.role)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
       );
     }
+
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
     const data: CreateCreditApplicationData = await request.json();
 
@@ -41,8 +44,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify client exists
-    const client = await prisma.client.findUnique({
+    // Verify client exists (scoped to tenant)
+    const client = await tenantPrisma.client.findUnique({
       where: { id: data.clientId },
     });
 
@@ -53,8 +56,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create credit application
-    const creditApplication = await prisma.creditApplication.create({
+    // Create credit application (tenantId is injected)
+    const creditApplication = await tenantPrisma.creditApplication.create({
       data: {
         clientId: data.clientId,
         asesorId: session.user.id,
@@ -86,8 +89,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create audit log
-    await prisma.auditLog.create({
+    // Create audit log (tenantId is injected)
+    await tenantPrisma.auditLog.create({
       data: {
         userId: session.user.id,
         userEmail: session.user.email!,
@@ -118,13 +121,16 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
       );
     }
+
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') as ApplicationStatus | null;
@@ -138,7 +144,7 @@ export async function GET(request: NextRequest) {
     if (session.user.role === UserRole.ASESOR) {
       where.asesorId = session.user.id;
     } else if (session.user.role === UserRole.CLIENTE) {
-      const clientProfile = await prisma.client.findUnique({
+      const clientProfile = await tenantPrisma.client.findUnique({
         where: { userId: session.user.id },
       });
       if (clientProfile) {
@@ -151,11 +157,11 @@ export async function GET(request: NextRequest) {
     // Apply additional filters
     if (status) where.status = status;
     if (clientId) where.clientId = clientId;
-    if (asesorId && session.user.role === UserRole.ADMIN) {
+    if (asesorId && (session.user.role === UserRole.ADMIN || session.user.role === UserRole.SUPER_ADMIN)) {
       where.asesorId = asesorId;
     }
 
-    const creditApplications = await prisma.creditApplication.findMany({
+    const creditApplications = await tenantPrisma.creditApplication.findMany({
       where,
       include: {
         client: {

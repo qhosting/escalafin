@@ -2,22 +2,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { getTenantPrisma } from '@/lib/tenant-db';
 import { RelationshipType, NotificationPreference } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user || !['ADMIN', 'ASESOR'].includes(session.user.role)) {
+
+    if (!session?.user || !['ADMIN', 'ASESOR', 'SUPER_ADMIN'].includes(session.user.role)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
       );
     }
 
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
     const data = await request.json();
-    
+
     // Validation
     if (!data.clientId || !data.fullName || !data.relationship || !data.phone) {
       return NextResponse.json(
@@ -26,8 +29,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate client exists
-    const client = await prisma.client.findUnique({
+    // Validate client exists (scoped to tenant)
+    const client = await tenantPrisma.client.findFirst({
       where: { id: data.clientId },
     });
 
@@ -39,10 +42,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if client already has 2 references
-    const existingReferencesCount = await prisma.personalReference.count({
-      where: { 
+    const existingReferencesCount = await tenantPrisma.personalReference.count({
+      where: {
         clientId: data.clientId,
-        isActive: true 
+        isActive: true
       },
     });
 
@@ -53,8 +56,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create personal reference
-    const reference = await prisma.personalReference.create({
+    // Create personal reference (tenantId is injected)
+    const reference = await tenantPrisma.personalReference.create({
       data: {
         clientId: data.clientId,
         fullName: data.fullName,
@@ -74,8 +77,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create audit log
-    await prisma.auditLog.create({
+    // Create audit log (tenantId is injected)
+    await tenantPrisma.auditLog.create({
       data: {
         userId: session.user.id,
         userEmail: session.user.email!,
@@ -105,13 +108,16 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
       );
     }
+
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
     const { searchParams } = new URL(request.url);
     const clientId = searchParams.get('clientId');
@@ -123,8 +129,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Verify client exists and user has access
-    const client = await prisma.client.findUnique({
+    // Verify client exists and user has access (scoped to tenant)
+    const client = await tenantPrisma.client.findFirst({
       where: { id: clientId },
     });
 
@@ -135,10 +141,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const references = await prisma.personalReference.findMany({
-      where: { 
+    const references = await tenantPrisma.personalReference.findMany({
+      where: {
         clientId: clientId,
-        isActive: true 
+        isActive: true
       },
       orderBy: { createdAt: 'asc' },
     });

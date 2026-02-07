@@ -1,5 +1,5 @@
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -16,8 +16,6 @@ async function main() {
     }
 
     // Actualizar a SUPER_ADMIN
-    // Usamos 'as any' porque el tipo en el cliente generado puede no estar actualizado
-    // aunque ya corrimos npx prisma generate, por seguridad.
     await prisma.user.update({
         where: { email: adminEmail },
         data: { role: 'SUPER_ADMIN' as any }

@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getTenantPrisma } from '@/lib/tenant-db';
 import { UserRole, LoanStatus } from '@prisma/client';
 
 export async function GET(
@@ -15,7 +15,10 @@ export async function GET(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const loan = await prisma.loan.findUnique({
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
+    const loan = await tenantPrisma.loan.findFirst({
       where: { id: params.id },
       include: {
         client: {
@@ -48,7 +51,7 @@ export async function GET(
       return NextResponse.json({ error: 'Préstamo no encontrado' }, { status: 404 });
     }
 
-    // Check authorization
+    // Check authorization (client restriction)
     if (session.user.role === UserRole.CLIENTE && loan.clientId !== session.user.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
@@ -73,6 +76,9 @@ export async function PUT(
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
     const body = await request.json();
     const {
       loanType,
@@ -87,8 +93,8 @@ export async function PUT(
       status
     } = body;
 
-    // Check if loan exists
-    const existingLoan = await prisma.loan.findUnique({
+    // Check if loan exists (scoped to tenant)
+    const existingLoan = await tenantPrisma.loan.findFirst({
       where: { id: params.id }
     });
 
@@ -96,18 +102,16 @@ export async function PUT(
       return NextResponse.json({ error: 'Préstamo no encontrado' }, { status: 404 });
     }
 
-    // Preparar datos para actualizar
+    // Prepare update data
     const updateData: any = {
       updatedAt: new Date(),
     };
 
-    // Actualizar solo los campos que se proporcionan
     if (loanType) updateData.loanType = loanType;
     if (principalAmount !== undefined) updateData.principalAmount = parseFloat(principalAmount.toString());
     if (balanceRemaining !== undefined) {
       updateData.balanceRemaining = parseFloat(balanceRemaining.toString());
     } else if (principalAmount !== undefined) {
-      // Si se actualiza el principal pero no el balance, actualizar el balance también
       updateData.balanceRemaining = parseFloat(principalAmount.toString());
     }
     if (termMonths !== undefined) updateData.termMonths = parseInt(termMonths.toString());
@@ -118,8 +122,8 @@ export async function PUT(
     if (endDate) updateData.endDate = new Date(endDate);
     if (status) updateData.status = status as LoanStatus;
 
-    // Update loan
-    const loan = await prisma.loan.update({
+    // Update loan (scoped to tenant)
+    const loan = await tenantPrisma.loan.update({
       where: { id: params.id },
       data: updateData,
       include: {
@@ -156,12 +160,15 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || session.user.role !== UserRole.ADMIN) {
+    if (!session?.user || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    // Check if loan exists and has payments
-    const existingLoan = await prisma.loan.findUnique({
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
+    // Check if loan exists and has payments (scoped to tenant)
+    const existingLoan = await tenantPrisma.loan.findFirst({
       where: { id: params.id },
       include: {
         payments: true
@@ -179,8 +186,8 @@ export async function DELETE(
       );
     }
 
-    // Delete loan
-    await prisma.loan.delete({
+    // Delete loan (scoped to tenant)
+    await tenantPrisma.loan.delete({
       where: { id: params.id }
     });
 

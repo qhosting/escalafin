@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { getTenantPrisma } from '@/lib/tenant-db';
 import { RelationshipType, NotificationPreference } from '@prisma/client';
 
 export async function PUT(
@@ -11,18 +11,21 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user || !['ADMIN', 'ASESOR'].includes(session.user.role)) {
+
+    if (!session?.user || !['ADMIN', 'ASESOR', 'SUPER_ADMIN'].includes(session.user.role)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
       );
     }
 
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
     const data = await request.json();
-    
-    // Validate reference exists
-    const existingReference = await prisma.personalReference.findUnique({
+
+    // Validate reference exists (scoped to tenant)
+    const existingReference = await tenantPrisma.personalReference.findFirst({
       where: { id: params.id },
     });
 
@@ -33,8 +36,8 @@ export async function PUT(
       );
     }
 
-    // Update personal reference
-    const reference = await prisma.personalReference.update({
+    // Update personal reference (scoped to tenant)
+    const reference = await tenantPrisma.personalReference.update({
       where: { id: params.id },
       data: {
         fullName: data.fullName || existingReference.fullName,
@@ -54,8 +57,8 @@ export async function PUT(
       },
     });
 
-    // Create audit log
-    await prisma.auditLog.create({
+    // Create audit log (tenantId is injected)
+    await tenantPrisma.auditLog.create({
       data: {
         userId: session.user.id,
         userEmail: session.user.email!,
@@ -87,16 +90,19 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user || !['ADMIN', 'ASESOR'].includes(session.user.role)) {
+
+    if (!session?.user || !['ADMIN', 'ASESOR', 'SUPER_ADMIN'].includes(session.user.role)) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
       );
     }
 
-    // Validate reference exists
-    const existingReference = await prisma.personalReference.findUnique({
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
+    // Validate reference exists (scoped to tenant)
+    const existingReference = await tenantPrisma.personalReference.findFirst({
       where: { id: params.id },
     });
 
@@ -107,14 +113,14 @@ export async function DELETE(
       );
     }
 
-    // Soft delete - mark as inactive instead of deleting
-    const reference = await prisma.personalReference.update({
+    // Soft delete - mark as inactive instead of deleting (scoped to tenant)
+    const reference = await tenantPrisma.personalReference.update({
       where: { id: params.id },
       data: { isActive: false },
     });
 
-    // Create audit log
-    await prisma.auditLog.create({
+    // Create audit log (tenantId is injected)
+    await tenantPrisma.auditLog.create({
       data: {
         userId: session.user.id,
         userEmail: session.user.email!,

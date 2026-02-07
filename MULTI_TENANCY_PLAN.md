@@ -78,8 +78,14 @@ El sistema ahora soporta tenants en BD, pero la aplicación no sabe cuál usar.
 - [x] **Prisma Client Extension**: `lib/tenant-db.ts` implementado con `getTenantPrisma` que inyecta `where: { tenantId }` automáticamente.
 - [x] **Auth Session**: `tenantId` agregado a la sesión y token JWT (`lib/auth.ts`, `types/next-auth.d.ts`).
 - [x] **Endpoints Críticos**: 
-    - [x] `api/clients/route.ts` migrado a `getTenantPrisma`.
-    - [ ] **TODO**: Migrar resto de endpoints progresivamente.
+    - [x] `api/clients/route.ts` y subrutas migradas.
+    - [x] `api/loans/route.ts` y subrutas migradas.
+    - [x] `api/payments/route.ts` y subrutas migradas.
+    - [x] `api/admin/users/route.ts` y subrutas migradas.
+    - [x] `api/admin/settings/route.ts` migrado a DB (SystemConfig).
+    - [x] `api/credit-applications/route.ts` migrado.
+    - [x] `api/dashboard/*` (admin, asesor, cliente) migrados.
+    - [x] `api/personal-references/route.ts` migrado.
 - [x] **Configuración**: `ConfigService` refactorizado para soportar configuraciones por tenant.
 
 ### ✅ Fase 4: Administración y Onboarding (ARQUITECTURA BASE LISTA)

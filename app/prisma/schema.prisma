@@ -1,7 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
-  output        = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -20,10 +19,18 @@ model Tenant {
   
   users       User[]
   clients     Client[]
+  loans       Loan[]
+  payments    Payment[]
+  creditApplications CreditApplication[]
+  auditLogs   AuditLog[]
   config      SystemConfig[]
   wahaConfig  WahaConfig[]
   messageTemplates MessageTemplate[]
   reportTemplates  ReportTemplate[]
+  personalReferences PersonalReference[]
+  guarantors         Guarantor[]
+  collaterals        Collateral[]
+  creditScores       CreditScore[]
 
   @@map("tenants")
 }
@@ -98,7 +105,6 @@ model User {
   createdReportTemplates     ReportTemplate[]         @relation("CreatedReportTemplates")
   customReports              CustomReportGeneration[] @relation("CustomReports")
   tenantInvitationsSent      TenantInvitation[]       @relation("Inviter")
-  
   // Two-Factor Authentication
   twoFactorEnabled           Boolean?                 @default(false)
   twoFactorSecret            String?
@@ -202,6 +208,9 @@ model PersonalReference {
   updatedAt              DateTime               @updatedAt
   client                 Client                 @relation("ClientReferences", fields: [clientId], references: [id], onDelete: Cascade)
 
+  tenantId               String?
+  tenant                 Tenant?                @relation(fields: [tenantId], references: [id])
+
   @@index([clientId])
   @@map("personal_references")
 }
@@ -217,6 +226,9 @@ model Guarantor {
   updatedAt    DateTime         @updatedAt
   client       Client           @relation("ClientGuarantor", fields: [clientId], references: [id], onDelete: Cascade)
 
+  tenantId     String?
+  tenant       Tenant?          @relation(fields: [tenantId], references: [id])
+
   @@map("guarantors")
 }
 
@@ -227,6 +239,9 @@ model Collateral {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   client      Client   @relation("ClientCollateral", fields: [clientId], references: [id], onDelete: Cascade)
+
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
 
   @@index([clientId])
   @@map("collaterals")
@@ -254,6 +269,9 @@ model CreditApplication {
   reviewedByUser  User?             @relation("ReviewedByAdmin", fields: [reviewedBy], references: [id])
   creditScores    CreditScore[]     @relation("ApplicationScoring")
   loan            Loan?
+
+  tenantId        String?
+  tenant          Tenant?           @relation(fields: [tenantId], references: [id])
 
   @@map("credit_applications")
 }
@@ -285,6 +303,9 @@ model Loan {
   client               Client                 @relation(fields: [clientId], references: [id])
   creditApplication    CreditApplication?     @relation(fields: [creditApplicationId], references: [id])
   payments             Payment[]
+
+  tenantId             String?
+  tenant               Tenant?                @relation(fields: [tenantId], references: [id])
 
   @@map("loans")
 }
@@ -338,6 +359,9 @@ model Payment {
   loan                   Loan                  @relation(fields: [loanId], references: [id])
   processedByUser        User?                 @relation("ProcessedBy", fields: [processedBy], references: [id])
 
+  tenantId               String?
+  tenant                 Tenant?               @relation(fields: [tenantId], references: [id])
+
   @@map("payments")
 }
 
@@ -355,9 +379,13 @@ model AuditLog {
   timestamp  DateTime @default(now())
   user       User?    @relation("AuditLogs", fields: [userId], references: [id])
 
+  tenantId   String?
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id])
+
   @@index([userId])
   @@index([action])
   @@index([timestamp])
+  @@index([tenantId])
   @@map("audit_logs")
 }
 
@@ -378,6 +406,9 @@ model CreditScore {
   application     CreditApplication?    @relation("ApplicationScoring", fields: [applicationId], references: [id])
   client          Client?               @relation("ClientScoring", fields: [clientId], references: [id])
   loan            Loan?                 @relation("LoanScoring", fields: [loanId], references: [id])
+
+  tenantId        String?
+  tenant          Tenant?               @relation(fields: [tenantId], references: [id])
 
   @@map("credit_scores")
 }

@@ -1,9 +1,8 @@
 
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getTenantPrisma } from '@/lib/tenant-db';
 import { UserRole, UserStatus } from '@prisma/client';
 
 export async function PATCH(
@@ -12,15 +11,18 @@ export async function PATCH(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || session.user.role !== UserRole.ADMIN) {
+    if (!session?.user || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
+
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
     const body = await request.json();
     const { status } = body;
 
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
+    // Check if user exists (aislado por tenant)
+    const existingUser = await tenantPrisma.user.findFirst({
       where: { id: params.id }
     });
 
@@ -36,8 +38,8 @@ export async function PATCH(
       );
     }
 
-    // Prevent changing admin status
-    if (existingUser.role === UserRole.ADMIN) {
+    // Prevent changing other admin status unless it's SUPER_ADMIN
+    if (existingUser.role === UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN) {
       return NextResponse.json(
         { error: 'No se puede cambiar el estado de otros administradores' },
         { status: 400 }
@@ -45,7 +47,7 @@ export async function PATCH(
     }
 
     // Update user status
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await tenantPrisma.user.update({
       where: { id: params.id },
       data: {
         status: status as UserStatus,
@@ -83,12 +85,15 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || session.user.role !== UserRole.ADMIN) {
+    if (!session?.user || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
+    // Check if user exists (aislado por tenant)
+    const existingUser = await tenantPrisma.user.findFirst({
       where: { id: params.id },
       include: {
         clientsAssigned: true,
@@ -108,8 +113,8 @@ export async function DELETE(
       );
     }
 
-    // Prevent deleting admin
-    if (existingUser.role === UserRole.ADMIN) {
+    // Prevent deleting admin unless it's SUPER_ADMIN
+    if (existingUser.role === UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN) {
       return NextResponse.json(
         { error: 'No se pueden eliminar administradores' },
         { status: 400 }
@@ -132,7 +137,7 @@ export async function DELETE(
     }
 
     // Delete user
-    await prisma.user.delete({
+    await tenantPrisma.user.delete({
       where: { id: params.id }
     });
 
