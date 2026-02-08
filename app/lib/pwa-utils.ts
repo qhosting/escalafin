@@ -33,8 +33,8 @@ export class PWAInstaller {
     });
 
     // Check if running as PWA
-    if (window.matchMedia('(display-mode: standalone)').matches || 
-        (window.navigator as any).standalone === true) {
+    if (window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true) {
       this.isInstalled = true;
     }
   }
@@ -48,7 +48,7 @@ export class PWAInstaller {
       await this.deferredPrompt.prompt();
       const choiceResult = await this.deferredPrompt.userChoice;
       this.deferredPrompt = null;
-      
+
       return choiceResult.outcome === 'accepted';
     } catch (error) {
       console.error('Error installing PWA:', error);
@@ -83,12 +83,14 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
 // Offline storage using IndexedDB
 export class OfflineStorage {
   private db: IDBDatabase | null = null;
-  private readonly dbName = 'EscalaFinDB';
+  private dbName = 'EscalaFinDB';
   private readonly version = 1;
 
-  async init(): Promise<void> {
+  async init(tenantId?: string | null): Promise<void> {
+    const finalDbName = tenantId ? `${this.dbName}_${tenantId}` : this.dbName;
+
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, this.version);
+      const request = indexedDB.open(finalDbName, this.version);
 
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
@@ -98,7 +100,7 @@ export class OfflineStorage {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         // Create stores
         if (!db.objectStoreNames.contains('clients')) {
           const clientStore = db.createObjectStore('clients', { keyPath: 'id' });
@@ -119,6 +121,17 @@ export class OfflineStorage {
           db.createObjectStore('offline_queue', { keyPath: 'id', autoIncrement: true });
         }
       };
+    });
+  }
+
+  /**
+   * Elimina la base de datos local para un tenant específico (ej. al cerrar sesión)
+   */
+  async purge(tenantId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.deleteDatabase(`${this.dbName}_${tenantId}`);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve();
     });
   }
 

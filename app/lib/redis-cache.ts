@@ -96,6 +96,87 @@ class RedisCacheService {
         }
     }
 
+    /**
+     * Alias para del() - para compatibilidad con usage-tracker
+     */
+    async delete(key: string): Promise<boolean> {
+        return this.del(key);
+    }
+
+    /**
+     * Incrementa un valor numérico en Redis
+     */
+    async increment(key: string, amount: number = 1): Promise<number> {
+        if (!this.isConnected || !this.client) return 0;
+
+        try {
+            const result = await this.client.incrBy(key, amount);
+            return result;
+        } catch (error) {
+            console.error(`Redis INCREMENT error for key ${key}:`, error);
+            return 0;
+        }
+    }
+
+    /**
+     * Decrementa un valor numérico en Redis
+     */
+    async decrement(key: string, amount: number = 1): Promise<number> {
+        if (!this.isConnected || !this.client) return 0;
+
+        try {
+            const result = await this.client.decrBy(key, amount);
+            return result;
+        } catch (error) {
+            console.error(`Redis DECREMENT error for key ${key}:`, error);
+            return 0;
+        }
+    }
+
+    /**
+     * Establece expiración en una key existente
+     */
+    async expire(key: string, ttlSeconds: number): Promise<boolean> {
+        if (!this.isConnected || !this.client) return false;
+
+        try {
+            await this.client.expire(key, ttlSeconds);
+            return true;
+        } catch (error) {
+            console.error(`Redis EXPIRE error for key ${key}:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * Verifica si una key existe
+     */
+    async exists(key: string): Promise<boolean> {
+        if (!this.isConnected || !this.client) return false;
+
+        try {
+            const result = await this.client.exists(key);
+            return result === 1;
+        } catch (error) {
+            console.error(`Redis EXISTS error for key ${key}:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * Obtiene el TTL restante de una key
+     */
+    async ttl(key: string): Promise<number> {
+        if (!this.isConnected || !this.client) return -1;
+
+        try {
+            return await this.client.ttl(key);
+        } catch (error) {
+            console.error(`Redis TTL error for key ${key}:`, error);
+            return -1;
+        }
+    }
+
     async remember<T>(
         key: string,
         ttlSeconds: number,

@@ -1,0 +1,122 @@
+
+> app@1.5.0 test
+> jest __tests__/tenant-isolation.test.ts
+
+  console.log
+    [DEBUG] getTenantPrisma executed with: test-tenant-123
+
+      at log (lib/tenant-db.ts:12:13)
+
+  console.log
+    [DEBUG] prisma is: object true
+
+      at log (lib/tenant-db.ts:13:13)
+
+  console.log
+    [DEBUG] prisma.$extends is: function
+
+      at log (lib/tenant-db.ts:14:13)
+
+  console.log
+    [DEBUG] getTenantPrisma returning result: false
+
+      at log (lib/tenant-db.ts:161:13)
+
+  console.log
+    [DEBUG] getTenantPrisma executed with: test-tenant-123
+
+      at log (lib/tenant-db.ts:12:13)
+
+  console.log
+    [DEBUG] prisma is: object true
+
+      at log (lib/tenant-db.ts:13:13)
+
+  console.log
+    [DEBUG] prisma.$extends is: function
+
+      at log (lib/tenant-db.ts:14:13)
+
+  console.log
+    [DEBUG] getTenantPrisma returning result: false
+
+      at log (lib/tenant-db.ts:161:13)
+
+  console.log
+    [DEBUG] getTenantPrisma executed with: test-tenant-123
+
+      at log (lib/tenant-db.ts:12:13)
+
+  console.log
+    [DEBUG] prisma is: object true
+
+      at log (lib/tenant-db.ts:13:13)
+
+  console.log
+    [DEBUG] prisma.$extends is: function
+
+      at log (lib/tenant-db.ts:14:13)
+
+  console.log
+    [DEBUG] getTenantPrisma returning result: false
+
+      at log (lib/tenant-db.ts:161:13)
+
+  console.log
+    [DEBUG] getTenantPrisma executed with: null
+
+      at log (lib/tenant-db.ts:12:13)
+
+  console.log
+    [DEBUG] prisma is: object true
+
+      at log (lib/tenant-db.ts:13:13)
+
+  console.log
+    [DEBUG] prisma.$extends is: function
+
+      at log (lib/tenant-db.ts:14:13)
+
+(node:9272) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL __tests__/tenant-isolation.test.ts
+  Tenant Isolation (getTenantPrisma)
+    ├ù should inject tenantId into client.findMany where clause (116 ms)
+    ├ù should inject tenantId into client.create data (13 ms)
+    ÔêÜ should return base prisma if no tenantId is provided (25 ms)
+
+  ÔùÅ Tenant Isolation (getTenantPrisma) ÔÇ║ should inject tenantId into client.findMany where clause
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      36 |
+      37 |     it('should inject tenantId into client.findMany where clause', async () => {
+    > 38 |         expect(tenantPrisma).toBeDefined();
+         |                              ^
+      39 |         expect(tenantPrisma.client).toBeDefined();
+      40 |
+      41 |         const args = { where: { status: 'ACTIVE' } };
+
+      at Object.toBeDefined (__tests__/tenant-isolation.test.ts:38:30)
+
+  ÔùÅ Tenant Isolation (getTenantPrisma) ÔÇ║ should inject tenantId into client.create data
+
+    TypeError: Cannot read properties of undefined (reading 'client')
+
+      52 |     it('should inject tenantId into client.create data', async () => {
+      53 |         const args = { data: { firstName: 'Juan' } };
+    > 54 |         await tenantPrisma.client.create(args);
+         |                            ^
+      55 |
+      56 |         expect(mockQuery).toHaveBeenCalledWith(expect.objectContaining({
+      57 |             data: {
+
+      at Object.client (__tests__/tenant-isolation.test.ts:54:28)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 1 passed, 3 total
+Snapshots:   0 total
+Time:        1.674 s, estimated 3 s
+Ran all test suites matching __tests__/tenant-isolation.test.ts.

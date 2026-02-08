@@ -3,24 +3,19 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { getTenantPrisma } from '@/lib/tenant-db';
 import { ClientStatus, EmploymentType } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.email) {
+
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
-    }
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -30,23 +25,23 @@ export async function GET(request: NextRequest) {
 
     let whereClause: any = {};
 
-    // Filtros según rol
-    if (user.role === 'ASESOR') {
+    // Filtros según rol (El aislamiento por tenant ya lo hace getTenantPrisma)
+    if (session.user.role === 'ASESOR') {
       // Asesor solo ve sus clientes asignados
-      whereClause.asesorId = user.id;
+      whereClause.asesorId = session.user.id;
     }
 
     // Filtros adicionales
     if (status && Object.values(ClientStatus).includes(status as ClientStatus)) {
       whereClause.status = status as ClientStatus;
     }
-    
-    if (asesorId && user.role === 'ADMIN') {
+
+    if (asesorId && session.user.role === 'ADMIN') {
       whereClause.asesorId = asesorId;
     }
 
     const [clients, totalCount] = await Promise.all([
-      prisma.client.findMany({
+      tenantPrisma.client.findMany({
         where: whereClause,
         include: {
           user: {
@@ -87,7 +82,7 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit
       }),
-      prisma.client.count({ where: whereClause })
+      tenantPrisma.client.count({ where: whereClause })
     ]);
 
     return NextResponse.json({
@@ -109,18 +104,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.email) {
+
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
-
-    if (!user || user.role === 'CLIENTE') {
+    if (session.user.role === 'CLIENTE') {
       return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
     }
+
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
     const body = await request.json();
     const {
@@ -149,28 +143,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Campos requeridos: firstName, lastName, phone' }, { status: 400 });
     }
 
-    // Verificar email único si se proporciona
+    // Verificar email único si se proporciona (dentro del tenant)
     if (email) {
-      const existingClient = await prisma.client.findUnique({
+      const existingClient = await tenantPrisma.client.findFirst({
         where: { email }
       });
-      
+
       if (existingClient) {
-        return NextResponse.json({ error: 'El email ya está registrado' }, { status: 400 });
+        return NextResponse.json({ error: 'El email ya está registrado en esta organización' }, { status: 400 });
       }
     }
 
     // Set asesorId - validate and handle empty strings
     let finalAsesorId: string | undefined = undefined;
 
-    if (user.role === 'ASESOR') {
+    if (session.user.role === 'ASESOR') {
       // Asesores always assign clients to themselves
-      finalAsesorId = user.id;
-    } else if (user.role === 'ADMIN') {
+      finalAsesorId = session.user.id;
+    } else if (session.user.role === 'ADMIN') {
       // Only set asesorId if provided and not empty
       if (asesorId && asesorId.trim() !== '') {
         // Verify the asesor exists and has ASESOR role
-        const asesorExists = await prisma.user.findFirst({
+        const asesorExists = await tenantPrisma.user.findFirst({
           where: {
             id: asesorId,
             role: 'ASESOR',
@@ -180,17 +174,16 @@ export async function POST(request: NextRequest) {
 
         if (!asesorExists) {
           return NextResponse.json(
-            { error: 'El asesor seleccionado no existe o no está activo' },
+            { error: 'El asesor seleccionado no existe o no está activo en esta organización' },
             { status: 400 }
           );
         }
 
         finalAsesorId = asesorId;
       }
-      // If no asesorId provided or empty, leave it as undefined (will be null in DB)
     }
 
-    const client = await prisma.client.create({
+    const client = await tenantPrisma.client.create({
       data: {
         firstName,
         lastName,

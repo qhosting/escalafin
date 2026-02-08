@@ -14,9 +14,13 @@ model Tenant {
   slug        String   @unique
   domain      String?  @unique
   status      String   @default("ACTIVE")
+  logo        String?  // URL del logo del tenant
+  primaryColor String? // Color primario para branding
+  timezone    String   @default("America/Mexico_City")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  // Relaciones existentes
   users       User[]
   clients     Client[]
   loans       Loan[]
@@ -31,6 +35,14 @@ model Tenant {
   guarantors         Guarantor[]
   collaterals        Collateral[]
   creditScores       CreditScore[]
+  
+  // Relaciones SaaS - Billing
+  subscription Subscription?
+  usage        TenantUsage[]
+  
+  // Relaciones SaaS - Integraciones  
+  apiKeys          ApiKey[]
+  webhookEndpoints WebhookEndpoint[]
 
   @@map("tenants")
 }
@@ -1195,4 +1207,222 @@ model TenantInvitation {
   inviter     User?    @relation("Inviter", fields: [invitedBy], references: [id])
 
   @@map("tenant_invitations")
+}
+
+// ============================================
+// MODELOS SAAS - BILLING & SUBSCRIPTIONS
+// ============================================
+
+model Plan {
+  id           String   @id @default(cuid())
+  name         String   @unique  // "starter", "professional", "business", "enterprise"
+  displayName  String             // "Starter", "Profesional", etc.
+  description  String?
+  priceMonthly Decimal  @db.Decimal(10, 2)
+  priceYearly  Decimal? @db.Decimal(10, 2)
+  currency     String   @default("MXN")
+  features     String   // JSON: ["feature1", "feature2"]
+  limits       String   // JSON: { users: 3, loans: 100, storage: 1073741824 }
+  isActive     Boolean  @default(true)
+  isPopular    Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  trialDays    Int      @default(14)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  subscriptions Subscription[]
+  
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("plans")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  tenantId             String             @unique
+  planId               String
+  status               SubscriptionStatus @default(TRIALING)
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  trialEndsAt          DateTime?
+  canceledAt           DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  cancelReason         String?
+  stripeSubscriptionId String?
+  stripeCustomerId     String?
+  paymentMethod        PaymentMethodType  @default(MANUAL)
+  billingEmail         String?
+  billingName          String?
+  billingAddress       String?            // JSON con dirección
+  taxId                String?            // RFC en México
+  metadata             String?            // JSON adicional
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id])
+  invoices Invoice[]
+  
+  @@index([status])
+  @@index([currentPeriodEnd])
+  @@map("subscriptions")
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  subscriptionId  String
+  invoiceNumber   String        @unique
+  amount          Decimal       @db.Decimal(10, 2)
+  subtotal        Decimal       @db.Decimal(10, 2)
+  tax             Decimal       @db.Decimal(10, 2) @default(0)
+  discount        Decimal       @db.Decimal(10, 2) @default(0)
+  currency        String        @default("MXN")
+  status          InvoiceStatus @default(DRAFT)
+  dueDate         DateTime
+  paidAt          DateTime?
+  stripeInvoiceId String?
+  paymentIntent   String?
+  invoicePdf      String?
+  lineItems       String?       // JSON con detalle de items
+  notes           String?
+  createdAt       DateTime      @default(now())
+  
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  
+  @@index([status])
+  @@index([dueDate])
+  @@index([subscriptionId])
+  @@map("invoices")
+}
+
+// ============================================
+// MODELOS SAAS - USO Y LÍMITES
+// ============================================
+
+model TenantUsage {
+  id            String   @id @default(cuid())
+  tenantId      String
+  period        String   // "2026-02" formato YYYY-MM
+  usersCount    Int      @default(0)
+  loansCount    Int      @default(0)
+  clientsCount  Int      @default(0)
+  storageBytes  BigInt   @default(0)
+  apiCalls      Int      @default(0)
+  smsCount      Int      @default(0)
+  whatsappCount Int      @default(0)
+  reportsCount  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@unique([tenantId, period])
+  @@index([period])
+  @@map("tenant_usage")
+}
+
+// ============================================
+// MODELOS SAAS - API KEYS
+// ============================================
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  keyHash     String    @unique
+  keyPrefix   String    // Primeros 8 chars: "esk_abc1..."
+  scopes      String    // JSON: ["read:clients", "write:payments"]
+  rateLimit   Int       @default(1000)  // Requests por minuto
+  lastUsedAt  DateTime?
+  lastUsedIp  String?
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([keyHash])
+  @@index([tenantId])
+  @@index([isActive])
+  @@map("api_keys")
+}
+
+// ============================================
+// MODELOS SAAS - WEBHOOKS
+// ============================================
+
+model WebhookEndpoint {
+  id              String    @id @default(cuid())
+  tenantId        String
+  url             String
+  description     String?
+  events          String    // JSON: ["payment.created", "loan.approved"]
+  secret          String    // Para firmar payloads con HMAC-SHA256
+  isActive        Boolean   @default(true)
+  failureCount    Int       @default(0)
+  lastTriggeredAt DateTime?
+  lastStatusCode  Int?
+  lastError       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  tenant     Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deliveries WebhookDelivery[]
+  
+  @@index([tenantId])
+  @@index([isActive])
+  @@map("webhook_endpoints")
+}
+
+model WebhookDelivery {
+  id           String   @id @default(cuid())
+  endpointId   String
+  event        String   // "payment.created"
+  payload      String   // JSON del payload enviado
+  statusCode   Int?
+  response     String?  // Respuesta del servidor
+  error        String?
+  attempts     Int      @default(1)
+  deliveredAt  DateTime?
+  nextRetryAt  DateTime?
+  createdAt    DateTime @default(now())
+  
+  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  
+  @@index([endpointId])
+  @@index([event])
+  @@index([createdAt])
+  @@map("webhook_deliveries")
+}
+
+// ============================================
+// ENUMS SAAS
+// ============================================
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  PAUSED
+  INCOMPLETE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  UNCOLLECTIBLE
+  VOID
+}
+
+enum PaymentMethodType {
+  STRIPE
+  MANUAL
+  BANK_TRANSFER
+  PAYPAL
+  CASH
 }

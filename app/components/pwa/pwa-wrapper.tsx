@@ -21,12 +21,13 @@ const PWAWrapper: React.FC<PWAWrapperProps> = ({ children }) => {
     // Register service worker
     if (typeof window !== 'undefined') {
       registerServiceWorker();
-      
-      // Initialize offline storage
+
+      // Initialize offline storage with tenant isolation
+      const tenantId = session?.user?.tenantId;
       const storage = new OfflineStorage();
-      storage.init().catch(console.error);
+      storage.init(tenantId).catch(console.error);
     }
-  }, []);
+  }, [session?.user?.tenantId]);
 
   const isPWARoute = pathname.includes('/pwa/');
 

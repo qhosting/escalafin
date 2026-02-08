@@ -1,19 +1,22 @@
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
+import { getTenantPrisma } from '@/lib/tenant-db';
 
 export async function GET() {
   try {
-    const session = await getServerSession();
-    
+    const session = await getServerSession(authOptions);
+
     if (!session || session.user.role !== 'ASESOR') {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const userId = session.user.id;
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
-    // Obtener estadísticas reales del asesor
+    // Obtener estadísticas reales del asesor (aisladas por tenant)
     const [
       myClientsCount,
       assignedPortfolio,
@@ -21,28 +24,28 @@ export async function GET() {
       myLoans
     ] = await Promise.all([
       // Mis clientes (clientes asignados a este asesor)
-      prisma.client.count({
+      tenantPrisma.client.count({
         where: { asesorId: userId }
       }),
-      
+
       // Cartera asignada (suma de préstamos de mis clientes)
-      prisma.loan.aggregate({
+      tenantPrisma.loan.aggregate({
         where: {
           client: { asesorId: userId },
           status: 'ACTIVE'
         },
         _sum: { balanceRemaining: true }
       }),
-      
+
       // Solicitudes enviadas (de clientes asignados)
-      prisma.creditApplication.count({
+      tenantPrisma.creditApplication.count({
         where: {
           client: { asesorId: userId }
         }
       }),
-      
+
       // Mis préstamos activos
-      prisma.loan.count({
+      tenantPrisma.loan.count({
         where: {
           client: { asesorId: userId },
           status: 'ACTIVE'
@@ -51,7 +54,7 @@ export async function GET() {
     ]);
 
     // Calcular meta mensual (basada en pagos recibidos este mes)
-    const paymentsThisMonth = await prisma.payment.aggregate({
+    const paymentsThisMonth = await tenantPrisma.payment.aggregate({
       where: {
         loan: {
           client: { asesorId: userId }

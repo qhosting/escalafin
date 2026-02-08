@@ -3,24 +3,19 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { getTenantPrisma } from '@/lib/tenant-db';
 import { LoanType, LoanStatus } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.email) {
+
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
-    }
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -30,14 +25,14 @@ export async function GET(request: NextRequest) {
 
     let whereClause: any = {};
 
-    // Filtros según rol
-    if (user.role === 'ASESOR') {
+    // Filtros según rol (Aislamiento por tenant ya aplicado por tenantPrisma)
+    if (session.user.role === 'ASESOR') {
       // Asesor solo ve préstamos de sus clientes asignados
-      const asesorClients = await prisma.client.findMany({
-        where: { asesorId: user.id },
+      const asesorClients = await tenantPrisma.client.findMany({
+        where: { asesorId: session.user.id },
         select: { id: true }
       });
-      
+
       whereClause.clientId = {
         in: asesorClients.map(client => client.id)
       };
@@ -47,13 +42,13 @@ export async function GET(request: NextRequest) {
     if (status && Object.values(LoanStatus).includes(status as LoanStatus)) {
       whereClause.status = status as LoanStatus;
     }
-    
+
     if (clientId) {
       whereClause.clientId = clientId;
     }
 
     const [loans, totalCount] = await Promise.all([
-      prisma.loan.findMany({
+      tenantPrisma.loan.findMany({
         where: whereClause,
         include: {
           client: {
@@ -88,7 +83,7 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit
       }),
-      prisma.loan.count({ where: whereClause })
+      tenantPrisma.loan.count({ where: whereClause })
     ]);
 
     return NextResponse.json({
@@ -110,18 +105,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.email) {
+
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
-
-    if (!user || user.role === 'CLIENTE') {
+    if (session.user.role === 'CLIENTE') {
       return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
     }
+
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
     const body = await request.json();
     const {
@@ -139,37 +133,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Campos requeridos faltantes' }, { status: 400 });
     }
 
-    // Verificar que el cliente existe
-    const client = await prisma.client.findUnique({
+    // Verificar que el cliente existe (en el tenant)
+    const client = await tenantPrisma.client.findUnique({
       where: { id: clientId }
     });
 
     if (!client) {
-      return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Cliente no encontrado en esta organización' }, { status: 404 });
     }
 
     // Si el usuario es asesor, verificar que el cliente esté asignado a él
-    if (user.role === 'ASESOR' && client.asesorId !== user.id) {
+    if (session.user.role === 'ASESOR' && client.asesorId !== session.user.id) {
       return NextResponse.json({ error: 'No tienes permisos para este cliente' }, { status: 403 });
     }
 
-    // Generar número de préstamo único
+    // Generar número de préstamo único (por organización idealmente, o global)
+    // Para simplicidad, usaremos el contador del tenant si fuera posible, pero Loan.count() con isolation funciona
     const currentYear = new Date().getFullYear();
-    const loanCount = await prisma.loan.count() + 1;
+    const loanCount = await tenantPrisma.loan.count() + 1;
     const loanNumber = `ESF-${currentYear}-${loanCount.toString().padStart(4, '0')}`;
 
     // Calcular valores del préstamo
     const monthlyInterestRate = parseFloat(interestRate) / 100 / 12;
-    const monthlyPayment = (parseFloat(principalAmount) * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, termMonths)) / 
-                          (Math.pow(1 + monthlyInterestRate, termMonths) - 1);
+    const monthlyPayment = (parseFloat(principalAmount) * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, termMonths)) /
+      (Math.pow(1 + monthlyInterestRate, termMonths) - 1);
     const totalAmount = monthlyPayment * termMonths;
-    
+
     const startDateObj = new Date(startDate);
     const endDate = new Date(startDateObj);
     endDate.setMonth(endDate.getMonth() + termMonths);
 
     // Crear préstamo
-    const loan = await prisma.loan.create({
+    const loan = await tenantPrisma.loan.create({
       data: {
         clientId,
         creditApplicationId: creditApplicationId || null,
@@ -198,11 +193,11 @@ export async function POST(request: NextRequest) {
     // Crear tabla de amortización
     const amortizationSchedule = [];
     let remainingBalance = parseFloat(principalAmount);
-    
+
     for (let i = 1; i <= termMonths; i++) {
       const paymentDate = new Date(startDateObj);
       paymentDate.setMonth(paymentDate.getMonth() + i);
-      
+
       const interestPayment = remainingBalance * monthlyInterestRate;
       const principalPayment = monthlyPayment - interestPayment;
       remainingBalance -= principalPayment;
@@ -218,13 +213,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    await prisma.amortizationSchedule.createMany({
+    // AmortizationSchedule no tiene tenantId directo aún, pero se accede vía Loan
+    await (tenantPrisma as any).amortizationSchedule.createMany({
       data: amortizationSchedule
     });
 
     // Actualizar solicitud de crédito si existe
     if (creditApplicationId) {
-      await prisma.creditApplication.update({
+      await tenantPrisma.creditApplication.update({
         where: { id: creditApplicationId },
         data: { status: 'APPROVED' }
       });
@@ -233,7 +229,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(loan, { status: 201 });
 
   } catch (error) {
-    console.error('Error creating loan:', error);
+    console.error('Error creando préstamo:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

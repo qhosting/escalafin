@@ -1,20 +1,23 @@
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
+import { getTenantPrisma } from '@/lib/tenant-db';
 
 export async function GET() {
   try {
-    const session = await getServerSession();
-    
+    const session = await getServerSession(authOptions);
+
     if (!session || session.user.role !== 'CLIENTE') {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const userId = session.user.id;
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
-    // Buscar el cliente asociado a este usuario
-    const client = await prisma.client.findUnique({
+    // Buscar el cliente asociado a este usuario (aislado por tenant)
+    const client = await tenantPrisma.client.findUnique({
       where: { userId }
     });
 
@@ -23,7 +26,7 @@ export async function GET() {
     }
 
     // Obtener préstamos activos del cliente
-    const activeLoans = await prisma.loan.findMany({
+    const activeLoans = await tenantPrisma.loan.findMany({
       where: {
         clientId: client.id,
         status: 'ACTIVE'
@@ -47,7 +50,7 @@ export async function GET() {
     });
 
     // Obtener pagos recientes
-    const recentPayments = await prisma.payment.findMany({
+    const recentPayments = await tenantPrisma.payment.findMany({
       where: {
         loan: {
           clientId: client.id
@@ -72,7 +75,7 @@ export async function GET() {
     });
 
     // Obtener solicitudes de crédito
-    const creditApplications = await prisma.creditApplication.findMany({
+    const creditApplications = await tenantPrisma.creditApplication.findMany({
       where: {
         clientId: client.id
       },
@@ -101,7 +104,7 @@ export async function GET() {
       const monthsSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
       const nextPaymentDate = new Date(startDate);
       nextPaymentDate.setMonth(nextPaymentDate.getMonth() + monthsSinceStart + 1);
-      
+
       return {
         amount: Number(loanWithNextPayment.monthlyPayment || 0),
         date: nextPaymentDate.toISOString(),

@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getTenantPrisma } from '@/lib/tenant-db';
 import { UserRole, PaymentStatus } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
@@ -12,6 +12,9 @@ export async function GET(request: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
+
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -24,15 +27,15 @@ export async function GET(request: NextRequest) {
 
     // Build where clause based on user role
     const where: any = {};
-    
+
     // If user is CLIENTE, show only their payments
     if (session.user.role === UserRole.CLIENTE) {
       // Get client profile
-      const clientProfile = await prisma.client.findUnique({
+      const clientProfile = await tenantPrisma.client.findUnique({
         where: { userId: session.user.id },
         select: { id: true }
       });
-      
+
       if (clientProfile) {
         where.loan = {
           clientId: clientProfile.id
@@ -42,30 +45,30 @@ export async function GET(request: NextRequest) {
         return NextResponse.json([]);
       }
     }
-    
+
     // Filter by loanId if provided
     if (loanId) {
       where.loanId = loanId;
     }
-    
+
     // Filter by clientId if provided (only for ADMIN/ASESOR)
     if (clientId && session.user.role !== UserRole.CLIENTE) {
       where.loan = {
         clientId
       };
     }
-    
+
     // Filter by status if provided
     if (status) {
       where.status = status as PaymentStatus;
     }
 
     // Count total records
-    const totalCount = await prisma.payment.count({ where });
+    const totalCount = await tenantPrisma.payment.count({ where });
     const totalPages = Math.ceil(totalCount / limit);
 
     // Get payments with related data
-    const payments = await prisma.payment.findMany({
+    const payments = await tenantPrisma.payment.findMany({
       where,
       include: {
         loan: {

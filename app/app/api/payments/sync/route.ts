@@ -2,15 +2,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { getTenantPrisma } from '@/lib/tenant-db';
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
     const paymentData = await request.json();
 
     // Validate required fields
@@ -21,21 +23,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify loan exists
-    const loan = await prisma.loan.findUnique({
+    // Verify loan exists (in tenant)
+    const loan = await tenantPrisma.loan.findUnique({
       where: { id: paymentData.loanId },
       include: { client: true }
     });
 
     if (!loan) {
       return NextResponse.json(
-        { error: 'Préstamo no encontrado' },
+        { error: 'Préstamo no encontrado en esta organización' },
         { status: 404 }
       );
     }
 
     // Check if payment already exists (avoid duplicates)
-    const existingPayment = await prisma.payment.findFirst({
+    const existingPayment = await tenantPrisma.payment.findFirst({
       where: {
         loanId: paymentData.loanId,
         amount: paymentData.amount,
@@ -53,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create payment record
-    const payment = await prisma.payment.create({
+    const payment = await tenantPrisma.payment.create({
       data: {
         loanId: paymentData.loanId,
         amount: parseFloat(paymentData.amount),
@@ -66,7 +68,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Update loan balance
-    await prisma.loan.update({
+    await tenantPrisma.loan.update({
       where: { id: paymentData.loanId },
       data: {
         updatedAt: new Date()
