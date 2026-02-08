@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
 
     // Create client with guarantor and collaterals in a transaction
     // Usamos db.$transaction para mantener el scope del tenant en las operaciones internas
-    const result = await db.$transaction(async (tx: any) => {
+    const result = await (db as any).$transaction(async (tx: any) => {
       // Create the client
       const client = await tx.client.create({
         data: clientData,
