@@ -23,7 +23,6 @@ import {
   RefreshCw,
   CheckCircle,
   AlertTriangle,
-  AlertTriangle,
   Info,
   User
 } from 'lucide-react';
