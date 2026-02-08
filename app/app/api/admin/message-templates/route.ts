@@ -45,8 +45,10 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const isActive = searchParams.get('isActive');
 
-    const where: any = {};
-    
+    const where: any = {
+      tenantId: session.user.tenantId
+    };
+
     if (channel) where.channel = channel;
     if (category) where.category = category;
     if (isActive) where.isActive = isActive === 'true';
@@ -86,9 +88,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar que no exista una plantilla con el mismo nombre
-    const existing = await prisma.messageTemplate.findUnique({
-      where: { name: data.name },
+    // Verificar que no exista una plantilla con el mismo nombre en este tenant
+    const existing = await prisma.messageTemplate.findFirst({
+      where: {
+        name: data.name,
+        tenantId: session.user.tenantId
+      },
     });
 
     if (existing) {
@@ -101,6 +106,7 @@ export async function POST(request: NextRequest) {
     const template = await prisma.messageTemplate.create({
       data: {
         ...data,
+        tenantId: session.user.tenantId,
         maxLength: data.channel === 'SMS' ? 160 : data.maxLength,
       },
     });
