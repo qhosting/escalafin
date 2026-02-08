@@ -6,7 +6,7 @@ import { getChatwootConfig } from '@/lib/chatwoot';
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     // Obtener configuración de Chatwoot (await necesario)
     const config = await getChatwootConfig();
     const source = await getConfigSource();
-    
+
     // Preparar respuesta
     const response = {
       baseUrl: config.baseUrl || '',
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       isConfigured: !!(config.baseUrl && config.websiteToken),
       source: source,
     };
-    
+
     return NextResponse.json(response);
   } catch (error: any) {
     console.error('Error fetching Chatwoot config:', error);
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
@@ -113,10 +113,16 @@ export async function POST(request: NextRequest) {
     // Usar upsert para crear o actualizar
     for (const config of configs) {
       await prisma.systemConfig.upsert({
-        where: { key: config.key },
+        where: {
+          key_tenantId: {
+            key: config.key,
+            tenantId: user.tenantId || "default"
+          }
+        },
         create: {
           ...config,
           updatedBy: user.id,
+          tenantId: user.tenantId || "default"
         },
         update: {
           value: config.value,
@@ -128,7 +134,7 @@ export async function POST(request: NextRequest) {
 
     // Obtener configuración actualizada
     const updatedConfig = await getChatwootConfig();
-    
+
     // Preparar respuesta
     const responseData = {
       success: true,
@@ -142,7 +148,7 @@ export async function POST(request: NextRequest) {
         isConfigured: true,
       },
     };
-    
+
     return NextResponse.json(responseData);
   } catch (error: any) {
     console.error('Error saving Chatwoot config:', error);
@@ -156,7 +162,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession();
-    
+
     if (!session) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
