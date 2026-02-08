@@ -117,6 +117,8 @@ model User {
   createdReportTemplates     ReportTemplate[]         @relation("CreatedReportTemplates")
   customReports              CustomReportGeneration[] @relation("CustomReports")
   tenantInvitationsSent      TenantInvitation[]       @relation("Inviter")
+  pushSubscriptions          PushSubscription[]       @relation("UserPushSubscriptions")
+  notificationSettings       UserNotificationSetting[] @relation("UserNotificationSettings")
   // Two-Factor Authentication
   twoFactorEnabled           Boolean?                 @default(false)
   twoFactorSecret            String?
@@ -1425,4 +1427,34 @@ enum PaymentMethodType {
   BANK_TRANSFER
   PAYPAL
   CASH
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation("UserPushSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model UserNotificationSetting {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  channel   NotificationChannel
+  enabled   Boolean          @default(true) // Default to enabled
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  user      User             @relation("UserNotificationSettings", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, channel])
+  @@index([userId])
+  @@map("user_notification_settings")
 }

@@ -250,47 +250,48 @@ export default function TenantsPage() {
                         </DialogContent>
                     </Dialog>
                 </div>
-
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {tenants.map((tenant) => (
-                        <Card key={tenant.id} className="hover:shadow-md transition-shadow">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-lg font-medium">
-                                    {tenant.name}
-                                </CardTitle>
-                                <Building2 className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-xs text-muted-foreground mb-4 font-mono bg-slate-100 dark:bg-slate-800 p-1 rounded inline-block">
-                                    {tenant.slug}
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <div className="flex items-center space-x-2">
-                                        <Users className="h-4 w-4 text-blue-500" />
-                                        <span className="text-sm font-medium">{tenant._count?.users || 0} Usuarios</span>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Receipt className="h-4 w-4 text-green-500" />
-                                        <span className="text-sm font-medium">{tenant._count?.clients || 0} Clientes</span>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between pt-2 border-t">
-                                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${tenant.status === 'ACTIVE'
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                        }`}>
-                                        {tenant.status}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">
-                                        {format(new Date(tenant.createdAt), "d MMM yyyy", { locale: es })}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
             </div>
-            );
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {tenants.map((tenant) => (
+                    <Card key={tenant.id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-lg font-medium">
+                                {tenant.name}
+                            </CardTitle>
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-xs text-muted-foreground mb-4 font-mono bg-slate-100 dark:bg-slate-800 p-1 rounded inline-block">
+                                {tenant.slug}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div className="flex items-center space-x-2">
+                                    <Users className="h-4 w-4 text-blue-500" />
+                                    <span className="text-sm font-medium">{tenant._count?.users || 0} Usuarios</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Receipt className="h-4 w-4 text-green-500" />
+                                    <span className="text-sm font-medium">{tenant._count?.clients || 0} Clientes</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-2 border-t">
+                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${tenant.status === 'ACTIVE'
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                    }`}>
+                                    {tenant.status}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                    {format(new Date(tenant.createdAt), "d MMM yyyy", { locale: es })}
+                                </span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        </div>
+    );
 }

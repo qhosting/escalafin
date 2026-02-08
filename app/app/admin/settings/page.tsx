@@ -12,19 +12,22 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Settings, 
-  Database, 
-  Mail, 
-  Bell, 
-  Shield, 
+import {
+  Settings,
+  Database,
+  Mail,
+  Bell,
+  Shield,
   Server,
   Save,
   RefreshCw,
   CheckCircle,
   AlertTriangle,
-  Info
+  AlertTriangle,
+  Info,
+  User
 } from 'lucide-react';
+import { NotificationSettings } from '@/components/notifications/NotificationSettings';
 import { toast } from 'sonner';
 
 interface SystemSettings {
@@ -173,7 +176,7 @@ export default function AdminSettingsPage() {
               Administra los ajustes avanzados y parámetros del sistema
             </p>
           </div>
-          
+
           <Button onClick={saveSettings} disabled={saving} size="lg">
             {saving ? (
               <>
@@ -190,7 +193,7 @@ export default function AdminSettingsPage() {
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Info className="h-4 w-4" />
               General
@@ -198,6 +201,10 @@ export default function AdminSettingsPage() {
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Notificaciones
+            </TabsTrigger>
+            <TabsTrigger value="my-notifications" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Mis Notifs
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -208,6 +215,12 @@ export default function AdminSettingsPage() {
               Sistema
             </TabsTrigger>
           </TabsList>
+
+          {/* My Notifications Settings */}
+          <TabsContent value="my-notifications">
+            <NotificationSettings />
+          </TabsContent>
+
 
           {/* General Settings */}
           <TabsContent value="general">
@@ -228,7 +241,7 @@ export default function AdminSettingsPage() {
                       onChange={(e) => updateSetting('general', 'siteName', e.target.value)}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="supportEmail">Email de Soporte</Label>
                     <Input
@@ -521,7 +534,7 @@ export default function AdminSettingsPage() {
                         Configuraciones Críticas
                       </h4>
                       <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                        Los cambios en el modo de mantenimiento y depuración afectan la disponibilidad del sistema. 
+                        Los cambios en el modo de mantenimiento y depuración afectan la disponibilidad del sistema.
                         Úselos solo cuando sea necesario.
                       </p>
                     </div>

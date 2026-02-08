@@ -213,6 +213,54 @@ export class ScheduledTasksService {
       throw error;
     }
   }
+
+  // Procesar notificaciones push programadas
+  async processScheduledPushNotifications(): Promise<void> {
+    try {
+      const { sendPushNotification } = await import('./push-notifications');
+
+      const pendingNotifications = await prisma.notification.findMany({
+        where: {
+          status: 'PENDING',
+          scheduledFor: {
+            lte: new Date(),
+          },
+          channel: 'PUSH'
+        }
+      });
+
+      if (pendingNotifications.length > 0) {
+        console.log(`Procesando ${pendingNotifications.length} notificaciones push programadas...`);
+
+        for (const notification of pendingNotifications) {
+          try {
+            await sendPushNotification(notification.userId, {
+              title: notification.title,
+              body: notification.message,
+              data: notification.data ? JSON.parse(notification.data) : {}
+            });
+
+            await prisma.notification.update({
+              where: { id: notification.id },
+              data: {
+                status: 'SENT',
+                sentAt: new Date()
+              }
+            });
+          } catch (err) {
+            console.error(`Error enviando notificación ${notification.id}:`, err);
+            await prisma.notification.update({
+              where: { id: notification.id },
+              data: { status: 'FAILED' }
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error procesando notificaciones push programadas:', error);
+    }
+  }
 }
 
 export default ScheduledTasksService;
+

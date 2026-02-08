@@ -76,12 +76,12 @@ self.addEventListener('fetch', (event) => {
             if (response) {
               return response;
             }
-            
+
             // Return offline page for navigation requests
             if (event.request.mode === 'navigate') {
               return caches.match('/offline');
             }
-            
+
             return new Response('Content not available offline', {
               status: 503,
               statusText: 'Service Unavailable'
@@ -141,14 +141,33 @@ async function syncClients() {
 
 // Push Notifications
 self.addEventListener('push', (event) => {
+  let title = 'EscalaFin';
+  let body = 'Nueva notificación de EscalaFin';
+  let icon = '/icons/icon-192x192.png';
+  let url = '/pwa/client';
+  let data = {};
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      title = payload.title || title;
+      body = payload.body || body;
+      icon = payload.icon || icon;
+      url = payload.url || url;
+      data = payload.data || {};
+    } catch (e) {
+      body = event.data.text();
+    }
+  }
+
   const options = {
-    body: event.data ? event.data.text() : 'Nueva notificación de EscalaFin',
-    icon: '/icons/icon-192x192.png',
+    body: body,
+    icon: icon,
     badge: '/icons/badge-72x72.png',
     vibrate: [100, 50, 100],
     data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
+      url: url,
+      ...data
     },
     actions: [
       {
@@ -157,7 +176,7 @@ self.addEventListener('push', (event) => {
         icon: '/icons/checkmark.png'
       },
       {
-        action: 'close', 
+        action: 'close',
         title: 'Cerrar',
         icon: '/icons/xmark.png'
       }
@@ -165,7 +184,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification('EscalaFin', options)
+    self.registration.showNotification(title, options)
   );
 });
 
@@ -173,11 +192,28 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/pwa/client')
-    );
+  // Handle actions
+  if (event.action === 'close') {
+    return;
   }
+
+  const urlToOpen = event.notification.data?.url || '/pwa/client';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // Check if there is already a window open with this URL
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url.includes(urlToOpen) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If not, open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
 });
 
 // Helper functions for offline storage
