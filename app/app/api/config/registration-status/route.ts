@@ -9,14 +9,16 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     // Obtener el estado actual del registro
-    const config = await prisma.systemConfig.findUnique({
-      where: { key: 'REGISTRATION_ENABLED' }
+    const config = await prisma.systemConfig.findFirst({
+      where: {
+        key: 'REGISTRATION_ENABLED'
+      }
     });
 
     const isRegistrationEnabled = config?.value === 'true';
 
-    return NextResponse.json({ 
-      registrationEnabled: isRegistrationEnabled 
+    return NextResponse.json({
+      registrationEnabled: isRegistrationEnabled
     });
   } catch (error) {
     console.error('Error getting registration status:', error);
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'No autorizado. Solo los administradores pueden modificar esta configuración.' },
@@ -49,25 +51,35 @@ export async function POST(request: NextRequest) {
     }
 
     // Actualizar o crear la configuración
-    await prisma.systemConfig.upsert({
-      where: { key: 'REGISTRATION_ENABLED' },
-      update: { 
-        value: enabled.toString(),
-        updatedAt: new Date(),
-        updatedBy: session.user.id
-      },
-      create: { 
-        key: 'REGISTRATION_ENABLED',
-        value: enabled.toString(),
-        description: 'Controla si el registro de nuevos usuarios está habilitado',
-        category: 'AUTHENTICATION',
-        updatedBy: session.user.id
-      }
+    const existingConfig = await prisma.systemConfig.findFirst({
+      where: { key: 'REGISTRATION_ENABLED' }
     });
 
-    return NextResponse.json({ 
+    if (existingConfig) {
+      await prisma.systemConfig.update({
+        where: { id: existingConfig.id },
+        data: {
+          value: enabled.toString(),
+          updatedAt: new Date(),
+          updatedBy: session.user.id
+        }
+      });
+    } else {
+      await prisma.systemConfig.create({
+        data: {
+          key: 'REGISTRATION_ENABLED',
+          value: enabled.toString(),
+          description: 'Controla si el registro de nuevos usuarios está habilitado',
+          category: 'AUTHENTICATION',
+          updatedBy: session.user.id,
+          tenantId: null
+        }
+      });
+    }
+
+    return NextResponse.json({
       message: `Registro de usuarios ${enabled ? 'habilitado' : 'deshabilitado'} exitosamente`,
-      registrationEnabled: enabled 
+      registrationEnabled: enabled
     });
   } catch (error) {
     console.error('Error updating registration status:', error);

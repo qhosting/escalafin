@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar si ya existe
-    const existing = await prisma.systemConfig.findUnique({
-      where: { key },
+    const existing = await prisma.systemConfig.findFirst({
+      where: { key, tenantId: null },
     });
 
     if (existing) {
@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
         value,
         description,
         category,
+        tenantId: null,
         updatedBy: session.user.id,
       },
     });

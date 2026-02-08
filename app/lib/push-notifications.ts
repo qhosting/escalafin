@@ -1,5 +1,5 @@
 import webpush from 'web-push';
-import prisma from './prisma';
+import { prisma } from './prisma';
 
 // Configure web-push
 const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;

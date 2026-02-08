@@ -10,12 +10,12 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     // Verificar si el registro está habilitado
-    const registrationConfig = await prisma.systemConfig.findUnique({
+    const registrationConfig = await prisma.systemConfig.findFirst({
       where: { key: 'REGISTRATION_ENABLED' }
     });
 
     const isRegistrationEnabled = registrationConfig?.value === 'true';
-    
+
     if (!isRegistrationEnabled) {
       return NextResponse.json(
         { error: 'El registro de nuevos usuarios está temporalmente deshabilitado. Contacta al administrador.' },
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // El registro público solo permite CLIENTE
     const userRole = 'CLIENTE';
-    
+
     if (role && role.toUpperCase() !== 'CLIENTE') {
       return NextResponse.json(
         { error: 'El registro público solo está disponible para clientes. Los administradores y asesores se crean desde el panel de administración.' },

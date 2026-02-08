@@ -10,7 +10,8 @@ export async function GET() {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
 
-        const config = await ConfigService.getLoanTariffs();
+        const tenantId = session.user.tenantId as string;
+        const config = await ConfigService.getLoanTariffs(tenantId);
         return NextResponse.json(config);
     } catch (error) {
         console.error('Error al obtener configuración:', error);
@@ -32,7 +33,8 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'Estructura de configuración inválida' }, { status: 400 });
         }
 
-        await ConfigService.updateLoanTariffs(newConfig, session.user.id);
+        const tenantId = session.user.tenantId as string;
+        await ConfigService.updateLoanTariffs(tenantId, newConfig, session.user.id);
 
         return NextResponse.json({ success: true, message: 'Configuración actualizada correctamente' });
     } catch (error) {

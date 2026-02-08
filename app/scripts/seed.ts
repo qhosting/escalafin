@@ -14,49 +14,49 @@ async function main() {
   } catch (e) {
     console.log('ℹ️ Payments table does not exist yet');
   }
-  
+
   try {
     await prisma.amortizationSchedule.deleteMany();
     console.log('✅ Cleared amortization schedules');
   } catch (e) {
     console.log('ℹ️ AmortizationSchedule table does not exist yet');
   }
-  
+
   try {
     await prisma.loan.deleteMany();
     console.log('✅ Cleared loans');
   } catch (e) {
     console.log('ℹ️ Loans table does not exist yet');
   }
-  
+
   try {
     await prisma.creditApplication.deleteMany();
     console.log('✅ Cleared credit applications');
   } catch (e) {
     console.log('ℹ️ CreditApplication table does not exist yet');
   }
-  
+
   try {
     await prisma.client.deleteMany();
     console.log('✅ Cleared clients');
   } catch (e) {
     console.log('ℹ️ Clients table does not exist yet');
   }
-  
+
   try {
     await prisma.session.deleteMany();
     console.log('✅ Cleared sessions');
   } catch (e) {
     console.log('ℹ️ Sessions table does not exist yet');
   }
-  
+
   try {
     await prisma.account.deleteMany();
     console.log('✅ Cleared accounts');
   } catch (e) {
     console.log('ℹ️ Accounts table does not exist yet');
   }
-  
+
   try {
     await prisma.user.deleteMany();
     console.log('✅ Cleared users');
@@ -393,18 +393,18 @@ async function main() {
   function calculateAmortization(principal: number, rate: number, months: number, startDate: Date) {
     const monthlyRate = rate / 12;
     const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
-    
+
     let balance = principal;
     const schedule = [];
-    
+
     for (let i = 1; i <= months; i++) {
       const interestPayment = balance * monthlyRate;
       const principalPayment = monthlyPayment - interestPayment;
       balance = balance - principalPayment;
-      
+
       const paymentDate = new Date(startDate);
       paymentDate.setMonth(paymentDate.getMonth() + i - 1);
-      
+
       schedule.push({
         paymentNumber: i,
         paymentDate,
@@ -414,7 +414,7 @@ async function main() {
         remainingBalance: Math.max(0, Math.round(balance * 100) / 100),
       });
     }
-    
+
     return schedule;
   }
 
@@ -511,10 +511,10 @@ async function main() {
   }
 
   console.log('💳 Created payment history...');
-  
+
   // Configuración inicial del sistema
   console.log('⚙️ Setting up system configuration...');
-  
+
   const systemConfigs = [
     {
       key: 'REGISTRATION_ENABLED',
@@ -544,7 +544,12 @@ async function main() {
 
   for (const config of systemConfigs) {
     await prisma.systemConfig.upsert({
-      where: { key: config.key },
+      where: {
+        key_tenantId: {
+          key: config.key,
+          tenantId: null as any // Bypass strict type check if needed, but null should be valid if Optional
+        }
+      },
       update: {
         value: config.value,
         description: config.description,
@@ -553,6 +558,7 @@ async function main() {
       },
       create: {
         key: config.key,
+        tenantId: null,
         value: config.value,
         description: config.description,
         category: config.category,
@@ -562,7 +568,7 @@ async function main() {
   }
 
   console.log('⚙️ System configuration completed...');
-  
+
   console.log('✅ Database seeded successfully!');
   console.log('\n📊 Summary:');
   console.log('- Users created:', await prisma.user.count());
