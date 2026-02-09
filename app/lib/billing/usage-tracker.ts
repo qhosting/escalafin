@@ -283,7 +283,14 @@ export class UsageTracker {
             totalClients,
             byPeriod: byPeriod.map(p => ({
                 period: p.period,
-                totals: p._sum
+                totals: {
+                    usersCount: p._sum.usersCount || 0,
+                    loansCount: p._sum.loansCount || 0,
+                    clientsCount: p._sum.clientsCount || 0,
+                    apiCalls: p._sum.apiCalls || 0,
+                    smsCount: p._sum.smsCount || 0,
+                    whatsappCount: p._sum.whatsappCount || 0
+                }
             }))
         };
     }
