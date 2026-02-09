@@ -153,16 +153,31 @@ const defaultTemplates = [
 async function main() {
   console.log('🌱 Iniciando seeding de plantillas de mensajes...');
 
+  // Buscar tenant por defecto
+  const defaultTenant = await prisma.tenant.findFirst({
+    where: { slug: 'default-tenant' }
+  });
+
+  if (!defaultTenant) {
+    console.log('⚠️ No se encontró el tenant por defecto "default-tenant".');
+  }
+
+  const tenantId = defaultTenant?.id; // string | undefined
+
   for (const template of defaultTemplates) {
     try {
-      const existing = await prisma.messageTemplate.findUnique({
-        where: { name: template.name },
+      // Usar findFirst para mayor flexibilidad en la búsqueda
+      const existing = await prisma.messageTemplate.findFirst({
+        where: {
+          name: template.name,
+          tenantId: tenantId
+        },
       });
 
       if (existing) {
         console.log(`⏭️  Plantilla "${template.name}" ya existe, actualizando...`);
         await prisma.messageTemplate.update({
-          where: { name: template.name },
+          where: { id: existing.id },
           data: {
             description: template.description,
             category: template.category,
@@ -176,7 +191,10 @@ async function main() {
       } else {
         console.log(`➕ Creando plantilla "${template.name}"...`);
         await prisma.messageTemplate.create({
-          data: template,
+          data: {
+            ...template,
+            tenantId: tenantId
+          },
         });
       }
     } catch (error) {
