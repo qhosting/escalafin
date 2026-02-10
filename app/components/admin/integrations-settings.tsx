@@ -319,7 +319,7 @@ export function IntegrationsSettings() {
                                         <div className="flex items-center gap-2">
                                             <span className="font-semibold text-gray-900">{key.name}</span>
                                             {key.isActive ? (
-                                                <Badge variant="success" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 uppercase text-[10px]">Activa</Badge>
+                                                <Badge variant="outline" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200 uppercase text-[10px]">Activa</Badge>
                                             ) : (
                                                 <Badge variant="secondary" className="uppercase text-[10px]">Inactiva</Badge>
                                             )}
@@ -482,7 +482,7 @@ export function IntegrationsSettings() {
                                                 <div className="space-y-1">
                                                     <div className="flex items-center gap-2">
                                                         <h4 className="font-bold text-gray-900 font-mono text-sm break-all">{ep.url}</h4>
-                                                        <Badge variant={ep.isActive ? "success" : "secondary"} className="text-[10px] uppercase">
+                                                        <Badge variant={ep.isActive ? "outline" : "secondary"} className={ep.isActive ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200 text-[10px] uppercase" : "text-[10px] uppercase"}>
                                                             {ep.isActive ? "Escuchando" : "Pausado"}
                                                         </Badge>
                                                     </div>
@@ -510,8 +510,8 @@ export function IntegrationsSettings() {
                                                     <p className="text-[10px] uppercase font-bold text-gray-400">Último Código</p>
                                                     <div className="flex items-center gap-1.5">
                                                         <span className={`w-2 h-2 rounded-full ${ep.lastStatusCode && ep.lastStatusCode < 300
-                                                                ? 'bg-emerald-500'
-                                                                : ep.lastStatusCode ? 'bg-rose-500' : 'bg-gray-300'
+                                                            ? 'bg-emerald-500'
+                                                            : ep.lastStatusCode ? 'bg-rose-500' : 'bg-gray-300'
                                                             }`} />
                                                         <span className="font-mono text-sm font-bold">
                                                             {ep.lastStatusCode || '---'}
