@@ -20,29 +20,27 @@ export default function BillingPortal() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulando carga de datos de suscripción del tenant
-        setTimeout(() => {
-            setSubscription({
-                plan: 'Professional',
-                status: 'ACTIVE',
-                amount: 1499,
-                currency: 'MXN',
-                nextBilling: '2026-03-15',
-                paymentMethod: 'Visa .... 4242',
-                usage: {
-                    users: { current: 8, limit: 10 },
-                    loans: { current: 420, limit: 500 },
-                    storage: { current: 4.2, limit: 10 } // en GB
+        async function fetchBillingData() {
+            try {
+                const response = await fetch('/api/billing/portal');
+                if (response.ok) {
+                    const data = await response.json();
+                    setSubscription(data.subscription);
+                    // Añadir el uso a la suscripción para que coincida con la estructura esperada por el componente
+                    setSubscription(prev => ({
+                        ...prev,
+                        ...data.subscription,
+                        usage: data.usage
+                    }));
+                    setHistory(data.history);
                 }
-            });
-
-            setHistory([
-                { id: 'inv_1', date: '2026-02-15', amount: 1499, status: 'PAID', invoice: '#' },
-                { id: 'inv_2', date: '2026-01-15', amount: 1499, status: 'PAID', invoice: '#' },
-                { id: 'inv_3', date: '2025-12-15', amount: 1499, status: 'PAID', invoice: '#' }
-            ]);
-            setLoading(false);
-        }, 1000);
+            } catch (error) {
+                console.error('Error loading billing data:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchBillingData();
     }, []);
 
     if (loading) {
