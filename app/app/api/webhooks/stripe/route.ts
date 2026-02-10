@@ -24,9 +24,9 @@ export async function POST(req: NextRequest) {
     const session = event.data.object as Stripe.Checkout.Session;
 
     if (event.type === 'checkout.session.completed') {
-        const subscription = await stripe.subscriptions.retrieve(
+        const subscription = (await stripe.subscriptions.retrieve(
             session.subscription as string
-        );
+        )) as unknown as Stripe.Subscription;
 
         const tenantId = session.metadata?.tenantId;
         const planId = session.metadata?.planId;
@@ -51,9 +51,9 @@ export async function POST(req: NextRequest) {
     }
 
     if (event.type === 'invoice.payment_succeeded') {
-        const subscription = await stripe.subscriptions.retrieve(
+        const subscription = (await stripe.subscriptions.retrieve(
             session.subscription as string
-        );
+        )) as unknown as Stripe.Subscription;
 
         // Update period end
         await prisma.subscription.update({
