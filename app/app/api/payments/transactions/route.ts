@@ -2,32 +2,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
+import { getTenantPrisma } from '@/lib/tenant-db';
 
 export const dynamic = 'force-dynamic';
-
-const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session || !session.user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Solo admins pueden ver todas las transacciones
-    if (session.user.role !== 'ADMIN') {
+    // Solo admins pueden ver todas las transacciones de su tenant
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
     const offset = (page - 1) * limit;
 
-    // Obtener transacciones con información relacionada
+    // Obtener transacciones con información relacionada (Scritamente filtrada por tenant)
     const [transactions, totalCount] = await Promise.all([
-      prisma.paymentTransaction.findMany({
+      tenantPrisma.paymentTransaction.findMany({
         orderBy: { createdAt: 'desc' },
         take: limit,
         skip: offset,
@@ -49,11 +50,11 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      prisma.paymentTransaction.count(),
+      tenantPrisma.paymentTransaction.count(),
     ]);
 
-    // Calcular estadísticas
-    const stats = await prisma.paymentTransaction.groupBy({
+    // Calcular estadísticas (Estrictamente filtradas por tenant)
+    const stats = await tenantPrisma.paymentTransaction.groupBy({
       by: ['status'],
       _count: {
         status: true,
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const statsMap = stats.reduce((acc, stat) => {
+    const statsMap = stats.reduce((acc: any, stat: any) => {
       acc[stat.status] = {
         count: stat._count.status,
         amount: Number(stat._sum.amount) || 0,
