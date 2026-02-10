@@ -1,12 +1,23 @@
 
 import { prisma } from '@/lib/prisma';
+import { MessageTemplateType, MessageChannel } from '@prisma/client';
 
-export const defaultTemplates = [
+export interface DefaultTemplate {
+    name: string;
+    description: string;
+    category: MessageTemplateType;
+    channel: MessageChannel;
+    template: string;
+    variables: string;
+    isActive: boolean;
+}
+
+export const defaultTemplates: DefaultTemplate[] = [
     {
         name: 'Bienvenida WhatsApp',
         description: 'Mensaje de bienvenida al crear cuenta',
-        category: 'ACCOUNT_CREATED',
-        channel: 'WHATSAPP',
+        category: MessageTemplateType.ACCOUNT_CREATED,
+        channel: MessageChannel.WHATSAPP,
         template: '¡Hola {firstName}! 👋\n\n¡Bienvenido a {companyName}! Tu cuenta ha sido creada exitosamente.\n\n📧 Usuario: {email}\n\nEstamos aquí para ayudarte.',
         variables: 'firstName, companyName, email',
         isActive: true,
@@ -14,8 +25,8 @@ export const defaultTemplates = [
     {
         name: 'Recordatorio de Pago',
         description: 'Recordatorio de pago próximo',
-        category: 'PAYMENT_REMINDER',
-        channel: 'WHATSAPP',
+        category: MessageTemplateType.PAYMENT_REMINDER,
+        channel: MessageChannel.WHATSAPP,
         template: '⏰ Recordatorio de Pago\n\nHola {firstName},\n\nTe recordamos que tienes un pago próximo:\n\n💰 Monto: ${amount} MXN\n📅 Fecha de vencimiento: {dueDate}\n📝 Préstamo: #{loanNumber}',
         variables: 'firstName, amount, dueDate, loanNumber',
         isActive: true,
@@ -23,8 +34,8 @@ export const defaultTemplates = [
     {
         name: 'Pago Recibido',
         description: 'Confirmación de pago recibido',
-        category: 'PAYMENT_RECEIVED',
-        channel: 'WHATSAPP',
+        category: MessageTemplateType.PAYMENT_RECEIVED,
+        channel: MessageChannel.WHATSAPP,
         template: '¡Pago recibido! ✅\n\n💰 Monto: ${amount} MXN\n📝 Préstamo: #{loanNumber}\n📅 Fecha: {date}\n\n¡Gracias por tu pago puntual!',
         variables: 'amount, loanNumber, date',
         isActive: true,
