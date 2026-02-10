@@ -1,11 +1,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db';
 import { AuditLogger } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
-
-const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   let body: any = {};
@@ -21,10 +19,10 @@ export async function POST(request: NextRequest) {
     const payload = body.payload || body; // Fallback
 
     if (!event) {
-        // Si no hay evento, quizás es un ping o formato no reconocido
-        // Waha a veces manda { type: 'message', ... }
-        console.log("Evento no identificado claramente:", body);
-        return NextResponse.json({ status: 'ok', message: 'No event processed' });
+      // Si no hay evento, quizás es un ping o formato no reconocido
+      // Waha a veces manda { type: 'message', ... }
+      console.log("Evento no identificado claramente:", body);
+      return NextResponse.json({ status: 'ok', message: 'No event processed' });
     }
 
     // Procesar diferentes tipos de eventos
@@ -86,10 +84,10 @@ export async function POST(request: NextRequest) {
 
 async function handleMessage(data: any) {
   try {
-      // Waha incoming message
-      // { id: "...", from: "...", body: "..." }
-      // Aquí podríamos procesar mensajes entrantes si fuera un bot
-      console.log("Mensaje entrante:", data);
+    // Waha incoming message
+    // { id: "...", from: "...", body: "..." }
+    // Aquí podríamos procesar mensajes entrantes si fuera un bot
+    console.log("Mensaje entrante:", data);
   } catch (error) {
     console.error('Error procesando mensaje entrante:', error);
   }
@@ -130,9 +128,9 @@ async function handleMessageAck(data: any) {
             updateData.readAt = new Date();
             break;
           case -1: // Error
-             newStatus = 'FAILED';
-             updateData.errorMessage = "Failed delivery reported by ACK";
-             break;
+            newStatus = 'FAILED';
+            updateData.errorMessage = "Failed delivery reported by ACK";
+            break;
         }
 
         updateData.status = newStatus;

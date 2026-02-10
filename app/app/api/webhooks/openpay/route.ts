@@ -1,17 +1,15 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db';
 import { AuditLogger } from '@/lib/audit';
 import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
-
-const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   let body: any = {};
   try {
     body = await request.json();
-    
+
     // Validar que el webhook viene de Openpay
     // En producción, aquí deberías validar la firma del webhook
     const { type, transaction } = body;
@@ -38,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Actualizar el estado de la transacción
     let newStatus: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'REFUNDED';
-    
+
     switch (transaction.status) {
       case 'completed':
         newStatus = 'COMPLETED';
@@ -101,7 +99,7 @@ export async function POST(request: NextRequest) {
         } catch (whatsappError) {
           // No fallar el webhook si falla WhatsApp, solo loguear el error
           console.error('Error enviando notificación WhatsApp:', whatsappError);
-          
+
           // Log de auditoría para el error de WhatsApp
           const auditLogger = new AuditLogger(prisma);
           await auditLogger.log({
@@ -139,7 +137,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ status: 'success' });
   } catch (error) {
     console.error('Error processing Openpay webhook:', error);
-    
+
     // Log de error en auditoría
     try {
       const auditLogger = new AuditLogger(prisma);
