@@ -26,7 +26,7 @@ import {
 
 export default function ProfilePage() {
     return (
-        <AuthWrapper>
+        <AuthWrapper allowedRoles={['SUPER_ADMIN', 'ADMIN', 'ASESOR', 'CLIENTE']}>
             <ProfileContent />
         </AuthWrapper>
     );
