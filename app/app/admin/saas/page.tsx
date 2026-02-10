@@ -21,28 +21,20 @@ export default function SaaSOverview() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulación de carga de datos inicial
-        // En producción esto llamará a /api/admin/saas/stats
-        setTimeout(() => {
-            setStats({
-                totalTenants: 12,
-                activeTenants: 10,
-                trialTenants: 2,
-                totalMRR: 15450,
-                growth: '+12%',
-                usage: {
-                    apiCalls: '1.2M',
-                    loansCreated: '4.5k',
-                    clientsStored: '18k'
-                },
-                recentActivity: [
-                    { type: 'signup', tenant: 'Finix Tech', date: 'Hace 2 horas' },
-                    { type: 'payment', tenant: 'Escala Plus', date: 'Hace 5 horas', amount: '$1,499' },
-                    { type: 'upgrade', tenant: 'CrediValores', date: 'Hace 1 día', plan: 'Business' }
-                ]
-            });
-            setLoading(false);
-        }, 1000);
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/admin/saas/stats');
+                if (response.ok) {
+                    const data = await response.json();
+                    setStats(data);
+                }
+            } catch (error) {
+                console.error('Error loading SaaS stats:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchStats();
     }, []);
 
     if (loading) {
@@ -74,17 +66,17 @@ export default function SaaSOverview() {
                     title="Tenants Activos"
                     value={stats.activeTenants}
                     icon={<BuildingOfficeIcon className="h-6 w-6 text-indigo-600" />}
-                    subtitle={`${stats.trialTenants} en periodo de prueba`}
+                    subtitle={`${stats.totalTenants} registrados en total`}
                 />
                 <StatCard
-                    title="Llamadas API"
-                    value={stats.usage.apiCalls}
+                    title="Préstamos Emitidos"
+                    value={stats.totalLoans.toLocaleString()}
                     icon={<GlobeAltIcon className="h-6 w-6 text-blue-600" />}
-                    subtitle="Últimos 30 días"
+                    subtitle="Globalmente en la plataforma"
                 />
                 <StatCard
-                    title="Usuarios Totales"
-                    value={stats.usage.clientsStored}
+                    title="Clientes Registrados"
+                    value={stats.totalClients.toLocaleString()}
                     icon={<UsersIcon className="h-6 w-6 text-amber-600" />}
                     subtitle="A través de todos los tenants"
                 />
@@ -101,8 +93,8 @@ export default function SaaSOverview() {
                             <div key={idx} className="px-5 py-4 hover:bg-gray-50 transition-colors">
                                 <div className="flex space-x-3">
                                     <div className={`rounded-full p-2 h-fit ${activity.type === 'signup' ? 'bg-blue-100 text-blue-600' :
-                                            activity.type === 'payment' ? 'bg-emerald-100 text-emerald-600' :
-                                                'bg-purple-100 text-purple-600'
+                                        activity.type === 'payment' ? 'bg-emerald-100 text-emerald-600' :
+                                            'bg-purple-100 text-purple-600'
                                         }`}>
                                         {activity.type === 'signup' && <UsersIcon className="h-4 w-4" />}
                                         {activity.type === 'payment' && <CreditCardIcon className="h-4 w-4" />}
