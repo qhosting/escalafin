@@ -3,31 +3,31 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
-import { AuditLogger } from '@/lib/audit';
-
-const prisma = new PrismaClient();
+import { getTenantPrisma } from '@/lib/tenant-db';
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session || !session.user.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Solo admins pueden ver logs de auditoría
-    if (session.user.role !== 'ADMIN') {
+    // Solo admins de la organización pueden ver logs de auditoría
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
     const { searchParams } = new URL(request.url);
-    
+
     const page = parseInt(searchParams.get('page') || '1');
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
     const offset = (page - 1) * limit;
 
     const filters: any = {};
-    
+
     // Aplicar filtros
     const userId = searchParams.get('userId');
     const action = searchParams.get('action');
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [logs, totalCount] = await Promise.all([
-      prisma.auditLog.findMany({
+      tenantPrisma.auditLog.findMany({
         where: filters,
         orderBy: { timestamp: 'desc' },
         take: limit,
@@ -70,11 +70,11 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      prisma.auditLog.count({ where: filters }),
+      tenantPrisma.auditLog.count({ where: filters }),
     ]);
 
     // Formatear logs para el frontend
-    const formattedLogs = logs.map(log => ({
+    const formattedLogs = logs.map((log: any) => ({
       ...log,
       user: log.user ? {
         ...log.user,
