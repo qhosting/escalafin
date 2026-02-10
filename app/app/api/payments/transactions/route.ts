@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
       completedTransactions: statsMap.COMPLETED?.count || 0,
       pendingTransactions: (statsMap.PENDING?.count || 0) + (statsMap.PROCESSING?.count || 0),
       failedTransactions: statsMap.FAILED?.count || 0,
-      totalAmount: Object.values(statsMap).reduce((sum, stat) => sum + stat.amount, 0),
+      totalAmount: Object.values(statsMap).reduce((sum: number, stat: any) => sum + stat.amount, 0),
     };
 
     return NextResponse.json({
