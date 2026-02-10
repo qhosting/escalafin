@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
 import { ClientStatus, EmploymentType } from '@prisma/client';
+import { LimitsService } from '@/lib/billing/limits';
 
 export async function GET(request: NextRequest) {
   try {
@@ -115,6 +116,10 @@ export async function POST(request: NextRequest) {
 
     const tenantId = session.user.tenantId;
     const tenantPrisma = getTenantPrisma(tenantId);
+
+    // 💡 Verificación de Límites SaaS
+    const limitError = await LimitsService.middleware(tenantId || '', 'clients');
+    if (limitError) return limitError;
 
     const body = await request.json();
     const {

@@ -5,42 +5,43 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { LimitsService } from '@/lib/billing/limits';
 
 // Test simple endpoint
 export async function GET(request: NextRequest) {
   console.log('🔍 Admin users endpoint called');
-  
+
   try {
     // First test without auth to see if we can reach the endpoint
     console.log('📡 Testing basic endpoint functionality');
-    
+
     // Simple test - return basic info
     const testResponse = {
       message: 'Admin users endpoint is working',
       timestamp: new Date().toISOString(),
       path: '/api/admin/users'
     };
-    
+
     console.log('✅ Basic endpoint test successful');
-    
+
     // Now try auth
     const session = await getServerSession(authOptions);
     console.log('🔐 Session check:', !!session);
-    
+
     if (!session?.user) {
       console.log('❌ No session found');
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'No autorizado - se requiere autenticación',
-        ...testResponse 
+        ...testResponse
       }, { status: 401 });
     }
-    
+
     if (session.user.role !== UserRole.ADMIN) {
       console.log('❌ Not admin role:', session.user.role);
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'No autorizado - se requiere rol de administrador',
         currentRole: session.user.role,
-        ...testResponse 
+        ...testResponse
       }, { status: 403 });
     }
 
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
     });
 
     console.log(`✅ Retrieved ${users.length} users successfully`);
-    return NextResponse.json({ 
+    return NextResponse.json({
       users,
       count: users.length,
       ...testResponse
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Error fetching users:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Error al cargar usuarios',
         details: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()
@@ -91,6 +92,12 @@ export async function POST(request: NextRequest) {
     if (!session?.user || session.user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
+
+    const tenantId = session.user.tenantId;
+
+    // 💡 Verificación de Límites SaaS
+    const limitError = await LimitsService.middleware(tenantId || '', 'users');
+    if (limitError) return limitError;
 
     const body = await request.json();
     const { firstName, lastName, email, phone, role, password } = body;
