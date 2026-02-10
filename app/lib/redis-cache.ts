@@ -232,8 +232,16 @@ class RedisCacheService {
 export const redisCache = new RedisCacheService();
 
 // Auto-connect on import
-if (process.env.REDIS_URL) {
-    redisCache.connect().catch(console.error);
+// Solo conectar automáticamente si no estamos en fase de build de Next.js
+if (process.env.REDIS_URL && process.env.NEXT_PHASE !== 'phase-production-build') {
+    redisCache.connect().catch(err => {
+        // En build o entornos sin Redis, fallar silenciosamente
+        if (process.env.NODE_ENV === 'production') {
+            console.warn('⚠️ Redis not available, caching will be disabled');
+        } else {
+            console.error('Redis connection error:', err);
+        }
+    });
 }
 
 // Cache TTL constants (in seconds)
