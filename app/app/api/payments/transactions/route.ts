@@ -29,6 +29,11 @@ export async function GET(request: NextRequest) {
     // Obtener transacciones con información relacionada (Scritamente filtrada por tenant)
     const [transactions, totalCount] = await Promise.all([
       tenantPrisma.paymentTransaction.findMany({
+        where: {
+          payment: {
+            tenantId: tenantId
+          }
+        },
         orderBy: { createdAt: 'desc' },
         take: limit,
         skip: offset,
@@ -50,11 +55,23 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      tenantPrisma.paymentTransaction.count(),
+      tenantPrisma.paymentTransaction.count({
+        where: {
+          payment: {
+            tenantId: tenantId
+          }
+        }
+      }),
     ]);
 
     // Calcular estadísticas (Estrictamente filtradas por tenant)
-    const stats = await tenantPrisma.paymentTransaction.groupBy({
+    // Usamos (tenantPrisma as any) porque groupBy tiene problemas de tipos en el cliente extendido de Prisma
+    const stats = await (tenantPrisma as any).paymentTransaction.groupBy({
+      where: {
+        payment: {
+          tenantId: tenantId
+        }
+      },
       by: ['status'],
       _count: {
         status: true,
