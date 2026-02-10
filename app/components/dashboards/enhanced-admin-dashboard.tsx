@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ModuleWrapper } from '@/components/ui/module-wrapper';
 import { useModules } from '@/hooks/use-modules';
 import { QuickModuleToggle } from '@/components/admin/quick-module-toggle';
+import { SubscriptionBanner } from '@/components/admin/subscription-banner';
 import {
   Building2,
   Users,
@@ -352,6 +353,7 @@ export function EnhancedAdminDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
       <div className="space-y-6">
+        <SubscriptionBanner />
         {/* Welcome Message */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
           <h2 className="text-2xl font-bold mb-2">
@@ -589,7 +591,7 @@ export function EnhancedAdminDashboard() {
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center space-x-3">
                         <div className={`p-2 rounded-full ${activity.status === 'success' ? 'bg-green-100' :
-                            activity.status === 'warning' ? 'bg-yellow-100' : 'bg-blue-100'
+                          activity.status === 'warning' ? 'bg-yellow-100' : 'bg-blue-100'
                           }`}>
                           {activity.status === 'success' ? (
                             <CheckCircle className="h-4 w-4 text-green-600" />

@@ -7,6 +7,7 @@ import { UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { LimitsService } from '@/lib/billing/limits';
 import { UsageTracker } from '@/lib/billing/usage-tracker';
+import { getTenantPrisma } from '@/lib/tenant-db';
 
 // Test simple endpoint
 export async function GET(request: NextRequest) {
@@ -46,8 +47,11 @@ export async function GET(request: NextRequest) {
       }, { status: 403 });
     }
 
-    console.log('🔍 Fetching users from database...');
-    const users = await prisma.user.findMany({
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
+    console.log('🔍 Fetching users from database for tenant:', tenantId);
+    const users = await tenantPrisma.user.findMany({
       select: {
         id: true,
         firstName: true,
@@ -95,6 +99,7 @@ export async function POST(request: NextRequest) {
     }
 
     const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
     // 💡 Verificación de Límites SaaS
     const limitError = await LimitsService.middleware(tenantId || '', 'users');
@@ -119,7 +124,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await tenantPrisma.user.findUnique({
       where: { email }
     });
 
@@ -134,7 +139,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const user = await prisma.user.create({
+    const user = await tenantPrisma.user.create({
       data: {
         firstName,
         lastName,

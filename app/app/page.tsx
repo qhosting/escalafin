@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  Building2, 
-  Shield, 
-  TrendingUp, 
-  Users, 
-  CreditCard, 
+import {
+  Building2,
+  Shield,
+  TrendingUp,
+  Users,
+  CreditCard,
   BarChart3,
   ArrowRight,
   Play,
@@ -35,11 +35,11 @@ export default function HomePage() {
 
   useEffect(() => {
     console.log('Page useEffect - status:', status, 'session:', session);
-    
+
     // Solo redirigir si hay una sesión válida y está completamente cargada
     if (status === 'authenticated' && session?.user?.role) {
       console.log('Authenticated user with role:', session.user.role);
-      
+
       // Pequeño delay para evitar hydration issues
       const timeoutId = setTimeout(() => {
         switch (session.user.role) {
@@ -104,16 +104,16 @@ export default function HomePage() {
               <span className="text-xl font-bold text-gray-900">EscalaFin</span>
               <Badge variant="outline" className="hidden sm:inline-flex">Sistema de Gestión</Badge>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <Link href="/auth/login">
                 <Button variant="outline">
                   Iniciar Sesión
                 </Button>
               </Link>
-              <Link href="/auth/register">
-                <Button>
-                  Registrarse
+              <Link href="/auth/register-tenant">
+                <Button className="bg-indigo-600 hover:bg-indigo-700">
+                  Registrar Financiera
                 </Button>
               </Link>
             </div>
@@ -132,11 +132,11 @@ export default function HomePage() {
                   Plataforma Profesional
                 </Badge>
                 <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                  Gestión Integral de 
+                  Gestión Integral de
                   <span className="text-primary block">Créditos y Préstamos</span>
                 </h1>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  Automatiza tu negocio financiero con nuestra plataforma completa. 
+                  Automatiza tu negocio financiero con nuestra plataforma completa.
                   Gestiona clientes, préstamos, pagos y reportes desde una sola aplicación.
                 </p>
               </div>
@@ -186,7 +186,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Floating Cards */}
               <div className="absolute -top-4 -left-4 bg-white rounded-lg shadow-lg p-3">
                 <div className="flex items-center space-x-2">
@@ -194,7 +194,7 @@ export default function HomePage() {
                   <span className="text-sm font-medium">Pagos al día</span>
                 </div>
               </div>
-              
+
               <div className="absolute -bottom-4 -right-4 bg-white rounded-lg shadow-lg p-3">
                 <div className="flex items-center space-x-2">
                   <TrendingUp className="h-5 w-5 text-blue-500" />
@@ -215,7 +215,7 @@ export default function HomePage() {
               Todo lo que necesitas para gestionar tu negocio
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Desde la gestión de clientes hasta reportes avanzados, 
+              Desde la gestión de clientes hasta reportes avanzados,
               EscalaFin tiene todas las herramientas que necesitas
             </p>
           </div>
@@ -278,9 +278,9 @@ export default function HomePage() {
             Únete a cientos de empresas que ya están optimizando sus operaciones financieras con EscalaFin
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/auth/register">
-              <Button size="lg" variant="secondary" className="px-8">
-                Crear Cuenta Gratis
+            <Link href="/auth/register-tenant">
+              <Button size="lg" variant="secondary" className="px-8 font-bold">
+                Empezar Prueba Gratuita
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -302,7 +302,7 @@ export default function HomePage() {
               <span className="text-lg font-bold">EscalaFin</span>
               <Badge variant="outline" className="border-gray-400 text-gray-700 bg-white">v1.0</Badge>
             </div>
-            
+
             <div className="text-sm text-gray-400 text-center md:text-left">
               © 2025 EscalaFin. Sistema de Gestión de Créditos y Préstamos.
             </div>

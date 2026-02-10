@@ -403,9 +403,9 @@ export function DesktopNavbar() {
           <div className="flex items-center space-x-6">
             <Link href="/" className="flex items-center hover:opacity-90 transition-opacity gap-3">
               <Image
-                src="/logoescalafin.png"
-                alt="EscalaFin Logo"
-                width={160}
+                src={tenant?.logo || "/logoescalafin.png"}
+                alt={`${tenant?.name || 'EscalaFin'} Logo`}
+                width={tenant?.logo ? 120 : 160}
                 height={32}
                 className="object-contain"
                 priority

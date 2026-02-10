@@ -66,7 +66,7 @@ export default function SaaSOverviewV2() {
         );
     }
 
-    const pieData = Object.entries(stats.plansBreakdown || {}).map(([name, value]) => ({ name, value }));
+    const pieData = Object.entries(stats.plansBreakdown || {}).map(([name, value]) => ({ name, value: value as number }));
 
     return (
         <div className="space-y-8 p-1">
@@ -251,7 +251,7 @@ export default function SaaSOverviewV2() {
                             ))}
                         </div>
                         <div className="p-3 bg-gray-50/50 border-t">
-                            <Link href="/admin/tenants" className="w-full block">
+                            <Link href="/admin/saas/tenants" className="w-full block">
                                 <Button variant="ghost" className="w-full text-xs text-indigo-600 font-bold hover:bg-indigo-50" size="sm">
                                     Ver todos los Tenants
                                 </Button>

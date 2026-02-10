@@ -25,10 +25,12 @@ import {
   AlertTriangle,
   Info,
   User,
-  Key
+  Key,
+  Palette
 } from 'lucide-react';
 import { NotificationSettings } from '@/components/notifications/NotificationSettings';
 import { IntegrationsSettings } from '@/components/admin/integrations-settings';
+import { BrandingSettings } from '@/components/admin/branding-settings';
 import { toast } from 'sonner';
 
 interface SystemSettings {
@@ -199,6 +201,10 @@ export default function AdminSettingsPage() {
               <Info className="h-4 w-4" />
               General
             </TabsTrigger>
+            <TabsTrigger value="branding" className="flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              Branding
+            </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Notificaciones
@@ -231,6 +237,11 @@ export default function AdminSettingsPage() {
             <NotificationSettings />
           </TabsContent>
 
+
+          {/* Branding Settings */}
+          <TabsContent value="branding">
+            <BrandingSettings />
+          </TabsContent>
 
           {/* General Settings */}
           <TabsContent value="general">

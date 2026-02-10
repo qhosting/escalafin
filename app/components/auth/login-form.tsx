@@ -219,14 +219,22 @@ export function LoginForm() {
               )}
             </button>
 
-            {/* Link de Registro */}
-            <div className="text-center pt-2">
+            <div className="text-center pt-2 space-y-3">
               <p className="text-gray-600 text-sm">
-                ¿No tienes cuenta?{' '}
+                ¿Eres cliente?{' '}
                 <Link href="/auth/register" className="text-primary hover:text-primary/80 font-medium transition-colors">
-                  Registrarse
+                  Crear cuenta personal
                 </Link>
               </p>
+
+              <div className="border-t border-gray-100 pt-3">
+                <p className="text-gray-600 text-sm">
+                  ¿Quieres gestionar créditos?{' '}
+                  <Link href="/auth/register-tenant" className="text-indigo-600 hover:text-indigo-800 font-bold transition-colors block mt-1 hover:underline">
+                    Registrar mi Financiera
+                  </Link>
+                </p>
+              </div>
             </div>
           </form>
         </div>

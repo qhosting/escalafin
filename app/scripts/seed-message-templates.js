@@ -153,26 +153,27 @@ const defaultTemplates = [
 async function main() {
   console.log('🌱 Iniciando seeding de plantillas de mensajes...');
 
+  // Enfoque simplificado: borrar templates base existentes y recrear
+  // Nota: en Prisma deleteMany con campo opcional nulo a veces requiere sintaxis específica o no filtrar.
+  // Intentaremos filtrar por tenantId: null
+  // deleteMany está fallando, vamos directo a create con try/catch individual
+  // await prisma.messageTemplate.deleteMany({});
+
+  // console.log('🗑️  Plantillas base anteriores eliminadas.');
+
   for (const template of defaultTemplates) {
     try {
-      const existing = await prisma.messageTemplate.findUnique({
-        where: { name: template.name },
+      console.log(`➕ Creando plantilla "${template.name}"...`);
+      // Intentar crear, si falla probablemente ya existe (aunque borramos antes)
+      await prisma.messageTemplate.create({
+        data: {
+          ...template,
+          tenantId: null // Forzamos null explícito para templates de sistema
+        },
       });
-
-      if (existing) {
-        console.log(`⏭️  Plantilla "${template.name}" ya existe, actualizando...`);
-        await prisma.messageTemplate.update({
-          where: { name: template.name },
-          data: template,
-        });
-      } else {
-        console.log(`➕ Creando plantilla "${template.name}"...`);
-        await prisma.messageTemplate.create({
-          data: template,
-        });
-      }
-    } catch (error) {
-      console.error(`❌ Error procesando plantilla "${template.name}":`, error);
+    } catch (e) {
+      console.error(`⚠️ Error al crear "${template.name}":`, e.message);
+      // Continuar con la siguiente
     }
   }
 

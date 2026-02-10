@@ -45,7 +45,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         name: true,
         slug: true,
         domain: true,
-        status: true
+        status: true,
+        logo: true,
+        primaryColor: true
       }
     });
 
@@ -53,7 +55,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     if (!tenant) {
       tenant = await prisma.tenant.findUnique({
         where: { slug: 'default-tenant' },
-        select: { id: true, name: true, slug: true, domain: true, status: true }
+        select: { id: true, name: true, slug: true, domain: true, status: true, logo: true, primaryColor: true }
       });
     }
   } catch (error) {
@@ -65,7 +67,10 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} style={{
+        ['--primary' as any]: tenant?.primaryColor || '#2563eb',
+        ['--primary-foreground' as any]: '#ffffff'
+      }}>
         <Providers tenant={tenant}>
           <MainLayout>
             {children}

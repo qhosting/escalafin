@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { DesktopNavbar } from './desktop-navbar';
 import { MobileSidebar } from './mobile-sidebar';
 
-const NO_LAYOUT_PATHS = ['/auth/login', '/auth/register'];
+const NO_LAYOUT_PATHS = ['/auth/login', '/auth/register', '/auth/register-tenant'];
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -15,17 +15,17 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname();
   const { data: session, status } = useSession() || {};
-  
+
   // No mostrar layout en páginas de autenticación
   if (NO_LAYOUT_PATHS.includes(pathname)) {
     return <>{children}</>;
   }
-  
+
   // Para la landing page ('/'), mostrar siempre el contenido sin layout
   if (pathname === '/') {
     return <>{children}</>;
   }
-  
+
   // Loading state solo para rutas protegidas y solo si realmente está cargando
   if (status === 'loading' && pathname !== '/') {
     return (
@@ -37,7 +37,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       </div>
     );
   }
-  
+
   // Si no hay sesión para rutas protegidas, mostrar el contenido
   // (el middleware se encargará de redirigir si es necesario)
   if (!session && pathname !== '/') {
@@ -52,16 +52,16 @@ export function MainLayout({ children }: MainLayoutProps) {
       </div>
     );
   }
-  
+
   // Layout autenticado con navegación
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Navegación Desktop */}
       <DesktopNavbar />
-      
+
       {/* Navegación Mobile */}
       <MobileSidebar />
-      
+
       {/* Contenido principal con padding para compensar navbar fijo */}
       <main className="pt-0 md:pt-0">
         <div className="max-w-7xl mx-auto p-4 md:p-6">
