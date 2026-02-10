@@ -22,18 +22,10 @@ export async function GET(request: NextRequest) {
         const [
             globalUsage,
             activeSubscriptions,
-            mrrResult,
             recentActivity
         ] = await Promise.all([
             UsageTracker.getGlobalStats(),
             prisma.subscription.count({ where: { status: 'ACTIVE' } }),
-            prisma.subscription.aggregate({
-                where: { status: 'ACTIVE' },
-                _sum: {
-                    // Necesitaríamos unir con Plan para obtener el precio real, 
-                    // pero como aproximación sumaremos los planes activos
-                }
-            }),
             // Actividad reciente genuina
             prisma.tenant.findMany({
                 orderBy: { createdAt: 'desc' },
