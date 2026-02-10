@@ -277,6 +277,15 @@ export default function BillingPortal() {
                 </div>
 
             </div>
+
+            <PlanSelectionModal
+                isOpen={isPlanModalOpen}
+                onClose={() => setIsPlanModalOpen(false)}
+                plans={availablePlans}
+                currentPlanId={subscription.planId}
+                onSelectPlan={handlePlanChange}
+                isLoading={isProcessing}
+            />
         </div>
     );
 }
@@ -300,15 +309,6 @@ function UsageProgress({ label, current, limit, unit }: any) {
                     style={{ width: `${percentage}%` }}
                 ></div>
             </div>
-
-            <PlanSelectionModal
-                isOpen={isPlanModalOpen}
-                onClose={() => setIsPlanModalOpen(false)}
-                plans={availablePlans}
-                currentPlanId={subscription.planId}
-                onSelectPlan={handlePlanChange}
-                isLoading={isProcessing}
-            />
         </div>
     );
 }
