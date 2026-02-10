@@ -25,13 +25,11 @@ export default function BillingPortal() {
                 const response = await fetch('/api/billing/portal');
                 if (response.ok) {
                     const data = await response.json();
-                    setSubscription(data.subscription);
-                    // Añadir el uso a la suscripción para que coincida con la estructura esperada por el componente
-                    setSubscription(prev => ({
-                        ...prev,
+                    // Consolidar datos de suscripción y uso en un solo estado
+                    setSubscription({
                         ...data.subscription,
                         usage: data.usage
-                    }));
+                    });
                     setHistory(data.history);
                 }
             } catch (error) {
