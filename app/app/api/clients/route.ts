@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
 import { ClientStatus, EmploymentType } from '@prisma/client';
 import { LimitsService } from '@/lib/billing/limits';
+import { UsageTracker } from '@/lib/billing/usage-tracker';
 import { WebhooksService } from '@/lib/webhooks';
 
 export async function GET(request: NextRequest) {
@@ -229,6 +230,11 @@ export async function POST(request: NextRequest) {
       phone: client.phone,
       asesor: client.asesor
     }).catch(err => console.error('Error dispatching webhook:', err));
+
+    // 📈 Incrementar uso en SaaS
+    if (tenantId) {
+      await UsageTracker.incrementUsage(tenantId, 'clientsCount');
+    }
 
     return NextResponse.json(client, { status: 201 });
 

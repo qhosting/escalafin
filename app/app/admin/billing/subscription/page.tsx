@@ -6,13 +6,15 @@ import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Loader2, Zap } from 'lucide-react';
+import { CheckCircle2, Loader2, Zap, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
+import { UsageOverview } from '@/components/admin/usage-overview';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function TenantSubscriptionPage() {
-    const { data: subscription, isLoading: subLoading, mutate } = useSWR('/api/billing/subscription', fetcher);
+    const { data: subscription, isLoading: subLoading } = useSWR('/api/billing/subscription', fetcher);
+    const { data: usageData, isLoading: usageLoading } = useSWR('/api/billing/usage', fetcher);
     const { data: plans, isLoading: plansLoading } = useSWR('/api/admin/plans', fetcher); // Reuse admin public endpoint?
     // Wait, /api/admin/plans is protected by SUPER_ADMIN check in step 878.
     // Need a public or tenant-accessible plans endpoint.
@@ -95,6 +97,21 @@ export default function TenantSubscriptionPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Usage Overview */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-indigo-600" />
+                    <h2 className="text-xl font-bold">Uso de Recursos</h2>
+                </div>
+                {usageLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {[1, 2, 3].map(i => <div key={i} className="h-32 bg-gray-50 animate-pulse rounded-lg border" />)}
+                    </div>
+                ) : (
+                    <UsageOverview usageData={usageData} />
+                )}
+            </div>
 
             {/* Plans Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

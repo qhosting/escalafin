@@ -160,6 +160,27 @@ export class UsageTracker {
 
         // Invalidar cache
         await redisCache.delete(getUsageCacheKey(tenantId, period));
+
+        // 🔔 Verificar límites y notificar si es necesario
+        const { LimitsNotificationService } = await import('./limits-notification-service');
+        LimitsNotificationService.checkAndNotify(tenantId, this.metricToLimit(metric)).catch(console.error);
+    }
+
+    /**
+     * Mapea métricas de uso a recursos limitables
+     */
+    private static metricToLimit(metric: UsageMetric): any {
+        const mapping: Record<string, string> = {
+            'usersCount': 'users',
+            'loansCount': 'loans',
+            'clientsCount': 'clients',
+            'storageBytes': 'storage',
+            'apiCalls': 'apiCalls',
+            'smsCount': 'sms',
+            'whatsappCount': 'whatsapp',
+            'reportsCount': 'reports'
+        };
+        return mapping[metric] || metric;
     }
 
     /**

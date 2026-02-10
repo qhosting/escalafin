@@ -17,7 +17,9 @@ export async function GET(
                 id: true,
                 name: true,
                 slug: true,
-                status: true
+                status: true,
+                logo: true,
+                primaryColor: true
             }
         });
 

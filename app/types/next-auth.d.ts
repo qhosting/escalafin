@@ -9,12 +9,14 @@ declare module 'next-auth' {
       name: string;
       role: string;
       tenantId: string | null;
+      tenantSlug: string | null;
     };
   }
 
   interface User {
     role: string;
     tenantId: string | null;
+    tenantSlug: string | null;
   }
 }
 
@@ -22,5 +24,6 @@ declare module 'next-auth/jwt' {
   interface JWT {
     role: string;
     tenantId: string | null;
+    tenantSlug: string | null;
   }
 }

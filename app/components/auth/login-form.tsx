@@ -14,7 +14,7 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [tenantInfo, setTenantInfo] = useState<{ name: string, slug: string } | null>(null);
+  const [tenantInfo, setTenantInfo] = useState<{ name: string, slug: string, logo: string | null, primaryColor: string | null } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -35,7 +35,12 @@ export function LoginForm() {
       fetch(`/api/public/tenant/${slug}`)
         .then(res => res.json())
         .then(data => {
-          if (data.name) setTenantInfo({ name: data.name, slug: data.slug });
+          if (data.name) setTenantInfo({
+            name: data.name,
+            slug: data.slug,
+            logo: data.logo,
+            primaryColor: data.primaryColor
+          });
         })
         .catch(console.error);
     }
@@ -131,8 +136,8 @@ export function LoginForm() {
           <div className="flex justify-center mb-8">
             <div className="relative h-16 w-64">
               <Image
-                src="/logoescalafin.png"
-                alt="EscalaFin Logo"
+                src={tenantInfo?.logo || "/logoescalafin.png"}
+                alt={`${tenantInfo?.name || 'EscalaFin'} Logo`}
                 fill
                 className="object-contain"
                 priority
@@ -204,7 +209,8 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3.5 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              style={{ backgroundColor: tenantInfo?.primaryColor || undefined }}
+              className="w-full bg-blue-600 text-white py-3.5 px-4 rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">

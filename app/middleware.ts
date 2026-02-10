@@ -46,6 +46,27 @@ export default withAuth(
     requestHeaders.set('x-tenant-slug', tenantSlug);
     requestHeaders.set('x-url', req.url);
 
+    // 3. Validación de Acceso Cruzado (Cross-Tenant)
+    const token = req.nextauth.token;
+    if (token && tenantSlug !== 'default-tenant') {
+      const userTenantSlug = token.tenantSlug as string;
+      const userRole = token.role as string;
+
+      // Si no es Super Admin y el slug del host no coincide con el del usuario
+      if (userRole !== 'SUPER_ADMIN' && userTenantSlug && userTenantSlug !== tenantSlug) {
+        console.log(`🚫 Bloqueo Cross-Tenant: Usuario de ${userTenantSlug} intentó entrar a ${tenantSlug}`);
+
+        // Redirigir a su propio subdominio si estamos en producción, 
+        // o simplemente mostrar error/logout en desarrollo para evitar loops infinitos complejos
+        if (isLocalhost) {
+          return NextResponse.redirect(new URL(`/auth/login?error=TenantMismatch&expected=${userTenantSlug}`, req.url));
+        } else {
+          const protocol = req.nextUrl.protocol;
+          return NextResponse.redirect(`${protocol}//${userTenantSlug}.${rootDomain}${req.nextUrl.pathname}`);
+        }
+      }
+    }
+
     return NextResponse.next({
       request: {
         headers: requestHeaders,
@@ -83,19 +104,24 @@ export default withAuth(
         // Control de acceso basado en roles
         const userRole = token.role as string;
 
-        // Rutas de admin
+        // 🟢 Rutas Críticas de Super Administrador (SaaS Global)
+        if (pathname.startsWith('/admin/saas')) {
+          return userRole === 'SUPER_ADMIN';
+        }
+
+        // Rutas de admin (locales del tenant)
         if (pathname.startsWith('/admin/')) {
-          return userRole === 'ADMIN';
+          return userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
         }
 
         // Rutas de asesor
         if (pathname.startsWith('/asesor/')) {
-          return userRole === 'ASESOR' || userRole === 'ADMIN';
+          return userRole === 'ASESOR' || userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
         }
 
         // Rutas de cliente
         if (pathname.startsWith('/cliente/')) {
-          return userRole === 'CLIENTE' || userRole === 'ADMIN';
+          return userRole === 'CLIENTE' || userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
         }
 
         return true;
