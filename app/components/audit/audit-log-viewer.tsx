@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +56,7 @@ interface AuditLog {
     email: string;
     role: string;
   };
+  tenantName?: string;
 }
 
 interface AuditStats {
@@ -71,6 +73,8 @@ const AuditLogViewer: React.FC = () => {
   const [stats, setStats] = useState<AuditStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const { data: session } = useSession();
+  const isSuperAdmin = (session?.user as any)?.role === 'SUPER_ADMIN';
 
   // Filtros
   const [filters, setFilters] = useState({
@@ -172,7 +176,7 @@ const AuditLogViewer: React.FC = () => {
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      
+
       toast.success('Logs exportados exitosamente');
     } catch (error) {
       console.error('Error exporting logs:', error);
@@ -280,6 +284,7 @@ const AuditLogViewer: React.FC = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-16">Acción</TableHead>
+                        {isSuperAdmin && <TableHead>Tenant</TableHead>}
                         <TableHead>Usuario</TableHead>
                         <TableHead>Recurso</TableHead>
                         <TableHead>IP</TableHead>
@@ -298,6 +303,13 @@ const AuditLogViewer: React.FC = () => {
                               </Badge>
                             </div>
                           </TableCell>
+                          {isSuperAdmin && (
+                            <TableCell>
+                              <Badge variant="outline" className="font-medium text-xs">
+                                {log.tenantName || 'Global'}
+                              </Badge>
+                            </TableCell>
+                          )}
                           <TableCell>
                             <div>
                               <div className="font-medium">
@@ -497,7 +509,7 @@ const AuditLogViewer: React.FC = () => {
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  Los filtros se aplican automáticamente. Use los campos de fechas para limitar 
+                  Los filtros se aplican automáticamente. Use los campos de fechas para limitar
                   el rango temporal de los logs mostrados.
                 </AlertDescription>
               </Alert>

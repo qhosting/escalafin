@@ -4,31 +4,46 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
+import { prisma } from '@/lib/db'; // Usar prisma global
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user.tenantId) {
+
+    // Auth check - allow super admin without tenantId
+    if (!session || (!session.user.tenantId && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Solo admins de la organización pueden ver logs de auditoría
+    // Role check
     if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const tenantId = session.user.tenantId;
-    const tenantPrisma = getTenantPrisma(tenantId);
-
     const { searchParams } = new URL(request.url);
-
     const page = parseInt(searchParams.get('page') || '1');
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
     const offset = (page - 1) * limit;
 
     const filters: any = {};
 
-    // Aplicar filtros
+    // Determine scope
+    let dbClient = prisma; // Default to global client
+
+    if (session.user.role === 'SUPER_ADMIN') {
+      // Super admin can see all or filter by specific tenant
+      const tenantIdFilter = searchParams.get('tenantId');
+      if (tenantIdFilter) filters.tenantId = tenantIdFilter;
+      // Global prisma client is already capable of querying across all tenants via 'tenantId' column
+    } else {
+      // Regular admin is scoped to their tenant
+      const tenantId = session.user.tenantId!;
+      filters.tenantId = tenantId;
+      // We could also use getTenantPrisma(tenantId) if tenancy is physically separated, 
+      // but assuming shared schema with discriminator column for now based on Schema.prisma showing AuditLog having tenantId.
+    }
+
+    // Common filters
     const userId = searchParams.get('userId');
     const action = searchParams.get('action');
     const resource = searchParams.get('resource');
@@ -49,11 +64,12 @@ export async function GET(request: NextRequest) {
         { action: { contains: search, mode: 'insensitive' } },
         { resource: { contains: search, mode: 'insensitive' } },
         { userEmail: { contains: search, mode: 'insensitive' } },
+        // Add tenant name search for super admin? Not direct on this model, usually
       ];
     }
 
     const [logs, totalCount] = await Promise.all([
-      tenantPrisma.auditLog.findMany({
+      dbClient.auditLog.findMany({
         where: filters,
         orderBy: { timestamp: 'desc' },
         take: limit,
@@ -68,9 +84,15 @@ export async function GET(request: NextRequest) {
               role: true,
             },
           },
+          tenant: { // Include tenant info for context
+            select: {
+              name: true,
+              slug: true
+            }
+          }
         },
       }),
-      tenantPrisma.auditLog.count({ where: filters }),
+      dbClient.auditLog.count({ where: filters }),
     ]);
 
     // Formatear logs para el frontend
@@ -82,6 +104,7 @@ export async function GET(request: NextRequest) {
       } : null,
       details: log.details ? JSON.parse(log.details) : null,
       metadata: log.metadata ? JSON.parse(log.metadata) : null,
+      tenantName: log.tenant?.name || 'Sistema Global',
     }));
 
     return NextResponse.json({

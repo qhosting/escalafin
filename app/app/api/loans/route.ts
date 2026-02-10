@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
 import { LoanType, LoanStatus } from '@prisma/client';
 import { LimitsService } from '@/lib/billing/limits';
+import { WebhooksService } from '@/lib/webhooks';
 
 export async function GET(request: NextRequest) {
   try {
@@ -230,6 +231,18 @@ export async function POST(request: NextRequest) {
         data: { status: 'APPROVED' }
       });
     }
+
+    // 🔌 Disparar Webhook
+    WebhooksService.dispatch(tenantId || '', 'loan.created', {
+      loanId: loan.id,
+      loanNumber: loan.loanNumber,
+      clientId: loan.clientId,
+      amount: loan.principalAmount,
+      totalAmount: loan.totalAmount,
+      termMonths: loan.termMonths,
+      monthlyPayment: loan.monthlyPayment,
+      client: loan.client
+    }).catch(err => console.error('Error dispatching webhook:', err));
 
     return NextResponse.json(loan, { status: 201 });
 

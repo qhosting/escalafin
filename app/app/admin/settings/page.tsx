@@ -24,9 +24,11 @@ import {
   CheckCircle,
   AlertTriangle,
   Info,
-  User
+  User,
+  Key
 } from 'lucide-react';
 import { NotificationSettings } from '@/components/notifications/NotificationSettings';
+import { IntegrationsSettings } from '@/components/admin/integrations-settings';
 import { toast } from 'sonner';
 
 interface SystemSettings {
@@ -213,7 +215,16 @@ export default function AdminSettingsPage() {
               <Server className="h-4 w-4" />
               Sistema
             </TabsTrigger>
+            <TabsTrigger value="integrations" className="flex items-center gap-2">
+              <Key className="h-4 w-4" />
+              Integraciones
+            </TabsTrigger>
           </TabsList>
+
+          {/* Integrations Settings */}
+          <TabsContent value="integrations">
+            <IntegrationsSettings />
+          </TabsContent>
 
           {/* My Notifications Settings */}
           <TabsContent value="my-notifications">

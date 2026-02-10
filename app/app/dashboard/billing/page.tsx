@@ -9,6 +9,8 @@ import {
     LifebuoyIcon
 } from '@heroicons/react/24/solid';
 import { ShieldCheckIcon, SparklesIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
+import { PlanSelectionModal } from '@/components/billing/PlanSelectionModal';
+import { toast } from 'sonner';
 
 /**
  * Tenant Billing Portal
@@ -17,7 +19,10 @@ import { ShieldCheckIcon, SparklesIcon, CalendarDaysIcon } from '@heroicons/reac
 export default function BillingPortal() {
     const [subscription, setSubscription] = useState<any>(null);
     const [history, setHistory] = useState<any[]>([]);
+    const [availablePlans, setAvailablePlans] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
         async function fetchBillingData() {
@@ -39,7 +44,69 @@ export default function BillingPortal() {
             }
         }
         fetchBillingData();
+        fetchPlans();
     }, []);
+
+    async function fetchPlans() {
+        try {
+            const res = await fetch('/api/billing/plans');
+            if (res.ok) {
+                const data = await res.json();
+                setAvailablePlans(data.plans || []);
+            }
+        } catch (error) {
+            console.error('Error fetching plans:', error);
+        }
+    }
+
+    const handleCancelSubscription = async () => {
+        if (!confirm('¿Estás seguro de cancelar tu suscripción? Perderás acceso a las funciones premium al final de tu periodo de facturación.')) return;
+
+        setIsProcessing(true);
+        try {
+            const response = await fetch('/api/billing/subscription', { method: 'DELETE' });
+            if (response.ok) {
+                toast.success('Suscripción cancelada correctamente');
+                // Recargar datos
+                const dataRes = await fetch('/api/billing/portal');
+                const data = await dataRes.json();
+                setSubscription({ ...data.subscription, usage: data.usage });
+            } else {
+                toast.error('Error al cancelar la suscripción');
+            }
+        } catch (error) {
+            toast.error('Error de conexión');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handlePlanChange = async (planId: string) => {
+        setIsProcessing(true);
+        try {
+            const response = await fetch('/api/billing/subscription', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ planId })
+            });
+
+            if (response.ok) {
+                toast.success('¡Plan actualizado con éxito!');
+                setIsPlanModalOpen(false);
+                // Recargar datos
+                const dataRes = await fetch('/api/billing/portal');
+                const data = await dataRes.json();
+                setSubscription({ ...data.subscription, usage: data.usage });
+            } else {
+                const error = await response.json();
+                toast.error(error.error || 'Error al actualizar el plan');
+            }
+        } catch (error) {
+            toast.error('Error de conexión');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -109,10 +176,18 @@ export default function BillingPortal() {
                                     <span>Próximo cargo: <b>{new Date(subscription.nextBilling).toLocaleDateString()}</b></span>
                                 </div>
                                 <div className="flex space-x-3 w-full sm:w-auto">
-                                    <button className="flex-1 sm:flex-none px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
-                                        Cancelar suscripción
+                                    <button
+                                        onClick={handleCancelSubscription}
+                                        disabled={isProcessing || subscription.status === 'CANCELED'}
+                                        className="flex-1 sm:flex-none px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                    >
+                                        {subscription.cancelAtPeriodEnd ? 'Cancelación Pendiente' : 'Cancelar suscripción'}
                                     </button>
-                                    <button className="flex-1 sm:flex-none px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 shadow-md shadow-indigo-100 transition-all flex items-center justify-center space-x-2">
+                                    <button
+                                        onClick={() => setIsPlanModalOpen(true)}
+                                        disabled={isProcessing}
+                                        className="flex-1 sm:flex-none px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 shadow-md shadow-indigo-100 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+                                    >
                                         <ArrowRightCircleIcon className="h-4 w-4" />
                                         <span>Mejorar Plan</span>
                                     </button>
@@ -225,6 +300,15 @@ function UsageProgress({ label, current, limit, unit }: any) {
                     style={{ width: `${percentage}%` }}
                 ></div>
             </div>
+
+            <PlanSelectionModal
+                isOpen={isPlanModalOpen}
+                onClose={() => setIsPlanModalOpen(false)}
+                plans={availablePlans}
+                currentPlanId={subscription.planId}
+                onSelectPlan={handlePlanChange}
+                isLoading={isProcessing}
+            />
         </div>
     );
 }

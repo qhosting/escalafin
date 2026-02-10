@@ -36,7 +36,7 @@ export interface PlanFeature {
 // Límites por defecto para cada plan
 export const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
     starter: {
-        users: 3,
+        users: 5,
         loans: 100,
         clients: 200,
         storageGB: 1,
@@ -116,7 +116,7 @@ export const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
 // Features disponibles en español
 export const PLAN_FEATURES = {
     starter: [
-        'Hasta 3 usuarios',
+        'Hasta 5 usuarios',
         'Hasta 100 préstamos/mes',
         'Hasta 200 clientes',
         '1 GB almacenamiento',

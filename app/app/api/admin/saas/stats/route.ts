@@ -46,11 +46,26 @@ export async function GET(request: NextRequest) {
 
         const totalMRR = activeSubsWithPlans.reduce((sum, sub) => sum + Number(sub.plan.priceMonthly), 0);
 
+        // Desglose por plan
+        const plansBreakdown = activeSubsWithPlans.reduce((acc: any, sub) => {
+            const planName = sub.plan.displayName;
+            acc[planName] = (acc[planName] || 0) + 1;
+            return acc;
+        }, {});
+
         return NextResponse.json({
             ...globalUsage,
             activeTenants: activeSubscriptions,
             totalMRR,
+            plansBreakdown,
+            chartData: globalUsage.byPeriod.map(p => ({
+                month: p.period,
+                mrr: activeSubsWithPlans.length * 1000, // Mock MRR history if not tracked
+                tenants: activeSubscriptions, // Mock for now
+                ...p.totals
+            })),
             recentActivity: recentActivity.map(t => ({
+                id: t.id,
                 type: 'signup',
                 tenant: t.name,
                 date: t.createdAt,

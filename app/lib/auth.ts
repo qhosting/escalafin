@@ -10,10 +10,14 @@ export const authOptions: NextAuthOptions = {
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
+        tenantSlug: { label: 'Tenant Slug', type: 'text' }
       },
       async authorize(credentials) {
-        console.log('🔍 NextAuth authorize llamado con:', { email: credentials?.email });
+        console.log('🔍 NextAuth authorize llamado con:', {
+          email: credentials?.email,
+          tenantSlug: credentials?.tenantSlug
+        });
 
         if (!credentials?.email || !credentials?.password) {
           console.log('❌ Credenciales faltantes');
@@ -25,11 +29,29 @@ export const authOptions: NextAuthOptions = {
             where: {
               email: credentials.email,
             },
+            include: {
+              tenant: true
+            }
           });
 
           if (!user || !user.password) {
             console.log('❌ Usuario no encontrado o sin password');
             return null;
+          }
+
+          // Validación de Tenant basado en Subdominio
+          if (credentials.tenantSlug && credentials.tenantSlug !== 'default-tenant') {
+            const requestedTenant = await prisma.tenant.findUnique({
+              where: { slug: credentials.tenantSlug }
+            });
+
+            if (requestedTenant && user.role !== 'SUPER_ADMIN' && user.tenantId !== requestedTenant.id) {
+              console.log('❌ Usuario no pertenece a este tenant:', {
+                userTenant: user.tenantId,
+                requestedTenant: requestedTenant.id
+              });
+              return null;
+            }
           }
 
           const passwordMatch = await bcrypt.compare(credentials.password, user.password);

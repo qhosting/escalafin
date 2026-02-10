@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
+import {
   LayoutDashboard,
   Users,
   CreditCard,
@@ -31,20 +31,24 @@ import {
   Receipt,
   RefreshCw,
   Building2,
-  Mail
+  Mail,
+  ShieldCheck,
+  Activity,
+  Layers
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ModuleWrapper } from '@/components/ui/module-wrapper';
 import { useModules } from '@/hooks/use-modules';
+import { useTenant } from '@/components/providers/tenant-provider';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -71,7 +75,8 @@ export function DesktopNavbar() {
   const pathname = usePathname();
   const { data: session } = useSession() || {};
   const { modules, loading, isModuleEnabled } = useModules();
-  
+  const { tenant } = useTenant();
+
   const userRole = (session as any)?.user?.role;
 
   const handleSignOut = async () => {
@@ -81,6 +86,7 @@ export function DesktopNavbar() {
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
+      case 'SUPER_ADMIN': return 'Super Admin';
       case 'ADMIN': return 'Administrador';
       case 'ASESOR': return 'Asesor';
       case 'CLIENTE': return 'Cliente';
@@ -101,9 +107,39 @@ export function DesktopNavbar() {
 
   // Configuración de menús por rol
   const getMenusForRole = (): { [key: string]: MenuGroup[] } => {
-    const dashboardHref = userRole === 'ADMIN' ? '/admin/dashboard' : 
-                          userRole === 'ASESOR' ? '/asesor/dashboard' : 
-                          '/cliente/dashboard';
+    const dashboardHref = userRole === 'SUPER_ADMIN' ? '/admin/saas' :
+      userRole === 'ADMIN' ? '/admin/dashboard' :
+        userRole === 'ASESOR' ? '/asesor/dashboard' :
+          '/cliente/dashboard';
+
+    if (userRole === 'SUPER_ADMIN') {
+      return {
+        'SaaS Platform': [
+          {
+            title: 'Ecosistema',
+            items: [
+              { title: 'Command Center', icon: Activity, href: '/admin/saas' },
+              { title: 'Organizaciones', icon: Building2, href: '/admin/tenants' }
+            ]
+          },
+          {
+            title: 'Billing & Scale',
+            items: [
+              { title: 'Planes & Billing', icon: CreditCard, href: '/admin/billing' },
+              { title: 'Audit Global', icon: ClipboardList, href: '/admin/audit' }
+            ]
+          }
+        ],
+        'Operaciones': [
+          {
+            title: 'Usuarios Globales',
+            items: [
+              { title: 'Super Admins', icon: ShieldCheck, href: '/admin/super-users' }
+            ]
+          }
+        ]
+      };
+    }
 
     if (userRole === 'ADMIN') {
       return {
@@ -352,9 +388,10 @@ export function DesktopNavbar() {
     return null;
   }
 
-  const dashboardHref = userRole === 'ADMIN' ? '/admin/dashboard' : 
-                        userRole === 'ASESOR' ? '/asesor/dashboard' : 
-                        '/cliente/dashboard';
+  const dashboardHref = userRole === 'SUPER_ADMIN' ? '/admin/saas' :
+    userRole === 'ADMIN' ? '/admin/dashboard' :
+      userRole === 'ASESOR' ? '/asesor/dashboard' :
+        '/cliente/dashboard';
 
   const menus = getMenusForRole();
 
@@ -364,15 +401,23 @@ export function DesktopNavbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo y Brand */}
           <div className="flex items-center space-x-6">
-            <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
-              <Image 
-                src="/logoescalafin.png" 
-                alt="EscalaFin Logo" 
-                width={192}
-                height={40}
+            <Link href="/" className="flex items-center hover:opacity-90 transition-opacity gap-3">
+              <Image
+                src="/logoescalafin.png"
+                alt="EscalaFin Logo"
+                width={160}
+                height={32}
                 className="object-contain"
                 priority
               />
+              {tenant && tenant.slug !== 'default-tenant' && (
+                <>
+                  <div className="h-6 w-[1.5px] bg-gray-200 dark:bg-gray-700 mx-1" />
+                  <span className="font-bold text-lg text-primary tracking-tight">
+                    {tenant.name}
+                  </span>
+                </>
+              )}
             </Link>
 
             {/* Navegación principal */}
@@ -400,7 +445,7 @@ export function DesktopNavbar() {
                 if (filteredGroups.length === 0) return null;
 
                 // Verificar si hay algún item activo
-                const hasActiveItem = filteredGroups.some(group => 
+                const hasActiveItem = filteredGroups.some(group =>
                   group.items.some(item => isActive(item.href))
                 );
 
@@ -416,23 +461,23 @@ export function DesktopNavbar() {
                         <ChevronDown className="h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
-                    
+
                     <DropdownMenuContent className="w-56" align="start">
                       {filteredGroups.map((group, groupIndex) => (
                         <div key={group.title}>
                           {groupIndex > 0 && <DropdownMenuSeparator />}
-                          
+
                           <DropdownMenuLabel className="text-xs text-muted-foreground">
                             {group.title}
                           </DropdownMenuLabel>
-                          
+
                           {group.items.map((item) => {
-                            const ItemWrapper = item.moduleKey ? 
+                            const ItemWrapper = item.moduleKey ?
                               ({ children }: { children: React.ReactNode }) => (
                                 <ModuleWrapper moduleKey={item.moduleKey!}>
                                   {children}
                                 </ModuleWrapper>
-                              ) : 
+                              ) :
                               ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
                             return (
@@ -500,7 +545,7 @@ export function DesktopNavbar() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              
+
               <DropdownMenuContent className="w-64" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-2">
@@ -517,17 +562,17 @@ export function DesktopNavbar() {
                     </p>
                   </div>
                 </DropdownMenuLabel>
-                
+
                 <DropdownMenuSeparator />
-                
+
                 <DropdownMenuItem className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
                   <span>Mi Perfil</span>
                 </DropdownMenuItem>
-                
+
                 <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
+
+                <DropdownMenuItem
                   className="cursor-pointer text-red-600 dark:text-red-400"
                   onClick={handleSignOut}
                 >

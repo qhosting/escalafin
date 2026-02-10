@@ -8,6 +8,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { storageService } from '@/lib/storage-service'
 import { prisma } from '@/lib/prisma'
+import { UsageTracker } from '@/lib/billing/usage-tracker'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = [
@@ -39,14 +40,22 @@ export async function POST(req: NextRequest) {
 
     // Validaciones
     if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ 
-        error: `Archivo muy grande. Máximo ${MAX_FILE_SIZE / 1024 / 1024}MB` 
+      return NextResponse.json({
+        error: `Archivo muy grande. Máximo ${MAX_FILE_SIZE / 1024 / 1024}MB`
       }, { status: 400 })
     }
 
+    // Verificar límites de almacenamiento SaaS
+    const tenantId = session.user.tenantId;
+    if (tenantId) {
+      const { LimitsService } = await import('@/lib/billing/limits');
+      const limitError = await LimitsService.middleware(tenantId, 'storage');
+      if (limitError) return limitError;
+    }
+
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json({ 
-        error: 'Tipo de archivo no permitido' 
+      return NextResponse.json({
+        error: 'Tipo de archivo no permitido'
       }, { status: 400 })
     }
 
@@ -80,6 +89,11 @@ export async function POST(req: NextRequest) {
 
     // Generar URL de acceso
     const accessUrl = await storageService.getFileUrl(storedFile.path)
+
+    // Incrementar uso de almacenamiento en SaaS
+    if (tenantId) {
+      await UsageTracker.incrementUsage(tenantId, 'storageBytes', storedFile.metadata.size);
+    }
 
     return NextResponse.json({
       success: true,

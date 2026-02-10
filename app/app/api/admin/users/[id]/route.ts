@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { UserRole, UserStatus } from '@prisma/client';
+import { UsageTracker } from '@/lib/billing/usage-tracker';
 
 export async function PATCH(
   request: NextRequest,
@@ -135,6 +136,11 @@ export async function DELETE(
     await prisma.user.delete({
       where: { id: params.id }
     });
+
+    // 📉 Decrementar uso en SaaS
+    if (session.user.tenantId) {
+      await UsageTracker.decrementUsage(session.user.tenantId, 'usersCount');
+    }
 
     return NextResponse.json({
       success: true,

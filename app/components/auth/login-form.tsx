@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { LogIn, Eye, EyeOff, ArrowLeft } from 'lucide-react';
@@ -14,7 +14,32 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [tenantInfo, setTenantInfo] = useState<{ name: string, slug: string } | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    // Detectar subdominio
+    const hostname = window.location.hostname;
+    const parts = hostname.split('.');
+    let slug = '';
+
+    if (hostname.includes('localhost')) {
+      if (parts.length > 1) slug = parts[0];
+    } else {
+      if (parts.length >= 3 && parts[0] !== 'www' && parts[0] !== 'app') {
+        slug = parts[0];
+      }
+    }
+
+    if (slug) {
+      fetch(`/api/public/tenant/${slug}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.name) setTenantInfo({ name: data.name, slug: data.slug });
+        })
+        .catch(console.error);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +50,11 @@ export function LoginForm() {
 
     try {
       console.log('Attempting login with email:', email);
-      
+
       const result = await signIn('credentials', {
         email,
         password,
+        tenantSlug: tenantInfo?.slug || '',
         redirect: false,
       });
 
@@ -43,21 +69,21 @@ export function LoginForm() {
 
       if (result?.ok) {
         console.log('✅ Login exitoso, obteniendo sesión...');
-        
+
         // Verificar que la sesión se creó correctamente
         const session = await getSession();
         console.log('📊 Sesión obtenida:', session);
-        
+
         if (!session) {
           console.error('❌ No se pudo obtener la sesión');
           setError('Error al crear sesión');
           setLoading(false);
           return;
         }
-        
+
         // Redirigir según el rol
         let redirectUrl = '/';
-        
+
         if (session?.user?.role === 'ADMIN') {
           redirectUrl = '/admin/dashboard';
           console.log('🔄 Redirigiendo a admin dashboard...');
@@ -70,7 +96,7 @@ export function LoginForm() {
         } else {
           console.log('🔄 Redirigiendo a dashboard genérico...');
         }
-        
+
         // Usar router.replace en lugar de router.push para evitar volver atrás
         window.location.href = redirectUrl;
         return;
@@ -89,7 +115,7 @@ export function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-white to-secondary/5 px-4 py-12 relative">
       {/* Botón volver al inicio */}
-      <Link 
+      <Link
         href="/"
         className="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-primary transition-colors z-10"
       >
@@ -104,9 +130,9 @@ export function LoginForm() {
           {/* Logotipo centrado */}
           <div className="flex justify-center mb-8">
             <div className="relative h-16 w-64">
-              <Image 
-                src="/logoescalafin.png" 
-                alt="EscalaFin Logo" 
+              <Image
+                src="/logoescalafin.png"
+                alt="EscalaFin Logo"
                 fill
                 className="object-contain"
                 priority
@@ -117,7 +143,7 @@ export function LoginForm() {
           {/* Título y subtítulo */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Iniciar Sesión
+              {tenantInfo ? `Acceso a ${tenantInfo.name}` : 'Iniciar Sesión'}
             </h1>
             <p className="text-gray-600 text-sm">
               Ingresa tus credenciales para acceder al sistema
@@ -141,7 +167,7 @@ export function LoginForm() {
                 placeholder="tu@email.com"
               />
             </div>
-            
+
             {/* Campo de Contraseña */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">

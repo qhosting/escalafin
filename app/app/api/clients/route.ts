@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
 import { ClientStatus, EmploymentType } from '@prisma/client';
 import { LimitsService } from '@/lib/billing/limits';
+import { WebhooksService } from '@/lib/webhooks';
 
 export async function GET(request: NextRequest) {
   try {
@@ -219,6 +220,15 @@ export async function POST(request: NextRequest) {
         }
       }
     });
+
+    // 🔌 Disparar Webhook
+    WebhooksService.dispatch(tenantId || '', 'client.created', {
+      clientId: client.id,
+      name: `${client.firstName} ${client.lastName}`,
+      email: client.email,
+      phone: client.phone,
+      asesor: client.asesor
+    }).catch(err => console.error('Error dispatching webhook:', err));
 
     return NextResponse.json(client, { status: 201 });
 

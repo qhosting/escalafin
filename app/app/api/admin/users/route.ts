@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { LimitsService } from '@/lib/billing/limits';
+import { UsageTracker } from '@/lib/billing/usage-tracker';
 
 // Test simple endpoint
 export async function GET(request: NextRequest) {
@@ -154,6 +155,11 @@ export async function POST(request: NextRequest) {
         createdAt: true,
       },
     });
+
+    // 📈 Incrementar uso en SaaS
+    if (tenantId) {
+      await UsageTracker.incrementUsage(tenantId, 'usersCount');
+    }
 
     return NextResponse.json({
       success: true,
