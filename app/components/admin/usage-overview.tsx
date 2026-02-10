@@ -66,7 +66,10 @@ export function UsageOverview({ usageData }: UsageOverviewProps) {
                                     </CardTitle>
                                 </div>
                                 {res.percentUsed >= 80 && (
-                                    <Badge variant={res.percentUsed >= 100 ? "destructive" : "warning"} className="text-[10px]">
+                                    <Badge
+                                        variant={res.percentUsed >= 100 ? "destructive" : "secondary"}
+                                        className={`text-[10px] ${res.percentUsed < 100 ? "bg-amber-100 text-amber-800 hover:bg-amber-100" : ""}`}
+                                    >
                                         {res.percentUsed >= 100 ? 'Límite Excedido' : 'Cerca del Límite'}
                                     </Badge>
                                 )}
