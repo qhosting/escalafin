@@ -15,7 +15,11 @@ export function SubscriptionBanner() {
 
     if (!usage || error) return null;
 
-    const { plan, alerts, isTrialing } = usage;
+    const { plan, alerts } = usage;
+
+    // Verificar si la respuesta es válida y tiene los datos necesarios
+    if (!plan || !alerts) return null;
+
     const hasOverLimit = alerts?.overLimit?.length > 0;
     const hasNearLimit = alerts?.nearLimit?.length > 0;
 
@@ -24,10 +28,10 @@ export function SubscriptionBanner() {
 
     return (
         <div className={`mb-6 p-4 rounded-xl border flex flex-col md:flex-row items-center justify-between gap-4 transition-all animate-in fade-in slide-in-from-top-4 duration-500 ${hasOverLimit
-                ? 'bg-red-50 border-red-200 text-red-900'
-                : hasNearLimit
-                    ? 'bg-amber-50 border-amber-200 text-amber-900'
-                    : 'bg-indigo-50 border-indigo-200 text-indigo-900'
+            ? 'bg-red-50 border-red-200 text-red-900'
+            : hasNearLimit
+                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                : 'bg-indigo-50 border-indigo-200 text-indigo-900'
             }`}>
             <div className="flex items-center gap-4">
                 <div className={`p-2 rounded-full hidden sm:block ${hasOverLimit ? 'bg-red-100' : hasNearLimit ? 'bg-amber-100' : 'bg-indigo-100'

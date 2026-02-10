@@ -573,9 +573,11 @@ export function DesktopNavbar() {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem className="cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Mi Perfil</span>
+                <DropdownMenuItem className="cursor-pointer" asChild>
+                  <Link href="/profile" className="flex items-center w-full">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Mi Perfil</span>
+                  </Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
