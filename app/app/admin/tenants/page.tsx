@@ -61,12 +61,14 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-interface Tenant {
+interface AdminTenant {
     id: string;
     name: string;
     slug: string;
     domain?: string;
     status: string;
+    logo?: string | null;
+    primaryColor?: string | null;
     createdAt: string;
     subscription?: {
         plan: {
@@ -86,7 +88,7 @@ interface Tenant {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function TenantsPageV2() {
-    const { data: tenants, error, mutate, isLoading } = useSWR<Tenant[]>('/api/admin/tenants', fetcher);
+    const { data: tenants, error, mutate, isLoading } = useSWR<AdminTenant[]>('/api/admin/tenants', fetcher);
     const [searchTerm, setSearchTerm] = useState('');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
@@ -313,7 +315,7 @@ export default function TenantsPageV2() {
     );
 }
 
-function ModernTenantCard({ tenant, onUpdateStatus, isLoading }: { tenant: Tenant, onUpdateStatus: (id: string, s: string) => void, isLoading: boolean }) {
+function ModernTenantCard({ tenant, onUpdateStatus, isLoading }: { tenant: AdminTenant, onUpdateStatus: (id: string, s: string) => void, isLoading: boolean }) {
     const isSuspended = tenant.status === 'SUSPENDED' || tenant.status === 'PAST_DUE';
     const planColors: any = {
         starter: 'bg-amber-50 text-amber-700 border-amber-100',

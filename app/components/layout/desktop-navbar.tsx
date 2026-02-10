@@ -1,5 +1,6 @@
 
 'use client';
+// BUILD_DEBUG_MARKER_V3
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -402,15 +403,22 @@ export function DesktopNavbar() {
           {/* Logo y Brand */}
           <div className="flex items-center space-x-6">
             <Link href="/" className="flex items-center hover:opacity-90 transition-opacity gap-3">
-              <Image
-                src={tenant?.logo || "/logoescalafin.png"}
-                alt={`${tenant?.name || 'EscalaFin'} Logo`}
-                width={tenant?.logo ? 120 : 160}
-                height={32}
-                className="object-contain"
-                priority
-              />
-              {tenant && tenant.slug !== 'default-tenant' && (
+              {(() => {
+                const t = tenant as any;
+                const logo = t?.logo;
+                const name = t?.name || 'EscalaFin';
+                return (
+                  <Image
+                    src={logo || "/logoescalafin.png"}
+                    alt={`${name} Logo`}
+                    width={logo ? 120 : 160}
+                    height={32}
+                    className="object-contain"
+                    priority
+                  />
+                );
+              })()}
+              {tenant && (tenant as any).slug !== 'default-tenant' && (
                 <>
                   <div className="h-6 w-[1.5px] bg-gray-200 dark:bg-gray-700 mx-1" />
                   <span className="font-bold text-lg text-primary tracking-tight">

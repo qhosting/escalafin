@@ -47,7 +47,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         domain: true,
         status: true,
         logo: true,
-        primaryColor: true
+        primaryColor: true,
+        timezone: true,
+        createdAt: true
       }
     });
 
@@ -55,7 +57,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     if (!tenant) {
       tenant = await prisma.tenant.findUnique({
         where: { slug: 'default-tenant' },
-        select: { id: true, name: true, slug: true, domain: true, status: true, logo: true, primaryColor: true }
+        select: { id: true, name: true, slug: true, domain: true, status: true, logo: true, primaryColor: true, timezone: true, createdAt: true }
       });
     }
   } catch (error) {
