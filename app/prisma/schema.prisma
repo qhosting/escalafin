@@ -872,7 +872,7 @@ enum FileStatus {
 
 enum PaymentProviderType {
   OPENPAY
-  STRIPE
+  MERCADOPAGO
   PAYPAL
   BANK_TRANSFER
   MANUAL
@@ -1223,8 +1223,8 @@ model Plan {
   priceMonthly Decimal  @db.Decimal(10, 2)
   priceYearly  Decimal? @db.Decimal(10, 2)
   currency     String   @default("MXN")
-  stripeProductId String? // ID del producto en Stripe (prod_...)
-  stripePriceId   String? // ID del precio recurrente en Stripe (price_...)
+  openpayPlanId   String? // ID del plan en Openpay
+  openpayProductId String? // ID del producto/servicio en Openpay
   features     String   // JSON: ["feature1", "feature2"]
   limits       String   // JSON: { users: 3, loans: 100, storage: 1073741824 }
   isActive     Boolean  @default(true)
@@ -1252,8 +1252,8 @@ model Subscription {
   canceledAt           DateTime?
   cancelAtPeriodEnd    Boolean            @default(false)
   cancelReason         String?
-  stripeSubscriptionId String?
-  stripeCustomerId     String?
+  openpaySubscriptionId String?
+  openpayCustomerId     String?
   paymentMethod        PaymentMethodType  @default(MANUAL)
   billingEmail         String?
   billingName          String?
@@ -1284,7 +1284,7 @@ model Invoice {
   status          InvoiceStatus @default(DRAFT)
   dueDate         DateTime
   paidAt          DateTime?
-  stripeInvoiceId String?
+  openpayInvoiceId String?
   paymentIntent   String?
   invoicePdf      String?
   lineItems       String?       // JSON con detalle de items
@@ -1424,7 +1424,7 @@ enum InvoiceStatus {
 }
 
 enum PaymentMethodType {
-  STRIPE
+  OPENPAY
   MANUAL
   BANK_TRANSFER
   PAYPAL

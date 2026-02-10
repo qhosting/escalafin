@@ -46,10 +46,10 @@ export default function TenantSubscriptionPage() {
     };
 
     const handleManage = async () => {
-        if (subscription?.stripePortalUrl) {
-            window.location.href = subscription.stripePortalUrl;
+        if (subscription?.openpayPortalUrl) {
+            window.location.href = subscription.openpayPortalUrl;
         } else {
-            toast.error("No se pudo acceder al portal de facturación");
+            toast.info("Próximamente: Portal de facturación Openpay.");
         }
     };
 

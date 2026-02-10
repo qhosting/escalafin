@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { stripe } from '@/lib/stripe';
 
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -18,26 +17,17 @@ export async function GET(req: NextRequest) {
     });
 
     if (!subscription) {
-        // Should not happen for active tenants, but handle it
         return NextResponse.json({ isSubscribed: false });
     }
 
-    // Check Stripe status if needed, but local DB should be source of truth via webhooks
     const isPro = subscription.status === 'ACTIVE' && subscription.plan.name !== 'FREE';
 
-    let stripePortalUrl = null;
-    if (subscription.stripeCustomerId && subscription.stripeSubscriptionId) {
-        // Create portal session for managing subscription
-        const portalSession = await stripe.billingPortal.sessions.create({
-            customer: subscription.stripeCustomerId,
-            return_url: `${process.env.NEXTAUTH_URL}/admin/billing/subscription`,
-        });
-        stripePortalUrl = portalSession.url;
-    }
+    // Openpay management portal URL (if exists) or local manage URL
+    const openpayPortalUrl = null;
 
     return NextResponse.json({
         ...subscription,
         isPro,
-        stripePortalUrl
+        openpayPortalUrl
     });
 }
