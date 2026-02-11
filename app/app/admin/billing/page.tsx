@@ -8,7 +8,8 @@ import {
     BanknotesIcon,
     CurrencyDollarIcon,
     PencilSquareIcon,
-    ArrowPathIcon
+    ArrowPathIcon,
+    PlusIcon
 } from '@heroicons/react/24/outline';
 import {
     CheckCircle2,
@@ -47,7 +48,19 @@ export default function BillingPage() {
     const { data: subsData, mutate: mutateSubs } = useSWR('/api/admin/subscriptions-global', fetcher);
     const [selectedPlan, setSelectedPlan] = useState<any>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [loadingAction, setLoadingAction] = useState(false);
+    const [newPlan, setNewPlan] = useState({
+        name: '',
+        displayName: '',
+        description: '',
+        priceMonthly: 0,
+        priceYearly: 0,
+        limits: { users: 3, loans: 100, clients: 500, storageGB: 5 },
+        features: ['feature1', 'feature2'],
+        trialDays: 14,
+        sortOrder: 0
+    });
 
     const handleUpdatePlan = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,6 +84,42 @@ export default function BillingPage() {
         }
     };
 
+    const handleCreatePlan = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoadingAction(true);
+        try {
+            const res = await fetch('/api/admin/plans', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newPlan)
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Error al crear plan');
+            }
+
+            toast.success('Plan creado exitosamente');
+            setIsCreateOpen(false);
+            setNewPlan({
+                name: '',
+                displayName: '',
+                description: '',
+                priceMonthly: 0,
+                priceYearly: 0,
+                limits: { users: 3, loans: 100, clients: 500, storageGB: 5 },
+                features: ['feature1', 'feature2'],
+                trialDays: 14,
+                sortOrder: 0
+            });
+            mutatePlans();
+        } catch (err: any) {
+            toast.error(err.message);
+        } finally {
+            setLoadingAction(false);
+        }
+    };
+
     return (
         <div className="space-y-8 p-1">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -81,6 +130,9 @@ export default function BillingPage() {
                 <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={() => { mutatePlans(); mutateSubs(); }}>
                         <ArrowPathIcon className="h-4 w-4 mr-2" /> Actualizar
+                    </Button>
+                    <Button className="bg-indigo-600 hover:bg-indigo-700" size="sm" onClick={() => setIsCreateOpen(true)}>
+                        <PlusIcon className="h-4 w-4 mr-2" /> Crear Plan
                     </Button>
                 </div>
             </div>
@@ -345,6 +397,154 @@ export default function BillingPage() {
                             </DialogFooter>
                         </form>
                     )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Create Plan Modal */}
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Crear Nuevo Plan</DialogTitle>
+                        <DialogDescription>
+                            Define un nuevo plan de suscripción para la plataforma.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleCreatePlan} className="space-y-6 py-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Nombre Interno (ID)*</Label>
+                                <Input
+                                    placeholder="ej: premium"
+                                    value={newPlan.name}
+                                    onChange={e => setNewPlan({ ...newPlan, name: e.target.value.toLowerCase().replace(/\s/g, '-') })}
+                                    required
+                                />
+                                <p className="text-xs text-gray-500">Identificador único en minúsculas</p>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Nombre de Visualización*</Label>
+                                <Input
+                                    placeholder="ej: Premium"
+                                    value={newPlan.displayName}
+                                    onChange={e => setNewPlan({ ...newPlan, displayName: e.target.value })}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Descripción</Label>
+                            <Textarea
+                                placeholder="Descripción del plan..."
+                                value={newPlan.description}
+                                onChange={e => setNewPlan({ ...newPlan, description: e.target.value })}
+                                rows={2}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Precio Mensual (MXN)*</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={newPlan.priceMonthly}
+                                    onChange={e => setNewPlan({ ...newPlan, priceMonthly: Number(e.target.value) })}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Precio Anual (MXN)</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={newPlan.priceYearly}
+                                    onChange={e => setNewPlan({ ...newPlan, priceYearly: Number(e.target.value) })}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 border-t pt-4">
+                            <h4 className="text-sm font-bold text-gray-900">Límites de Uso (-1 para ilimitado)</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-xs text-gray-500">Usuarios</Label>
+                                    <Input
+                                        type="number"
+                                        value={newPlan.limits.users}
+                                        onChange={e => setNewPlan({
+                                            ...newPlan,
+                                            limits: { ...newPlan.limits, users: Number(e.target.value) }
+                                        })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-xs text-gray-500">Préstamos / mes</Label>
+                                    <Input
+                                        type="number"
+                                        value={newPlan.limits.loans}
+                                        onChange={e => setNewPlan({
+                                            ...newPlan,
+                                            limits: { ...newPlan.limits, loans: Number(e.target.value) }
+                                        })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-xs text-gray-500">Clientes</Label>
+                                    <Input
+                                        type="number"
+                                        value={newPlan.limits.clients}
+                                        onChange={e => setNewPlan({
+                                            ...newPlan,
+                                            limits: { ...newPlan.limits, clients: Number(e.target.value) }
+                                        })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-xs text-gray-500">Storage (GB)</Label>
+                                    <Input
+                                        type="number"
+                                        value={newPlan.limits.storageGB}
+                                        onChange={e => setNewPlan({
+                                            ...newPlan,
+                                            limits: { ...newPlan.limits, storageGB: Number(e.target.value) }
+                                        })}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                            <div className="space-y-2">
+                                <Label className="text-xs text-gray-500">Días de Prueba</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={newPlan.trialDays}
+                                    onChange={e => setNewPlan({ ...newPlan, trialDays: Number(e.target.value) })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs text-gray-500">Orden de Visualización</Label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={newPlan.sortOrder}
+                                    onChange={e => setNewPlan({ ...newPlan, sortOrder: Number(e.target.value) })}
+                                />
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+                            <Button type="submit" disabled={loadingAction} className="bg-indigo-600 hover:bg-indigo-700">
+                                {loadingAction && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Crear Plan
+                            </Button>
+                        </DialogFooter>
+                    </form>
                 </DialogContent>
             </Dialog>
         </div>
