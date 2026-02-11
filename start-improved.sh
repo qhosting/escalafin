@@ -197,6 +197,35 @@ if [ -n "$DATABASE_URL" ]; then
         fi
     else
         echo "  ✅ DB ya inicializada con usuarios"
+        
+        # Verificar específicamente si existe SUPER_ADMIN
+        SUPER_ADMIN_COUNT=$(node -e "
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+            prisma.user.count({ where: { role: 'SUPER_ADMIN' } })
+                .then(count => { console.log(count); process.exit(0); })
+                .catch(err => { console.error('0'); process.exit(0); })
+                .finally(() => prisma.\$disconnect());
+        " 2>/dev/null || echo "0")
+        
+        if [ "$SUPER_ADMIN_COUNT" = "0" ]; then
+            echo "  ⚠️  SUPER_ADMIN no encontrado. Ejecutando actualización de usuarios..."
+            
+             # Intentar con ruta relativa primero
+            if [ -f "scripts/setup-users-production.js" ]; then
+                SCRIPT_PATH="scripts/setup-users-production.js"
+            # Intentar con ruta absoluta
+            elif [ -f "/app/scripts/setup-users-production.js" ]; then
+                SCRIPT_PATH="/app/scripts/setup-users-production.js"
+            else
+                SCRIPT_PATH=""
+            fi
+            
+            if [ -n "$SCRIPT_PATH" ]; then
+                export NODE_PATH=/app/node_modules:$NODE_PATH
+                node "$SCRIPT_PATH" || echo "  ⚠️  Error creando Super Admin, continuando..."
+            fi
+        fi
     fi
 else
     echo "  ❌ DATABASE_URL no configurada"
