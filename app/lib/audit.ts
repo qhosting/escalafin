@@ -19,7 +19,8 @@ export type AuditAction =
   | 'WHATSAPP_NOTIFICATION_ERROR'
   | 'WAHA_CONFIG_CREATE' | 'WAHA_CONFIG_UPDATE'
   | 'WAHA_WEBHOOK_RECEIVED' | 'WAHA_WEBHOOK_ERROR'
-  | 'WAHA_SESSION_UPDATE';
+  | 'WAHA_SESSION_UPDATE'
+  | 'PLAN_CREATE' | 'PLAN_UPDATE' | 'PLAN_DELETE';
 
 export interface AuditLogData {
   userId?: string;

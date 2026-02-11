@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { AuditLogger } from '@/lib/audit';
+
+const auditLogger = new AuditLogger(prisma);
 
 /**
  * Super Admin: Manage Plans
@@ -61,6 +64,14 @@ export async function PUT(request: NextRequest) {
                 limits: typeof limits === 'object' ? JSON.stringify(limits) : limits,
                 features: typeof features === 'object' ? JSON.stringify(features) : features,
             }
+        });
+
+        await auditLogger.log({
+            userId: session.user.id,
+            action: 'PLAN_UPDATE',
+            resource: 'PLAN',
+            resourceId: id,
+            details: { name: updated.name, displayName: updated.displayName }
         });
 
         return NextResponse.json(updated);
@@ -131,6 +142,14 @@ export async function POST(request: NextRequest) {
                 sortOrder,
                 trialDays
             }
+        });
+
+        await auditLogger.log({
+            userId: session.user.id,
+            action: 'PLAN_CREATE',
+            resource: 'PLAN',
+            resourceId: newPlan.id,
+            details: { name: newPlan.name, displayName: newPlan.displayName }
         });
 
         console.log(`✅ Nuevo plan creado: ${newPlan.displayName} (${newPlan.name})`);

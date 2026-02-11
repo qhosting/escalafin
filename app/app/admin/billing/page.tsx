@@ -18,7 +18,14 @@ import {
     TrendingUp,
     Users,
     Settings,
-    Edit3
+    Edit3,
+    Trash2,
+    Copy,
+    BarChart3,
+    Info,
+    HelpCircle,
+    History,
+    ClipboardList
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -37,6 +44,27 @@ import {
     DialogTitle,
     DialogTrigger
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    MoreHorizontal,
+    LayoutGrid,
+    Table as TableIcon
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -46,6 +74,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export default function BillingPage() {
     const { data: plans, mutate: mutatePlans } = useSWR('/api/admin/plans', fetcher);
     const { data: subsData, mutate: mutateSubs } = useSWR('/api/admin/subscriptions-global', fetcher);
+    const { data: auditLogs } = useSWR('/api/admin/audit?resource=PLAN', fetcher);
     const [selectedPlan, setSelectedPlan] = useState<any>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -120,6 +149,45 @@ export default function BillingPage() {
         }
     };
 
+    const handleDeletePlan = async (id: string, name: string) => {
+        if (!confirm(`¿Estás seguro de eliminar el plan "${name}"? Esta acción no se puede deshacer y fallará si existen suscripciones activas.`)) {
+            return;
+        }
+
+        setLoadingAction(true);
+        try {
+            const res = await fetch(`/api/admin/plans/${id}`, {
+                method: 'DELETE'
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Error al eliminar plan');
+
+            toast.success('Plan eliminado correctamente');
+            mutatePlans();
+        } catch (err: any) {
+            toast.error(err.message);
+        } finally {
+            setLoadingAction(false);
+        }
+    };
+
+    const handleDuplicatePlan = (plan: any) => {
+        setNewPlan({
+            name: `${plan.name}-copy`,
+            displayName: `${plan.displayName} (Copia)`,
+            description: plan.description || '',
+            priceMonthly: Number(plan.priceMonthly),
+            priceYearly: plan.priceYearly ? Number(plan.priceYearly) : 0,
+            limits: JSON.parse(plan.limits),
+            features: JSON.parse(plan.features),
+            trialDays: plan.trialDays || 14,
+            sortOrder: (plan.sortOrder || 0) + 1
+        });
+        setIsCreateOpen(true);
+    };
+
+
     return (
         <div className="space-y-8 p-1">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -181,8 +249,18 @@ export default function BillingPage() {
 
             <Tabs defaultValue="plans" className="space-y-6">
                 <TabsList className="bg-gray-100 p-1 rounded-xl">
-                    <TabsTrigger value="plans" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Planes de Precios</TabsTrigger>
-                    <TabsTrigger value="subscriptions" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Suscripciones Globales</TabsTrigger>
+                    <TabsTrigger value="plans" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                        <LayoutGrid className="w-4 h-4" /> Planes de Precios
+                    </TabsTrigger>
+                    <TabsTrigger value="compare" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                        <TableIcon className="w-4 h-4" /> Comparativo
+                    </TabsTrigger>
+                    <TabsTrigger value="subscriptions" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4" /> Suscripciones Globales
+                    </TabsTrigger>
+                    <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                        <History className="w-4 h-4" /> Historial de Cambios
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="plans" className="space-y-6">
@@ -200,15 +278,46 @@ export default function BillingPage() {
                                             <CardTitle className="text-lg font-bold">{plan.displayName}</CardTitle>
                                             <CardDescription className="line-clamp-2 h-10 mt-1">{plan.description}</CardDescription>
                                         </div>
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${plan.isActive ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
-                                            {plan.isActive ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                                        <div className="flex flex-col items-end gap-2">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${plan.isActive ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
+                                                {plan.isActive ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                                            </div>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
+                                                        <MoreHorizontal className="h-4 w-4 text-gray-400" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-40 rounded-xl shadow-xl border-gray-100">
+                                                    <DropdownMenuLabel className="text-[10px] text-gray-400 uppercase tracking-widest">Acciones</DropdownMenuLabel>
+                                                    <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => handleDuplicatePlan(plan)}>
+                                                        <Copy className="h-4 w-4" /> Duplicar Plan
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem className="cursor-pointer gap-2 text-rose-600 focus:text-rose-700" onClick={() => handleDeletePlan(plan.id, plan.displayName)}>
+                                                        <Trash2 className="h-4 w-4" /> Eliminar Plan
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="space-y-6">
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-3xl font-black text-gray-900">${plan.priceMonthly}</span>
-                                        <span className="text-sm text-gray-500 font-medium">/mes</span>
+                                    <div className="flex flex-col">
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-3xl font-black text-gray-900">${Number(plan.priceMonthly).toLocaleString()}</span>
+                                            <span className="text-sm text-gray-500 font-medium">/mes</span>
+                                        </div>
+                                        {plan.priceYearly && Number(plan.priceYearly) > 0 && (
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <Badge variant="outline" className="text-[10px] font-bold border-emerald-100 text-emerald-600 bg-emerald-50">
+                                                    Ahorra {Math.round(100 * (1 - (Number(plan.priceYearly) / (Number(plan.priceMonthly) * 12))))}% anual
+                                                </Badge>
+                                                <span className="text-[10px] text-gray-400 font-medium">
+                                                    (${Math.round(Number(plan.priceYearly) / 12).toLocaleString()}/mes pagando anual)
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="space-y-2">
@@ -226,26 +335,132 @@ export default function BillingPage() {
                                         </div>
                                     </div>
 
-                                    <div className="pt-2">
+                                    <div className="pt-2 flex flex-col gap-2">
                                         <Button
-                                            variant="outline"
-                                            className="w-full font-bold border-gray-200 hover:bg-gray-50 hover:text-indigo-600"
+                                            className="w-full font-bold bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-100"
                                             onClick={() => {
                                                 setSelectedPlan({
                                                     ...plan,
-                                                    limits: JSON.parse(plan.limits), // Parse for form
+                                                    limits: JSON.parse(plan.limits),
                                                     features: JSON.parse(plan.features)
                                                 });
                                                 setIsEditOpen(true);
                                             }}
                                         >
-                                            <PencilSquareIcon className="h-4 w-4 mr-2" /> Editar Configuración
+                                            <PencilSquareIcon className="h-4 w-4 mr-2" /> Configurar Plan
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            className="w-full font-medium text-gray-500 hover:text-indigo-600 text-xs"
+                                            onClick={() => handleDuplicatePlan(plan)}
+                                        >
+                                            <Copy className="h-3 w-3 mr-2" /> Usar como Plantilla
                                         </Button>
                                     </div>
                                 </CardContent>
                             </Card>
                         ))}
                     </div>
+                </TabsContent>
+
+                <TabsContent value="compare">
+                    <Card className="border-gray-100 shadow-xl overflow-hidden rounded-3xl">
+                        <Table>
+                            <TableHeader className="bg-gray-50/50">
+                                <TableRow>
+                                    <TableHead className="w-[200px] font-black uppercase text-[10px] tracking-widest text-gray-400">Características</TableHead>
+                                    {plans?.filter((p: any) => p.isActive).map((plan: any) => (
+                                        <TableHead key={plan.id} className="text-center min-w-[150px]">
+                                            <div className="flex flex-col items-center py-2">
+                                                {plan.isPopular && <Badge className="mb-1 text-[8px] h-4 bg-indigo-600">POPULAR</Badge>}
+                                                <span className="font-black text-gray-900">{plan.displayName}</span>
+                                                <span className="text-[10px] text-gray-500 font-mono tracking-tighter">ID: {plan.name}</span>
+                                            </div>
+                                        </TableHead>
+                                    ))}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Precio Mensual</TableCell>
+                                    {plans?.filter((p: any) => p.isActive).map((plan: any) => (
+                                        <TableCell key={plan.id} className="text-center font-black text-indigo-600">
+                                            ${Number(plan.priceMonthly).toLocaleString()}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Límite Usuarios</TableCell>
+                                    {plans?.filter((p: any) => p.isActive).map((plan: any) => {
+                                        const lim = JSON.parse(plan.limits).users;
+                                        return (
+                                            <TableCell key={plan.id} className="text-center">
+                                                {lim === -1 ? <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">Ilimitado</Badge> : lim}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Límite Préstamos</TableCell>
+                                    {plans?.filter((p: any) => p.isActive).map((plan: any) => {
+                                        const lim = JSON.parse(plan.limits).loans;
+                                        return (
+                                            <TableCell key={plan.id} className="text-center">
+                                                {lim === -1 ? <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">Ilimitado</Badge> : lim}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Límite Clientes</TableCell>
+                                    {plans?.filter((p: any) => p.isActive).map((plan: any) => {
+                                        const lim = JSON.parse(plan.limits).clients;
+                                        return (
+                                            <TableCell key={plan.id} className="text-center">
+                                                {lim === -1 ? <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">Ilimitado</Badge> : lim}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Storage (GB)</TableCell>
+                                    {plans?.filter((p: any) => p.isActive).map((plan: any) => {
+                                        const lim = JSON.parse(plan.limits).storageGB || 5;
+                                        return (
+                                            <TableCell key={plan.id} className="text-center">
+                                                {lim === -1 ? 'Ilimitado' : `${lim} GB`}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Días Trial</TableCell>
+                                    {plans?.filter((p: any) => p.isActive).map((plan: any) => (
+                                        <TableCell key={plan.id} className="text-center">
+                                            {plan.trialDays} días
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Configurable</TableCell>
+                                    {plans?.filter((p: any) => p.isActive).map((plan: any) => (
+                                        <TableCell key={plan.id} className="text-center">
+                                            <Button variant="ghost" size="sm" onClick={() => {
+                                                setSelectedPlan({
+                                                    ...plan,
+                                                    limits: JSON.parse(plan.limits),
+                                                    features: JSON.parse(plan.features)
+                                                });
+                                                setIsEditOpen(true);
+                                            }}>
+                                                <Edit3 className="w-4 h-4" />
+                                            </Button>
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </Card>
                 </TabsContent>
 
                 <TabsContent value="subscriptions">
@@ -286,6 +501,69 @@ export default function BillingPage() {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="history">
+                    <Card className="border-gray-100 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
+                            <div>
+                                <h3 className="font-black text-gray-900 flex items-center gap-2">
+                                    <ClipboardList className="w-4 h-4 text-indigo-600" /> Registro de Auditoría: Planes
+                                </h3>
+                                <p className="text-xs text-gray-500 mt-0.5">Historial de creación, modificación y eliminación de planes de la plataforma.</p>
+                            </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader className="bg-gray-50/50">
+                                    <TableRow>
+                                        <TableHead className="w-[180px]">Fecha / Hora</TableHead>
+                                        <TableHead>Acción</TableHead>
+                                        <TableHead>Usuario</TableHead>
+                                        <TableHead>Recurso</TableHead>
+                                        <TableHead>Detalles</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {auditLogs?.map((log: any) => (
+                                        <TableRow key={log.id} className="text-xs group hover:bg-gray-50/50">
+                                            <td className="px-4 py-3 font-mono text-gray-400 group-hover:text-indigo-600 transition-colors">
+                                                {format(new Date(log.timestamp), 'dd/MM/yyyy HH:mm:ss')}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <Badge variant="outline" className={`font-bold text-[10px] ${log.action.includes('CREATE') ? 'border-emerald-200 text-emerald-700 bg-emerald-50/50' :
+                                                        log.action.includes('DELETE') ? 'border-rose-200 text-rose-700 bg-rose-50/50' :
+                                                            'border-blue-200 text-blue-700 bg-blue-50/50'
+                                                    }`}>
+                                                    {log.action}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-4 py-3 font-medium text-gray-700">
+                                                {log.user?.firstName || log.userEmail}
+                                            </td>
+                                            <td className="px-4 py-3 font-bold text-gray-900">
+                                                {log.resourceId ? (
+                                                    <div className="flex flex-col">
+                                                        <span>{log.details ? JSON.parse(log.details).displayName : 'Plan'}</span>
+                                                        <span className="text-[10px] text-gray-400 font-mono tracking-tighter">ID: {log.resourceId}</span>
+                                                    </div>
+                                                ) : 'Global'}
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-500 italic max-w-xs truncate">
+                                                {log.details ? log.details : 'Sin detalles adicionales'}
+                                            </td>
+                                        </TableRow>
+                                    ))}
+                                    {(!auditLogs || auditLogs.length === 0) && (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center py-10 text-gray-400 italic">
+                                                No se encontraron registros de auditoría para los planes.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
                         </div>
                     </Card>
                 </TabsContent>
