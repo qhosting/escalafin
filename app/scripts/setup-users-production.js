@@ -47,6 +47,14 @@ async function setupTestUsers() {
         phone: '+52 555 000 0003',
         role: 'CLIENTE',
       },
+      {
+        email: 'superadmin@escalafin.com',
+        password: 'SuperPassword2026!',
+        firstName: 'Global',
+        lastName: 'Admin',
+        phone: '+52 555 000 0000',
+        role: 'SUPER_ADMIN',
+      },
     ];
 
     console.log('👤 Creando/Actualizando usuarios de prueba...');
@@ -54,7 +62,7 @@ async function setupTestUsers() {
 
     for (const userData of testUsers) {
       const hashedPassword = await bcrypt.hash(userData.password, 12);
-      
+
       await prisma.user.upsert({
         where: { email: userData.email },
         update: {
