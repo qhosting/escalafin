@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     if (format === 'csv') {
       // Generar CSV
       const csvHeader = 'Fecha,Usuario,Email,Rol,Acción,Recurso,ID Recurso,IP,Detalles\n';
-      const csvRows = logs.map(log => {
+      const csvRows = logs.map((log: any) => {
         const userName = log.user ? `${log.user.firstName} ${log.user.lastName}` : '';
         const userEmail = log.user?.email || log.userEmail || '';
         const userRole = log.user?.role || '';
