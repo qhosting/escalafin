@@ -11,10 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  ArrowLeft, 
-  Users, 
-  UserPlus, 
+import {
+  ArrowLeft,
+  Users,
+  UserPlus,
   Search,
   Edit,
   Trash2,
@@ -64,7 +64,18 @@ const statusConfig = {
   SUSPENDED: { label: 'Suspendido', color: 'bg-red-100 text-red-800' }
 };
 
-export function UserManagement() {
+interface UserManagementProps {
+  apiEndpoint?: string;
+  title?: string;
+  allowedRoles?: string[]; // Roles allowed to be created
+  showTenantFilter?: boolean; // For Super Admin to filter by tenant? Not yet.
+}
+
+export function UserManagement({
+  apiEndpoint = '/api/admin/users',
+  title = 'Gestión de Usuarios',
+  allowedRoles = ['ADMIN', 'ASESOR', 'CLIENTE']
+}: UserManagementProps) {
   const { data: session } = useSession();
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,21 +112,21 @@ export function UserManagement() {
     try {
       setLoading(true);
       console.log('🔍 Iniciando carga de usuarios...');
-      
-      const response = await fetch('/api/admin/users');
+
+      const response = await fetch(apiEndpoint);
       console.log('📡 Response status:', response.status);
       console.log('📡 Response ok:', response.ok);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('❌ Error response:', errorData);
         throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Data received:', data);
       console.log('👥 Users count:', data.users?.length || 0);
-      
+
       setUsers(data.users || []);
       toast.success(`${data.users?.length || 0} usuarios cargados exitosamente`);
     } catch (error: any) {
@@ -128,7 +139,7 @@ export function UserManagement() {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast.error('Las contraseñas no coinciden');
       return;
@@ -140,7 +151,7 @@ export function UserManagement() {
     }
 
     try {
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -176,7 +187,7 @@ export function UserManagement() {
     }
 
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(`${apiEndpoint}/${userId}`, {
         method: 'DELETE'
       });
 
@@ -195,7 +206,7 @@ export function UserManagement() {
 
   const handleStatusChange = async (userId: string, newStatus: string) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(`${apiEndpoint}/${userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -250,7 +261,7 @@ export function UserManagement() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
             <p className="text-gray-600">Administrar usuarios del sistema</p>
           </div>
         </div>
@@ -312,8 +323,11 @@ export function UserManagement() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ASESOR">Asesor</SelectItem>
-                    <SelectItem value="ADMIN">Administrador</SelectItem>
+                    {allowedRoles.map(role => (
+                      <SelectItem key={role} value={role}>
+                        {roleConfig[role as keyof typeof roleConfig]?.label || role}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -370,9 +384,9 @@ export function UserManagement() {
                 </div>
               </div>
               <div className="flex justify-end gap-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setIsCreateDialogOpen(false)}
                 >
                   Cancelar
@@ -403,9 +417,11 @@ export function UserManagement() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los roles</SelectItem>
-            <SelectItem value="ADMIN">Administradores</SelectItem>
-            <SelectItem value="ASESOR">Asesores</SelectItem>
-            <SelectItem value="CLIENTE">Clientes</SelectItem>
+            {allowedRoles.map(role => (
+              <SelectItem key={role} value={role}>
+                {roleConfig[role as keyof typeof roleConfig]?.label || role}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
