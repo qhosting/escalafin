@@ -89,7 +89,10 @@ export function LoginForm() {
         // Redirigir según el rol
         let redirectUrl = '/';
 
-        if (session?.user?.role === 'ADMIN') {
+        if (session?.user?.role === 'SUPER_ADMIN') {
+          redirectUrl = '/admin/tenants'; // Super Admin goes to tenants list
+          console.log('🔄 Redirigiendo a super admin dashboard...');
+        } else if (session?.user?.role === 'ADMIN') {
           redirectUrl = '/admin/dashboard';
           console.log('🔄 Redirigiendo a admin dashboard...');
         } else if (session?.user?.role === 'ASESOR') {
