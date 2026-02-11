@@ -9,16 +9,8 @@ export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
-        // Solo SUPER_ADMIN o ADMIN del tenant default (si así se decide) pueden ver esto.
-        // Por seguridad, restringiremos a SUPER_ADMIN.
         if (!session?.user || session.user.role !== 'SUPER_ADMIN') {
-            // Fallback temporal: Permitir ADMIN si el tenant es 'default-tenant' (para bootstrap)
-            const isDefaultTenantAdmin = session?.user?.role === 'ADMIN' && session?.user?.tenantId &&
-                (await prisma.tenant.findUnique({ where: { id: session.user.tenantId } }))?.slug === 'default-tenant';
-
-            if (!isDefaultTenantAdmin) {
-                return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
-            }
+            return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
         }
 
         const tenants = await prisma.tenant.findMany({
@@ -41,13 +33,8 @@ export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
-        // Validación de permisos robusta
         if (!session?.user || session.user.role !== 'SUPER_ADMIN') {
-            const isDefaultTenantAdmin = session?.user?.role === 'ADMIN' && session?.user?.tenantId &&
-                (await prisma.tenant.findUnique({ where: { id: session.user.tenantId } }))?.slug === 'default-tenant';
-            if (!isDefaultTenantAdmin) {
-                return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
-            }
+            return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
         }
 
         const body = await request.json();
