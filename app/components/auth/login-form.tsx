@@ -103,7 +103,9 @@ export function LoginForm() {
         }
 
         // Usar router.replace en lugar de router.push para evitar volver atrás
-        window.location.href = redirectUrl;
+        // window.location.href = redirectUrl; // Forzar recarga completa para asegurar sesión
+        router.refresh();
+        router.replace(redirectUrl);
         return;
       } else {
         console.log('⚠️ Login sin error pero no ok:', result);
