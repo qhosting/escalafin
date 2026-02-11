@@ -26,7 +26,9 @@ import {
     ExternalLink,
     AlertCircle,
     Activity,
-    Search
+    Search,
+    Download,
+    Upload
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -155,6 +157,81 @@ export default function TenantsPageV2() {
             setLoadingAction(null);
         }
     };
+
+    const handleExportBackup = async (id: string, name: string) => {
+        setLoadingAction(`export-${id}`);
+        try {
+            const res = await fetch(`/api/admin/tenants/${id}/export`);
+
+            if (!res.ok) throw new Error('Error al exportar backup');
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup-${generateSlug(name)}-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            toast.success('Backup exportado exitosamente');
+        } catch (err: any) {
+            toast.error(err.message);
+        } finally {
+            setLoadingAction(null);
+        }
+    };
+
+    const handleImportBackup = async (id: string, name: string) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+
+        input.onchange = async (e: any) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            if (!confirm(`⚠️ ADVERTENCIA: Esto eliminará TODOS los datos actuales de "${name}" y los reemplazará con el backup.\n\n¿Estás seguro de continuar?`)) {
+                return;
+            }
+
+            setLoadingAction(`import-${id}`);
+            try {
+                const text = await file.text();
+                const backup = JSON.parse(text);
+
+                const res = await fetch(`/api/admin/tenants/${id}/import`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        backup,
+                        options: {
+                            skipUsers: false,
+                            overwriteTenantConfig: confirm('¿Sobrescribir también la configuración del tenant (nombre, logo, colores)?')
+                        }
+                    })
+                });
+
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.error || 'Error al importar backup');
+                }
+
+                const result = await res.json();
+                toast.success(`Backup importado: ${result.stats.counts.clients} clientes, ${result.stats.counts.loans} préstamos`);
+                mutate();
+            } catch (err: any) {
+                console.error('Import error:', err);
+                toast.error(err.message || 'Error al importar backup');
+            } finally {
+                setLoadingAction(null);
+            }
+        };
+
+        input.click();
+    };
+
 
     const filteredTenants = tenants?.filter(t =>
         t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -306,7 +383,9 @@ export default function TenantsPageV2() {
                             key={tenant.id}
                             tenant={tenant}
                             onUpdateStatus={handleStatusUpdate}
-                            isLoading={loadingAction === tenant.id}
+                            onExportBackup={handleExportBackup}
+                            onImportBackup={handleImportBackup}
+                            isLoading={loadingAction === tenant.id || loadingAction === `export-${tenant.id}` || loadingAction === `import-${tenant.id}`}
                         />
                     ))}
                 </div>
@@ -315,7 +394,19 @@ export default function TenantsPageV2() {
     );
 }
 
-function ModernTenantCard({ tenant, onUpdateStatus, isLoading }: { tenant: AdminTenant, onUpdateStatus: (id: string, s: string) => void, isLoading: boolean }) {
+function ModernTenantCard({
+    tenant,
+    onUpdateStatus,
+    onExportBackup,
+    onImportBackup,
+    isLoading
+}: {
+    tenant: AdminTenant,
+    onUpdateStatus: (id: string, s: string) => void,
+    onExportBackup: (id: string, name: string) => void,
+    onImportBackup: (id: string, name: string) => void,
+    isLoading: boolean
+}) {
     const isSuspended = tenant.status === 'SUSPENDED' || tenant.status === 'PAST_DUE';
     const planColors: any = {
         starter: 'bg-amber-50 text-amber-700 border-amber-100',
@@ -369,6 +460,14 @@ function ModernTenantCard({ tenant, onUpdateStatus, isLoading }: { tenant: Admin
                             </DropdownMenuItem>
                             <DropdownMenuItem className="cursor-pointer gap-2 px-4 py-2.5">
                                 <Activity className="w-4 h-4" /> Ver Auditoría
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-widest px-4 py-2">Respaldos</DropdownMenuLabel>
+                            <DropdownMenuItem className="cursor-pointer gap-2 px-4 py-2.5 text-blue-600 focus:text-blue-700" onClick={() => onExportBackup(tenant.id, tenant.name)}>
+                                <Download className="w-4 h-4" /> Exportar Backup
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer gap-2 px-4 py-2.5 text-amber-600 focus:text-amber-700" onClick={() => onImportBackup(tenant.id, tenant.name)}>
+                                <Upload className="w-4 h-4" /> Importar Backup
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-widest px-4 py-2">Estado Operativo</DropdownMenuLabel>
