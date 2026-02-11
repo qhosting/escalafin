@@ -74,6 +74,11 @@
     - Límites configurables (usuarios, préstamos, clientes, storage)
     - Días de prueba gratuitos
     - Orden de visualización
+  - **🆕 Eliminar planes** (con validación de suscripciones)
+  - **🆕 Duplicar planes** (usar como plantilla)
+  - **🆕 Registro de auditoría** (historial de cambios detallado)
+  - **🆕 Comparativo de planes** (tabla comparativa de límites)
+  - **🆕 Preview de ahorro anual** (cálculo automático de descuentos)
   - Edición de precios (mensual, anual)
   - Configuración de límites (usuarios, préstamos, clientes, storage)
   - Activar/desactivar planes
@@ -215,7 +220,9 @@
 | `/api/admin/plans` | GET | ✅ | Listar planes |
 | `/api/admin/plans` | PUT | ✅ | Actualizar plan |
 | `/api/admin/plans` | POST | ✅ | Crear nuevo plan |
+| `/api/admin/plans/[id]` | DELETE | ✅ | Eliminar plan (si no tiene subs) |
 | `/api/admin/subscriptions-global` | GET | ✅ | Suscripciones globales |
+| `/api/admin/audit` | GET | ✅ | Registro de auditoría global |
 | `/api/admin/super-users` | GET | ✅ | Listar Super Admins |
 | `/api/admin/super-users` | POST | ✅ | Crear Super Admin |
 | `/api/admin/super-users/[id]` | PATCH | ❌ | Actualizar Super Admin |
