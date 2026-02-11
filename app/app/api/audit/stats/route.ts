@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
 import { AuditLogger } from '@/lib/audit';
 import { subDays } from 'date-fns';
+import { prisma as globalPrisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,6 @@ export async function GET(request: NextRequest) {
     const tenantId = searchParams.get('tenantId') || session.user.tenantId;
 
     // Choose db client: specific tenant or global/all for super admin
-    const { prisma: globalPrisma } = await import('@/lib/db');
     const dbClient = tenantId ? getTenantPrisma(tenantId) : globalPrisma;
     const startDate = searchParams.get('startDate')
       ? new Date(searchParams.get('startDate')!)

@@ -1,0 +1,4 @@
+C:\Users\Admin\Proyectos\escalafin\app\api\admin\audit\route.ts
+C:\Users\Admin\Proyectos\escalafin\app\app\api\audit\export\route.ts
+C:\Users\Admin\Proyectos\escalafin\app\app\api\audit\logs\route.ts
+C:\Users\Admin\Proyectos\escalafin\app\app\api\audit\stats\route.ts
