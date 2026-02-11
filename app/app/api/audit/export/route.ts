@@ -13,20 +13,31 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    // Auth check - allow super admin without tenantId
+    if (!session || (!session.user.tenantId && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (session.user.role !== 'ADMIN') {
+    // Role check
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
     const format = searchParams.get('format') || 'csv';
 
+    // Determinar scope
+    const sessionTenantId = session.user.tenantId;
+    const filterTenantId = searchParams.get('tenantId');
+    const tenantId = (session.user.role === 'SUPER_ADMIN' && filterTenantId) ? filterTenantId : sessionTenantId;
+
     // Aplicar los mismos filtros que en la consulta normal
     const filters: any = {};
-    
+
+    if (session.user.role !== 'SUPER_ADMIN' || tenantId) {
+      filters.tenantId = tenantId;
+    }
+
     const userId = searchParams.get('userId');
     const action = searchParams.get('action');
     const resource = searchParams.get('resource');
@@ -42,7 +53,11 @@ export async function GET(request: NextRequest) {
       if (endDate) filters.timestamp.lte = new Date(endDate);
     }
 
-    const logs = await prisma.auditLog.findMany({
+    // Choose db client: specific tenant or global/all for super admin
+    const { prisma: globalPrisma } = await import('@/lib/db');
+    const dbClient = tenantId ? getTenantPrisma(tenantId) : globalPrisma;
+
+    const logs = await (dbClient as any).auditLog.findMany({
       where: filters,
       orderBy: { timestamp: 'desc' },
       take: 10000, // Límite para exportación
@@ -66,7 +81,7 @@ export async function GET(request: NextRequest) {
         const userEmail = log.user?.email || log.userEmail || '';
         const userRole = log.user?.role || '';
         const details = log.details ? JSON.stringify(log.details).replace(/"/g, '""') : '';
-        
+
         return [
           log.timestamp.toISOString(),
           `"${userName}"`,
@@ -83,11 +98,12 @@ export async function GET(request: NextRequest) {
       const csvContent = csvHeader + csvRows;
 
       // Log de auditoría para la exportación
-      const auditLogger = new AuditLogger(prisma);
+      const auditLog = new AuditLogger(dbClient as any);
       const requestInfo = extractRequestInfo(request);
-      await auditLogger.log({
+      await auditLog.log({
         userId: session.user.id,
         userEmail: session.user.email,
+        tenantId: session.user.tenantId || undefined,
         action: 'EXPORT_REPORT',
         resource: 'AuditLog',
         details: {

@@ -194,6 +194,12 @@ const AuditLogViewer: React.FC = () => {
       LOAN_REJECT: <AlertTriangle className="h-4 w-4 text-red-600" />,
       PAYMENT_CREATE: <Activity className="h-4 w-4 text-green-600" />,
       EXPORT_REPORT: <Download className="h-4 w-4 text-purple-600" />,
+      CLIENT_CREATE: <User className="h-4 w-4 text-blue-600" />,
+      CLIENT_UPDATE: <User className="h-4 w-4 text-orange-600" />,
+      CLIENT_DELETE: <User className="h-4 w-4 text-red-600" />,
+      USER_CREATE: <Shield className="h-4 w-4 text-blue-600" />,
+      USER_UPDATE: <Shield className="h-4 w-4 text-orange-600" />,
+      USER_DELETE: <Shield className="h-4 w-4 text-red-600" />,
     };
     return iconMap[action] || <Info className="h-4 w-4 text-gray-600" />;
   };
@@ -252,6 +258,8 @@ const AuditLogViewer: React.FC = () => {
                       <SelectItem value="LOAN_CREATE">Crear Préstamo</SelectItem>
                       <SelectItem value="LOAN_APPROVE">Aprobar Préstamo</SelectItem>
                       <SelectItem value="PAYMENT_CREATE">Crear Pago</SelectItem>
+                      <SelectItem value="CLIENT_CREATE">Crear Cliente</SelectItem>
+                      <SelectItem value="USER_CREATE">Crear Usuario</SelectItem>
                       <SelectItem value="EXPORT_REPORT">Exportar Reporte</SelectItem>
                     </SelectContent>
                   </Select>

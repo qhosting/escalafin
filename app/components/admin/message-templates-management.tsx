@@ -77,7 +77,6 @@ const TEMPLATE_CATEGORIES = [
 const CHANNELS = [
   { value: 'SMS', label: 'SMS (LabMobile)', icon: Smartphone },
   { value: 'WHATSAPP', label: 'WhatsApp', icon: MessageCircle },
-  { value: 'CHATWOOT', label: 'Chatwoot', icon: MessageSquare },
   { value: 'EMAIL', label: 'Email', icon: Mail },
   { value: 'PUSH', label: 'Push', icon: Bell },
 ];
@@ -230,7 +229,6 @@ export function MessageTemplatesManagement() {
     const colors: Record<string, string> = {
       SMS: 'bg-blue-500',
       WHATSAPP: 'bg-green-500',
-      CHATWOOT: 'bg-purple-500',
       EMAIL: 'bg-orange-500',
       PUSH: 'bg-red-500',
     };
@@ -245,7 +243,7 @@ export function MessageTemplatesManagement() {
             <div>
               <CardTitle>Plantillas de Mensajes</CardTitle>
               <CardDescription>
-                Gestiona plantillas para SMS (LabMobile), WhatsApp, Chatwoot y otros canales
+                Gestiona plantillas para SMS (LabMobile), WhatsApp y otros canales
               </CardDescription>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -436,7 +434,7 @@ export function MessageTemplatesManagement() {
         </CardHeader>
         <CardContent>
           <Tabs value={selectedChannel} onValueChange={setSelectedChannel}>
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="all">Todas</TabsTrigger>
               {CHANNELS.map((channel) => {
                 const Icon = channel.icon;
@@ -602,19 +600,6 @@ export function MessageTemplatesManagement() {
           </div>
 
           <Separator />
-
-          <div className="space-y-2">
-            <h4 className="font-medium flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Chatwoot
-            </h4>
-            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground ml-6">
-              <li>Chat en tiempo real dentro de la plataforma</li>
-              <li>Ideal para soporte y conversaciones interactivas</li>
-              <li>Historial completo de conversaciones</li>
-              <li>Integración con múltiples canales</li>
-            </ul>
-          </div>
 
           <Separator />
 

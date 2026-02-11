@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { UserRole, UserStatus } from '@prisma/client';
 import { UsageTracker } from '@/lib/billing/usage-tracker';
+import { AuditLogger } from '@/lib/audit';
 
 export async function PATCH(
   request: NextRequest,
@@ -62,6 +63,12 @@ export async function PATCH(
         status: true,
       },
     });
+
+    // Audit log
+    await AuditLogger.quickLog(request, 'USER_UPDATE', {
+      userEmail: updatedUser.email,
+      newStatus: updatedUser.status
+    }, 'User', updatedUser.id, session);
 
     return NextResponse.json({
       success: true,
@@ -141,6 +148,11 @@ export async function DELETE(
     if (session.user.tenantId) {
       await UsageTracker.decrementUsage(session.user.tenantId, 'usersCount');
     }
+
+    // Audit log
+    await AuditLogger.quickLog(request, 'USER_DELETE', {
+      userEmail: existingUser.email
+    }, 'User', params.id, session);
 
     return NextResponse.json({
       success: true,

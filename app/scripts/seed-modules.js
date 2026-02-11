@@ -253,7 +253,7 @@ const modules = [
   {
     moduleKey: 'notifications_templates',
     name: 'Plantillas de Mensajes',
-    description: 'Gestión de plantillas para SMS, WhatsApp, Chatwoot y otros canales',
+    description: 'Gestión de plantillas para SMS, WhatsApp y otros canales',
     category: 'NOTIFICATIONS',
     status: 'ENABLED',
     isCore: false,
@@ -290,19 +290,6 @@ const modules = [
     icon: 'MessageCircle',
     route: '/integrations/whatsapp',
     sortOrder: 71,
-  },
-  {
-    moduleKey: 'chatwoot_chat',
-    name: 'Chatwoot',
-    description: 'Sistema de chat en tiempo real para soporte a clientes',
-    category: 'INTEGRATIONS',
-    status: 'ENABLED',
-    isCore: false,
-    requiredFor: [],
-    availableFor: ['ADMIN'],
-    icon: 'MessageSquare',
-    route: '/admin/chatwoot',
-    sortOrder: 72,
   },
   {
     moduleKey: 'labsmobile_sms',
@@ -497,11 +484,11 @@ async function seedModules() {
 
     for (const moduleData of modules) {
       console.log(`Processing module: ${moduleData.name} (${moduleData.moduleKey})`);
-      
+
       // Upsert the module (create if new, update if exists)
       const module = await prisma.pWAModule.upsert({
-        where: { 
-          moduleKey: moduleData.moduleKey 
+        where: {
+          moduleKey: moduleData.moduleKey
         },
         update: {
           name: moduleData.name,
@@ -535,7 +522,7 @@ async function seedModules() {
         where: { moduleKey: moduleData.moduleKey },
         select: { createdAt: true, updatedAt: true }
       });
-      
+
       if (existingModule && existingModule.createdAt.getTime() === existingModule.updatedAt.getTime()) {
         modulesCreated++;
         console.log(`  ✨ Created new module: ${moduleData.name}`);
@@ -589,7 +576,7 @@ async function seedModules() {
     console.log(`  🔄 Existing modules updated: ${modulesUpdated}`);
     console.log(`  📊 Total modules: ${modules.length}`);
     console.log('═══════════════════════════════════════════');
-    
+
     return { modulesCreated, modulesUpdated, total: modules.length };
   } catch (error) {
     console.error('❌ Error seeding modules:', error);

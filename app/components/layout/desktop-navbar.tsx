@@ -205,12 +205,7 @@ export function DesktopNavbar() {
               { title: 'Recargas', icon: RefreshCw, href: '/admin/message-recharges', moduleKey: 'whatsapp_notifications' }
             ]
           },
-          {
-            title: 'Chat',
-            items: [
-              { title: 'Chatwoot', icon: MessageSquare, href: '/admin/chatwoot', moduleKey: 'chatwoot_chat' }
-            ]
-          },
+
           {
             title: 'SMS',
             items: [
@@ -301,12 +296,7 @@ export function DesktopNavbar() {
               { title: 'Mensajes', icon: MessageSquare, href: '/admin/whatsapp/messages', moduleKey: 'whatsapp_notifications' }
             ]
           },
-          {
-            title: 'Chat',
-            items: [
-              { title: 'Chatwoot', icon: MessageSquare, href: '/admin/chatwoot', moduleKey: 'chatwoot_chat' }
-            ]
-          },
+
           {
             title: 'SMS',
             items: [
@@ -349,12 +339,7 @@ export function DesktopNavbar() {
           }
         ],
         'Comunicación': [
-          {
-            title: 'Chat',
-            items: [
-              { title: 'Chatwoot', icon: MessageSquare, href: '/admin/chatwoot', moduleKey: 'chatwoot_chat' }
-            ]
-          },
+
           {
             title: 'Notificaciones',
             items: [

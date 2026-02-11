@@ -12,13 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useChatwoot } from '@/hooks/use-chatwoot';
-import { 
-  Bell, 
-  Mail, 
-  MessageSquare, 
-  Phone, 
-  Check, 
+import {
+  Bell,
+  Mail,
+  MessageSquare,
+  Phone,
+  Check,
   X,
   Search,
   Filter,
@@ -35,11 +34,11 @@ import {
   MessagesSquare,
   Headphones
 } from 'lucide-react';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 
@@ -69,7 +68,6 @@ interface NotificationSettings {
 
 export default function NotificationsPage() {
   const { data: session } = useSession() || {};
-  const { isLoaded: chatwootLoaded, openChat, isOpen: chatwootOpen } = useChatwoot();
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
@@ -103,19 +101,19 @@ export default function NotificationsPage() {
       if (response.ok) {
         const data = await response.json();
         setNotifications(data.notifications || []);
-        
+
         // Marcar automáticamente las notificaciones no leídas como leídas después de 3 segundos
         setTimeout(async () => {
           const unreadIds = (data.notifications || [])
             .filter((n: Notification) => !n.read)
             .map((n: Notification) => n.id);
-          
+
           if (unreadIds.length > 0) {
             // Marcar como leídas en el servidor
             for (const id of unreadIds) {
               await markAsRead(id, false); // false = no mostrar toast
             }
-            
+
             // Después de 5 segundos más, eliminar las notificaciones leídas
             setTimeout(async () => {
               for (const id of unreadIds) {
@@ -149,13 +147,13 @@ export default function NotificationsPage() {
   const filterNotifications = () => {
     let filtered = notifications.filter(notification => {
       const matchesSearch = notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           notification.message.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesFilter = filterType === 'all' || 
-                           (filterType === 'unread' && !notification.read) ||
-                           (filterType === 'read' && notification.read) ||
-                           (filterType === notification.type) ||
-                           (filterType === notification.channel);
+        notification.message.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesFilter = filterType === 'all' ||
+        (filterType === 'unread' && !notification.read) ||
+        (filterType === 'read' && notification.read) ||
+        (filterType === notification.type) ||
+        (filterType === notification.channel);
 
       return matchesSearch && matchesFilter && !notification.archived;
     });
@@ -166,7 +164,7 @@ export default function NotificationsPage() {
   const markAsRead = async (notificationId: string, showToast: boolean = true) => {
     try {
       await fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
       );
       if (showToast) {
@@ -192,7 +190,7 @@ export default function NotificationsPage() {
   const archiveNotification = async (notificationId: string) => {
     try {
       await fetch(`/api/notifications/${notificationId}/archive`, { method: 'POST' });
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.id === notificationId ? { ...n, archived: true } : n)
       );
       toast.success('Notificación archivada');
@@ -276,7 +274,7 @@ export default function NotificationsPage() {
               Gestiona tus notificaciones y configuraciones de comunicación
             </p>
           </div>
-          
+
           <div className="flex gap-2">
             <Button variant="outline" onClick={fetchNotifications}>
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -297,10 +295,6 @@ export default function NotificationsPage() {
               <BellRing className="h-4 w-4" />
               Notificaciones
             </TabsTrigger>
-            <TabsTrigger value="chatwoot" className="flex items-center gap-2">
-              <Headphones className="h-4 w-4" />
-              Chatwoot
-            </TabsTrigger>
             <TabsTrigger value="messages" className="flex items-center gap-2">
               <MessagesSquare className="h-4 w-4" />
               Mensajes
@@ -319,7 +313,7 @@ export default function NotificationsPage() {
                 <CardDescription>
                   Todas tus notificaciones del sistema y comunicaciones
                 </CardDescription>
-                
+
                 {/* Filters */}
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1 max-w-sm">
@@ -335,7 +329,7 @@ export default function NotificationsPage() {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="filter">Filtrar</Label>
                     <select
@@ -355,7 +349,7 @@ export default function NotificationsPage() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent>
                 {loading ? (
                   <div className="flex items-center justify-center h-32">
@@ -372,11 +366,10 @@ export default function NotificationsPage() {
                       filteredNotifications.map((notification) => (
                         <div
                           key={notification.id}
-                          className={`p-4 border rounded-lg ${
-                            notification.read 
-                              ? 'bg-gray-50 dark:bg-gray-800' 
+                          className={`p-4 border rounded-lg ${notification.read
+                              ? 'bg-gray-50 dark:bg-gray-800'
                               : 'bg-white dark:bg-gray-900 border-blue-200 dark:border-blue-800'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3 flex-1">
@@ -384,30 +377,29 @@ export default function NotificationsPage() {
                                 {getTypeIcon(notification.type)}
                                 {getChannelIcon(notification.channel)}
                               </div>
-                              
+
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <h3 className={`font-medium ${
-                                    !notification.read 
-                                      ? 'text-gray-900 dark:text-white' 
+                                  <h3 className={`font-medium ${!notification.read
+                                      ? 'text-gray-900 dark:text-white'
                                       : 'text-gray-700 dark:text-gray-300'
-                                  }`}>
+                                    }`}>
                                     {notification.title}
                                   </h3>
-                                  
+
                                   <Badge variant={getTypeBadgeVariant(notification.type)} className="text-xs">
                                     {notification.type}
                                   </Badge>
-                                  
+
                                   {!notification.read && (
                                     <div className="w-2 h-2 bg-blue-500 rounded-full" />
                                   )}
                                 </div>
-                                
+
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                                   {notification.message}
                                 </p>
-                                
+
                                 <div className="flex items-center gap-2 text-xs text-gray-500">
                                   <Clock className="h-3 w-3" />
                                   {new Date(notification.createdAt).toLocaleString('es-MX')}
@@ -425,7 +417,7 @@ export default function NotificationsPage() {
                                   <Check className="h-4 w-4" />
                                 </Button>
                               )}
-                              
+
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="sm">
@@ -437,7 +429,7 @@ export default function NotificationsPage() {
                                     <Archive className="h-4 w-4 mr-2" />
                                     Archivar
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     onClick={() => deleteNotification(notification.id)}
                                     className="text-red-600 dark:text-red-400"
                                   >
@@ -453,82 +445,6 @@ export default function NotificationsPage() {
                     )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Chatwoot Tab */}
-          <TabsContent value="chatwoot">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Headphones className="h-5 w-5" />
-                  Soporte en Vivo - Chatwoot
-                </CardTitle>
-                <CardDescription>
-                  Abre el widget de Chatwoot para chatear con el equipo de soporte en tiempo real
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {chatwootLoaded ? (
-                    <>
-                      <div className="p-4 border rounded-lg bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-                        <div className="flex items-center gap-3">
-                          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                          <div>
-                            <p className="font-medium text-green-900 dark:text-green-100">
-                              Chat en Vivo Activo
-                            </p>
-                            <p className="text-sm text-green-700 dark:text-green-300">
-                              El equipo de soporte está disponible para ayudarte
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <Button 
-                        onClick={openChat} 
-                        className="w-full"
-                        size="lg"
-                      >
-                        <MessageSquare className="h-5 w-5 mr-2" />
-                        Abrir Chat de Soporte
-                      </Button>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                        <div className="p-4 border rounded-lg">
-                          <Clock className="h-5 w-5 mb-2 text-blue-500" />
-                          <h4 className="font-medium mb-1">Horario de Atención</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Lun - Vie: 9:00 AM - 6:00 PM
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Sábado: 10:00 AM - 2:00 PM
-                          </p>
-                        </div>
-                        
-                        <div className="p-4 border rounded-lg">
-                          <Info className="h-5 w-5 mb-2 text-purple-500" />
-                          <h4 className="font-medium mb-1">Tiempo de Respuesta</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Promedio: 2-5 minutos
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Durante horario de atención
-                          </p>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="p-8 text-center border rounded-lg">
-                      <RefreshCw className="h-12 w-12 mx-auto mb-4 text-gray-400 animate-spin" />
-                      <p className="text-gray-600 dark:text-gray-400">
-                        Cargando chat de soporte...
-                      </p>
-                    </div>
-                  )}
-                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -570,13 +486,13 @@ export default function NotificationsPage() {
                   Configura qué notificaciones deseas recibir y por qué canales
                 </CardDescription>
               </CardHeader>
-              
+
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Canales de Notificación */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">Canales de Notificación</h3>
-                    
+
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -588,7 +504,7 @@ export default function NotificationsPage() {
                         </div>
                         <Switch
                           checked={settings.emailNotifications}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             updateSettings({ ...settings, emailNotifications: checked })
                           }
                         />
@@ -604,7 +520,7 @@ export default function NotificationsPage() {
                         </div>
                         <Switch
                           checked={settings.whatsappNotifications}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             updateSettings({ ...settings, whatsappNotifications: checked })
                           }
                         />
@@ -620,7 +536,7 @@ export default function NotificationsPage() {
                         </div>
                         <Switch
                           checked={settings.smsNotifications}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             updateSettings({ ...settings, smsNotifications: checked })
                           }
                         />
@@ -636,7 +552,7 @@ export default function NotificationsPage() {
                         </div>
                         <Switch
                           checked={settings.pushNotifications}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             updateSettings({ ...settings, pushNotifications: checked })
                           }
                         />
@@ -647,7 +563,7 @@ export default function NotificationsPage() {
                   {/* Tipos de Notificación */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">Tipos de Notificación</h3>
-                    
+
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
@@ -656,7 +572,7 @@ export default function NotificationsPage() {
                         </div>
                         <Switch
                           checked={settings.paymentReminders}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             updateSettings({ ...settings, paymentReminders: checked })
                           }
                         />
@@ -669,7 +585,7 @@ export default function NotificationsPage() {
                         </div>
                         <Switch
                           checked={settings.overdueAlerts}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             updateSettings({ ...settings, overdueAlerts: checked })
                           }
                         />
@@ -682,7 +598,7 @@ export default function NotificationsPage() {
                         </div>
                         <Switch
                           checked={settings.systemUpdates}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             updateSettings({ ...settings, systemUpdates: checked })
                           }
                         />
@@ -695,7 +611,7 @@ export default function NotificationsPage() {
                         </div>
                         <Switch
                           checked={settings.marketingMessages}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             updateSettings({ ...settings, marketingMessages: checked })
                           }
                         />

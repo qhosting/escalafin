@@ -3,6 +3,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { AuditLogger } from './audit';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -89,6 +90,11 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  events: {
+    async signIn({ user }) {
+      await AuditLogger.quickLog(null, 'LOGIN', { method: 'credentials' }, 'Auth', user.id, { user });
+    },
+  },
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 días

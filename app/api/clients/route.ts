@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db'; // Importar helper multi-tenant
 import { UserRole, EmploymentType, ClientStatus } from '@prisma/client';
+import { AuditLogger } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -304,6 +305,12 @@ export async function POST(request: NextRequest) {
 
       return client;
     });
+
+    // Audit log
+    await AuditLogger.quickLog(request, 'CLIENT_CREATE', {
+      clientName: `${result.firstName} ${result.lastName}`,
+      phone: result.phone
+    }, 'Client', result.id, session);
 
     return NextResponse.json(result, { status: 201 });
   } catch (error: any) {

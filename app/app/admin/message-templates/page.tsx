@@ -4,7 +4,7 @@ import { MessageTemplatesManagement } from '@/components/admin/message-templates
 
 export const metadata: Metadata = {
   title: 'Plantillas de Mensajes | EscalaFin',
-  description: 'Gestión de plantillas para SMS, WhatsApp, Chatwoot y otros canales',
+  description: 'Gestión de plantillas para SMS, WhatsApp y otros canales',
 };
 
 export default function MessageTemplatesPage() {
@@ -13,7 +13,7 @@ export default function MessageTemplatesPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Plantillas de Mensajes</h1>
         <p className="text-muted-foreground mt-2">
-          Gestiona plantillas para SMS (LabMobile), WhatsApp, Chatwoot y otros canales de comunicación
+          Gestiona plantillas para SMS (LabMobile), WhatsApp y otros canales de comunicación
         </p>
       </div>
 

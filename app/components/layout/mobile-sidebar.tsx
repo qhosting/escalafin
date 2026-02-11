@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { 
+import {
   LayoutDashboard,
   Users,
   CreditCard,
@@ -67,7 +67,7 @@ export function MobileSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession() || {};
   const { modules, loading, isModuleEnabled } = useModules();
-  
+
   const userRole = (session as any)?.user?.role;
 
   const handleSignOut = async () => {
@@ -97,8 +97,8 @@ export function MobileSidebar() {
   };
 
   const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => 
-      prev.includes(category) 
+    setExpandedCategories(prev =>
+      prev.includes(category)
         ? prev.filter(c => c !== category)
         : [...prev, category]
     );
@@ -106,9 +106,9 @@ export function MobileSidebar() {
 
   // Configuración de menús por rol
   const getMenusForRole = (): MenuCategory[] => {
-    const dashboardHref = userRole === 'ADMIN' ? '/admin/dashboard' : 
-                          userRole === 'ASESOR' ? '/asesor/dashboard' : 
-                          '/cliente/dashboard';
+    const dashboardHref = userRole === 'ADMIN' ? '/admin/dashboard' :
+      userRole === 'ASESOR' ? '/asesor/dashboard' :
+        '/cliente/dashboard';
 
     if (userRole === 'ADMIN') {
       return [
@@ -200,12 +200,7 @@ export function MobileSidebar() {
                 { title: 'Recargas', icon: RefreshCw, href: '/admin/message-recharges', moduleKey: 'whatsapp_notifications' }
               ]
             },
-            {
-              title: 'Chat',
-              items: [
-                { title: 'Chatwoot', icon: MessageSquare, href: '/admin/chatwoot', moduleKey: 'chatwoot_chat' }
-              ]
-            },
+
             {
               title: 'SMS',
               items: [
@@ -340,12 +335,7 @@ export function MobileSidebar() {
                 { title: 'Mensajes', icon: MessageSquare, href: '/admin/whatsapp/messages', moduleKey: 'whatsapp_notifications' }
               ]
             },
-            {
-              title: 'Chat',
-              items: [
-                { title: 'Chatwoot', icon: MessageSquare, href: '/admin/chatwoot', moduleKey: 'chatwoot_chat' }
-              ]
-            },
+
             {
               title: 'SMS',
               items: [
@@ -424,12 +414,7 @@ export function MobileSidebar() {
           category: 'Comunicación',
           icon: MessageSquare,
           groups: [
-            {
-              title: 'Chat',
-              items: [
-                { title: 'Chatwoot', icon: MessageSquare, href: '/admin/chatwoot', moduleKey: 'chatwoot_chat' }
-              ]
-            },
+
             {
               title: 'Notificaciones',
               items: [
@@ -487,17 +472,17 @@ export function MobileSidebar() {
           <Building2 className="h-6 w-6 text-primary" />
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">EscalaFin</h2>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <ThemeToggle />
-          
+
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="sm">
                 <User className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            
+
             <SheetContent side="right" className="w-80 p-0 overflow-y-auto">
               <div className="flex flex-col h-full bg-white dark:bg-gray-900">
                 {/* Header del sidebar móvil */}
@@ -571,12 +556,12 @@ export function MobileSidebar() {
                                 {/* Items del grupo */}
                                 <div className="space-y-0.5">
                                   {group.items.map((item) => {
-                                    const ItemWrapper = item.moduleKey ? 
+                                    const ItemWrapper = item.moduleKey ?
                                       ({ children }: { children: React.ReactNode }) => (
                                         <ModuleWrapper moduleKey={item.moduleKey!}>
                                           {children}
                                         </ModuleWrapper>
-                                      ) : 
+                                      ) :
                                       ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
                                     return (
@@ -613,17 +598,17 @@ export function MobileSidebar() {
 
                 {/* Footer con acciones */}
                 <div className="p-3 border-t border-gray-200 dark:border-gray-700 space-y-2 bg-gray-50 dark:bg-gray-900">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full justify-start text-sm"
                     onClick={() => setOpen(false)}
                   >
                     <User className="h-4 w-4 mr-2" />
                     Mi Perfil
                   </Button>
-                  
-                  <Button 
-                    variant="outline" 
+
+                  <Button
+                    variant="outline"
                     className="w-full justify-start text-sm text-red-600 hover:text-red-700 dark:text-red-400"
                     onClick={handleSignOut}
                   >

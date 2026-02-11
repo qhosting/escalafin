@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { UserRole, LoanType, LoanStatus, PaymentFrequency, LoanCalculationType } from '@prisma/client';
 import { generateLoanNumber } from '@/lib/utils';
 import { calculateLoanDetails, validateLoanParams } from '@/lib/loan-calculations';
+import { AuditLogger } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,15 +25,15 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where: any = {};
-    
+
     if (session.user.role === UserRole.CLIENTE) {
       where.clientId = session.user.id;
     }
-    
+
     if (status) {
       where.status = status as LoanStatus;
     }
-    
+
     if (clientId) {
       where.clientId = clientId;
     }
@@ -144,8 +145,8 @@ export async function POST(request: NextRequest) {
     // Validate numeric fields FIRST (needed for calculations below)
     const principal = parseFloat(principalAmount.toString());
     const term = parseInt(termMonths.toString());
-    const rate = interestRate !== undefined && interestRate !== null 
-      ? parseFloat(interestRate.toString()) 
+    const rate = interestRate !== undefined && interestRate !== null
+      ? parseFloat(interestRate.toString())
       : 0;
 
     // Para INTERES_SEMANAL, consultar la tabla de configuración si no se proporciona
@@ -391,6 +392,13 @@ export async function POST(request: NextRequest) {
 
     console.log('Préstamo creado exitosamente:', loan.id);
 
+    // Audit log
+    await AuditLogger.quickLog(request, 'LOAN_CREATE', {
+      loanNumber: loan.loanNumber,
+      principalAmount: principal,
+      loanType
+    }, 'Loan', loan.id, session);
+
     return NextResponse.json({
       success: true,
       loan,
@@ -399,7 +407,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error creating loan:', error);
-    
+
     // Provide more specific error messages
     if (error instanceof Error) {
       if (error.message.includes('Unique constraint')) {
@@ -415,7 +423,7 @@ export async function POST(request: NextRequest) {
         );
       }
     }
-    
+
     return NextResponse.json(
       { error: 'Error al crear el préstamo: ' + (error instanceof Error ? error.message : 'Error desconocido') },
       { status: 500 }

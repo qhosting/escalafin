@@ -129,25 +129,7 @@ const defaultTemplates = [
     isActive: true,
   },
 
-  // Chatwoot Templates
-  {
-    name: 'Chatwoot Bienvenida',
-    description: 'Mensaje de bienvenida en Chatwoot',
-    category: 'WELCOME' as MessageTemplateType,
-    channel: 'CHATWOOT' as MessageChannel,
-    template: '¡Hola {nombre}! 👋 Bienvenido a EscalaFin. ¿En qué puedo ayudarte hoy?',
-    variables: 'nombre',
-    isActive: true,
-  },
-  {
-    name: 'Chatwoot Actualización Préstamo',
-    description: 'Notificación de actualización de préstamo en Chatwoot',
-    category: 'LOAN_UPDATE' as MessageTemplateType,
-    channel: 'CHATWOOT' as MessageChannel,
-    template: 'Hola {nombre}, hay una actualización en tu préstamo #{numero}: {mensaje}',
-    variables: 'nombre, numero, mensaje',
-    isActive: true,
-  },
+  // End of templates
 ];
 
 async function main() {

@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { uploadFile } from '@/lib/s3';
+import { AuditLogger } from '@/lib/audit';
 import { z } from 'zod';
 
 const cashPaymentSchema = z.object({
@@ -21,7 +22,7 @@ const cashPaymentSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user || !['ADMIN', 'ADVISOR', 'COLLECTOR'].includes(session.user.role || '')) {
       return NextResponse.json(
         { error: 'No autorizado' },
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    
+
     // Extract and validate data
     const data = {
       loanId: formData.get('loanId') as string,
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
     };
 
     const validatedData = cashPaymentSchema.parse(data);
-    
+
     // Handle photo evidence if provided
     const photoFile = formData.get('photoEvidence') as File | null;
     let photoUrl = null;
@@ -134,6 +135,14 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // Audit log
+    await AuditLogger.quickLog(request, 'PAYMENT_CREATE', {
+      amount: validatedData.amount,
+      loanId: validatedData.loanId,
+      method: 'CASH',
+      receiptNumber: validatedData.receiptNumber
+    }, 'Payment', payment.id, session);
+
     return NextResponse.json({
       payment,
       loan: {
@@ -145,7 +154,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error processing cash payment:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Datos inválidos', details: error.errors },
@@ -163,7 +172,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user || !['ADMIN', 'ADVISOR', 'COLLECTOR'].includes(session.user.role || '')) {
       return NextResponse.json(
         { error: 'No autorizado' },
@@ -188,7 +197,7 @@ export async function GET(request: NextRequest) {
     if (dateFrom && dateTo) {
       const startDate = new Date(dateFrom);
       startDate.setHours(0, 0, 0, 0);
-      
+
       const endDate = new Date(dateTo);
       endDate.setHours(23, 59, 59, 999);
 

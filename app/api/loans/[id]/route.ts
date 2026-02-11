@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
 import { UserRole, LoanStatus } from '@prisma/client';
+import { AuditLogger } from '@/lib/audit';
 
 export async function GET(
   request: NextRequest,
@@ -139,6 +140,12 @@ export async function PUT(
       }
     });
 
+    // Audit log
+    await AuditLogger.quickLog(request, 'LOAN_UPDATE', {
+      loanNumber: loan.loanNumber,
+      updates: updateData
+    }, 'Loan', loan.id, session);
+
     return NextResponse.json({
       success: true,
       loan,
@@ -190,6 +197,11 @@ export async function DELETE(
     await tenantPrisma.loan.delete({
       where: { id: params.id }
     });
+
+    // Audit log
+    await AuditLogger.quickLog(request, 'LOAN_DELETE', {
+      loanNumber: existingLoan.loanNumber
+    }, 'Loan', params.id, session);
 
     return NextResponse.json({
       success: true,

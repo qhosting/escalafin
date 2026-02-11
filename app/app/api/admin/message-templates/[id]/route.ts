@@ -24,7 +24,7 @@ const updateTemplateSchema = z.object({
     'MARKETING',
     'CUSTOM',
   ]).optional(),
-  channel: z.enum(['SMS', 'WHATSAPP', 'CHATWOOT', 'EMAIL', 'PUSH']).optional(),
+  channel: z.enum(['SMS', 'WHATSAPP', 'EMAIL', 'PUSH']).optional(),
   template: z.string().min(1).optional(),
   variables: z.string().optional(),
   maxLength: z.number().optional(),

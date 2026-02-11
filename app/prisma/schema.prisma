@@ -960,7 +960,6 @@ enum MessageTemplateType {
 enum MessageChannel {
   SMS
   WHATSAPP
-  CHATWOOT
   EMAIL
   PUSH
 }

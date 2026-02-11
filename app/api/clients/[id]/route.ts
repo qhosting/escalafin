@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { UserRole, EmploymentType, ClientStatus } from '@prisma/client';
+import { AuditLogger } from '@/lib/audit';
 
 // GET - Obtener un cliente por ID con aval y garantías
 export async function GET(
@@ -166,7 +167,7 @@ export async function PUT(
     if (bankName !== undefined) updateData.bankName = bankName;
     if (accountNumber !== undefined) updateData.accountNumber = accountNumber;
     if (status !== undefined) updateData.status = status as ClientStatus;
-    
+
     // Only ADMIN can change asesorId
     if (session.user.role === UserRole.ADMIN && asesorId !== undefined) {
       if (asesorId && asesorId.trim() !== '') {
@@ -214,7 +215,7 @@ export async function PUT(
       // Handle guarantor update/creation
       if (guarantor !== undefined) {
         console.log('Procesando aval:', JSON.stringify(guarantor));
-        
+
         if (guarantor && guarantor.fullName && guarantor.fullName.trim() !== '') {
           // Check if guarantor exists
           const existingGuarantor = await tx.guarantor.findUnique({
@@ -259,7 +260,7 @@ export async function PUT(
       // Handle collaterals update
       if (collaterals !== undefined && Array.isArray(collaterals)) {
         console.log('Procesando garantías:', JSON.stringify(collaterals));
-        
+
         // Delete existing collaterals
         await tx.collateral.deleteMany({
           where: { clientId: params.id }
@@ -274,7 +275,7 @@ export async function PUT(
               clientId: params.id,
               description: description.trim()
             }));
-          
+
           if (collateralData.length > 0) {
             await tx.collateral.createMany({
               data: collateralData
@@ -289,17 +290,23 @@ export async function PUT(
       return updatedClient;
     });
 
+    // Audit log
+    await AuditLogger.quickLog(request, 'CLIENT_UPDATE', {
+      clientName: `${result.firstName} ${result.lastName}`,
+      updates: updateData
+    }, 'Client', result.id, session);
+
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('Error updating client:', error);
-    
+
     if (error.code === 'P2002') {
       return NextResponse.json(
         { error: 'Ya existe un cliente con este email o teléfono' },
         { status: 409 }
       );
     }
-    
+
     return NextResponse.json(
       { error: 'Error al actualizar cliente', details: error.message },
       { status: 500 }
@@ -358,6 +365,11 @@ export async function DELETE(
     await prisma.client.delete({
       where: { id: params.id }
     });
+
+    // Audit log
+    await AuditLogger.quickLog(request, 'CLIENT_DELETE', {
+      clientName: `${client.firstName} ${client.lastName}`
+    }, 'Client', params.id, session);
 
     return NextResponse.json({ message: 'Cliente eliminado exitosamente' });
   } catch (error) {

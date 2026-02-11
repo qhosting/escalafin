@@ -8,6 +8,7 @@ import bcrypt from 'bcryptjs';
 import { LimitsService } from '@/lib/billing/limits';
 import { UsageTracker } from '@/lib/billing/usage-tracker';
 import { getTenantPrisma } from '@/lib/tenant-db';
+import { AuditLogger } from '@/lib/audit';
 
 // Test simple endpoint
 export async function GET(request: NextRequest) {
@@ -165,6 +166,12 @@ export async function POST(request: NextRequest) {
     if (tenantId) {
       await UsageTracker.incrementUsage(tenantId, 'usersCount');
     }
+
+    // Audit log
+    await AuditLogger.quickLog(request, 'USER_CREATE', {
+      userEmail: user.email,
+      role: user.role
+    }, 'User', user.id, session);
 
     return NextResponse.json({
       success: true,

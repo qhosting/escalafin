@@ -6,7 +6,6 @@ import './globals.css'
 import { Providers } from './providers'
 import { Toaster } from 'sonner'
 import { MainLayout } from '@/components/layout/main-layout'
-import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic';
@@ -83,7 +82,6 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             closeButton
             theme="light"
           />
-          <ChatwootWidget enabled={true} autoLoadUser={true} />
         </Providers>
       </body>
     </html>

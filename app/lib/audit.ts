@@ -20,7 +20,8 @@ export type AuditAction =
   | 'WAHA_CONFIG_CREATE' | 'WAHA_CONFIG_UPDATE'
   | 'WAHA_WEBHOOK_RECEIVED' | 'WAHA_WEBHOOK_ERROR'
   | 'WAHA_SESSION_UPDATE'
-  | 'PLAN_CREATE' | 'PLAN_UPDATE' | 'PLAN_DELETE';
+  | 'PLAN_CREATE' | 'PLAN_UPDATE' | 'PLAN_DELETE'
+  | 'CLIENT_CREATE' | 'CLIENT_UPDATE' | 'CLIENT_DELETE';
 
 export interface AuditLogData {
   userId?: string;
@@ -32,6 +33,7 @@ export interface AuditLogData {
   ipAddress?: string;
   userAgent?: string;
   metadata?: Record<string, any>;
+  tenantId?: string;
 }
 
 export interface AuditLogFilter {
@@ -64,6 +66,7 @@ export class AuditLogger {
           ipAddress: logData.ipAddress || undefined,
           userAgent: logData.userAgent || undefined,
           metadata: logData.metadata ? JSON.stringify(logData.metadata) : undefined,
+          tenantId: logData.tenantId || undefined,
           timestamp: new Date(),
         },
       });
@@ -71,6 +74,40 @@ export class AuditLogger {
       console.error('Error logging audit entry:', error);
       // No lanzamos el error para no afectar el flujo principal
     }
+  }
+
+  // Static helper to log without manual instantiation
+  static async quickLog(
+    request: Request | null,
+    action: AuditAction,
+    details?: Record<string, any>,
+    resource?: string,
+    resourceId?: string,
+    session?: any
+  ) {
+    const { prisma } = await import('./db');
+    const logger = new AuditLogger(prisma);
+
+    let ipAddress = 'unknown';
+    let userAgent = 'unknown';
+
+    if (request) {
+      const info = extractRequestInfo(request);
+      ipAddress = info.ipAddress;
+      userAgent = info.userAgent;
+    }
+
+    return logger.log({
+      userId: session?.user?.id,
+      userEmail: session?.user?.email,
+      tenantId: session?.user?.tenantId,
+      action,
+      details,
+      resource,
+      resourceId,
+      ipAddress,
+      userAgent
+    });
   }
 
   async getLogs(filter: AuditLogFilter = {}) {
