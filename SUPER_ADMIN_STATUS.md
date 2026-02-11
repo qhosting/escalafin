@@ -1,7 +1,7 @@
 # 🔐 Super Admin - Estado de Implementación
 
 **Última actualización:** Febrero 10, 2026  
-**Commit:** `0674110`
+**Commit:** `5a380ef`
 
 ---
 
@@ -47,7 +47,21 @@
 - **Gestión de estado:**
   - Activar/Suspender tenants desde el menú contextual
   - Vista de auditoría (pendiente de implementar)
-- **API Endpoint:** `/api/admin/tenants` (GET, POST, PATCH)
+- **🆕 Backup y Restauración:**
+  - **Exportar backup completo** de un tenant (JSON descargable)
+    - Incluye: usuarios, clientes, préstamos, pagos, configuración, templates, etc.
+    - Formato JSON con metadata y versión
+    - Descarga automática con nombre descriptivo
+  - **Importar backup** a un tenant
+    - Confirmación de seguridad (⚠️ elimina datos existentes)
+    - Opción de sobrescribir configuración del tenant
+    - Transacción segura con manejo de claves foráneas
+    - Estadísticas post-importación
+- **API Endpoints:** 
+  - `/api/admin/tenants` (GET, POST, PATCH)
+  - `/api/admin/tenants/[id]/export` (GET)
+  - `/api/admin/tenants/[id]/import` (POST)
+
 
 ### 4. Billing y Monetización (`/admin/billing`)
 - **Gestión de planes:**
@@ -188,6 +202,8 @@
 | `/api/admin/tenants` | GET | ✅ | Listar todos los tenants |
 | `/api/admin/tenants` | POST | ✅ | Crear nuevo tenant |
 | `/api/admin/tenants` | PATCH | ✅ | Actualizar estado de tenant |
+| `/api/admin/tenants/[id]/export` | GET | ✅ | Exportar backup completo de tenant |
+| `/api/admin/tenants/[id]/import` | POST | ✅ | Importar backup a tenant |
 | `/api/admin/plans` | GET | ✅ | Listar planes |
 | `/api/admin/plans` | PUT | ✅ | Actualizar plan |
 | `/api/admin/subscriptions-global` | GET | ✅ | Suscripciones globales |
