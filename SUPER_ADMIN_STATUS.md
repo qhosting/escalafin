@@ -1,7 +1,7 @@
 # 🔐 Super Admin - Estado de Implementación
 
 **Última actualización:** Febrero 10, 2026  
-**Commit:** `5a380ef`
+**Commit:** `d4d9e0a`
 
 ---
 
@@ -66,6 +66,14 @@
 ### 4. Billing y Monetización (`/admin/billing`)
 - **Gestión de planes:**
   - Vista de todos los planes (Starter, Professional, Business, Enterprise, Legacy)
+  - **🆕 Crear nuevos planes** con diálogo completo
+    - Nombre interno (ID único)
+    - Nombre de visualización
+    - Descripción del plan
+    - Precios (mensual y anual)
+    - Límites configurables (usuarios, préstamos, clientes, storage)
+    - Días de prueba gratuitos
+    - Orden de visualización
   - Edición de precios (mensual, anual)
   - Configuración de límites (usuarios, préstamos, clientes, storage)
   - Activar/desactivar planes
@@ -80,7 +88,7 @@
   - Número de suscripciones activas
   - Plan más popular
 - **API Endpoints:**
-  - `/api/admin/plans` (GET, PUT)
+  - `/api/admin/plans` (GET, PUT, POST)
   - `/api/admin/subscriptions-global` (GET)
 
 ### 5. Gestión de Super Admins (`/admin/super-users`)
@@ -206,6 +214,7 @@
 | `/api/admin/tenants/[id]/import` | POST | ✅ | Importar backup a tenant |
 | `/api/admin/plans` | GET | ✅ | Listar planes |
 | `/api/admin/plans` | PUT | ✅ | Actualizar plan |
+| `/api/admin/plans` | POST | ✅ | Crear nuevo plan |
 | `/api/admin/subscriptions-global` | GET | ✅ | Suscripciones globales |
 | `/api/admin/super-users` | GET | ✅ | Listar Super Admins |
 | `/api/admin/super-users` | POST | ✅ | Crear Super Admin |
