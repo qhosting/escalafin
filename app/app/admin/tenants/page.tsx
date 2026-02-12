@@ -122,13 +122,18 @@ export default function TenantsPageV2() {
 
     useEffect(() => {
         if (plans && plans.length > 0) {
-            // Si el plan seleccionado actualmente (ej. 'starter') no existe en la lista, seleccionar el primero
-            const currentExists = plans.find(p => p.name === formData.planName);
-            if (!currentExists) {
-                setFormData(prev => ({ ...prev, planName: plans[0].name }));
+            const activePlans = plans.filter(p => p.isActive);
+
+            // Si no hay plan seleccionado, o el seleccionado no es válido/activo
+            const currentPlan = plans.find(p => p.name === formData.planName);
+            const isValidSelection = currentPlan && currentPlan.isActive;
+
+            if (!isValidSelection && activePlans.length > 0) {
+                // Auto-seleccionar el primer plan activo (ej. 'planes-sol')
+                setFormData(prev => ({ ...prev, planName: activePlans[0].name }));
             }
         }
-    }, [plans]);
+    }, [plans, formData.planName]);
 
     const generateSlug = (name: string) => {
         return name.toLowerCase()
