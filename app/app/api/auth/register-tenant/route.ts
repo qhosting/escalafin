@@ -67,10 +67,26 @@ export async function POST(req: NextRequest) {
 
             // 4. Crear Suscripción (Trial)
             // Buscar plan default (idealmente 'starter' o el más barato)
-            const plan = await tx.plan.findFirst({
+            let plan = await tx.plan.findFirst({
                 where: { isActive: true },
                 orderBy: { priceMonthly: 'asc' }
             });
+
+            // Si no hay planes, crear uno por defecto para no romper el flujo
+            if (!plan) {
+                console.log('🌱 No hay planes activos, creando Plan Inicial default...');
+                plan = await tx.plan.create({
+                    data: {
+                        name: 'starter',
+                        displayName: 'Plan Inicial',
+                        description: 'Plan básico auto-creado',
+                        priceMonthly: 0,
+                        features: JSON.stringify(["Funciones básicas"]),
+                        limits: JSON.stringify({ users: 3, loans: 100 }),
+                        isActive: true
+                    }
+                });
+            }
 
             if (plan) {
                 const trialEnd = new Date();

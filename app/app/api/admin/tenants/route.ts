@@ -66,7 +66,26 @@ export async function POST(request: NextRequest) {
         }
 
         // Get plan
-        const plan = await prisma.plan.findUnique({ where: { name: planName } });
+        let plan = await prisma.plan.findUnique({ where: { name: planName } });
+
+        // Auto-create starter plan if it doesn't exist to prevent provisioning breakage
+        if (!plan && planName === 'starter') {
+            console.log('🌱 Starter plan not found, creating it...');
+            plan = await prisma.plan.create({
+                data: {
+                    name: 'starter',
+                    displayName: 'Starter',
+                    description: 'Plan inicial auto-generado',
+                    priceMonthly: 0,
+                    currency: 'MXN',
+                    features: JSON.stringify(["Gestión de Clientes", "Gestión de Préstamos"]),
+                    limits: JSON.stringify({ users: 3, loans: 100, clients: 200 }),
+                    isActive: true,
+                    trialDays: 14
+                }
+            });
+        }
+
         if (!plan) {
             return NextResponse.json({ error: 'Plan no encontrado' }, { status: 400 });
         }
