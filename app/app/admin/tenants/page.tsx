@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import {
@@ -87,6 +87,13 @@ interface AdminTenant {
     }
 }
 
+interface Plan {
+    id: string;
+    name: string;
+    displayName: string;
+    priceMonthly: number;
+}
+
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function TenantsPageV2() {
@@ -102,6 +109,18 @@ export default function TenantsPageV2() {
         status: 'ACTIVE',
         planName: 'starter'
     });
+
+    const { data: plans, isLoading: isLoadingPlans } = useSWR<Plan[]>('/api/admin/plans', fetcher);
+
+    useEffect(() => {
+        if (plans && plans.length > 0) {
+            // Si el plan seleccionado actualmente (ej. 'starter') no existe en la lista, seleccionar el primero
+            const currentExists = plans.find(p => p.name === formData.planName);
+            if (!currentExists) {
+                setFormData(prev => ({ ...prev, planName: plans[0].name }));
+            }
+        }
+    }, [plans]);
 
     const generateSlug = (name: string) => {
         return name.toLowerCase()
@@ -325,10 +344,14 @@ export default function TenantsPageV2() {
                                                     <SelectValue placeholder="Plan" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="starter">Starter</SelectItem>
-                                                    <SelectItem value="professional">Professional</SelectItem>
-                                                    <SelectItem value="business">Business</SelectItem>
-                                                    <SelectItem value="enterprise">Enterprise</SelectItem>
+                                                    {plans?.map((plan) => (
+                                                        <SelectItem key={plan.id} value={plan.name}>
+                                                            {plan.displayName}
+                                                        </SelectItem>
+                                                    ))}
+                                                    {!plans?.length && !isLoadingPlans && (
+                                                        <SelectItem value="starter">Starter (Auto-generado)</SelectItem>
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         </div>
