@@ -92,6 +92,7 @@ interface Plan {
     name: string;
     displayName: string;
     priceMonthly: number;
+    isActive: boolean;
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -111,6 +112,13 @@ export default function TenantsPageV2() {
     });
 
     const { data: plans, isLoading: isLoadingPlans } = useSWR<Plan[]>('/api/admin/plans', fetcher);
+
+    // Debugging plans
+    useEffect(() => {
+        if (plans) {
+            console.log('Plans loaded:', plans);
+        }
+    }, [plans]);
 
     useEffect(() => {
         if (plans && plans.length > 0) {
@@ -344,7 +352,7 @@ export default function TenantsPageV2() {
                                                     <SelectValue placeholder="Plan" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {plans?.map((plan) => (
+                                                    {plans?.filter(p => p.isActive).map((plan) => (
                                                         <SelectItem key={plan.id} value={plan.name}>
                                                             {plan.displayName}
                                                         </SelectItem>
