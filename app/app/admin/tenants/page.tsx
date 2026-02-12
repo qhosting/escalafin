@@ -523,7 +523,7 @@ function ModernTenantCard({
             </CardHeader>
             <CardContent className="pt-5 space-y-6">
                 <div className="flex items-center gap-2">
-                    <Badge className={`${planColors[tenant.subscription?.plan?.name || 'starter']} border px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-tight`}>
+                    <Badge className={`${planColors[tenant.subscription?.plan?.name || 'starter'] || 'bg-gray-50 text-gray-700 border-gray-100'} border px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-tight`}>
                         {tenant.subscription?.plan?.displayName || 'Starter'}
                     </Badge>
                     <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border border-transparent ${status.color} font-bold text-[10px] uppercase tracking-tight`}>
@@ -533,9 +533,9 @@ function ModernTenantCard({
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                    <StatItem icon={<Users className="w-3.5 h-3.5 text-blue-500" />} label="Users" value={tenant._count?.users || 0} />
-                    <StatItem icon={<Receipt className="w-3.5 h-3.5 text-emerald-500" />} label="Loans" value={tenant._count?.loans || 0} />
-                    <StatItem icon={<Search className="w-3.5 h-3.5 text-amber-500" />} label="Clients" value={tenant._count?.clients || 0} />
+                    <StatItem icon={<Users className="w-3.5 h-3.5 text-blue-500" />} label="Usuarios" value={tenant._count?.users || 0} />
+                    <StatItem icon={<Receipt className="w-3.5 h-3.5 text-emerald-500" />} label="Préstamos" value={tenant._count?.loans || 0} />
+                    <StatItem icon={<Search className="w-3.5 h-3.5 text-amber-500" />} label="Clientes" value={tenant._count?.clients || 0} />
                 </div>
 
                 <div className="pt-4 border-t border-gray-50 flex items-center justify-between">

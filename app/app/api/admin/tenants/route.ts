@@ -66,28 +66,40 @@ export async function POST(request: NextRequest) {
         }
 
         // Get plan
+        console.log(`🔍 Looking for plan with name: "${planName}"`);
         let plan = await prisma.plan.findUnique({ where: { name: planName } });
 
         // Auto-create starter plan if it doesn't exist to prevent provisioning breakage
         if (!plan && planName === 'starter') {
             console.log('🌱 Starter plan not found, creating it...');
-            plan = await prisma.plan.create({
-                data: {
-                    name: 'starter',
-                    displayName: 'Starter',
-                    description: 'Plan inicial auto-generado',
-                    priceMonthly: 0,
-                    currency: 'MXN',
-                    features: JSON.stringify(["Gestión de Clientes", "Gestión de Préstamos"]),
-                    limits: JSON.stringify({ users: 3, loans: 100, clients: 200 }),
-                    isActive: true,
-                    trialDays: 14
-                }
-            });
+            try {
+                plan = await prisma.plan.create({
+                    data: {
+                        name: 'starter',
+                        displayName: 'Starter',
+                        description: 'Plan inicial auto-generado',
+                        priceMonthly: 0,
+                        currency: 'MXN',
+                        features: JSON.stringify(["Gestión de Clientes", "Gestión de Préstamos"]),
+                        limits: JSON.stringify({ users: 3, loans: 100, clients: 200 }),
+                        isActive: true,
+                        trialDays: 14
+                    }
+                });
+            } catch (e) {
+                console.error("Error auto-creating starter plan:", e);
+            }
         }
 
         if (!plan) {
-            return NextResponse.json({ error: 'Plan no encontrado' }, { status: 400 });
+            console.error(`❌ Plan "${planName}" not found in database.`);
+            // Try to find ANY plan to fallback or help debug
+            const existingPlans = await prisma.plan.findMany({ select: { name: true } });
+            console.log("Available plans:", existingPlans.map(p => p.name));
+
+            return NextResponse.json({
+                error: `Plan no encontrado: "${planName}". Planes disponibles: ${existingPlans.map(p => p.name).join(', ')}`
+            }, { status: 400 });
         }
 
         // Create tenant and subscription in transaction

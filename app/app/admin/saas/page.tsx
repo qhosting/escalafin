@@ -74,19 +74,19 @@ export default function SaaSOverviewV2() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline" className="text-indigo-600 border-indigo-200 bg-indigo-50 font-bold px-3 py-0.5">PLATFORM OWNER</Badge>
+                        <Badge variant="outline" className="text-indigo-600 border-indigo-200 bg-indigo-50 font-bold px-3 py-0.5">PLATAFORMA</Badge>
                         <span className="text-xs text-gray-400 font-mono">Build v2.1.0-SaaS</span>
                     </div>
-                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">SaaS Command Center</h1>
+                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Centro de Comando SaaS</h1>
                     <p className="text-gray-500 max-w-2xl mt-1">Visión global de EscalaFin: salud de red, monetización y métricas de escala de todos los tenants.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Button variant="outline" className="gap-2">
-                        <Activity className="w-4 h-4" /> System Health
+                        <Activity className="w-4 h-4" /> Estado del Sistema
                     </Button>
                     <Link href="/admin/billing">
                         <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 font-bold">
-                            <ArrowTrendingUpIcon className="h-4 w-4 mr-2" /> Billing & Growth
+                            <ArrowTrendingUpIcon className="h-4 w-4 mr-2" /> Facturación y Crecimiento
                         </Button>
                     </Link>
                 </div>
@@ -273,7 +273,7 @@ export default function SaaSOverviewV2() {
                             <div className="space-y-6">
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-xs font-bold uppercase text-gray-400 tracking-wider">
-                                        <span>Cloud Database Capacity</span>
+                                        <span>Capacidad Base de Datos</span>
                                         <span className="text-indigo-600">42%</span>
                                     </div>
                                     <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
@@ -282,8 +282,8 @@ export default function SaaSOverviewV2() {
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-xs font-bold uppercase text-gray-400 tracking-wider">
-                                        <span>Global API Throughput</span>
-                                        <span className="text-emerald-600">Stable</span>
+                                        <span>Rendimiento API Global</span>
+                                        <span className="text-emerald-600">Estable</span>
                                     </div>
                                     <div className="flex items-end gap-1 h-8">
                                         {[40, 60, 30, 80, 50, 90, 45, 70, 60, 85, 40, 55].map((h, i) => (
@@ -296,7 +296,7 @@ export default function SaaSOverviewV2() {
                             </div>
                             <div className="bg-indigo-900 rounded-xl p-6 text-white text-center relative overflow-hidden shadow-xl shadow-indigo-200">
                                 <GlobeAltIcon className="h-32 w-32 absolute -bottom-10 -right-10 opacity-10" />
-                                <h4 className="text-lg font-bold mb-2">Escala Global Ready</h4>
+                                <h4 className="text-lg font-bold mb-2">Escala Global Lista</h4>
                                 <p className="text-indigo-200 text-xs leading-relaxed mb-4">La infraestructura está optimizada para manejar hasta 5,000 tenants concurrentes en esta región.</p>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-indigo-800/50 p-3 rounded-lg border border-indigo-700">
