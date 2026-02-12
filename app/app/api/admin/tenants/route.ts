@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
             await tx.subscription.create({
                 data: {
                     tenantId: newTenant.id,
-                    planId: plan.id,
+                    planId: plan!.id,
                     status: 'ACTIVE',
                     currentPeriodStart: new Date(),
                     currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
