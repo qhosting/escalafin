@@ -45,6 +45,16 @@ interface ChargeResponse {
   error_message?: string;
   order_id?: string;
   payment_url?: string;
+  payment_method?: {
+    type: string;
+    url?: string;
+    description?: string;
+    payment_url?: string;
+    agreement?: string;
+    bank?: string;
+    clabe?: string;
+    name?: string;
+  };
 }
 
 class OpenpayClient {
@@ -60,10 +70,10 @@ class OpenpayClient {
   }
 
   private getBaseUrl(): string {
-    return this.config.baseUrl || 
-           (this.config.isProduction 
-             ? 'https://api.openpay.mx/v1' 
-             : 'https://sandbox-api.openpay.mx/v1');
+    return this.config.baseUrl ||
+      (this.config.isProduction
+        ? 'https://api.openpay.mx/v1'
+        : 'https://sandbox-api.openpay.mx/v1');
   }
 
   async createCharge(chargeData: ChargeRequest): Promise<ChargeResponse> {
@@ -78,7 +88,7 @@ class OpenpayClient {
           },
         }
       );
-      
+
       return response.data;
     } catch (error: any) {
       console.error('Error creating charge:', error.response?.data || error.message);
@@ -96,7 +106,7 @@ class OpenpayClient {
           },
         }
       );
-      
+
       return response.data;
     } catch (error: any) {
       console.error('Error getting charge:', error.response?.data || error.message);
@@ -116,7 +126,7 @@ class OpenpayClient {
           },
         }
       );
-      
+
       return response.data;
     } catch (error: any) {
       console.error('Error creating customer:', error.response?.data || error.message);
@@ -132,13 +142,13 @@ export const getOpenpayClient = (): OpenpayClient => {
   if (!openpayClient) {
     // Obtener credenciales del archivo de secretos de API solo en servidor
     let secrets: any = {};
-    
+
     if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
       try {
         const fs = require('fs');
         const path = require('path');
         const secretsPath = path.join(process.env.HOME || '/home/ubuntu', '.api_secret_infos', 'api_secrets.json');
-        
+
         if (fs.existsSync(secretsPath)) {
           const secretsData = fs.readFileSync(secretsPath, 'utf8');
           const allSecrets = JSON.parse(secretsData);
@@ -148,7 +158,7 @@ export const getOpenpayClient = (): OpenpayClient => {
         console.warn('Could not load Openpay secrets from file, using environment variables');
       }
     }
-    
+
     const config: OpenpayConfig = {
       merchantId: secrets.MERCHANT_ID || process.env.OPENPAY_MERCHANT_ID || '',
       privateKey: secrets.PRIVATE_KEY || process.env.OPENPAY_PRIVATE_KEY || '',
