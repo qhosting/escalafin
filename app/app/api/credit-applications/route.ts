@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         const tenantPrisma = getTenantPrisma(tenantId);
 
         // 💡 Verificación de Límites SaaS
-        const limitError = await LimitsService.middleware(tenantId || '', 'credit_applications');
+        const limitError = await LimitsService.middleware(tenantId || '', 'loans');
         if (limitError) return limitError;
 
         const body = await request.json();
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
 
         // 📈 Incrementar uso en SaaS
         if (tenantId) {
-            await UsageTracker.incrementUsage(tenantId, 'creditApplicationsCount');
+            await UsageTracker.incrementUsage(tenantId, 'loansCount');
         }
 
         return NextResponse.json(application, { status: 201 });
