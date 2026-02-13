@@ -491,10 +491,16 @@ function ModernTenantCard({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="rounded-2xl w-48 shadow-xl border-gray-100">
                             <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-widest px-4 py-2">Administrar</DropdownMenuLabel>
-                            <DropdownMenuItem className="cursor-pointer gap-2 px-4 py-2.5">
+                            <DropdownMenuItem
+                                className="cursor-pointer gap-2 px-4 py-2.5"
+                                onClick={() => window.open(`https://${tenant.slug}.escalafin.app`, '_blank')}
+                            >
                                 <ExternalLink className="w-4 h-4" /> Ir a Subdominio
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer gap-2 px-4 py-2.5">
+                            <DropdownMenuItem
+                                className="cursor-pointer gap-2 px-4 py-2.5"
+                                onClick={() => router.push(`/admin/audit?tenantId=${tenant.id}`)}
+                            >
                                 <Activity className="w-4 h-4" /> Ver Auditoría
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />

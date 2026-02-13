@@ -23,10 +23,21 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const asesorId = searchParams.get('asesorId');
+    const search = searchParams.get('search');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
 
     let whereClause: any = {};
+
+    // Filtro de búsqueda
+    if (search) {
+      whereClause.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } }
+      ];
+    }
 
     // Filtros según rol (El aislamiento por tenant ya lo hace getTenantPrisma)
     if (session.user.role === 'ASESOR') {

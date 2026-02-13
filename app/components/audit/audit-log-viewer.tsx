@@ -39,6 +39,8 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+import { useSearchParams } from 'next/navigation';
+
 interface AuditLog {
   id: string;
   userId?: string;
@@ -69,6 +71,7 @@ interface AuditStats {
 }
 
 const AuditLogViewer: React.FC = () => {
+  const searchParams = useSearchParams();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [stats, setStats] = useState<AuditStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,7 +86,8 @@ const AuditLogViewer: React.FC = () => {
     resource: '',
     startDate: '',
     endDate: '',
-    search: '',
+    search: searchParams.get('search') || '',
+    tenantId: searchParams.get('tenantId') || '',
   });
 
   const [currentPage, setCurrentPage] = useState(1);

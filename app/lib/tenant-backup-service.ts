@@ -155,7 +155,7 @@ export class TenantBackupService {
             // Import data (update tenantId to target tenant)
             if (!options?.skipUsers && backup.users.length > 0) {
                 for (const user of backup.users) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...userData } = user;
+                    const { createdAt, updatedAt, tenantId: _, ...userData } = user;
                     await tx.user.create({
                         data: {
                             ...userData,
@@ -168,7 +168,7 @@ export class TenantBackupService {
             // Import clients
             if (!options?.skipClients && backup.clients.length > 0) {
                 for (const client of backup.clients) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...clientData } = client;
+                    const { createdAt, updatedAt, tenantId: _, ...clientData } = client;
                     await tx.client.create({
                         data: {
                             ...clientData,
@@ -181,7 +181,7 @@ export class TenantBackupService {
             // Import system config
             if (backup.systemConfig.length > 0) {
                 for (const config of backup.systemConfig) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...configData } = config;
+                    const { createdAt, updatedAt, tenantId: _, ...configData } = config;
                     await tx.systemConfig.create({
                         data: {
                             ...configData,
@@ -194,7 +194,7 @@ export class TenantBackupService {
             // Import message templates
             if (backup.messageTemplates.length > 0) {
                 for (const template of backup.messageTemplates) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...templateData } = template;
+                    const { createdAt, updatedAt, tenantId: _, ...templateData } = template;
                     await tx.messageTemplate.create({
                         data: {
                             ...templateData,
@@ -207,7 +207,7 @@ export class TenantBackupService {
             // Import waha config
             if (backup.wahaConfig.length > 0) {
                 for (const config of backup.wahaConfig) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...configData } = config;
+                    const { createdAt, updatedAt, tenantId: _, ...configData } = config;
                     await tx.wahaConfig.create({
                         data: {
                             ...configData,
@@ -220,7 +220,7 @@ export class TenantBackupService {
             // Import report templates
             if (backup.reportTemplates.length > 0) {
                 for (const template of backup.reportTemplates) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...templateData } = template;
+                    const { createdAt, updatedAt, tenantId: _, ...templateData } = template;
                     await tx.reportTemplate.create({
                         data: {
                             ...templateData,
@@ -233,7 +233,7 @@ export class TenantBackupService {
             // Import loans (if not skipped)
             if (!options?.skipLoans && backup.loans.length > 0) {
                 for (const loan of backup.loans) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...loanData } = loan;
+                    const { createdAt, updatedAt, tenantId: _, ...loanData } = loan;
                     await tx.loan.create({
                         data: {
                             ...loanData,
@@ -246,7 +246,7 @@ export class TenantBackupService {
             // Import payments (if not skipped)
             if (!options?.skipPayments && backup.payments.length > 0) {
                 for (const payment of backup.payments) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...paymentData } = payment;
+                    const { createdAt, updatedAt, tenantId: _, ...paymentData } = payment;
                     await tx.payment.create({
                         data: {
                             ...paymentData,
@@ -259,7 +259,7 @@ export class TenantBackupService {
             // Import credit applications
             if (backup.creditApplications.length > 0) {
                 for (const app of backup.creditApplications) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...appData } = app;
+                    const { createdAt, updatedAt, tenantId: _, ...appData } = app;
                     await tx.creditApplication.create({
                         data: {
                             ...appData,
@@ -272,7 +272,7 @@ export class TenantBackupService {
             // Import personal references
             if (backup.personalReferences.length > 0) {
                 for (const ref of backup.personalReferences) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...refData } = ref;
+                    const { createdAt, updatedAt, tenantId: _, ...refData } = ref;
                     await tx.personalReference.create({
                         data: {
                             ...refData,
@@ -285,7 +285,7 @@ export class TenantBackupService {
             // Import guarantors
             if (backup.guarantors.length > 0) {
                 for (const guarantor of backup.guarantors) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...guarantorData } = guarantor;
+                    const { createdAt, updatedAt, tenantId: _, ...guarantorData } = guarantor;
                     await tx.guarantor.create({
                         data: {
                             ...guarantorData,
@@ -298,7 +298,7 @@ export class TenantBackupService {
             // Import collaterals
             if (backup.collaterals.length > 0) {
                 for (const collateral of backup.collaterals) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...collateralData } = collateral;
+                    const { createdAt, updatedAt, tenantId: _, ...collateralData } = collateral;
                     await tx.collateral.create({
                         data: {
                             ...collateralData,
@@ -311,7 +311,7 @@ export class TenantBackupService {
             // Import credit scores
             if (backup.creditScores.length > 0) {
                 for (const score of backup.creditScores) {
-                    const { id, createdAt, updatedAt, tenantId: _, ...scoreData } = score;
+                    const { createdAt, updatedAt, tenantId: _, ...scoreData } = score;
                     await tx.creditScore.create({
                         data: {
                             ...scoreData,

@@ -41,9 +41,21 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
     try {
       const response = await fetch('/api/clients');
       if (!response.ok) throw new Error('Error al cargar clientes');
-      
+
       const data = await response.json();
-      setClients(data);
+      // Handle both array and object responses
+      const clientsData = Array.isArray(data) ? data : (data.clients || []);
+
+      // Transform data if needed (api returns firstName/lastName, component expects name)
+      const transformedClients = clientsData.map((c: any) => ({
+        ...c,
+        name: c.firstName && c.lastName ? `${c.firstName} ${c.lastName}` : (c.name || 'Sin nombre'),
+        documentNumber: c.accountNumber || 'N/A', // Using accountNumber as documentNumber placeholder
+        totalLoans: c.loans?.length || 0,
+        totalAmount: c.loans?.reduce((acc: number, l: any) => acc + (l.balanceRemaining || 0), 0) || 0
+      }));
+
+      setClients(transformedClients);
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast.error('Error al cargar los clientes');
@@ -53,9 +65,9 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
   };
 
   const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.documentNumber.includes(searchTerm)
+    client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (client.documentNumber && client.documentNumber.includes(searchTerm))
   );
 
   if (loading) {
@@ -75,8 +87,8 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
             {userRole === 'ASESOR' ? 'Mis Clientes' : 'Gestión de Clientes'}
           </h1>
           <p className="text-gray-600">
-            {userRole === 'ASESOR' 
-              ? 'Administra tu cartera de clientes asignados' 
+            {userRole === 'ASESOR'
+              ? 'Administra tu cartera de clientes asignados'
               : 'Administra todos los clientes del sistema'
             }
           </p>
@@ -118,7 +130,7 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
@@ -203,7 +215,7 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3">
                       <div className="text-right text-sm">
                         <p className="font-medium text-gray-900">

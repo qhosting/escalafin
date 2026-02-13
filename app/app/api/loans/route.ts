@@ -23,10 +23,26 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const clientId = searchParams.get('clientId');
+    const search = searchParams.get('search');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
     let whereClause: any = {};
+
+    // Filtro de búsqueda
+    if (search) {
+      whereClause.OR = [
+        { loanNumber: { contains: search, mode: 'insensitive' } },
+        {
+          client: {
+            OR: [
+              { firstName: { contains: search, mode: 'insensitive' } },
+              { lastName: { contains: search, mode: 'insensitive' } }
+            ]
+          }
+        }
+      ];
+    }
 
     // Filtros según rol (Aislamiento por tenant ya aplicado por tenantPrisma)
     if (session.user.role === 'ASESOR') {
