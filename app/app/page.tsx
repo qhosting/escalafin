@@ -267,7 +267,11 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <PricingSection />
+
       {/* CTA Section */}
+
       <section className="py-20 bg-primary text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-indigo-600"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">

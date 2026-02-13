@@ -34,6 +34,7 @@ import {
 import { NotificationSettings } from '@/components/notifications/NotificationSettings';
 import { IntegrationsSettings } from '@/components/admin/integrations-settings';
 import { BrandingSettings } from '@/components/admin/branding-settings';
+import { SubscriptionSettings } from '@/components/admin/subscription-settings';
 import { toast } from 'sonner';
 
 interface SystemSettings {
@@ -260,7 +261,16 @@ export default function AdminSettingsPage() {
               <Phone className="h-4 w-4" />
               Contacto Soporte
             </TabsTrigger>
+            <TabsTrigger value="billing" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Suscripción
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="billing">
+            <SubscriptionSettings />
+          </TabsContent>
+
 
           {/* SPEI Settings */}
           <TabsContent value="spei">

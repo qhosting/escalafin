@@ -118,8 +118,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Note: SaaS Subscription events should be handled here by looking up the Invoice
+    // via transaction.order_id or transaction.id, since PaymentTransaction is linked to Loan Payments only.
+
     // Log de auditoría
     const auditLogger = new AuditLogger(prisma);
+
     await auditLogger.log({
       action: 'WEBHOOK_RECEIVED',
       resource: 'PaymentTransaction',
