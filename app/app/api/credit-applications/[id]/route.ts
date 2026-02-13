@@ -58,7 +58,7 @@ export async function GET(
         }
 
         // El asesor solo puede ver solicitudes que él creó (si no es admin)
-        if (session.user.role === 'ASESOR' && application.createdById !== session.user.id) {
+        if (session.user.role === 'ASESOR' && application.asesorId !== session.user.id) {
             return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
         }
 
@@ -94,7 +94,7 @@ export async function DELETE(
             return NextResponse.json({ error: 'Solicitud no encontrada' }, { status: 404 });
         }
 
-        if (session.user.role !== 'ADMIN' && application.createdById !== session.user.id) {
+        if (session.user.role !== 'ADMIN' && application.asesorId !== session.user.id) {
             return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
         }
 

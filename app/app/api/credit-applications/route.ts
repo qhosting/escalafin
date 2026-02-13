@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
         // Filtros según rol
         if (session.user.role === 'ASESOR') {
-            whereClause.createdById = session.user.id;
+            whereClause.asesorId = session.user.id;
         } else if (session.user.role === 'CLIENTE') {
             whereClause.clientId = session.user.id;
         }
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         }
 
         if (asesorId && session.user.role === 'ADMIN') {
-            whereClause.createdById = asesorId;
+            whereClause.asesorId = asesorId;
         }
 
         const applications = await tenantPrisma.creditApplication.findMany({
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
                 requestedTerm: parseInt(requestedTerm),
                 purpose: purpose || '',
                 status: ApplicationStatus.PENDING,
-                createdById: session.user.id
+                asesorId: session.user.id
             },
             include: {
                 client: true,
