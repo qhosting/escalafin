@@ -98,6 +98,7 @@ interface Plan {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function TenantsPageV2() {
+    const router = useRouter();
     const { data: tenants, error, mutate, isLoading } = useSWR<AdminTenant[]>('/api/admin/tenants', fetcher);
     const [searchTerm, setSearchTerm] = useState('');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -443,6 +444,7 @@ function ModernTenantCard({
     onImportBackup: (id: string, name: string) => void,
     isLoading: boolean
 }) {
+    const router = useRouter();
     const isSuspended = tenant.status === 'SUSPENDED' || tenant.status === 'PAST_DUE';
     const planColors: any = {
         starter: 'bg-amber-50 text-amber-700 border-amber-100',
