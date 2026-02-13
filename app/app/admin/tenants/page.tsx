@@ -343,7 +343,7 @@ export default function TenantsPageV2() {
                                                 required
                                             />
                                             <span className="bg-gray-50 border border-l-0 border-gray-200 text-gray-400 px-3 py-2 rounded-r-xl text-sm font-medium leading-none flex items-center h-[40px]">
-                                                .app.mx
+                                                .escalafin.com
                                             </span>
                                         </div>
                                     </div>
@@ -495,7 +495,7 @@ function ModernTenantCard({
                             <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-widest px-4 py-2">Administrar</DropdownMenuLabel>
                             <DropdownMenuItem
                                 className="cursor-pointer gap-2 px-4 py-2.5"
-                                onClick={() => window.open(`https://${tenant.slug}.escalafin.app`, '_blank')}
+                                onClick={() => window.open(`https://${tenant.slug}.escalafin.com`, '_blank')}
                             >
                                 <ExternalLink className="w-4 h-4" /> Ir a Subdominio
                             </DropdownMenuItem>
