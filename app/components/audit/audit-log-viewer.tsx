@@ -154,6 +154,7 @@ const AuditLogViewer: React.FC = () => {
       startDate: '',
       endDate: '',
       search: '',
+      tenantId: '',
     });
     setCurrentPage(1);
   };
