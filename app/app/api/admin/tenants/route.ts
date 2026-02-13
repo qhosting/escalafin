@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
                 data: {
                     name,
                     slug,
-                    domain,
+                    domain: domain || null, // Convert empty string to null to avoid unique constraint error
                     status: status || 'ACTIVE',
                 }
             });
