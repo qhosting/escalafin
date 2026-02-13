@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
             ...subscription,
             usage: {
                 ...usage,
-                storage: Number(usage.storageBytes) / (1024 * 1024 * 1024) // Convert to GB for frontend
+                storage: Number(usage?.storageBytes ?? 0) / (1024 * 1024 * 1024) // Convert to GB for frontend
             }
         });
 
