@@ -370,14 +370,6 @@ docker-compose up -d
 - **Horario**: Lun-Vie 9:00-18:00, Sáb 9:00-14:00
 - **Página**: `/soporte` (accesible desde la aplicación)
 
-### **Datos SPEI para Recargas**
-```
-Banco: KLAR
-Titular: Edwin Zapote Salinas
-CLABE: 661610002201495542
-Concepto: Recarga mensajes WhatsApp
-```
-
 ---
 
 ## 📚 **Documentación**

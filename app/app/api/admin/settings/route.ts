@@ -39,6 +39,18 @@ const DEFAULT_SETTINGS: any = {
     autoBackup: true,
     backupFrequency: 'daily',
     maxFileSize: 50
+  },
+  support_spei: {
+    bank: 'BANCO',
+    holder: 'NOMBRE DEL TITULAR',
+    clabe: '000000000000000000',
+    instructions: '1. Utiliza los datos SPEI proporcionados\n2. Incluye tu número de cliente en el concepto\n3. Envía el comprobante por WhatsApp\n4. Espera la confirmación de recarga'
+  },
+  support_contact: {
+    email: 'soporte@escalafin.com',
+    whatsapp: '+525512345678',
+    whatsappDisplay: '+52 55 1234 5678',
+    workingHours: 'Lunes a Viernes: 9:00 AM - 6:00 PM\nSábados: 9:00 AM - 2:00 PM'
   }
 };
 

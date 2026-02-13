@@ -42,6 +42,18 @@ interface SystemSettings {
     currency: string;
     language: string;
   };
+  support_spei: {
+    bank: string;
+    holder: string;
+    clabe: string;
+    instructions: string;
+  };
+  support_contact: {
+    email: string;
+    whatsapp: string;
+    whatsappDisplay: string;
+    workingHours: string;
+  };
   notifications: {
     emailEnabled: boolean;
     whatsappEnabled: boolean;
@@ -77,6 +89,18 @@ export default function AdminSettingsPage() {
       timezone: 'America/Mexico_City',
       currency: 'MXN',
       language: 'es'
+    },
+    support_spei: {
+      bank: 'BANCO',
+      holder: 'NOMBRE DEL TITULAR',
+      clabe: '000000000000000000',
+      instructions: '1. Utiliza los datos SPEI proporcionados\n2. Incluye tu número de cliente en el concepto\n3. Envía el comprobante por WhatsApp\n4. Espera la confirmación de recarga'
+    },
+    support_contact: {
+      email: 'soporte@escalafin.com',
+      whatsapp: '+525512345678',
+      whatsappDisplay: '+52 55 1234 5678',
+      workingHours: 'Lunes a Viernes: 9:00 AM - 6:00 PM\nSábados: 9:00 AM - 2:00 PM'
     },
     notifications: {
       emailEnabled: true,
@@ -158,7 +182,7 @@ export default function AdminSettingsPage() {
 
   if (loading) {
     return (
-      <AuthWrapper allowedRoles={['ADMIN']}>
+      <AuthWrapper allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
         <div className="flex items-center justify-center min-h-64">
           <RefreshCw className="h-8 w-8 animate-spin" />
         </div>
@@ -167,7 +191,7 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <AuthWrapper allowedRoles={['ADMIN']}>
+    <AuthWrapper allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
       <div className="space-y-6">
         <div className="flex justify-between items-start">
           <div>
@@ -225,7 +249,134 @@ export default function AdminSettingsPage() {
               <Key className="h-4 w-4" />
               Integraciones
             </TabsTrigger>
+            <TabsTrigger value="spei" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Recargas SPEI
+            </TabsTrigger>
+            <TabsTrigger value="soporte" className="flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              Contacto Soporte
+            </TabsTrigger>
           </TabsList>
+
+          {/* SPEI Settings */}
+          <TabsContent value="spei">
+            <Card>
+              <CardHeader>
+                <CardTitle>Datos para Recargas SPEI</CardTitle>
+                <CardDescription>
+                  Configura los datos bancarios que verán los clientes para realizar transferencias.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="spei_bank">Banco</Label>
+                    <Input
+                      id="spei_bank"
+                      value={settings.support_spei?.bank || ''}
+                      onChange={(e) => updateSetting('support_spei', 'bank', e.target.value)}
+                      placeholder="Ej. KLAR, BBVA, etc."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="spei_holder">Titular de la Cuenta</Label>
+                    <Input
+                      id="spei_holder"
+                      value={settings.support_spei?.holder || ''}
+                      onChange={(e) => updateSetting('support_spei', 'holder', e.target.value)}
+                      placeholder="Nombre completo del titular"
+                    />
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="spei_clabe">CLABE Interbancaria (18 dígitos)</Label>
+                    <Input
+                      id="spei_clabe"
+                      value={settings.support_spei?.clabe || ''}
+                      onChange={(e) => updateSetting('support_spei', 'clabe', e.target.value)}
+                      placeholder="000 000 0000 0000 0000"
+                    />
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="spei_instructions">Instrucciones de Pago</Label>
+                    <textarea
+                      id="spei_instructions"
+                      rows={5}
+                      className="w-full p-2 border rounded-md font-mono text-sm"
+                      value={settings.support_spei?.instructions || ''}
+                      onChange={(e) => updateSetting('support_spei', 'instructions', e.target.value)}
+                      placeholder="Instrucciones paso a paso..."
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Usa saltos de línea para separar los pasos.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Support Contact Settings */}
+          <TabsContent value="soporte">
+            <Card>
+              <CardHeader>
+                <CardTitle>Contacto de Soporte Técnico</CardTitle>
+                <CardDescription>
+                  Configura los medios de contacto que verán los usuarios en la página de soporte.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="support_email">Email de Soporte</Label>
+                    <Input
+                      id="support_email"
+                      value={settings.support_contact?.email || ''}
+                      onChange={(e) => updateSetting('support_contact', 'email', e.target.value)}
+                      placeholder="soporte@ejemplo.com"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="support_whatsapp">WhatsApp (Link numérico)</Label>
+                    <Input
+                      id="support_whatsapp"
+                      value={settings.support_contact?.whatsapp || ''}
+                      onChange={(e) => updateSetting('support_contact', 'whatsapp', e.target.value)}
+                      placeholder="525512345678 (Sin símbolos)"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Usado para generar enlaces directos wa.me/</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="support_whatsapp_display">WhatsApp (Visual)</Label>
+                    <Input
+                      id="support_whatsapp_display"
+                      value={settings.support_contact?.whatsappDisplay || ''}
+                      onChange={(e) => updateSetting('support_contact', 'whatsappDisplay', e.target.value)}
+                      placeholder="+52 55 1234 5678"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Como se muestra en la pantalla al usuario</p>
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="support_working_hours">Horarios de Atención</Label>
+                    <textarea
+                      id="support_working_hours"
+                      rows={3}
+                      className="w-full p-2 border rounded-md font-mono text-sm"
+                      value={settings.support_contact?.workingHours || ''}
+                      onChange={(e) => updateSetting('support_contact', 'workingHours', e.target.value)}
+                      placeholder="Lunes a Viernes: ..."
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Integrations Settings */}
           <TabsContent value="integrations">
@@ -566,6 +717,6 @@ export default function AdminSettingsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AuthWrapper>
+    </AuthWrapper >
   );
 }

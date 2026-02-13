@@ -3,7 +3,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, HelpCircle, MessageSquare, Phone, Mail, CreditCard, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,14 +14,52 @@ export default function SoportePage() {
   const sessionResult = useSession();
   const { data: session, status } = sessionResult || {};
   const router = useRouter();
+  const [speiData, setSpeiData] = useState({
+    bank: 'BANCO',
+    holder: 'NOMBRE DEL TITULAR',
+    clabe: '000000000000000000',
+    instructions: '1. Utiliza los datos SPEI proporcionados\n2. Incluye tu número de cliente en el concepto\n3. Envía el comprobante por WhatsApp\n4. Espera la confirmación de recarga'
+  });
+  const [loadingSpei, setLoadingSpei] = useState(true);
+  const [contactData, setContactData] = useState({
+    email: 'soporte@escalafin.com',
+    whatsapp: '+525512345678',
+    whatsappDisplay: '+52 55 1234 5678',
+    workingHours: 'Lunes a Viernes: 9:00 AM - 6:00 PM\nSábados: 9:00 AM - 2:00 PM'
+  });
 
   useEffect(() => {
     if (status === 'loading') return;
-    
+
     if (!session) {
       router.push('/auth/login');
       return;
     }
+
+    // Cargar datos desde configuración global
+    const fetchData = async () => {
+      try {
+        // Cargar SPEI
+        const speiRes = await fetch('/api/admin/settings?category=support_spei');
+        if (speiRes.ok) {
+          const data = await speiRes.json();
+          if (data.settings) setSpeiData(data.settings);
+        }
+
+        // Cargar Contacto
+        const contactRes = await fetch('/api/admin/settings?category=support_contact');
+        if (contactRes.ok) {
+          const data = await contactRes.json();
+          if (data.settings) setContactData(data.settings);
+        }
+      } catch (error) {
+        console.error('Error fetching support data:', error);
+      } finally {
+        setLoadingSpei(false);
+      }
+    };
+
+    fetchData();
   }, [session, status, router]);
 
   if (status === 'loading') {
@@ -68,13 +106,13 @@ export default function SoportePage() {
                   <Mail className="h-4 w-4 text-blue-500" />
                   <div>
                     <p className="font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">soporte@escalafin.com</p>
+                    <p className="text-sm text-muted-foreground">{contactData.email}</p>
                   </div>
                 </div>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
-                  onClick={() => copyToClipboard('soporte@escalafin.com')}
+                  onClick={() => copyToClipboard(contactData.email)}
                 >
                   Copiar
                 </Button>
@@ -85,13 +123,13 @@ export default function SoportePage() {
                   <MessageSquare className="h-4 w-4 text-green-500" />
                   <div>
                     <p className="font-medium">WhatsApp</p>
-                    <p className="text-sm text-muted-foreground">+52 55 1234 5678</p>
+                    <p className="text-sm text-muted-foreground">{contactData.whatsappDisplay}</p>
                   </div>
                 </div>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
-                  onClick={() => window.open('https://wa.me/5255123456789', '_blank')}
+                  onClick={() => window.open(`https://wa.me/${contactData.whatsapp.replace(/\+/g, '')}`, '_blank')}
                 >
                   Abrir Chat
                 </Button>
@@ -99,10 +137,9 @@ export default function SoportePage() {
             </div>
 
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800">
+              <p className="text-sm text-blue-800 whitespace-pre-line">
                 <strong>Horario de atención:</strong><br />
-                Lunes a Viernes: 9:00 AM - 6:00 PM<br />
-                Sábados: 9:00 AM - 2:00 PM
+                {contactData.workingHours}
               </p>
             </div>
           </CardContent>
@@ -151,7 +188,7 @@ export default function SoportePage() {
                 </p>
               </div>
 
-              <Button 
+              <Button
                 className="w-full"
                 onClick={() => window.open('https://wa.me/5255123456789?text=Hola, necesito información sobre recarga de mensajes WhatsApp', '_blank')}
               >
@@ -177,11 +214,11 @@ export default function SoportePage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Banco</label>
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <span className="font-mono">KLAR</span>
-                  <Button 
-                    variant="outline" 
+                  <span className="font-mono">{speiData.bank}</span>
+                  <Button
+                    variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard('KLAR')}
+                    onClick={() => copyToClipboard(speiData.bank)}
                   >
                     Copiar
                   </Button>
@@ -191,11 +228,11 @@ export default function SoportePage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Titular</label>
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <span className="font-mono">Edwin Zapote Salinas</span>
-                  <Button 
-                    variant="outline" 
+                  <span className="font-mono">{speiData.holder}</span>
+                  <Button
+                    variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard('Edwin Zapote Salinas')}
+                    onClick={() => copyToClipboard(speiData.holder)}
                   >
                     Copiar
                   </Button>
@@ -205,11 +242,11 @@ export default function SoportePage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">CLABE</label>
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <span className="font-mono">661610002201495542</span>
-                  <Button 
-                    variant="outline" 
+                  <span className="font-mono">{speiData.clabe}</span>
+                  <Button
+                    variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard('661610002201495542')}
+                    onClick={() => copyToClipboard(speiData.clabe)}
                   >
                     Copiar
                   </Button>
@@ -222,17 +259,14 @@ export default function SoportePage() {
                 <h4 className="font-semibold text-blue-800 mb-3">
                   Instrucciones para Transferencia
                 </h4>
-                <ol className="text-sm text-blue-700 space-y-2">
-                  <li>1. Utiliza los datos SPEI proporcionados</li>
-                  <li>2. Incluye tu número de cliente en el concepto</li>
-                  <li>3. Envía el comprobante por WhatsApp</li>
-                  <li>4. Espera la confirmación de recarga</li>
-                </ol>
+                <div className="text-sm text-blue-700 space-y-2 whitespace-pre-line">
+                  {speiData.instructions}
+                </div>
               </div>
 
               <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                 <p className="text-sm text-yellow-800">
-                  <strong>Importante:</strong> Las transferencias se procesan de Lunes a Viernes en horario bancario. 
+                  <strong>Importante:</strong> Las transferencias se procesan de Lunes a Viernes en horario bancario.
                   El tiempo de procesamiento es de 1 a 2 horas hábiles.
                 </p>
               </div>
@@ -242,7 +276,7 @@ export default function SoportePage() {
           <Separator className="my-6" />
 
           <div className="flex gap-4 justify-center">
-            <Button 
+            <Button
               variant="outline"
               onClick={() => window.open('mailto:soporte@escalafin.com?subject=Consulta de Soporte&body=Hola, necesito ayuda con...', '_blank')}
             >
