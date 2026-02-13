@@ -21,7 +21,8 @@ export type AuditAction =
   | 'WAHA_WEBHOOK_RECEIVED' | 'WAHA_WEBHOOK_ERROR'
   | 'WAHA_SESSION_UPDATE'
   | 'PLAN_CREATE' | 'PLAN_UPDATE' | 'PLAN_DELETE'
-  | 'CLIENT_CREATE' | 'CLIENT_UPDATE' | 'CLIENT_DELETE';
+  | 'CLIENT_CREATE' | 'CLIENT_UPDATE' | 'CLIENT_DELETE'
+  | 'TENANT_EXPORT' | 'TENANT_RESTORE';
 
 export interface AuditLogData {
   userId?: string;
