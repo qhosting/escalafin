@@ -26,7 +26,9 @@ import {
   Info,
   User,
   Key,
-  Palette
+  Palette,
+  CreditCard,
+  Phone
 } from 'lucide-react';
 import { NotificationSettings } from '@/components/notifications/NotificationSettings';
 import { IntegrationsSettings } from '@/components/admin/integrations-settings';
