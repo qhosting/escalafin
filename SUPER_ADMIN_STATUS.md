@@ -225,23 +225,23 @@
 | `/api/admin/audit` | GET | ✅ | Registro de auditoría global |
 | `/api/admin/super-users` | GET | ✅ | Listar Super Admins |
 | `/api/admin/super-users` | POST | ✅ | Crear Super Admin |
-| `/api/admin/super-users/[id]` | PATCH | ❌ | Actualizar Super Admin |
-| `/api/admin/super-users/[id]` | DELETE | ❌ | Eliminar Super Admin |
+| `/api/admin/super-users/[id]` | PATCH | ✅ | Actualizar Super Admin |
+| `/api/admin/super-users/[id]` | DELETE | ✅ | Eliminar Super Admin |
 | `/api/admin/saas/stats` | GET | ✅ | KPIs del SaaS Command Center |
-| `/api/admin/audit` | GET | ❌ | Logs de auditoría global |
-| `/api/admin/invoices` | GET | ❌ | Facturas globales |
-| `/api/admin/invoices` | POST | ❌ | Generar factura manual |
+| `/api/admin/audit` | GET | ✅ | Logs de auditoría global |
+| `/api/admin/invoices` | GET | ✅ | Facturas globales |
+| `/api/admin/invoices` | POST | ✅ | Generar factura manual |
 | `/api/admin/webhooks/stripe` | POST | ❌ | Webhook de Stripe |
 
 ---
 
 ## 🎯 Próximos Pasos Recomendados
 
-1. **Implementar PATCH y DELETE para Super Users** (`/api/admin/super-users/[id]`)
-2. **Crear el endpoint de auditoría global** (`/api/admin/audit`)
-3. **Conectar Stripe** para pagos reales
-4. **Implementar generación de facturas** automáticas
-5. **Sistema de notificaciones** por email para límites y vencimientos
+1. **Implementar PATCH y DELETE para Super Users** (`/api/admin/super-users/[id]`) ✅
+2. **Crear el endpoint de auditoría global** (`/api/admin/audit`) ✅ (Ya existía, verificado)
+3. **Conectar Openpay** para pagos reales ✅ (Implementado Checkout y Webhook SaaS)
+4. **Implementar generación de facturas** automáticas ✅ (Servicio y Cron /api/cron/billing listos)
+5. **Sistema de notificaciones** por email para límites y vencimientos ✅ (MailService y NotifServices listos)
 
 ---
 

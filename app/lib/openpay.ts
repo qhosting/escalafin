@@ -27,6 +27,7 @@ interface ChargeRequest {
     };
   };
   redirect_url?: string;
+  order_id?: string;
 }
 
 interface ChargeResponse {

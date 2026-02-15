@@ -93,6 +93,55 @@ export class MailService {
     });
   }
 
+  static async sendInvoiceEmail(to: string, data: {
+    invoiceNumber: string,
+    amount: number,
+    dueDate: string,
+    companyName: string
+  }) {
+    const html = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                <h2 style="color: #4f46e5;">Nueva Factura Generada</h2>
+                <p>Hola,</p>
+                <p>Se ha generado una nueva factura por el servicio de EscalaFin para <strong>${data.companyName}</strong>.</p>
+                <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #f3f4f6;">
+                    <p style="margin: 5px 0;"><strong>Factura:</strong> ${data.invoiceNumber}</p>
+                    <p style="margin: 5px 0;"><strong>Monto:</strong> $${data.amount.toLocaleString('es-MX')}</p>
+                    <p style="margin: 5px 0;"><strong>Fecha de Vencimiento:</strong> ${data.dueDate}</p>
+                </div>
+                <p>Puedes ver y pagar esta factura desde tu panel de administración.</p>
+                <a href="${process.env.NEXTAUTH_URL}/admin/billing" style="display: inline-block; background-color: #4f46e5; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Ver Factura</a>
+            </div>
+        `;
+
+    return sendEmail({
+      to,
+      subject: `Nueva Factura ${data.invoiceNumber} - EscalaFin`,
+      html
+    });
+  }
+
+  static async sendSubscriptionExpiringSoon(to: string, data: {
+    companyName: string,
+    daysRemaining: number,
+    upgradeUrl: string
+  }) {
+    const html = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                <h2 style="color: #f59e0b;">Aviso de Suscripción</h2>
+                <p>Tu suscripción para <strong>${data.companyName}</strong> vencerá en <strong>${data.daysRemaining} días</strong>.</p>
+                <p>Para evitar interrupciones en el servicio, asegúrate de que tu método de pago esté actualizado o renueva tu plan.</p>
+                <a href="${data.upgradeUrl}" style="display: inline-block; background-color: #f59e0b; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Gestionar Suscripción</a>
+            </div>
+        `;
+
+    return sendEmail({
+      to,
+      subject: `Aviso de Vencimiento - ${data.companyName}`,
+      html
+    });
+  }
+
   /**
    * Genera un diseño de correo con el branding del tenant
    */

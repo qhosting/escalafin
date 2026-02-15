@@ -37,15 +37,66 @@ export async function POST(req: NextRequest) {
             return new NextResponse('Plan not found', { status: 404 });
         }
 
-        // TODO: Implement Openpay Checkout logic
-        // For now, return a placeholder or redirect to a manual payment info page
+        // 1. Create a draft invoice
+        const subscription = tenant.subscription;
+        if (!subscription) {
+            return new NextResponse('Subscription not found', { status: 404 });
+        }
 
-        console.log(`Openpay checkout initiated for plan ${plan.name} by tenant ${tenant.name}`);
-
-        return NextResponse.json({
-            error: 'Checkout con Openpay en desarrollo. Contacte a soporte para activación manual.',
-            url: '/admin/billing/subscription'
+        const invoice = await prisma.invoice.create({
+            data: {
+                subscriptionId: subscription.id,
+                amount: plan.priceMonthly,
+                subtotal: plan.priceMonthly,
+                currency: plan.currency || 'MXN',
+                status: 'DRAFT',
+                dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days for checkout
+                invoiceNumber: `INV-${Date.now()}`,
+                lineItems: JSON.stringify([{
+                    planId: plan.id,
+                    description: `Suscripción Plan ${plan.displayName}`,
+                    amount: Number(plan.priceMonthly)
+                }])
+            }
         });
+
+        // 2. Initialize Openpay charge
+        const { getOpenpayClient } = await import('@/lib/openpay');
+        const openpay = getOpenpayClient();
+
+        try {
+            const charge = await openpay.createCharge({
+                method: 'card',
+                amount: Number(plan.priceMonthly),
+                currency: plan.currency || 'MXN',
+                description: `Activación ${plan.displayName} - ${tenant.name}`,
+                order_id: invoice.id,
+                customer: {
+                    name: (session.user.name || 'Usuario').split(' ')[0],
+                    last_name: (session.user.name || 'SaaS').split(' ').slice(1).join(' ') || 'SaaS',
+                    email: session.user.email,
+                },
+                redirect_url: `${process.env.NEXTAUTH_URL}/admin/billing/subscription?success=true&invoiceId=${invoice.id}`,
+            });
+
+            // 3. Update invoice with charge info
+            await prisma.invoice.update({
+                where: { id: invoice.id },
+                data: {
+                    status: 'OPEN',
+                    openpayInvoiceId: charge.id,
+                    paymentIntent: charge.payment_url
+                }
+            });
+
+            return NextResponse.json({ url: charge.payment_url });
+
+        } catch (chargeError: any) {
+            console.error('Openpay charge error:', chargeError);
+            return NextResponse.json({
+                error: 'Error al procesar el pago con Openpay. Por favor intente más tarde.'
+            }, { status: 500 });
+        }
     } catch (error) {
         console.error('[OPENPAY_CHECKOUT]', error);
         return new NextResponse('Internal Error', { status: 500 });
