@@ -48,9 +48,22 @@ export class SubscriptionNotificationService {
                             daysRemaining: 3,
                             upgradeUrl: `${process.env.NEXTAUTH_URL}/admin/billing/subscription`
                         });
-                        console.log(`[SUBS_NOTIF] Notificación enviada a ${admin.email} para ${sub.tenant.name}`);
+                        console.log(`[SUBS_NOTIF] Notificación Email enviada a ${admin.email} para ${sub.tenant.name}`);
+
+                        // Notificación por WhatsApp
+                        if (admin.phone) {
+                            try {
+                                const { WahaService } = await import('@/lib/waha');
+                                const waha = new WahaService();
+                                const message = `🔔 *Aviso de Vencimiento - EscalaFin*\n\nHola ${admin.firstName},\n\nTu suscripción para *${sub.tenant.name}* vencerá en *3 días*.\n\nPara evitar interrupciones, asegura que tu método de pago esté actualizado.\n\n_EscalaFin SaaS_`;
+                                await waha.sendRawMessage(admin.phone, message);
+                                console.log(`[SUBS_NOTIF] Notificación WhatsApp enviada a ${admin.phone}`);
+                            } catch (wahaError) {
+                                console.error(`[SUBS_NOTIF_WAHA_ERROR] para ${admin.phone}:`, wahaError);
+                            }
+                        }
                     } catch (mailError) {
-                        console.error(`[SUBS_NOTIF_ERROR] Error enviando email a ${admin.email}:`, mailError);
+                        console.error(`[SUBS_NOTIF_ERROR] Error enviando notificaciones a ${admin.email}:`, mailError);
                     }
                 }
             }

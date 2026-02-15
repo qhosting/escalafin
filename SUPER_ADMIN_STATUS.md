@@ -231,7 +231,7 @@
 | `/api/admin/audit` | GET | ✅ | Logs de auditoría global |
 | `/api/admin/invoices` | GET | ✅ | Facturas globales |
 | `/api/admin/invoices` | POST | ✅ | Generar factura manual |
-| `/api/admin/webhooks/stripe` | POST | ❌ | Webhook de Stripe |
+| `/api/webhooks/openpay` | POST | ✅ | Webhook de Openpay (SaaS y Préstamos) |
 
 ---
 
@@ -241,7 +241,7 @@
 2. **Crear el endpoint de auditoría global** (`/api/admin/audit`) ✅ (Ya existía, verificado)
 3. **Conectar Openpay** para pagos reales ✅ (Implementado Checkout y Webhook SaaS)
 4. **Implementar generación de facturas** automáticas ✅ (Servicio y Cron /api/cron/billing listos)
-5. **Sistema de notificaciones** por email para límites y vencimientos ✅ (MailService y NotifServices listos)
+5. **Sistema de notificaciones** por email y WhatsApp (WAHA) para límites y vencimientos ✅ (MailService, NotifServices y Waha vinculados)
 
 ---
 

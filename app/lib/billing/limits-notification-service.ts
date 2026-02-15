@@ -49,6 +49,23 @@ export class LimitsNotificationService {
                     upgradeUrl: `${process.env.NEXTAUTH_URL}/admin/billing/subscription`
                 });
 
+                // Enviar WhatsApp si tiene teléfono configurado
+                if (admin.phone) {
+                    try {
+                        const { WahaService } = await import('@/lib/waha');
+                        const waha = new WahaService();
+                        const message = `🔔 *Alerta de Límite - EscalaFin*\n\nHola ${admin.firstName},\n\nTu organización *${tenant.name}* ha alcanzado el *${status.percentUsed}%* del límite de *${resourceName}*.\n\nUso: ${status.current} / ${status.limit === -1 ? 'Ilimitado' : status.limit}\n\nTe recomendamos mejorar tu plan para evitar interrupciones.`;
+
+                        try {
+                            await waha.sendRawMessage(admin.phone, message);
+                        } catch (e) {
+                            console.error('[LIMIT_NOTIF] Error sending WhatsApp:', e);
+                        }
+                    } catch (err) {
+                        console.error('[LIMIT_NOTIF] Waha service not found:', err);
+                    }
+                }
+
                 // Marcar como notificado por 24 horas
                 await redisCache.set(cacheKey, 'true', 86400);
 

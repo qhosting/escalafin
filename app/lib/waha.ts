@@ -177,6 +177,35 @@ export class WahaService {
     }
   }
 
+  /**
+   * Envía un mensaje de texto simple a cualquier número sin registrarlo en la tabla whatsapp_messages
+   * Útil para notificaciones de sistema o alertas administrativas.
+   */
+  async sendRawMessage(
+    phone: string,
+    message: string
+  ): Promise<void> {
+    try {
+      const config = await this.ensureConfig();
+      const chatId = this.formatChatId(phone);
+
+      const payload: SendMessagePayload = {
+        chatId,
+        text: message,
+        session: config.sessionId
+      };
+
+      await axios.post(
+        `${config.baseUrl}/api/sendText`,
+        payload,
+        { headers: this.getHeaders(config.apiKey) }
+      );
+    } catch (error) {
+      console.error('Error sending raw WhatsApp message:', error);
+      throw error;
+    }
+  }
+
   async sendMediaMessage(
     clientId: string,
     phone: string,
