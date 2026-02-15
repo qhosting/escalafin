@@ -98,7 +98,7 @@ export function UserManagement({
     lastName: '',
     email: '',
     phone: '',
-    role: 'ASESOR',
+    role: allowedRoles[0] || 'ASESOR',
     password: '',
     confirmPassword: ''
   });
