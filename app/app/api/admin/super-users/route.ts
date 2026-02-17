@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 console.log('🚀 API Route /api/admin/super-users LOADED');
@@ -11,13 +12,13 @@ export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session?.user || session.user.role !== 'SUPER_ADMIN') {
+        if (!session?.user || session.user.role !== UserRole.SUPER_ADMIN) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
         }
 
         const users = await prisma.user.findMany({
             where: {
-                role: 'SUPER_ADMIN'
+                role: UserRole.SUPER_ADMIN
             },
             select: {
                 id: true,
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session?.user || session.user.role !== 'SUPER_ADMIN') {
+        if (!session?.user || session.user.role !== UserRole.SUPER_ADMIN) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
         }
 
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
                 lastName,
                 email,
                 phone: phone || null,
-                role: 'SUPER_ADMIN',
+                role: UserRole.SUPER_ADMIN,
                 password: hashedPassword,
                 status: 'ACTIVE',
                 tenantId: null // Explicitly null for global super admin

@@ -44,6 +44,13 @@ model Tenant {
   apiKeys          ApiKey[]
   webhookEndpoints WebhookEndpoint[]
 
+  // Relaciones Q2 2026
+  collectionRoutes CollectionRoute[]
+  promises         PromiseToPay[]
+  commissionSchemas CommissionSchema[]
+  commissionRecords CommissionRecord[]
+  verifications    IdentityVerification[]
+
   @@map("tenants")
 }
 
@@ -124,6 +131,11 @@ model User {
   twoFactorSecret            String?
   twoFactorBackupCodes       String?                  // JSON array of backup codes
 
+  // Relaciones Q2 2026
+  advisorRoutes              CollectionRoute[]        @relation("AdvisorRoutes")
+  commissions                CommissionRecord[]       @relation("AdvisorCommissions")
+  verifications              IdentityVerification[]   @relation("VerifierUser")
+
   tenantId                   String?
   tenant                     Tenant?                  @relation(fields: [tenantId], references: [id])
 
@@ -178,6 +190,10 @@ model Client {
   whatsappMessages             WhatsAppMessage[]   @relation("ClientMessages")
   collectionVisits             CollectionVisit[]   @relation("ClientVisits")
   conversations                Conversation[]      @relation("ClientConversations")
+  
+  // Relaciones Q2 2026
+  promises                     PromiseToPay[]      @relation("ClientPromises")
+  verifications                IdentityVerification[]
 
   tenantId                     String?
   tenant                       Tenant?             @relation(fields: [tenantId], references: [id])
@@ -202,9 +218,15 @@ model CollectionVisit {
 
   client  Client @relation("ClientVisits", fields: [clientId], references: [id], onDelete: Cascade)
   advisor User   @relation("AdvisorVisits", fields: [advisorId], references: [id])
+  
+  // Relaciones Q2 2026
+  routeId String?
+  route   CollectionRoute? @relation(fields: [routeId], references: [id])
+  promises PromiseToPay[]
 
   @@index([clientId])
   @@index([advisorId])
+  @@index([routeId])
   @@map("collection_visits")
 }
 
@@ -317,6 +339,9 @@ model Loan {
   client               Client                 @relation(fields: [clientId], references: [id])
   creditApplication    CreditApplication?     @relation(fields: [creditApplicationId], references: [id])
   payments             Payment[]
+  
+  // Relaciones Q2 2026
+  promises             PromiseToPay[]
 
   tenantId             String?
   tenant               Tenant?                @relation(fields: [tenantId], references: [id])
@@ -771,6 +796,161 @@ enum ApplicationStatus {
   CANCELLED
 }
 
+model CollectionRoute {
+  id          String   @id @default(cuid())
+  advisorId   String
+  name        String
+  date        DateTime @default(now())
+  status      RouteStatus @default(PENDING)
+  optimized   Boolean  @default(false)
+  geometry    String? // GeoJSON for the route
+  distance    Float? // Meters
+  duration    Int? // Seconds
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  advisor     User     @relation("AdvisorRoutes", fields: [advisorId], references: [id])
+  visits      CollectionVisit[]
+  
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+
+  @@index([advisorId])
+  @@index([date])
+  @@map("collection_routes")
+}
+
+model PromiseToPay {
+  id          String   @id @default(cuid())
+  loanId      String
+  clientId    String
+  amount      Decimal  @db.Decimal(12, 2)
+  promiseDate DateTime
+  status      PromiseStatus @default(PENDING)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  collectionVisitId String?
+  collectionVisit   CollectionVisit? @relation(fields: [collectionVisitId], references: [id])
+  
+  loan        Loan     @relation(fields: [loanId], references: [id])
+  client      Client   @relation("ClientPromises", fields: [clientId], references: [id])
+  
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+
+  @@index([loanId])
+  @@index([clientId])
+  @@index([status])
+  @@map("promise_to_pay")
+}
+
+model CommissionSchema {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  type        CommissionType
+  rules       String   @default("{}") // JSON rules
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  records     CommissionRecord[]
+  
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+
+  @@map("commission_schemas")
+}
+
+model CommissionRecord {
+  id          String   @id @default(cuid())
+  advisorId   String
+  schemaId    String
+  amount      Decimal  @db.Decimal(12, 2)
+  status      CommissionStatus @default(PENDING)
+  sourceType  String // LOAN_ORIGINATION, PAYMENT_COLLECTION
+  sourceId    String // ID of the loan or payment
+  calculatedAt DateTime @default(now())
+  paidAt      DateTime?
+  
+  advisor     User     @relation("AdvisorCommissions", fields: [advisorId], references: [id])
+  schema      CommissionSchema @relation(fields: [schemaId], references: [id])
+  
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+
+  @@index([advisorId])
+  @@index([status])
+  @@map("commission_records")
+}
+
+model IdentityVerification {
+  id          String   @id @default(cuid())
+  clientId    String
+  status      VerificationStatus @default(PENDING)
+  provider    String   @default("INTERNAL")
+  documentType String
+  frontImageUrl String?
+  backImageUrl String?
+  selfieUrl   String?
+  biometricScore Float?
+  extractedData String? // JSON
+  verifiedAt  DateTime?
+  verifiedBy  String?
+  rejectionReason String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  client      Client   @relation(fields: [clientId], references: [id])
+  verifier    User?    @relation("VerifierUser", fields: [verifiedBy], references: [id])
+  
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+
+  @@index([clientId])
+  @@index([status])
+  @@map("identity_verifications")
+}
+
+// Enums for new models
+
+enum RouteStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PromiseStatus {
+  PENDING
+  FULFILLED
+  BROKEN
+  CANCELLED
+}
+
+enum CommissionType {
+  ORIGINATION
+  COLLECTION
+  BONUS
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+enum VerificationStatus {
+  PENDING
+  IN_PROGRESS
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
 enum LoanType {
   PERSONAL
   BUSINESS
@@ -794,15 +974,17 @@ enum PaymentFrequency {
 }
 
 enum LoanCalculationType {
-  INTERES // Sistema de interés tradicional
-  TARIFA_FIJA // Sistema de tarifa fija por monto
-  INTERES_SEMANAL // Sistema de interés semanal sobre capital
+  INTERES
+  TARIFA_FIJA
+  INTERES_SEMANAL
 }
 
 enum PaymentStatus {
   PENDING
   COMPLETED
   FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
   CANCELLED
 }
 

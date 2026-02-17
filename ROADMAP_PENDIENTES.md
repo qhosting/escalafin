@@ -2,8 +2,8 @@
 
 Este documento detalla las tareas pendientes, mejoras planificadas y nuevas funcionalidades para futuras versiones del sistema EscalaFin.
 
-**Última Actualización**: Febrero 2026  
-**Versión Actual**: 1.5.0+
+**Última Actualización**: Febrero 17, 2026  
+**Versión Actual**: 1.7.0
 
 ---
 
@@ -56,8 +56,9 @@ Este documento detalla las tareas pendientes, mejoras planificadas y nuevas func
 ### 3.2 Pasarelas de Pago
 - [x] Integración con Mercado Pago (Checkout Pro)
 - [x] Webhooks de Mercado Pago
-- [x] Integración con Openpay
+- [x] Integración con Openpay (SaaS y Préstamos)
 - [x] Conciliación automática de pagos
+- [x] Generación automática de facturas SaaS
 
 ### 3.3 Métodos de Cálculo de Préstamos
 - [x] Interés simple tradicional
@@ -73,7 +74,7 @@ Este documento detalla las tareas pendientes, mejoras planificadas y nuevas func
 
 ---
 
-## ✅ FASE 4: Inteligencia y Analytics (EARLY ACCESS)
+## ✅ FASE 4: Inteligencia y Analytics (COMPLETADA)
 
 ### 4.1 IA y Scoring Predictivo
 - [x] Modelo predictivo basado en Sigmoide
@@ -81,6 +82,9 @@ Este documento detalla las tareas pendientes, mejoras planificadas y nuevas func
 - [x] Identificación de factores de riesgo clave
 - [x] Integración en UI de scoring
 - [x] Visualización premium de insights
+- [x] **Entrenamiento Continuo del Modelo** (Feb 2026)
+  - Reentrenamiento mensual y gestión de versiones
+  - Recolección automática de feedback
 
 ### 4.2 Analytics Avanzado
 - [x] Dashboard de analytics general
@@ -91,52 +95,19 @@ Este documento detalla las tareas pendientes, mejoras planificadas y nuevas func
 
 ---
 
-## 🚧 FASE 5: Mejoras y Optimizaciones (EN PROGRESO)
+## ✅ FASE 5: Mejoras y Optimizaciones (COMPLETADA PARCIALMENTE)
 
-### 5.1 Sistema de Scoring IA - Mejoras
-**Prioridad**: Alta  
-**Estado**: ✅ **IMPLEMENTADO** (Febrero 2026)
-
-- [x] **Entrenamiento Continuo del Modelo**
-  - ✅ Ajuste de pesos basado en resultados reales
-  - ✅ Reentrenamiento mensual automático
-  - ✅ Validación de precisión del modelo
-  - ✅ Dashboard de métricas del modelo
-  
-**Detalles**: Ver `IMPLEMENTATION_FEB_2026.md` - Sección 1
-
-- [ ] **Factores Adicionales de Riesgo** (Próxima iteración)
-  - Historial de llamadas y contacto
-  - Comportamiento de pago histórico
-  - Análisis de referencias personales
-  - Score social (redes sociales)
-
-### 5.2 Comunicaciones Avanzadas
-**Prioridad**: Media  
-**Estado**: ✅ **IMPLEMENTADO** (Febrero 2026)
+### 5.1 Comunicaciones Avanzadas
+**Estado**: ✅ **COMPLETADO** (Febrero 2026)
 
 - [x] **WhatsApp Bidireccional**
   - ✅ Recepción de mensajes de clientes
   - ✅ Conversaciones completas
-  - ✅ Chatbot básico para consultas
-  - ✅ Respuestas automáticas
+  - ✅ Chatbot configurable para consultas
+  - ✅ Asignación a asesores
 
-**Detalles**: Ver `IMPLEMENTATION_FEB_2026.md` - Sección 2
-
-- [ ] **Email Marketing** (Próxima iteración)
-  - Campañas de email masivas
-  - Templates de email personalizables
-  - Seguimiento de apertura y clicks
-  - Automatización de emails
-
-- [ ] **Notificaciones Push** (Próxima iteración)
-  - Push notifications nativas en PWA
-  - Configuración por tipo de evento
-  - Programación de notificaciones
-
-### 5.3 Reportes y Exportación
-**Prioridad**: Media  
-**Estado**: ✅ **IMPLEMENTADO** (Febrero 2026)
+### 5.2 Reportes y Exportación
+**Estado**: ✅ **COMPLETADO** (Febrero 2026)
 
 - [x] **Generación de Reportes Personalizados**
   - ✅ Constructor de reportes con configuración dinámica
@@ -144,181 +115,99 @@ Este documento detalla las tareas pendientes, mejoras planificadas y nuevas func
   - ✅ Exportación a Excel con formato
   - ✅ Reportes programados (DAILY, WEEKLY, MONTHLY)
 
-**Detalles**: Ver `IMPLEMENTATION_FEB_2026.md` - Sección 3
+### 5.3 Mejoras Técnicas de Infraestructura
+**Estado**: ✅ **COMPLETADO** (Febrero 2026)
 
-- [ ] **Dashboard Ejecutivo Avanzado** (Próxima iteración)
-  - Gráficos interactivos en tiempo real
-  - Comparativas mes a mes
-  - Proyecciones de flujo de efectivo
-  - Alertas inteligentes
+- [x] **Cache con Redis** (Mejora de rendimiento 60-80%)
+- [x] **Rate Limiting** por IP y ruta
+- [x] **Health Checks** y monitoreo (Liveness/Readiness endpoints)
+- [x] **Sentry** para tracking de errores
+- [x] **2FA** (Autenticación de Dos Factores) para administradores y asesores
+- [x] **Testing** (Configuración Jest y cobertura inicial)
 
-- [ ] **Exportación a PDF** (Próxima iteración)
-  - Constructor drag-and-drop de layouts
-  - PDF con branding personalizado
+---
 
-### 5.4 Gestión de Cobranza
+## 🚧 FASE 6: Pendientes y Futuro (EN PROGRESO)
+
+### 6.1 Gestión de Cobranza
 **Prioridad**: Alta  
-**Estado**: ⏳ Planificado
+**Estado**: ✅ **IMPLEMENTADO** (Febrero 2026)
 
-- [ ] **Rutas de Cobranza Optimizadas**
-  - Algoritmo de optimización de rutas
-  - Mapa interactivo de visitas
-  - Priorización inteligente por mora
-  - Asignación automática a cobradores
+- [x] **Rutas de Cobranza Optimizadas**
+  - ✅ Algoritmo de optimización de rutas (Nearest Neighbor / TSP)
+  - ✅ Priorización inteligente por mora (3 niveles)
+  - ✅ Asignación automática a cobradores
+  - ✅ Cálculo de distancias (Haversine) y tiempos
+  - ✅ Detección automática de clientes morosos
 
-- [ ] **Gestión de Promesas de Pago**
-  - Registro de promesas de pago
-  - Seguimiento automático de promesas
-  - Recordatorios de promesas
-  - Análisis de cumplimiento
+- [x] **Gestión de Promesas de Pago**
+  - ✅ Registro de promesas vinculadas a préstamos
+  - ✅ Seguimiento automático de promesas (cron job)
+  - ✅ Verificación contra pagos reales (±2 días tolerancia)
+  - ✅ Analytics de cumplimiento por cliente
+  - ✅ Identificación de top deudores
 
-- [ ] **Sistema de Comisiones**
-  - Cálculo automático de comisiones
-  - Comisiones por cobranza
-  - Comisiones por originación
-  - Dashboard de comisiones por asesor
+- [x] **Sistema de Comisiones**
+  - ✅ Cálculo automático de comisiones
+  - ✅ Comisiones por cobranza y originación
+  - ✅ Esquemas configurables (porcentaje, fijo, escalas)
+  - ✅ Workflow de aprobación (PENDING → APPROVED → PAID)
+  - ✅ Dashboard de comisiones por asesor
 
-### 5.5 Mejoras en Clientes
+**Detalles**: Ver `IMPLEMENTATION_Q2_2026.md`
+
+### 6.2 Mejoras en Experiencia de Cliente
 **Prioridad**: Media  
-**Estado**: 🚧 **EN PROGRESO** (Febrero 2026)
+**Estado**: 🚧 En Progreso
 
-- [ ] **Portal del Cliente Mejorado**
-  - ✅ Historial completo de préstamos (Disponible en lista de préstamos)
-  - ✅ Descarga de estados de cuenta (PDF generado dinámicamente)
-  - ✅ Solicitud de prórroga self-service (Integración WhatsApp)
-  - ✅ Chat de soporte integrado (Botón de contacto directo)
+- [x] Portal del Cliente (Historial, Estados de Cuenta, Chat)
+- [x] **Verificación de Identidad** (KYC)
+  - ✅ Carga de documentos (INE frente/reverso, selfie)
+  - ✅ Procesamiento OCR (simulación, preparado para integración real)
+  - ✅ Score biométrico de comparación
+  - ✅ Verificación manual por administrador
+  - ✅ Dashboard KYC con tasas de verificación
 
-- [ ] **Verificación de Identidad** (Próximamente)
-  - OCR de INE/IFE automatizado
-  - Comparación biométrica de foto
-  - Validación con autoridades (RENAPO)
-  - Score de confiabilidad de documentos
+**Detalles**: Ver `IMPLEMENTATION_Q2_2026.md`
+- [ ] **Programa de Lealtad/Referidos**
+  - Bonificaciones por referidos
+  - Puntos por pagos puntuales
 
-- [ ] **Referencias Inteligentes**
-  - Validación automática de referencias
-  - Llamadas automáticas de verificación
-  - Score de calidad de referencias
-  - Red de referencias compartidas
-
----
-
-## 🔮 FASE 6: Escalabilidad y Nuevas Funcionalidades (FUTURO)
-
-### 6.1 Multi-tenancy
-**Prioridad**: Baja  
-**Estado**: 💡 Idea
-
-- [ ] Soporte para múltiples empresas en una instancia
-- [ ] Aislamiento de datos por tenant
-- [ ] Configuración personalizable por tenant
-- [ ] Facturación por uso
-
-### 6.2 API Pública
+### 6.3 Escalabilidad
 **Prioridad**: Media  
 **Estado**: 💡 Idea
 
-- [ ] **API REST Pública**
-  - Documentación con Swagger/OpenAPI
-  - Rate limiting por cliente
-  - API keys y autenticación OAuth2
-  - Webhooks configurables
-
-- [ ] **Integraciones Pre-construidas**
-  - Zapier integration
-  - Make.com integration
-  - Slack notifications
-  - Telegram bot
-
-### 6.3 Módulos Adicionales
-**Prioridad**: Baja  
-**Estado**: 💡 Idea
-
-- [ ] **Gestión de Garantías**
-  - Registro fotográfico de garantías
-  - Valuación de garantías
-  - Alertas de vencimiento de garantías
-  - Marketplace de garantías
-
-- [ ] **Sistema de Referidos**
-  - Programa de referidos para clientes
-  - Bonificaciones por referidos exitosos
-  - Tracking de origen de clientes
-  - Dashboard de referidos
-
-- [ ] **Gestión de Inventario** (para préstamos prendarios)
-  - Registro de artículos en garantía
-  - Valuación de artículos
-  - Control de bodega
-  - Alertas de vencimiento
-
-### 6.4 Mobile App Nativa
-**Prioridad**: Media  
-**Estado**: 💡 Idea
-
-- [ ] App nativa para Android
-- [ ] App nativa para iOS
-- [ ] Sincronización offline
-- [ ] Modo kiosko para clientes
-
----
-
-## 🔧 Mejoras Técnicas Pendientes
-
-### Rendimiento
-- [x] **✅ Implementar cache con Redis para queries frecuentes** (Feb 2026)
-- [ ] Optimizar queries de base de datos (índices adicionales)
-- [ ] Lazy loading de componentes pesados
-- [ ] Compresión de imágenes al subir
-- [ ] CDN para assets estáticos
-
-### Seguridad
-- [ ] Rotación automática de secretos
-- [x] **✅ 2FA para usuarios administradores** (Feb 2026)
-- [ ] Encriptación de datos sensibles en DB
-- [x] **✅ Rate limiting por IP** (Feb 2026)
-- [x] **✅ Logs de seguridad centralizados (Sentry)** (Feb 2026)
-
-### Testing
-- [x] **✅ Tests unitarios (Jest Config & Setup)** (Feb 2026)
-- [ ] Tests de integración (Playwright)
-- [ ] Tests E2E automatizados
-- [ ] Cobertura de código >80%
-- [ ] CI/CD con tests automáticos
-
-### Monitoreo
-- [x] **✅ Integración con Sentry para errores** (Feb 2026)
-- [x] **✅ Métricas de rendimiento (Health Check Service)** (Feb 2026)
-- [ ] Logs centralizados (ELK Stack)
-- [ ] Alertas automáticas de downtime
-- [x] **✅ Dashboard de salud del sistema (API Check)** (Feb 2026)
+- [ ] **API REST Pública** (Documentada con Swagger)
+- [ ] **Integraciones No-Code** (Zapier, Make)
+- [ ] **App Móvil Nativa** (iOS/Android)
+- [ ] **Multi-tenancy Real** (Aislamiento total de datos)
 
 ---
 
 ## 📊 Prioridades por Trimestre
 
-### Q1 2026 (Actual)
-1. ✅ Limpieza de documentación y código
-2. ✅ Migración de MongoDB a Redis
-3. ⏳ Mejoras en modelo de IA (entrenamiento continuo)
-4. ⏳ Rutas de cobranza optimizadas
+### Q1 2026 (Completado)
+1. ✅ Migración de MongoDB a Redis/Postgres
+2. ✅ Entrenamiento Continuo de IA
+3. ✅ WhatsApp Bidireccional
+4. ✅ Reportes Personalizados
+5. ✅ Mejoras Técnicas (Cache, 2FA, Sentry)
 
-### Q2 2026
-1. WhatsApp bidireccional
-2. Portal del cliente mejorado
-3. Sistema de comisiones
-4. API pública v1
+### Q2 2026 (Implementado)
+1. ✅ Gestión Avanzada de Cobranza (Rutas y Promesas)
+2. ✅ Sistema de Comisiones
+3. ✅ Verificación de Identidad (KYC)
+4. ⏳ API Pública v1
 
 ### Q3 2026
-1. Email marketing
-2. Verificación de identidad automatizada
-3. Reportes personalizados
-4. Mobile app nativa (Android)
+1. Email marketing automatizado
+2. Mobile app nativa (Android)
+3. Marketplace de garantías
 
 ### Q4 2026
-1. Multi-tenancy
-2. Gestión de garantías
-3. Sistema de referidos
-4. Mobile app nativa (iOS)
+1. Multi-tenancy completo
+2. Mobile app nativa (iOS)
+3. Expansión a otros mercados (Monedas locales)
 
 ---
 
@@ -335,16 +224,5 @@ Este documento detalla las tareas pendientes, mejoras planificadas y nuevas func
 - ⏳ **Planificado**: Definido y listo para iniciar
 - 💡 **Idea**: Concepto a validar y definir
 
-### Proceso de Implementación
-1. Validación de requisitos con stakeholders
-2. Diseño técnico y documentación
-3. Desarrollo en feature branch
-4. Testing en ambiente de desarrollo
-5. Review de código
-6. Deployment a producción
-7. Monitoreo post-deployment
-
----
-
 **¿Tienes sugerencias o nuevas funcionalidades?**  
-Documenta tus ideas en un issue de GitHub o contacta al equipo de desarrollo.
+Contacta al equipo de desarrollo o abre un issue.

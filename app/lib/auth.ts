@@ -2,6 +2,7 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/db';
+import { UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { AuditLogger } from './audit';
 
@@ -46,7 +47,7 @@ export const authOptions: NextAuthOptions = {
               where: { slug: credentials.tenantSlug }
             });
 
-            if (requestedTenant && user.role !== 'SUPER_ADMIN' && user.tenantId !== requestedTenant.id) {
+            if (requestedTenant && user.role !== UserRole.SUPER_ADMIN && user.tenantId !== requestedTenant.id) {
               console.log('❌ Usuario no pertenece a este tenant:', {
                 userTenant: user.tenantId,
                 requestedTenant: requestedTenant.id

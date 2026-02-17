@@ -44,6 +44,10 @@ export default function HomePage() {
       // Pequeño delay para evitar hydration issues
       const timeoutId = setTimeout(() => {
         switch (session.user.role) {
+          case 'SUPER_ADMIN':
+            console.log('Redirecting to SaaS Command Center');
+            router.replace('/admin/saas');
+            break;
           case 'ADMIN':
             console.log('Redirecting to admin dashboard');
             router.replace('/admin/dashboard');

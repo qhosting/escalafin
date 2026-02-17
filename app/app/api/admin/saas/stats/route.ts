@@ -1,6 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { UserRole } from '@prisma/client';
 import { UsageTracker } from '@/lib/billing/usage-tracker';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
         const session = await getServerSession(authOptions);
 
         // Solo permitir a SUPER_ADMIN
-        if (!session || session.user.role !== 'SUPER_ADMIN') {
+        if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
         }
 
