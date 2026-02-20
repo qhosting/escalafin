@@ -9,9 +9,18 @@ import { authOptions } from '@/lib/auth';
  */
 export async function GET(request: NextRequest) {
     try {
+        console.log('📌 GET /api/admin/tenants called');
         const session = await getServerSession(authOptions);
 
-        if (!session || session.user.role !== 'SUPER_ADMIN') {
+        if (!session) {
+            console.log('❌ No session found');
+            return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+        }
+
+        console.log(`👤 User requesting: ${session.user.email} (${session.user.role})`);
+
+        if (session.user.role !== 'SUPER_ADMIN') {
+            console.log('❌ User is not SUPER_ADMIN');
             return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
         }
 
@@ -31,9 +40,10 @@ export async function GET(request: NextRequest) {
             orderBy: { createdAt: 'desc' }
         });
 
+        console.log(`✅ Found ${tenants.length} tenants`);
         return NextResponse.json(tenants);
     } catch (error) {
-        console.error('Error fetching tenants:', error);
+        console.error('❌ Error fetching tenants:', error);
         return NextResponse.json(
             { error: 'Error al obtener organizaciones' },
             { status: 500 }

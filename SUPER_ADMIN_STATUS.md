@@ -100,6 +100,15 @@
 - **CRUD completo de Super Users**
 - **Validación de seguridad**
 
+### 9. Marketplace de Add-ons
+- **Gestión de Add-ons:**
+  - ABM completo de módulos opcionales
+  - Configuración de precios y tipos (Feature, Limit, Service)
+- **Integración con Facturación:**
+  - Cobro recurrente en facturas de suscripción
+  - Activación/Desactivación automática
+
+
 ---
 
 ## 🚧 Pendiente de Implementar
@@ -121,10 +130,6 @@
 4. **App Móvil Nativa (Admin)**
    - Versión iOS/Android para gestión rápida
    - Notificaciones push para eventos críticos
-
-5. **Marketplace de Add-ons**
-   - Módulos opcionales activables por plan
-   - Facturación por add-on
 
 ---
 

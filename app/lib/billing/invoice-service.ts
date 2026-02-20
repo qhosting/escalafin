@@ -34,12 +34,17 @@ export class InvoiceService {
                         }
                     },
                     plan: true,
+                    // @ts-ignore
+                    addons: {
+                        where: { status: 'ACTIVE' },
+                        include: { addon: true }
+                    },
                     invoices: {
                         orderBy: { createdAt: 'desc' },
                         take: 1
                     }
                 }
-            });
+            }) as any;
 
             results.processed = subscriptions.length;
 
@@ -57,26 +62,43 @@ export class InvoiceService {
                         continue;
                     }
 
-                    // 3. Generar nueva factura
+                    // 3. Calcular montos y items
                     const now = new Date();
+                    let totalAmount = Number(sub.plan.priceMonthly);
+                    const lineItems = [
+                        {
+                            description: `Suscripción Plan ${sub.plan.displayName} - Periodo ${now.getMonth() + 1}/${now.getFullYear()}`,
+                            amount: Number(sub.plan.priceMonthly),
+                            quantity: 1
+                        }
+                    ];
+
+                    // Agregar Add-ons activos
+                    if (sub.addons && sub.addons.length > 0) {
+                        for (const subAddon of sub.addons) {
+                            const addonPrice = Number(subAddon.addon.priceMonthly);
+                            totalAmount += addonPrice;
+                            lineItems.push({
+                                description: `Add-on: ${subAddon.addon.displayName}`,
+                                amount: addonPrice,
+                                quantity: 1
+                            });
+                        }
+                    }
+
+                    // Generar nueva factura
                     const invoiceNumber = `AUTO-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}-${sub.tenant.slug.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
                     await prisma.invoice.create({
                         data: {
                             subscriptionId: sub.id,
                             invoiceNumber,
-                            amount: sub.plan.priceMonthly,
-                            subtotal: sub.plan.priceMonthly,
+                            amount: totalAmount,
+                            subtotal: totalAmount,
                             currency: sub.plan.currency || 'MXN',
                             status: 'OPEN',
                             dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 días para pagar
-                            lineItems: JSON.stringify([
-                                {
-                                    description: `Suscripción Plan ${sub.plan.displayName} - Periodo ${now.getMonth() + 1}/${now.getFullYear()}`,
-                                    amount: Number(sub.plan.priceMonthly),
-                                    quantity: 1
-                                }
-                            ]),
+                            lineItems: JSON.stringify(lineItems),
                             notes: `Factura recurrente generada automáticamente.`
                         }
                     });
