@@ -191,6 +191,9 @@ RUN echo "✅ Verificando módulos de runtime necesarios..." && \
 COPY --chown=nextjs:nodejs start-improved.sh ./start-improved.sh
 COPY --chown=nextjs:nodejs emergency-start.sh ./emergency-start.sh
 
+# Convert CRLF to LF (fix for Windows hosts)
+RUN sed -i 's/\r$//' /app/start-improved.sh /app/emergency-start.sh
+
 # Make startup scripts executable
 RUN chmod +x /app/start-improved.sh /app/emergency-start.sh
 
