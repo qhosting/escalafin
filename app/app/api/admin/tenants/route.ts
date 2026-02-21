@@ -160,15 +160,25 @@ export async function PATCH(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { id, status } = body;
+        const { id, name, slug, domain, status, logo, primaryColor, timezone } = body;
 
-        if (!id || !status) {
-            return NextResponse.json({ error: 'ID y estado son requeridos' }, { status: 400 });
+        if (!id) {
+            return NextResponse.json({ error: 'ID es requerido' }, { status: 400 });
         }
+
+        // Build data object dynamically to only update provided fields
+        const updateData: any = {};
+        if (name !== undefined) updateData.name = name;
+        if (slug !== undefined) updateData.slug = slug;
+        if (domain !== undefined) updateData.domain = domain || null;
+        if (status !== undefined) updateData.status = status;
+        if (logo !== undefined) updateData.logo = logo;
+        if (primaryColor !== undefined) updateData.primaryColor = primaryColor;
+        if (timezone !== undefined) updateData.timezone = timezone;
 
         const updated = await prisma.tenant.update({
             where: { id },
-            data: { status }
+            data: updateData
         });
 
         return NextResponse.json(updated);

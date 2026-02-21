@@ -48,8 +48,8 @@ const DEFAULT_SETTINGS: any = {
   },
   support_contact: {
     email: 'soporte@escalafin.com',
-    whatsapp: '+525512345678',
-    whatsappDisplay: '+52 55 1234 5678',
+    whatsapp: '4424000742',
+    whatsappDisplay: '442 400 0742',
     workingHours: 'Lunes a Viernes: 9:00 AM - 6:00 PM\nSábados: 9:00 AM - 2:00 PM'
   }
 };
@@ -129,12 +129,13 @@ export async function POST(request: NextRequest) {
     // Si se especifica una categoría, actualizar solo esa categoría
     if (body.category && body.settings) {
       const key = getSettingsKey(body.category);
+      // Forzamos findFirst para asegurar el filtrado por tenantId y key
       const existing = await tenantPrisma.systemConfig.findFirst({
         where: { key }
       });
 
       if (existing) {
-        await tenantPrisma.systemConfig.update({
+        await (tenantPrisma.systemConfig as any).update({
           where: { id: existing.id },
           data: {
             value: JSON.stringify(body.settings),
@@ -142,7 +143,7 @@ export async function POST(request: NextRequest) {
           }
         });
       } else {
-        await tenantPrisma.systemConfig.create({
+        await (tenantPrisma.systemConfig as any).create({
           data: {
             key,
             value: JSON.stringify(body.settings),
@@ -154,14 +155,17 @@ export async function POST(request: NextRequest) {
     } else {
       // Guardar múltiples categorías (si vienen en el body)
       for (const [cat, settings] of Object.entries(body)) {
-        if (typeof settings === 'object') {
+        // Evitar procesar campos de control si vienen en el body raíz
+        if (cat === 'category' || cat === 'settings') continue;
+
+        if (typeof settings === 'object' && settings !== null) {
           const key = getSettingsKey(cat);
           const existing = await tenantPrisma.systemConfig.findFirst({
             where: { key }
           });
 
           if (existing) {
-            await tenantPrisma.systemConfig.update({
+            await (tenantPrisma.systemConfig as any).update({
               where: { id: existing.id },
               data: {
                 value: JSON.stringify(settings),
@@ -169,7 +173,7 @@ export async function POST(request: NextRequest) {
               }
             });
           } else {
-            await tenantPrisma.systemConfig.create({
+            await (tenantPrisma.systemConfig as any).create({
               data: {
                 key,
                 value: JSON.stringify(settings),

@@ -10,10 +10,25 @@ if [ -n "$DATABASE_URL" ]; then
     node_modules/.bin/prisma db push --accept-data-loss --skip-generate
 fi
 
-# Run seeds
+# Run seeds and setup
 if [ -f "scripts/seed-modules.js" ]; then
     echo "Seeding modules..."
     node scripts/seed-modules.js
+fi
+
+if [ -f "scripts/seed-message-templates.js" ]; then
+    echo "Seeding message templates..."
+    node scripts/seed-message-templates.js
+fi
+
+if [ -f "scripts/setup-users-production.js" ]; then
+    echo "Setting up production users..."
+    node scripts/setup-users-production.js
+fi
+
+if [ -f "scripts/setup-vapid.js" ]; then
+    echo "Setting up VAPID keys..."
+    node scripts/setup-vapid.js
 fi
 
 echo "Starting Next.js server..."

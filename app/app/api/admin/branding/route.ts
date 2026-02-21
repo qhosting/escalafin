@@ -42,11 +42,12 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { logo, primaryColor } = body;
+        const { logo, primaryColor, name } = body;
 
         const updated = await prisma.tenant.update({
             where: { id: tenantId },
             data: {
+                name,
                 logo,
                 primaryColor
             }
