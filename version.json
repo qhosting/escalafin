@@ -1,19 +1,17 @@
-
 {
-  "version": "1.1.0",
-  "buildNumber": "20251030.001",
-  "releaseDate": "2025-10-30",
-  "releaseName": "Portability & Deploy Fixes",
-  "gitCommit": "20e7fc7",
+  "version": "2.7.1",
+  "buildNumber": "20260221.001",
+  "releaseDate": "2026-02-21",
+  "releaseName": "Support & Docker Fixes",
+  "gitCommit": "a22a36d",
   "environment": "production",
   "changelog": [
-    "Eliminadas todas las rutas absolutas hardcodeadas",
-    "Corregida configuración de Prisma para portabilidad",
-    "Eliminado yarn.lock (proyecto usa NPM)",
+    "Actualizado número de WhatsApp de soporte a 4424000742",
+    "Corregido error al guardar configuración de transferencia SPEI",
+    "Migrada imagen Docker a Node 20 para mejor compatibilidad",
+    "Cambiado gestor de paquetes a NPM en entorno Docker para mayor estabilidad",
     "Implementadas rutas relativas con process.cwd()",
-    "Agregado soporte para variables de entorno LOCAL_UPLOAD_DIR",
-    "Verificaciones pre-deploy automatizadas",
-    "Documentación completa de fixes y deployment"
+    "Verificaciones pre-deploy automatizadas"
   ],
   "compatibility": {
     "node": "18.x",

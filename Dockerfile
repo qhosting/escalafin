@@ -11,10 +11,10 @@
 # ✅ Fixed: Cambio a bookworm-slim (Debian 12) con repositorios actualizados
 # ✅ Fixed: apt-get con limpieza previa y mejor manejo de errores
 
-FROM node:18-bookworm-slim AS base
+FROM node:20-bookworm-slim AS base
 
-# Install Yarn globally
-RUN corepack enable && corepack prepare yarn@4.10.3 --activate
+# Use the npm that comes with Node 20 or update it to a compatible version
+RUN npm install -g npm@10.8.2
 
 # Install system dependencies with robust error handling
 RUN rm -rf /var/lib/apt/lists/* && \
@@ -34,23 +34,19 @@ RUN rm -rf /var/lib/apt/lists/* && \
 
 WORKDIR /app
 
-# ===================================
-# STAGE 1: Instalar dependencias
-# ===================================
+# Stage 1: Instalar dependencias
 FROM base AS deps
 
 WORKDIR /app
 
 # Copy configuration files
 COPY app/package.json ./
-# COPY app/yarn.lock ./
-COPY app/.yarnrc.yml ./
+COPY app/package-lock.json ./
 
-# Instalar dependencias con Yarn y verificar que node_modules fue generado
-# Usamos YARN_ENABLE_IMMUTABLE_INSTALLS=false para permitir actualizaciones del lockfile si es necesario en build
-RUN echo "📦 Instalando dependencias con Yarn..." && \
-    YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install && \
-    echo "✅ Yarn install completado" && \
+# Instalar dependencias con NPM y verificar que node_modules fue generado
+RUN echo "📦 Instalando dependencias con NPM..." && \
+    npm ci --legacy-peer-deps && \
+    echo "✅ NPM install completado" && \
     echo "" && \
     echo "🔍 Verificando node_modules..." && \
     test -d "node_modules" || (echo "❌ ERROR: node_modules no fue generado" && exit 1) && \
@@ -66,9 +62,8 @@ FROM base AS builder
 
 WORKDIR /app
 
-# Copy dependencies and Yarn 4 metadata (CRITICAL for Yarn to work)
+# Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/.yarn ./.yarn
 
 # Copy application source
 COPY app/ ./
@@ -79,10 +74,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
 ENV NEXT_OUTPUT_MODE=standalone
 
-# Crear yarn.lock dummy para Next.js outputFileTracingRoot
-# Next.js busca lockfiles en el directorio padre debido a outputFileTracingRoot
-RUN echo "# Dummy lockfile for Next.js outputFileTracingRoot" > /app/yarn.lock && \
-    echo "✅ yarn.lock dummy creado en /app"
+# Crear package-lock.json dummy para Next.js outputFileTracingRoot
+RUN echo "# Dummy lockfile for Next.js outputFileTracingRoot" > /app/package-lock.json && \
+    echo "✅ package-lock.json dummy creado en /app"
 
 # Generar Prisma Client (usando binario directo, no Yarn)
 RUN echo "🔧 Generando Prisma Client..." && \
