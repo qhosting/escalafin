@@ -4,13 +4,14 @@
 import { useState, useEffect } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { LogIn, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { LogIn, Eye, EyeOff, ArrowLeft, Info } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function LoginForm() {
-  const [email, setEmail] = useState('admin@escalafin.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -151,13 +152,37 @@ export function LoginForm() {
           </div>
 
           {/* Título y subtítulo */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 relative">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {tenantInfo ? `Acceso a ${tenantInfo.name}` : 'Iniciar Sesión'}
             </h1>
             <p className="text-gray-600 text-sm">
               Ingresa tus credenciales para acceder al sistema
             </p>
+
+            {/* Tooltip de ayuda para credenciales de prueba */}
+            <div className="absolute top-0 right-0">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="text-gray-400 hover:text-primary transition-colors p-1" aria-label="Ver credenciales de prueba">
+                      <Info className="w-5 h-5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs p-3">
+                    <div className="space-y-2">
+                      <p className="font-bold text-xs uppercase tracking-wider text-primary">Credenciales de Pruebas:</p>
+                      <div className="grid grid-cols-2 gap-1 text-xs">
+                        <span className="font-semibold">Admin:</span>
+                        <code>admin@escalafin.com / admin123</code>
+                        <span className="font-semibold">S. Admin:</span>
+                        <code>superadmin@escalafin.com / SuperPassword2026!</code>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
 
           {/* Formulario */}
