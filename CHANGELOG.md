@@ -3,6 +3,18 @@
 
 Todos los cambios notables de este proyecto serán documentados en este archivo.
 
+## [2.7.1] - 2026-02-21
+
+### 🚀 Fixed - Deployment & Support
+- **Docker Optimization**: Corregido build en modo `standalone` de Next.js.
+  - Optimizado `Dockerfile` con multi-stage build y `node:20-bookworm-slim`.
+  - Implementado `node_modules_full` para scripts de seeding sin engrosar la imagen de runtime.
+  - Corregido path de `server.js` en el runner stage.
+- **Prisma compatibility**: Agregado `debian-openssl-3.0.x` a `binaryTargets` en el schema para soporte nativo en Docker.
+- **WhatsApp Support**: Actualizado número de soporte a `4424000742` en configuraciones por defecto y Landing Page.
+- **Versioning**: Sincronizada versión `2.7.1` en `package.json`, `VERSION`, `version.json` y Landing Page components.
+- **Build Visibility**: Agregado log de progreso y verificaciones de módulos en el proceso de build local.
+
 ## [1.1.2] - 2025-10-31
 
 ### 🔧 Fixed - CRÍTICO
