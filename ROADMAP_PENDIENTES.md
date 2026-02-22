@@ -27,7 +27,6 @@ Este documento detalla las tareas pendientes, mejoras planificadas y nuevas func
 - [x] Notificaciones automáticas de pagos
 - [x] Webhooks para ACK de mensajes
 - [x] Integración con LabsMobile para SMS
-- [x] Integración opcional con Chatwoot
 
 ### 2.2 Backup y Recuperación
 - [x] Script de backup automático de PostgreSQL

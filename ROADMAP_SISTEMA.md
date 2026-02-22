@@ -190,7 +190,7 @@ Este documento proporciona una visión detallada de la arquitectura, módulos im
 - ✅ Historial de mensajes enviados
 - ✅ Estados de entrega: Enviado, Entregado, Leído
 - ✅ Sistema de webhooks para ACK de WAHA
-- ✅ Integración con Chatwoot (opcional)
+- ✅ Sistema de webhooks para ACK de WAHA
 
 **Modelos de Base de Datos**:
 - `Notification`: Notificaciones internas
@@ -207,14 +207,12 @@ Este documento proporciona una visión detallada de la arquitectura, módulos im
 - `POST /api/webhooks/waha`: Webhook de WAHA
 - `GET /api/admin/waha/config`: Configuración WAHA
 - `POST /api/admin/message-templates`: Plantillas de mensajes
-- `GET /api/admin/chatwoot/config`: Configuración Chatwoot
 - `POST /api/admin/settings/labsmobile/*`: Configuración LabsMobile
 
 **Servicios**:
 - `lib/waha.ts`: Cliente de WAHA API
 - `lib/whatsapp-notification.ts`: Servicio de notificaciones WhatsApp
 - `lib/labsmobile.ts`: Cliente de LabsMobile SMS
-- `lib/chatwoot.ts`: Cliente de Chatwoot
 - `lib/create-notification.ts`: Creación de notificaciones
 
 ---
@@ -295,7 +293,6 @@ Este documento proporciona una visión detallada de la arquitectura, módulos im
 - ✅ Configuración de módulos PWA
 - ✅ Configuración de integraciones:
   - WAHA (WhatsApp)
-  - Chatwoot
   - LabsMobile (SMS)
   - Mercado Pago
   - Openpay
@@ -399,7 +396,6 @@ Este documento proporciona una visión detallada de la arquitectura, módulos im
 |----------|-----------|--------|-------|
 | **WAHA** | API externa de WhatsApp | ✅ Implementado | Sin instalación local, conexión a instancia externa |
 | **LabsMobile** | Envío de SMS masivos | ✅ Implementado | Créditos de SMS configurables |
-| **Chatwoot** | Atención al cliente | ✅ Implementado | Opcional, configuración dinámica |
 | **Mercado Pago** | Checkout Pro + Webhooks | ✅ Implementado | Abonos automáticos de clientes |
 | **Openpay** | Procesamiento de tarjetas | ✅ Implementado | Pagos con tarjeta de débito/crédito |
 | **AWS S3** | Almacenamiento en la nube | ✅ Implementado | Sistema dual con almacenamiento local |
