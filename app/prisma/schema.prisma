@@ -1144,6 +1144,7 @@ enum MessageChannel {
   WHATSAPP
   EMAIL
   PUSH
+  CHATWOOT
 }
 
 // ============================================

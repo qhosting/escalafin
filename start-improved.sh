@@ -7,6 +7,8 @@ export NODE_PATH=/app/node_modules_full
 
 # Database sync
 if [ -n "$DATABASE_URL" ]; then
+    echo "Cleaning up legacy CHATWOOT entries..."
+    psql "$DATABASE_URL" -c "UPDATE message_templates SET channel = 'WHATSAPP' WHERE channel::text = 'CHATWOOT';" || true
     echo "Sycning database schema..."
     /app/node_modules_full/.bin/prisma db push --accept-data-loss --skip-generate
 fi

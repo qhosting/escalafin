@@ -11,7 +11,8 @@
 **Commit actual en GitHub:** `c1dbdb4`  
 **Última actualización:** Validación completa de sincronización (29 Oct 2025)  
 **Features incluidos:**
-- ✅ Configuración de Chatwoot mediante BD y variables de entorno
+- ✅ Soporte multi-tenancy con aislamiento de datos
+- ✅ WhatsApp bidireccional integrado (WAHA)
 - ✅ Scripts de inicio mejorados (adaptados de CitaPlanner)
 - ✅ Setup automático de usuarios de prueba
 - ✅ Dockerfile optimizado para Node 18 + NPM
