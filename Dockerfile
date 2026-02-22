@@ -74,20 +74,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
 ENV NEXT_OUTPUT_MODE=standalone
 
-# Crear package-lock.json dummy para Next.js outputFileTracingRoot
-RUN echo "# Dummy lockfile for Next.js outputFileTracingRoot" > /app/package-lock.json && \
-    echo "✅ package-lock.json dummy creado en /app"
-
-# Generar Prisma Client (usando binario directo, no Yarn)
+# Generar Prisma Client
+ENV PRISMA_GENERATE_SKIP_AUTOINSTALL=1
 RUN echo "🔧 Generando Prisma Client..." && \
     echo "📂 Verificando schema.prisma..." && \
     test -f "prisma/schema.prisma" || (echo "❌ ERROR: schema.prisma no encontrado" && exit 1) && \
     echo "✅ schema.prisma encontrado" && \
-    cat prisma/schema.prisma | grep -A 3 "enum UserRole" && \
-    echo "" && \
-    echo "🔄 Limpiando Prisma Client anterior..." && \
-    rm -rf node_modules/.prisma node_modules/@prisma/client && \
-    echo "✅ Prisma Client anterior eliminado" && \
     echo "" && \
     echo "🎯 Generando nuevo Prisma Client..." && \
     ./node_modules/.bin/prisma generate && \
@@ -111,9 +103,7 @@ RUN test -d ".next/standalone" || (echo "❌ Error: standalone no generado" && e
 # Verificar estructura del standalone
 RUN echo "📂 Verificando estructura del standalone..." && \
     ls -la .next/standalone/ && \
-    echo "" && \
-    ls -la .next/standalone/app/ && \
-    test -f ".next/standalone/app/server.js" || (echo "❌ Error: server.js no encontrado en standalone/app/" && exit 1)
+    test -f ".next/standalone/server.js" || (echo "❌ Error: server.js no encontrado en standalone/" && exit 1)
 
 # ===================================
 # STAGE 3: Runner de producción
@@ -158,28 +148,21 @@ EOF
 # Make healthcheck script executable
 RUN chmod +x /app/healthcheck.sh
 
-# Copy standalone build (con outputFileTracingRoot, standalone contiene carpeta app/)
-COPY --from=builder /app/.next/standalone/app ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
+# Copy standalone build
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Copy Prisma for migrations and database sync
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-# Copy ENTIRE .bin directory to include all Prisma WASM files
-COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-
-# Copy bcryptjs and its dependencies for setup scripts
-COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
-
-# Copy scripts directory (includes setup-users-production.js and other utilities)
+# Copy all node_modules for scripts and migrations
+# Using a separate directory to avoid conflicts with Next.js standalone node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules /app/node_modules_full
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 
-# Ensure bcryptjs is accessible by creating a simple wrapper to verify
+# Ensure bcryptjs and others are accessible (verification)
 RUN echo "✅ Verificando módulos de runtime necesarios..." && \
-    test -d "./node_modules/bcryptjs" && echo "   ✓ bcryptjs disponible" || echo "   ✗ bcryptjs NO disponible"
+    test -d "/app/node_modules_full/bcryptjs" && echo "   ✓ bcryptjs disponible" || echo "   ✗ bcryptjs NO disponible" && \
+    test -d "/app/node_modules_full/web-push" && echo "   ✓ web-push disponible" || echo "   ✗ web-push NO disponible"
 
 # Copy startup scripts (adaptados de CitaPlanner)
 COPY --chown=nextjs:nodejs start-improved.sh ./start-improved.sh
@@ -193,7 +176,7 @@ RUN chmod +x /app/start-improved.sh /app/emergency-start.sh
 
 # Create directories
 RUN mkdir -p /app/uploads && \
-    chown -R nextjs:nodejs /app
+    chown -R nextjs:nodejs /app/uploads
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

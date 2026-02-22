@@ -309,11 +309,22 @@ export default function HomePage() {
             <div className="flex items-center space-x-3">
               <Building2 className="h-6 w-6" />
               <span className="text-lg font-bold">EscalaFin</span>
-              <Badge variant="outline" className="border-gray-400 text-gray-700 bg-white">v1.0</Badge>
+              <Badge variant="outline" className="border-gray-700 text-gray-300 bg-gray-800">v2.7.1</Badge>
             </div>
 
-            <div className="text-sm text-gray-400 text-center md:text-left">
-              © 2025 EscalaFin. Sistema de Gestión de Créditos y Préstamos.
+            <div className="flex items-center space-x-6">
+              <a
+                href="https://wa.me/524424000742"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-gray-400 hover:text-green-400 transition-colors flex items-center gap-2"
+              >
+                <Smartphone className="h-4 w-4" />
+                Soporte WhatsApp: 442 400 0742
+              </a>
+              <div className="text-sm text-gray-400 text-center md:text-left">
+                © 2025 EscalaFin. Sistema de Gestión de Créditos y Préstamos.
+              </div>
             </div>
           </div>
         </div>

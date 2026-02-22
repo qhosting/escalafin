@@ -168,5 +168,18 @@
 
 ---
 
-**Siguiente paso recomendado:** Implementar validación de firma en webhooks de Openpay y finalizar documentación de API pública.
+---
+
+**Última actualización:** Febrero 21, 2026  
+**Versión:** `v2.7.1`
+
+## 🚀 Reciente: Fixes de Despliegue y Soporte
+- **WhatsApp Support**: Actualizado a `4424000742` en configuraciones por defecto y landing page.
+- **Docker Optimization**: 
+  - Corregido build en modo `standalone` de Next.js.
+  - Optimizado `Dockerfile` con multi-stage build.
+  - Implementado `node_modules_full` para scripts de seeding/soporte sin engrosar la imagen de runtime excesivamente.
+  - Mejorado `start-improved.sh` para manejo robusto de base de datos y scripts de inicio.
+- **Versión**: Sincronizada a `2.7.1` en `package.json`, `VERSION`, `version.json` y Landing Page.
+- **Prisma**: Configurado `binaryTargets` para compatibilidad con Debian/Docker.
 

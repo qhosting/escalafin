@@ -2,12 +2,13 @@
 set -e
 
 echo "Starting EscalaFin..."
-export PATH="$PATH:/app/node_modules/.bin"
+export PATH="$PATH:/app/node_modules_full/.bin"
+export NODE_PATH=/app/node_modules_full
 
 # Database sync
 if [ -n "$DATABASE_URL" ]; then
     echo "Sycning database schema..."
-    node_modules/.bin/prisma db push --accept-data-loss --skip-generate
+    /app/node_modules_full/.bin/prisma db push --accept-data-loss --skip-generate
 fi
 
 # Run seeds and setup
