@@ -1,6 +1,5 @@
-
-# 🏢 EscalaFin - Sistema de Gestión de Créditos y Préstamos
-
+# 🏥 EscalaFin - Sistema de Gestión de Créditos y Préstamos
+**Versión**: `2.7.1`
 > **Plataforma integral PWA para la gestión completa de préstamos, clientes y cobranza con navegación optimizada y validación exhaustiva**
 
 ![Next.js](https://img.shields.io/badge/Next.js-14.0-black?style=for-the-badge&logo=next.js)
