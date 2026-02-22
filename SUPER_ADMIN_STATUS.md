@@ -116,20 +116,21 @@
 ### Prioridad Alta
 1. **Validación de Firma en Webhooks Openpay**
    - Asegurar que los webhooks provienen legítimamente de Openpay validando headers de seguridad.
-
 2. **Dashboard Ejecutivo Avanzado (SaaS)**
-   - Métricas de Churn Rate
-   - LTV (Lifetime Value) por tenant
-   - Costo de adquisición (CAC)
-
-3. **Portal de Desarrolladores**
-   - Documentación de API Pública para Tenants
-   - Gestión de API Keys para integraciones externas
+   - Métricas de Churn Rate, LTV y CAC por tenant.
 
 ### Prioridad Media
-4. **App Móvil Nativa (Admin)**
-   - Versión iOS/Android para gestión rápida
-   - Notificaciones push para eventos críticos
+3. **API Pública v1**
+   - Documentación basada en Swagger/OpenAPI.
+   - Gestión de API Keys para integraciones externas.
+4. **Programa de Lealtad / Referidos**
+   - Automatización de bonos por referidos y puntos por pago puntual.
+
+### Prioridad Baja
+5. **Portal de Desarrolladores**
+   - Guías de integración y ambiente de pruebas.
+6. **App Móvil Nativa (Admin)**
+   - Versión iOS/Android para gestión rápida y notificaciones push.
 
 ---
 

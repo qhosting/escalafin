@@ -2,8 +2,8 @@
 
 Este documento proporciona una visión detallada de la arquitectura, módulos implementados y funcionalidades del sistema EscalaFin MVP.
 
-**Última Actualización**: Febrero 2026  
-**Versión del Sistema**: 1.5.0+
+**Última Actualización**: Febrero 22, 2026  
+**Versión del Sistema**: 2.7.1
 
 ---
 
@@ -11,11 +11,11 @@ Este documento proporciona una visión detallada de la arquitectura, módulos im
 
 ### Stack Tecnológico
 - **Frontend**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Radix UI
-- **Backend**: Next.js API Routes, Node.js 18
+- **Backend**: Next.js API Routes, Node.js 20.x
 - **ORM**: Prisma 6.7.0
 - **Base de Datos**: PostgreSQL 15
 - **Caché**: Redis 7.x
-- **Infraestructura**: Docker (Debian 12 Bookworm), EasyPanel
+- **Infraestructura**: Docker (Debian 12 Bookworm Slim), NPM 10.8.2
 - **Almacenamiento**: AWS S3 / Almacenamiento Local Dual
 
 ### Estructura de Directorios Principal
@@ -523,11 +523,16 @@ AWS_SECRET_ACCESS_KEY     # AWS credentials (opcional)
 ## 📝 Notas Técnicas
 
 ### Cambios Recientes (Febrero 2026)
-- ✅ Reemplazo de MongoDB por Redis para cache/backups
-- ✅ Soporte completo de backup de Redis (RDB)
-- ✅ Agregadas acciones de auditoría para WAHA
-- ✅ Limpieza de documentación histórica
-- ✅ Actualización de Dockerfile con redis-tools
+- ✅ **Version v2.7.1**: Sincronización completa de versiones y metadatos del sistema.
+- ✅ **Docker Optimization**: Build en modo `standalone` corregido y optimizado con multi-stage build.
+- ✅ **Prisma Native Support**: Configurado `debian-openssl-3.0.x` para ejecución directa en Docker Linux.
+- ✅ **Login UX**: Eliminadas credenciales predeterminadas; añadido Tooltip de ayuda con credenciales de demo.
+- ✅ **Support Update**: WhatsApp de soporte actualizado a `4424000742` en Landing Page y configuraciones.
+- ✅ Reemplazo de MongoDB por Redis para cache/backups.
+- ✅ Soporte completo de backup de Redis (RDB).
+- ✅ Agregadas acciones de auditoría para WAHA.
+- ✅ Limpieza de documentación histórica.
+- ✅ Actualización de Dockerfile con redis-tools.
 
 ### Próximas Mejoras
 - Sistema de mensajería interna entre usuarios

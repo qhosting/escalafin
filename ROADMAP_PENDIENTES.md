@@ -2,8 +2,8 @@
 
 Este documento detalla las tareas pendientes, mejoras planificadas y nuevas funcionalidades para futuras versiones del sistema EscalaFin.
 
-**Última Actualización**: Febrero 17, 2026  
-**Versión Actual**: 1.7.0
+**Última Actualización**: Febrero 22, 2026  
+**Versión Actual**: 2.7.1
 
 ---
 
@@ -124,6 +124,11 @@ Este documento detalla las tareas pendientes, mejoras planificadas y nuevas func
 - [x] **Sentry** para tracking de errores
 - [x] **2FA** (Autenticación de Dos Factores) para administradores y asesores
 - [x] **Testing** (Configuración Jest y cobertura inicial)
+- [x] **Optimización de Despliegue v2.7.1**
+  - ✅ Fix Next.js Standalone Build
+  - ✅ Prisma Binary Targets para Docker
+  - ✅ Limpieza de credenciales por defecto en Login
+  - ✅ Actualización de canales de soporte (WhatsApp)
 
 ---
 
