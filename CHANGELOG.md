@@ -15,6 +15,12 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 - **Versioning**: Sincronizada versión `2.7.1` en `package.json`, `VERSION`, `version.json` y Landing Page components.
 - **Build Visibility**: Agregado log de progreso y verificaciones de módulos en el proceso de build local.
 
+### 📝 Documentation & UX
+- **Consolidation**: Eliminada documentación redundante y consolidada en un solo `ROADMAP.md`. 
+  - Archivos eliminados: `ROADMAP_SISTEMA.md`, `ROADMAP_PENDIENTES.md`, `SUPER_ADMIN_STATUS.md`, `MULTI_TENANCY_PLAN.md`.
+- **Login UX**: Eliminadas credenciales predeterminadas del login; añadido Tooltip informativo con credenciales para ambiente demo.
+- **Cleaning**: Removidas todas las referencias obsoletas a Chatwoot en la documentación.
+
 ## [1.1.2] - 2025-10-31
 
 ### 🔧 Fixed - CRÍTICO
