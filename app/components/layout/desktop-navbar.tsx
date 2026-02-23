@@ -120,7 +120,7 @@ export function DesktopNavbar() {
             title: 'Ecosistema',
             items: [
               { title: 'Command Center', icon: Activity, href: '/admin/saas' },
-              { title: 'Organizaciones', icon: Building2, href: '/admin/tenants' }
+              { title: 'Organizaciones', icon: Building2, href: '/admin/saas/tenants' }
             ]
           },
           {
