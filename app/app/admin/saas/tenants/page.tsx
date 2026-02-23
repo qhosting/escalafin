@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import useSWR from 'swr';
+import Link from 'next/link';
 import {
     Table,
     TableBody,
@@ -203,6 +204,15 @@ export default function TenantsManagementPage() {
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
+                                        <Link href={`/admin/saas/tenants/${tenant.id}/users`}>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-8 py-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                                            >
+                                                <Users className="h-3 w-3 mr-1" /> Usuarios
+                                            </Button>
+                                        </Link>
                                         <Button
                                             size="sm"
                                             variant="outline"
