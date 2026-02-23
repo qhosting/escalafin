@@ -43,9 +43,17 @@ WORKDIR /app
 COPY app/package.json ./
 COPY app/package-lock.json ./
 
-# Instalar dependencias con NPM y verificar que node_modules fue generado
+# Instalar dependencias con NPM (con reintentos para redes inestables)
 RUN echo "📦 Instalando dependencias con NPM..." && \
-    npm ci --legacy-peer-deps && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set maxsockets 5 && \
+    for i in 1 2 3; do \
+      echo "📦 Intento $i de 3..." && \
+      npm ci --legacy-peer-deps && break || \
+      (echo "⚠️ Intento $i fallido, reintentando en 10s..." && sleep 10); \
+    done && \
     echo "✅ NPM install completado" && \
     echo "" && \
     echo "🔍 Verificando node_modules..." && \
