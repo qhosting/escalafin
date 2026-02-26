@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/db';
 import { SubscriptionsService } from '@/lib/billing/subscriptions';
+import { AurumSyncService } from '@/lib/aurum-sync-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -142,6 +143,21 @@ export async function POST(request: NextRequest) {
         });
 
         console.log(`🚀 Nueva organización registrada: ${orgName} (${slug})`);
+
+        // Disparar sincronización con Master Hub (Fire and forget)
+        const nextBillingDate = new Date(Date.now() + (plan.trialDays || 14) * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        AurumSyncService.syncNewTenant(
+            {
+                commercialName: orgName,
+                email: adminEmail,
+            },
+            {
+                planName: plan.displayName || plan.name,
+                amount: Number(plan.priceMonthly) || 0,
+                interval: 'monthly',
+                nextBillingDate: nextBillingDate,
+            }
+        ).catch(err => console.error("Error trigger syncNewTenant:", err));
 
         return NextResponse.json({
             message: 'Organización registrada exitosamente',

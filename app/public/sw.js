@@ -216,23 +216,61 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Helper functions for offline storage
+// Helper functions for offline storage using IndexedDB
+async function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('EscalaFinMobileDB', 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('pending_payments')) {
+        db.createObjectStore('pending_payments', { keyPath: 'id' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
 async function getOfflinePayments() {
-  // Implementation would use IndexedDB
-  return [];
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('pending_payments', 'readonly');
+    const store = transaction.objectStore('pending_payments');
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
 }
 
 async function removeOfflinePayment(id) {
-  // Implementation would use IndexedDB
-  return true;
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('pending_payments', 'readwrite');
+    const store = transaction.objectStore('pending_payments');
+    const request = store.delete(id);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
 }
 
 async function getOfflineClients() {
-  // Implementation would use IndexedDB
-  return [];
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('clients_cache', 'readonly');
+    const store = transaction.objectStore('clients_cache');
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
 }
 
 async function removeOfflineClient(id) {
-  // Implementation would use IndexedDB
-  return true;
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('clients_cache', 'readwrite');
+    const store = transaction.objectStore('clients_cache');
+    const request = store.delete(id);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
 }

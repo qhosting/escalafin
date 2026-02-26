@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { sendEmail, emailTemplates } from '@/lib/mail';
 import { seedTenantData } from '@/lib/infrastructure-seeding';
+import { AurumSyncService } from '@/lib/aurum-sync-service';
 
 export async function POST(req: NextRequest) {
     try {
@@ -109,6 +110,20 @@ export async function POST(req: NextRequest) {
 
         // 5. Sembrado de datos iniciales (Mensajes, Configuración)
         await seedTenantData(result.tenant.id, companyName);
+
+        // Disparar sincronización con Master Hub (Fire and forget)
+        AurumSyncService.syncNewTenant(
+            {
+                commercialName: companyName,
+                email: email,
+            },
+            {
+                planName: 'Plan Inicial (Trial)',
+                amount: 0,
+                interval: 'monthly',
+                nextBillingDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            }
+        ).catch(err => console.error("Error trigger syncNewTenant:", err));
 
         // 6. Enviar Email de Bienvenida (sin bloquear la respuesta)
         const template = emailTemplates.welcomeTenant(firstName, companyName);

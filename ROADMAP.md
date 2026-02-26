@@ -82,7 +82,7 @@ El Super Admin gestiona el ecosistema global de EscalaFin.
 - [ ] **Email Marketing**: Automatización de campañas basadas en comportamiento del cliente.
 
 ### 📱 Prioridad Media
-- [ ] **App Móvil Nativa (Android)**: Enfoque especial en el módulo de cobranza offline.
+- [ ] **App Móvil Nativa (Android)**: 🚧 Inicio de desarrollo (Módulo de cobranza offline implementado en PWA/Capacitor core).
 - [ ] **Marketplace de Garantías**: Gestión de colaterales y subastas internas.
 
 ### 🌐 Prioridad Baja

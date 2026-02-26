@@ -5,6 +5,7 @@
 import { SessionProvider } from 'next-auth/react';
 import { ThemeProvider } from 'next-themes';
 import { TenantProvider, TenantInfo } from '@/components/providers/tenant-provider';
+import { ServiceWorkerRegistration } from '@/components/pwa/sw-registration';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ export function Providers({ children, tenant = null }: ProvidersProps) {
     <SessionProvider>
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <TenantProvider tenant={tenant}>
+          <ServiceWorkerRegistration />
           {children}
         </TenantProvider>
       </ThemeProvider>
