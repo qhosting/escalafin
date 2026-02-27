@@ -1,4 +1,5 @@
 
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -8,7 +9,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'ASESOR') {
+    if (!session || (session.user.role !== 'ASESOR' && session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
@@ -23,42 +24,32 @@ export async function GET() {
       submittedApplications,
       myLoans
     ] = await Promise.all([
-      // Mis clientes (clientes asignados a este asesor)
+      // Todos los clientes activos del tenant
       tenantPrisma.client.count({
-        where: { asesorId: userId }
+        where: { tenantId }
       }),
 
-      // Cartera asignada (suma de préstamos de mis clientes)
+      // Cartera total activa del tenant
       tenantPrisma.loan.aggregate({
-        where: {
-          client: { asesorId: userId },
-          status: 'ACTIVE'
-        },
+        where: { tenantId, status: 'ACTIVE' },
         _sum: { balanceRemaining: true }
       }),
 
-      // Solicitudes enviadas (de clientes asignados)
+      // Solicitudes activas del tenant
       tenantPrisma.creditApplication.count({
-        where: {
-          client: { asesorId: userId }
-        }
+        where: { tenantId }
       }),
 
-      // Mis préstamos activos
+      // Préstamos activos del tenant
       tenantPrisma.loan.count({
-        where: {
-          client: { asesorId: userId },
-          status: 'ACTIVE'
-        }
+        where: { tenantId, status: 'ACTIVE' }
       })
     ]);
 
     // Calcular meta mensual (basada en pagos recibidos este mes)
     const paymentsThisMonth = await tenantPrisma.payment.aggregate({
       where: {
-        loan: {
-          client: { asesorId: userId }
-        },
+        tenantId,
         paymentDate: {
           gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
         }
