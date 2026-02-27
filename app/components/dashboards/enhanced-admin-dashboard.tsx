@@ -170,7 +170,7 @@ export function EnhancedAdminDashboard() {
     },
     {
       title: 'Gestión de Pagos',
-      description: 'Pagos Openpay y efectivo',
+      description: 'Cobros en efectivo y SPEI',
       icon: Wallet,
       route: '/admin/payments',
       moduleKey: 'payment_history',
