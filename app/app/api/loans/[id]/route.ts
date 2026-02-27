@@ -12,7 +12,7 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
@@ -74,19 +74,19 @@ export async function GET(
     }
 
     // Verificar permisos
-    if (user.role === 'ASESOR') {
+    /* if (user.role === 'ASESOR') {
       const client = await prisma.client.findUnique({
         where: { id: loan.clientId }
       });
-      
+
       if (client?.asesorId !== user.id) {
         return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
       }
-    } else if (user.role === 'CLIENTE') {
+    } else */ if (user.role === 'CLIENTE') {
       const clientProfile = await prisma.client.findFirst({
         where: { userId: user.id }
       });
-      
+
       if (loan.clientId !== clientProfile?.id) {
         return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
       }
@@ -106,7 +106,7 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
@@ -131,13 +131,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Préstamo no encontrado' }, { status: 404 });
     }
 
-    // Verificar permisos de asesor
-    if (user.role === 'ASESOR' && loan.client.asesorId !== user.id) {
+    // Permitir que todos los gestores (ASESOR) actualicen cualquier préstamo de la organización
+    // Si se quisiera volver a restringir, se descomenta esto:
+    /* if (user.role === 'ASESOR' && loan.client.asesorId !== user.id) {
       return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
-    }
+    } */
 
     const updateData: any = {};
-    
+
     if (status && Object.values(LoanStatus).includes(status as LoanStatus)) {
       updateData.status = status as LoanStatus;
     }
@@ -175,7 +176,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
@@ -202,8 +203,8 @@ export async function DELETE(
 
     // No permitir eliminar préstamos con pagos
     if (loan.payments.length > 0) {
-      return NextResponse.json({ 
-        error: 'No se puede eliminar un préstamo con pagos registrados' 
+      return NextResponse.json({
+        error: 'No se puede eliminar un préstamo con pagos registrados'
       }, { status: 400 });
     }
 

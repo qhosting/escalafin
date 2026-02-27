@@ -45,7 +45,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Filtros según rol (Aislamiento por tenant ya aplicado por tenantPrisma)
-    if (session.user.role === 'ASESOR') {
+    // Permitir que todos los gestores (ASESOR) vean todos los préstamos de la organización
+    // Si se quisiera volver a restringir, se descomenta esto:
+    /* if (session.user.role === 'ASESOR') {
       // Asesor solo ve préstamos de sus clientes asignados
       const asesorClients = await tenantPrisma.client.findMany({
         where: { asesorId: session.user.id },
@@ -55,7 +57,7 @@ export async function GET(request: NextRequest) {
       whereClause.clientId = {
         in: asesorClients.map(client => client.id)
       };
-    }
+    } */
 
     // Filtros adicionales
     if (status && Object.values(LoanStatus).includes(status as LoanStatus)) {

@@ -40,10 +40,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Filtros según rol (El aislamiento por tenant ya lo hace getTenantPrisma)
-    if (session.user.role === 'ASESOR') {
-      // Asesor solo ve sus clientes asignados
-      whereClause.asesorId = session.user.id;
-    }
+    // Permitir que todos los gestores (ASESOR) vean todos los clientes de la organización
+    // Si se quisiera volver a restringir, se descomenta esto:
+    // if (session.user.role === 'ASESOR') {
+    //   whereClause.asesorId = session.user.id;
+    // }
 
     // Filtros adicionales
     if (status && Object.values(ClientStatus).includes(status as ClientStatus)) {

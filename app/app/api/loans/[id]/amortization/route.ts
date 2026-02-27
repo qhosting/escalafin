@@ -11,7 +11,7 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
@@ -34,13 +34,13 @@ export async function GET(
     }
 
     // Verificar permisos
-    if (user.role === 'ASESOR' && loan.client.asesorId !== user.id) {
+    /* if (user.role === 'ASESOR' && loan.client.asesorId !== user.id) {
       return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
-    } else if (user.role === 'CLIENTE') {
+    } else */ if (user.role === 'CLIENTE') {
       const clientProfile = await prisma.client.findFirst({
         where: { userId: user.id }
       });
-      
+
       if (loan.clientId !== clientProfile?.id) {
         return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
       }
