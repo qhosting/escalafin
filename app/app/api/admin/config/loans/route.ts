@@ -4,10 +4,12 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ConfigService, LoanTariffConfig } from '@/lib/config-service';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || session.user.role !== 'ADMIN') {
+        if (!session || session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
 
@@ -23,7 +25,7 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || session.user.role !== 'ADMIN') {
+        if (!session || session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
 

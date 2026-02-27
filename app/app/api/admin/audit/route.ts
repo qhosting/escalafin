@@ -4,6 +4,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { AuditLogger } from '@/lib/audit';
 
+export const dynamic = 'force-dynamic';
+
 const auditLogger = new AuditLogger(prisma);
 
 export async function GET(request: NextRequest) {

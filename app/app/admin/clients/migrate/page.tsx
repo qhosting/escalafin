@@ -69,10 +69,10 @@ export default function ClientMigrationPage() {
           </Card>
 
           {/* Componente de migración */}
-          <ClientMigration 
+          <ClientMigration
             onClientsMigrated={(clients) => {
               console.log('Clientes migrados:', clients);
-            }} 
+            }}
           />
         </div>
       </div>

@@ -3,22 +3,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
+import { getTenantPrisma } from '@/lib/tenant-db';
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    // Solo admins pueden migrar clientes
-    if (session.user.role !== 'ADMIN') {
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
+    // Permite ADMIN y SUPER_ADMIN
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
       return NextResponse.json(
-        { error: 'Solo administradores pueden migrar clientes' },
+        { error: 'Sin permisos: Solo administradores pueden migrar clientes' },
         { status: 403 }
       );
     }
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Verificar si el cliente ya existe
-        const existingClient = await prisma.client.findFirst({
+        const existingClient = await tenantPrisma.client.findFirst({
           where: {
             OR: [
               { email: clientData.email },
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Crear cliente con datos de migración
-        const newClient = await prisma.client.create({
+        const newClient = await tenantPrisma.client.create({
           data: {
             firstName: clientData.firstName,
             lastName: clientData.lastName,
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Crear log de auditoría
-    await prisma.auditLog.create({
+    await tenantPrisma.auditLog.create({
       data: {
         userId: session.user.id,
         action: 'CLIENT_MIGRATION',
@@ -136,15 +137,18 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user || session.user.role !== 'ADMIN') {
+    if (!session?.user?.id || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
       );
     }
 
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
     // Obtener estadísticas de migración
-    const migratedClients = await prisma.client.findMany({
+    const migratedClients = await tenantPrisma.client.findMany({
       where: {
         migratedFrom: {
           not: null

@@ -22,8 +22,8 @@ export function AuthWrapper({ children, allowedRoles, redirectTo = '/auth/login'
 
   useEffect(() => {
     if (!mounted || status === 'loading') return;
-    
-    if (!session?.user || !allowedRoles.includes(session.user.role)) {
+
+    if (!session?.user || (!allowedRoles.includes(session.user.role) && session.user.role !== 'SUPER_ADMIN')) {
       router.replace(redirectTo);
     }
   }, [session, status, router, allowedRoles, redirectTo, mounted]);
@@ -41,7 +41,7 @@ export function AuthWrapper({ children, allowedRoles, redirectTo = '/auth/login'
   }
 
   // Si no hay sesión o no tiene permisos, mostrar loading mientras redirige
-  if (!session?.user || !allowedRoles.includes(session.user.role)) {
+  if (!session?.user || (!allowedRoles.includes(session.user.role) && session.user.role !== 'SUPER_ADMIN')) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
