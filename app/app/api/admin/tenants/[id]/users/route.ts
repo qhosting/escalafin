@@ -156,7 +156,7 @@ export async function PATCH(
 
         const tenantId = params.id;
         const body = await request.json();
-        const { userId, role, status, password } = body;
+        const { userId, role, status, password, firstName, lastName, phone } = body;
 
         if (!userId) {
             return NextResponse.json({ error: 'userId es requerido' }, { status: 400 });
@@ -177,6 +177,9 @@ export async function PATCH(
         const updateData: any = {};
         if (role) updateData.role = role;
         if (status) updateData.status = status;
+        if (firstName) updateData.firstName = firstName;
+        if (lastName) updateData.lastName = lastName;
+        if (phone !== undefined) updateData.phone = phone;
         if (password) updateData.password = await bcrypt.hash(password, 10);
 
         const updated = await prisma.user.update({

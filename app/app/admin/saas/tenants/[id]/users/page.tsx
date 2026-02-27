@@ -109,6 +109,7 @@ export default function TenantUsersPage() {
     );
 
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isResetPwDialogOpen, setIsResetPwDialogOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -120,6 +121,13 @@ export default function TenantUsersPage() {
         lastName: '',
         phone: '',
         role: 'ADMIN',
+    });
+    const [editUser, setEditUser] = useState({
+        firstName: '',
+        lastName: '',
+        phone: '',
+        role: '',
+        status: '',
     });
     const [newPassword, setNewPassword] = useState('');
 
@@ -166,6 +174,49 @@ export default function TenantUsersPage() {
             }
         } catch {
             toast.error('Error al actualizar estado');
+        }
+    };
+
+    const handleEditClick = (user: any) => {
+        setSelectedUser(user);
+        setEditUser({
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phone || '',
+            role: user.role,
+            status: user.status,
+        });
+        setIsEditDialogOpen(true);
+    };
+
+    const handleUpdateUser = async () => {
+        if (!editUser.firstName || !editUser.lastName) {
+            toast.error('Nombre y Apellido son requeridos');
+            return;
+        }
+        setIsSaving(true);
+        try {
+            const res = await fetch(`/api/admin/tenants/${tenantId}/users`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: selectedUser.id,
+                    ...editUser
+                }),
+            });
+
+            if (res.ok) {
+                toast.success('Usuario actualizado exitosamente');
+                setIsEditDialogOpen(false);
+                mutate();
+            } else {
+                const error = await res.json();
+                toast.error(error.error || 'Error al actualizar usuario');
+            }
+        } catch {
+            toast.error('Error de red al actualizar usuario');
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -328,6 +379,15 @@ export default function TenantUsersPage() {
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
+                                                className="h-8 px-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                                                title="Editar Usuario"
+                                                onClick={() => handleEditClick(user)}
+                                            >
+                                                <Edit className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
                                                 className="h-8 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
                                                 title="Resetear Contraseña"
                                                 onClick={() => {
@@ -341,8 +401,8 @@ export default function TenantUsersPage() {
                                                 size="sm"
                                                 variant="ghost"
                                                 className={`h-8 px-2 ${user.status === 'ACTIVE'
-                                                        ? 'text-orange-500 hover:text-orange-600 hover:bg-orange-50'
-                                                        : 'text-green-500 hover:text-green-600 hover:bg-green-50'
+                                                    ? 'text-orange-500 hover:text-orange-600 hover:bg-orange-50'
+                                                    : 'text-green-500 hover:text-green-600 hover:bg-green-50'
                                                     }`}
                                                 title={user.status === 'ACTIVE' ? 'Suspender' : 'Activar'}
                                                 onClick={() => handleToggleStatus(user)}
@@ -524,6 +584,92 @@ export default function TenantUsersPage() {
                         <Button onClick={handleResetPassword} disabled={isSaving} className="bg-amber-600 hover:bg-amber-700">
                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             Actualizar Contraseña
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit User Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent className="sm:max-w-[480px]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Edit className="h-5 w-5 text-indigo-600" />
+                            Editar Usuario
+                        </DialogTitle>
+                        <DialogDescription>
+                            Modificar información de <strong>{selectedUser?.email}</strong>.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <Label htmlFor="edit-firstName">Nombre *</Label>
+                                <Input
+                                    id="edit-firstName"
+                                    value={editUser.firstName}
+                                    onChange={(e) => setEditUser({ ...editUser, firstName: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="edit-lastName">Apellido *</Label>
+                                <Input
+                                    id="edit-lastName"
+                                    value={editUser.lastName}
+                                    onChange={(e) => setEditUser({ ...editUser, lastName: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <Label htmlFor="edit-phone">Teléfono</Label>
+                            <Input
+                                id="edit-phone"
+                                value={editUser.phone}
+                                onChange={(e) => setEditUser({ ...editUser, phone: e.target.value })}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <Label htmlFor="edit-role">Rol</Label>
+                                <Select
+                                    value={editUser.role}
+                                    onValueChange={(val) => setEditUser({ ...editUser, role: val })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="ADMIN">Administrador</SelectItem>
+                                        <SelectItem value="ASESOR">Asesor</SelectItem>
+                                        <SelectItem value="CLIENTE">Cliente</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="edit-status">Estado</Label>
+                                <Select
+                                    value={editUser.status}
+                                    onValueChange={(val) => setEditUser({ ...editUser, status: val })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="ACTIVE">Activo</SelectItem>
+                                        <SelectItem value="INACTIVE">Inactivo</SelectItem>
+                                        <SelectItem value="SUSPENDED">Suspendido</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                            Cancelar
+                        </Button>
+                        <Button onClick={handleUpdateUser} disabled={isSaving} className="bg-indigo-600 hover:bg-indigo-700">
+                            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                            Guardar Cambios
                         </Button>
                     </DialogFooter>
                 </DialogContent>
