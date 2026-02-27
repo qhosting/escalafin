@@ -8,10 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  ArrowLeft, 
-  User, 
-  CreditCard, 
+import {
+  ArrowLeft,
+  User,
+  CreditCard,
   Calendar,
   DollarSign,
   FileText,
@@ -114,7 +114,7 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
       if (!response.ok) throw new Error('Error al cargar el préstamo');
 
       const data = await response.json();
-      setLoan(data.loan);
+      setLoan(data.loan || data);
     } catch (error) {
       console.error('Error fetching loan details:', error);
       toast.error('Error al cargar los detalles del préstamo');
@@ -290,8 +290,8 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Método de Cálculo</Label>
                   <p className="text-lg font-semibold">
-                    {loan.loanCalculationType 
-                      ? calculationTypeConfig[loan.loanCalculationType as keyof typeof calculationTypeConfig] 
+                    {loan.loanCalculationType
+                      ? calculationTypeConfig[loan.loanCalculationType as keyof typeof calculationTypeConfig]
                       : calculationTypeConfig.INTERES}
                   </p>
                 </div>
@@ -470,7 +470,7 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex justify-end">
                 <Button variant="outline" asChild>
                   <Link href={`/admin/clients/${loan.client.id}`}>
