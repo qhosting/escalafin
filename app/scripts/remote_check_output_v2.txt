@@ -1,0 +1,12 @@
+
+--- CORRECTED USER INFO ---
+{
+  id: 'cmm422non0001nw08zc2voq8b',
+  email: 'prestamossjr@escalafin.com',
+  role: 'ADMIN',
+  status: 'ACTIVE',
+  tenantId: 'cmlxz5lia0000mo07ihk4iulr',
+  userTenantSlug: 'prestamossjr',
+  hasPassword: true,
+  createdAt: 2026-02-26T22:49:29.431Z
+}

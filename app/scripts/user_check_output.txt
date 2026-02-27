@@ -1,0 +1,36 @@
+Testing: postgresql://postgres:postgrespassword@localhost:5433/escalafin_db
+Failed: 
+Invalid `prisma.tenant.findUnique()` invocation in
+C:\Users\Admin\Proyectos\escalafin\app\scripts\check-user-adv.ts:14:44
+
+  11 });
+  12 
+  13 try {
+ÔåÆ 14     const tenant = await prisma.tenant.findUnique(
+Can't reach database server at `localhost:5433`
+
+Please make sure your database server is running at `localhost:5433`.
+Testing: postgresql://postgres:postgrespassword@localhost:5432/escalafin_db
+Failed: 
+Invalid `prisma.tenant.findUnique()` invocation in
+C:\Users\Admin\Proyectos\escalafin\app\scripts\check-user-adv.ts:14:44
+
+  11 });
+  12 
+  13 try {
+ÔåÆ 14     const tenant = await prisma.tenant.findUnique(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+Testing: postgresql://escalafin:password@localhost:5432/escalafin_db
+Failed: 
+Invalid `prisma.tenant.findUnique()` invocation in
+C:\Users\Admin\Proyectos\escalafin\app\scripts\check-user-adv.ts:14:44
+
+  11 });
+  12 
+  13 try {
+ÔåÆ 14     const tenant = await prisma.tenant.findUnique(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.

@@ -1,0 +1,95 @@
+Excel Headers: [
+  'Nombre completo',       'direccion completa',
+  'telefono',              'nombre Aval',
+  'direccion aval',        'tel aval',
+  'garantia1',             'referencia1 nombre',
+  'referencia1 direccion', 'parentesco ref 1',
+  'referencia1 telefono',  'referencia2 nombre',
+  'referencia2 direccion', 'parentesco ref 2',
+  'referencia2 telefono',  'pago semanal',
+  'periodicidad',          'saldo actual',
+  'prestamo'
+]
+
+First 3 rows of data:
+[
+  {
+    "Nombre completo": "paola ramirez gomez",
+    "direccion completa": "benito juarez #34 cerro gordo",
+    "telefono": 4272464296,
+    "nombre Aval": "aurelia gomez martinez",
+    "direccion aval": "av santa rosa #209 cerro gordo",
+    "tel aval": 4271616798,
+    "garantia1": "horno lg",
+    "referencia1 nombre": "guillermina gonzales pelcastre",
+    "referencia1 direccion": "benito juarez #33 cerro gordo",
+    "parentesco ref 1": "amistad",
+    "referencia1 telefono": 4271869008,
+    "referencia2 nombre": "georgina gonzales pichardo",
+    "referencia2 direccion": " olivos #1 cerro gordo",
+    "parentesco ref 2": "patrona",
+    "referencia2 telefono": 4272043718,
+    "pago semanal": 600,
+    "periodicidad": "semanal",
+    "saldo actual": 7800,
+    "prestamo": 5000
+  },
+  {
+    "Nombre completo": "jaqueline zarraga garcia",
+    "direccion completa": "priv martin arco y flecha ext #18",
+    "telefono": 4272772107,
+    "nombre Aval": "maria sandy garcia lopez",
+    "direccion aval": "calle de la presa ext2",
+    "tel aval": 7297578358,
+    "referencia1 nombre": "uriel martinez hernandez",
+    "referencia1 direccion": "priv martin arco y flecha #18 fundadores",
+    "parentesco ref 1": "esposo",
+    "referencia1 telefono": 4112223976,
+    "referencia2 nombre": "esmeralda garcia lopez",
+    "referencia2 direccion": "cerrada de la presa #2 cerro gordo",
+    "parentesco ref 2": "hermana",
+    "referencia2 telefono": 4271237429,
+    "referencia3 nombre": "luis angel zarraga garcia",
+    "referencia3 direccion": "cerrada de la presa#2 cerro gordo",
+    "parentesco ref 3": "hermano",
+    "referencia3 telefono": 4272440147,
+    "pago semanal": 360,
+    "periodicidad": "semanal",
+    "saldo actual": 2520,
+    "prestamo": 3500,
+    "multa": 1,
+    "tipomulta": "SEMANAL"
+  },
+  {
+    "Nombre completo": "jorge gonzales martinez",
+    "direccion completa": "camino real #8 cerro gordo",
+    "telefono": 4272013390,
+    "nombre Aval": " ma socorro martinez hernandez",
+    "tel aval": 4271837287,
+    "garantia1": "pantalla 20",
+    "garantia2": "refrigerador",
+    "garantia3": "dvd",
+    "referencia1 nombre": "lizbeth gonzales martinez",
+    "referencia1 direccion": "camino real #18 cerro gordo",
+    "parentesco ref 1": "hija",
+    "referencia1 telefono": 4271652835,
+    "referencia2 nombre": "alonzo gonzales martinez",
+    "referencia2 direccion": "camino real #18 cerro gordo",
+    "parentesco ref 2": "hijo",
+    "referencia2 telefono": 4421121126,
+    "referencia3 nombre": "noradino garcia",
+    "referencia3 direccion": "santa rosa shaxai",
+    "parentesco ref 3": "amistad",
+    "referencia3 telefono": 4271099474,
+    "pago semanal": 600,
+    "periodicidad": "semanal",
+    "saldo actual": 2800,
+    "prestamo": 5000,
+    "multa": 7,
+    "tipomulta": "SEMANAL"
+  }
+]
+
+Required Client Importer Headers: [ 'nombre', 'apellido', 'email', 'telefono' ]
+
+Missing required headers: [ 'nombre', 'apellido', 'email' ]

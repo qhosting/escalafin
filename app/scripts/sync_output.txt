@@ -1,0 +1,6 @@
+Reading files...
+Balances found in Cartera: 69
+Update process finished.
+Total rows in Plantilla: 66
+Saldos updated (matches found): 21
+File saved to: c:\Users\Admin\Proyectos\escalafin\temporal\PLANTILLA_CON_SALDOS_ACTUALIZADOS.csv

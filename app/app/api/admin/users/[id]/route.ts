@@ -19,7 +19,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { status } = body;
+    const { status, firstName, lastName, phone, role } = body;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -30,29 +30,32 @@ export async function PATCH(
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
     }
 
-    // Prevent admin from changing their own status
-    if (existingUser.id === session.user.id) {
+    // Prevent changing admin status or role of other admins if not super admin
+    // (In this case, we only have ADMIN role in context, so we prevent editing admins)
+    if (existingUser.role === UserRole.ADMIN && existingUser.id !== session.user.id) {
+      // Only allow self-editing for basic info if needed, but here we follow the existing pattern
+      // of protecting admins.
       return NextResponse.json(
-        { error: 'No puedes cambiar tu propio estado' },
-        { status: 400 }
+        { error: 'No se puede modificar la configuración de otros administradores' },
+        { status: 403 }
       );
     }
 
-    // Prevent changing admin status
-    if (existingUser.role === UserRole.ADMIN) {
-      return NextResponse.json(
-        { error: 'No se puede cambiar el estado de otros administradores' },
-        { status: 400 }
-      );
-    }
+    // Prepare update data
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
 
-    // Update user status
+    if (status) updateData.status = status as UserStatus;
+    if (firstName) updateData.firstName = firstName;
+    if (lastName) updateData.lastName = lastName;
+    if (phone !== undefined) updateData.phone = phone;
+    if (role && role !== UserRole.SUPER_ADMIN) updateData.role = role as UserRole;
+
+    // Update user
     const updatedUser = await prisma.user.update({
       where: { id: params.id },
-      data: {
-        status: status as UserStatus,
-        updatedAt: new Date(),
-      },
+      data: updateData,
       select: {
         id: true,
         firstName: true,
@@ -67,7 +70,7 @@ export async function PATCH(
     // Audit log
     await AuditLogger.quickLog(request, 'USER_UPDATE', {
       userEmail: updatedUser.email,
-      newStatus: updatedUser.status
+      updates: body
     }, 'User', updatedUser.id, session);
 
     return NextResponse.json({

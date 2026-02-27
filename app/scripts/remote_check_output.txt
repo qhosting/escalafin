@@ -1,0 +1,13 @@
+Checking remote database...
+
+--- TENANT INFO ---
+{
+  id: 'cmlxz5lia0000mo07ihk4iulr',
+  name: 'PRESTAMOS SAN JUAN',
+  slug: 'prestamossjr',
+  status: 'ACTIVE'
+}
+
+--- USER INFO ---
+User "prestampsssjr@escalafin.com" NOT FOUND
+Emails containing "prestam": [ 'prestamossjr@escalafin.com' ]
