@@ -26,6 +26,7 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { LoanStatementModal } from './loan-statement-modal';
 
 interface Loan {
   id: string;
@@ -83,6 +84,8 @@ export function LoanList({ userRole }: LoanListProps) {
     totalCount: 0,
     totalPages: 0
   });
+  const [selectedLoanForStatement, setSelectedLoanForStatement] = useState<Loan | null>(null);
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
 
   const fetchLoans = async () => {
     try {
@@ -254,7 +257,10 @@ export function LoanList({ userRole }: LoanListProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open(`/api/loans/${loan.id}/statement`, '_blank')}
+                    onClick={() => {
+                      setSelectedLoanForStatement(loan);
+                      setIsStatementModalOpen(true);
+                    }}
                   >
                     <FileText className="h-4 w-4 mr-1" />
                     Estado de Cuenta
@@ -324,6 +330,12 @@ export function LoanList({ userRole }: LoanListProps) {
           </div>
         </div>
       )}
+
+      <LoanStatementModal
+        isOpen={isStatementModalOpen}
+        onOpenChange={setIsStatementModalOpen}
+        loan={selectedLoanForStatement}
+      />
     </div>
   );
 }

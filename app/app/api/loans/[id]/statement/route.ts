@@ -1,9 +1,11 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth'; // Adjust path as needed
-import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
+import { getTenantPrisma } from '@/lib/tenant-db';
+import { prisma } from '@/lib/prisma'; // Para buscar el tenant info (branding)
 import PDFDocument from 'pdfkit';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
     request: NextRequest,
@@ -11,164 +13,124 @@ export async function GET(
 ) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session) {
-            return new NextResponse('Unauthorized', { status: 401 });
+        if (!session?.user?.tenantId) {
+            return new NextResponse('No autorizado o sesión expirada', { status: 401 });
         }
 
         const loanId = params.id;
-        const userRole = session.user.role;
-        const userId = session.user.id;
+        const tenantId = session.user.tenantId;
+        const tenantPrisma = getTenantPrisma(tenantId);
 
-        // Fetch loan details
-        const loan = await prisma.loan.findUnique({
+        // Obtener datos del préstamo con prisma de tenant (seguridad)
+        const loan = await (tenantPrisma.loan as any).findUnique({
             where: { id: loanId },
             include: {
                 client: true,
                 payments: {
+                    where: { status: 'COMPLETED' },
                     orderBy: { paymentDate: 'desc' }
                 },
                 amortizationSchedule: {
                     orderBy: { paymentNumber: 'asc' },
-                    include: {
-                        payment: true
-                    }
                 }
             }
         });
 
         if (!loan) {
-            return new NextResponse('Loan not found', { status: 404 });
+            return new NextResponse('Préstamo no encontrado en su cuenta', { status: 404 });
         }
 
-        // Authorization check
-        // If user is CLIENTE, they must own the loan
-        // If not CLIENTE (ADMIN, ASESOR), they usually have access (assuming ASESOR access logic fits here)
-        if (userRole === 'CLIENTE') {
-            // Need to find the client record associated with this user to verify ownership
-            // Assuming specific relation between User and Client or check if loan.client.email matches user.email if properly linked
-            // Or checking if loan.clientId is linked to session user. 
-            // For now, let's assume session.user.id maps to Client ID or we check via database if user is linked to client.
+        // Obtener branding del tenant (nombre, logo si existe)
+        const tenantInfo = await prisma.tenant.findUnique({
+            where: { id: tenantId },
+            select: { name: true, logo: true }
+        });
 
-            // BUT, commonly in this app, Admin users have access to everything, 
-            // and Client users are linked via Client model.
-            // Let's perform a check: does this client exist?
-
-            // A safer check if we don't have direct mapping in session:
-            const clientUser = await prisma.client.findFirst({
-                where: {
-                    email: session.user.email,
-                    id: loan.clientId
-                }
-            });
-
-            if (!clientUser) {
-                // Alternative: maybe the session.user.id IS the client id?
-                // Let's stick to the email matching for safety if ids differ.
-                if (loan.clientId !== userId && session.user.email !== loan.client.email) {
-                    return new NextResponse('Forbidden', { status: 403 });
-                }
-            }
-        }
-
-
-        // Create PDF
-        const doc = new PDFDocument({ margin: 50 });
-
+        // Crear PDF
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
         const chunks: Buffer[] = [];
         doc.on('data', (chunk) => chunks.push(chunk));
 
-        // Header
-        doc
-            .fontSize(20)
-            .text('Estado de Cuenta', { align: 'center' })
-            .moveDown();
+        // Header decorativo
+        doc.rect(0, 0, doc.page.width, 100).fill('#f8fafc');
 
-        doc
-            .fontSize(12)
-            .text(`EscalaFin - Tu aliado financiero`, { align: 'center' })
-            .moveDown();
+        // Texto de cabecera
+        doc.fillColor('#1e293b').fontSize(24).text(tenantInfo?.name || 'EscalaFin', 50, 40);
+        doc.fontSize(10).fillColor('#64748b').text('Tu Aliado Financiero', 50, 68);
 
-        // Client Info
-        doc
-            .fontSize(10)
-            .text(`Cliente: ${loan.client.firstName} ${loan.client.lastName}`)
-            .text(`Email: ${loan.client.email}`)
-            .text(`Teléfono: ${loan.client.phone}`)
-            .moveDown();
+        doc.fillColor('#0f172a').fontSize(16).text('ESTADO DE CUENTA', 400, 45, { align: 'right' });
+        doc.fontSize(9).fillColor('#64748b').text(`Folio: ${loan.loanNumber}`, 400, 65, { align: 'right' });
+        doc.text(`Fecha de Impresión: ${new Date().toLocaleDateString('es-MX')}`, 400, 78, { align: 'right' });
 
-        // Loan Info
-        doc
-            .text(`Préstamo #: ${loan.loanNumber}`)
-            .text(`Monto Principal: $${Number(loan.principalAmount).toFixed(2)}`)
-            .text(`Saldo Restante: $${Number(loan.balanceRemaining).toFixed(2)}`)
-            .text(`Estado: ${loan.status}`)
-            .text(`Fecha de Inicio: ${loan.startDate.toLocaleDateString()}`)
-            .text(`Fecha de Fin: ${loan.endDate.toLocaleDateString()}`)
-            .moveDown();
+        doc.moveDown(4);
 
-        // Payment History Table
-        doc.fontSize(14).text('Historial de Pagos', { underline: true }).moveDown(0.5);
+        // Grid de Información (Cliente y Préstamo)
+        const startY = 130;
+        doc.lineCap('butt').moveTo(50, startY).lineTo(545, startY).strokeColor('#e2e8f0').stroke();
+
+        // Columna 1: Cliente
+        doc.fillColor('#64748b').fontSize(9).text('DATOS DEL CLIENTE', 50, startY + 15);
+        doc.fillColor('#0f172a').fontSize(11).text(`${loan.client.firstName} ${loan.client.lastName}`, 50, startY + 30);
+        doc.fontSize(9).text(`Tel: ${loan.client.phone}`, 50, startY + 45);
+        doc.text(`Email: ${loan.client.email}`, 50, startY + 58);
+
+        // Columna 2: Resumen
+        doc.fillColor('#64748b').text('RESUMEN DE CRÉDITO', 350, startY + 15);
+        doc.fillColor('#0f172a').fontSize(10);
+        doc.text(`Monto Prestado:`, 350, startY + 30);
+        doc.text(`Saldo a la Fecha:`, 350, startY + 45);
+        doc.text(`Estatus:`, 350, startY + 60);
+
+        doc.fontSize(10).font('Helvetica-Bold');
+        doc.text(`$${Number(loan.principalAmount).toLocaleString('es-MX')}`, 450, startY + 30, { align: 'right' });
+        doc.text(`$${Number(loan.balanceRemaining).toLocaleString('es-MX')}`, 450, startY + 45, { align: 'right' });
+        doc.text(loan.status === 'ACTIVE' ? 'ACTIVO' : loan.status, 450, startY + 60, { align: 'right' });
+        doc.font('Helvetica');
+
+        // Línea separadora
+        doc.moveTo(50, startY + 85).lineTo(545, startY + 85).strokeColor('#e2e8f0').stroke();
+
+        doc.moveDown(2);
+
+        // Tabla de Historial de Pagos
+        doc.fillColor('#1e293b').fontSize(12).font('Helvetica-Bold').text('HISTORIAL DE MOVIMIENTOS', 50);
+        doc.moveDown(0.5);
 
         const tableTop = doc.y;
-        const itemHeight = 20;
+        doc.rect(50, tableTop, 495, 20).fill('#f1f5f9');
+        doc.fillColor('#475569').fontSize(9).font('Helvetica-Bold');
+        doc.text('FECHA', 60, tableTop + 6);
+        doc.text('CONCEPTO', 150, tableTop + 6);
+        doc.text('FOLIO/REF', 300, tableTop + 6);
+        doc.text('ABONO', 460, tableTop + 6, { width: 80, align: 'right' });
 
-        // Table Headers
-        doc.fontSize(10);
-        doc.text('Fecha', 50, tableTop, { width: 100 });
-        doc.text('Monto', 150, tableTop, { width: 100 });
-        doc.text('Referencia', 250, tableTop, { width: 150 });
-        doc.text('Estado', 400, tableTop, { width: 100 });
-
-        // Draw line
-        doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
-
-        let recordY = tableTop + 25;
-
-        loan.payments.forEach((payment: any) => {
-            if (recordY > 700) { // New page if near bottom
-                doc.addPage();
-                recordY = 50;
-            }
-
-            doc.text(payment.paymentDate.toLocaleDateString(), 50, recordY);
-            doc.text(`$${Number(payment.amount).toFixed(2)}`, 150, recordY);
-            doc.text(payment.notes || '-', 250, recordY);
-            doc.text(payment.status, 400, recordY);
-
-            recordY += itemHeight;
-        });
+        let currentY = tableTop + 25;
+        doc.font('Helvetica').fillColor('#334155');
 
         if (loan.payments.length === 0) {
-            doc.text('No hay pagos registrados.', 50, recordY);
-            recordY += itemHeight;
+            doc.text('No se registran pagos a la fecha.', 60, currentY);
+        } else {
+            loan.payments.forEach((p: any) => {
+                if (currentY > 750) {
+                    doc.addPage();
+                    currentY = 50;
+                }
+                const pDate = new Date(p.paymentDate).toLocaleDateString('es-MX');
+                doc.text(pDate, 60, currentY);
+                doc.text(p.paymentMethod === 'CASH' ? 'Pago en Efectivo' : 'Referencia Bancaria', 150, currentY);
+                doc.text(p.reference || '-', 300, currentY);
+                doc.font('Helvetica-Bold').text(`$${Number(p.amount).toLocaleString('es-MX')}`, 460, currentY, { width: 80, align: 'right' }).font('Helvetica');
+
+                doc.moveTo(50, currentY + 12).lineTo(545, currentY + 12).strokeColor('#f1f5f9').lineWidth(0.5).stroke();
+                currentY += 20;
+            });
         }
 
-        // Amortization Schedule (Optional, maybe specific request?)
-        // Let's add "Próximos Pagos" (Upcoming Payments)
-        doc.moveDown();
-        doc.fontSize(14).text('Próximos Pagos', 50, recordY + 20, { underline: true });
-        recordY += 45;
-
-        const upcomingPayments = loan.amortizationSchedule.filter((s: any) => !s.isPaid).slice(0, 5); // Show next 5
-
-        doc.fontSize(10);
-        doc.text('Fecha', 50, recordY, { width: 100 });
-        doc.text('Monto Total', 150, recordY, { width: 100 });
-        doc.text('Número', 250, recordY, { width: 100 });
-
-        doc.moveTo(50, recordY + 15).lineTo(550, recordY + 15).stroke();
-        recordY += 25;
-
-        upcomingPayments.forEach((sch: any) => {
-            doc.text(sch.paymentDate.toLocaleDateString(), 50, recordY);
-            doc.text(`$${Number(sch.totalPayment).toFixed(2)}`, 150, recordY);
-            doc.text(`#${sch.paymentNumber}`, 250, recordY);
-            recordY += itemHeight;
-        });
-
-        if (upcomingPayments.length === 0) {
-            doc.text('No hay pagos pendientes.', 50, recordY);
-        }
+        // Pie de página
+        doc.fontSize(8).fillColor('#94a3b8').text(
+            'Este documento es un comprobante informativo del estado de su crédito. EscalaFin agradece su puntualidad.',
+            50, 780, { align: 'center' }
+        );
 
         doc.end();
 
@@ -179,20 +141,19 @@ export async function GET(
                     status: 200,
                     headers: {
                         'Content-Type': 'application/pdf',
-                        'Content-Disposition': `attachment; filename="estado_cuenta_${loan.loanNumber}.pdf"`,
+                        'Content-Disposition': `inline; filename="Estado_Cuenta_${loan.loanNumber}.pdf"`,
                     },
                 });
                 resolve(response);
             });
-
             doc.on('error', (err) => {
-                console.error('PDF generation error', err);
-                resolve(new NextResponse('Error generating PDF', { status: 500 }));
+                console.error('PDF error:', err);
+                resolve(NextResponse.json({ error: 'Falla al generar PDF' }, { status: 500 }));
             });
         });
 
     } catch (error) {
-        console.error('Error generating statement:', error);
-        return new NextResponse('Internal Server Error', { status: 500 });
+        console.error('Error in statement API:', error);
+        return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
     }
 }

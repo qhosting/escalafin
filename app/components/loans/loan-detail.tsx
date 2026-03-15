@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { AmortizationSchedule } from './amortization-schedule';
+import { LoanStatementModal } from './loan-statement-modal';
 
 interface LoanDetailProps {
   loanId: string;
@@ -120,6 +121,7 @@ export function LoanDetail({ loanId, userRole }: LoanDetailProps) {
   const router = useRouter();
   const [loan, setLoan] = useState<LoanData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
 
   const fetchLoan = async () => {
     try {
@@ -210,7 +212,7 @@ export function LoanDetail({ loanId, userRole }: LoanDetailProps) {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => window.open(`/api/loans/${loanId}/statement`, '_blank')}
+            onClick={() => setIsStatementModalOpen(true)}
           >
             <FileText className="h-4 w-4 mr-2" />
             Estado de Cuenta
@@ -491,6 +493,12 @@ export function LoanDetail({ loanId, userRole }: LoanDetailProps) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <LoanStatementModal
+        isOpen={isStatementModalOpen}
+        onOpenChange={setIsStatementModalOpen}
+        loan={loan as any}
+      />
     </div >
   );
 }

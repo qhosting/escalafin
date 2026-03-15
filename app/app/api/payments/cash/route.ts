@@ -87,6 +87,14 @@ export async function POST(request: NextRequest) {
                 }
             });
 
+            // 3. Auto-assign client to advisor if the user is an advisor
+            if (session.user.role === 'ASESOR') {
+                await prismaTx.client.update({
+                    where: { id: loan.clientId },
+                    data: { asesorId: processedBy }
+                });
+            }
+
             return { payment, updatedLoan };
         });
 

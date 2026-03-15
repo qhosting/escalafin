@@ -80,6 +80,14 @@ export async function POST(request: NextRequest) {
                 }
             });
 
+            // Auto-assign client to advisor if the user is an advisor
+            if (session.user.role === 'ASESOR') {
+                await tx.client.update({
+                    where: { id: loan.clientId },
+                    data: { asesorId: processedBy }
+                });
+            }
+
             return { payment, updatedLoan };
         });
 

@@ -44,8 +44,21 @@ export async function GET(request: NextRequest) {
             whereClause = {
                 loan: { clientId: clientProfile.id, tenantId }
             };
+        } else if (session.user.role === 'ASESOR') {
+            const assignedCount = await tenantPrisma.client.count({
+                where: { asesorId: session.user.id }
+            });
+
+            if (assignedCount > 0) {
+                // Si tiene clientes asignados, solo ve pagos de sus clientes
+                whereClause = {
+                    loan: {
+                        client: { asesorId: session.user.id }
+                    }
+                };
+            }
+            // Si no tiene ninguno, ve todos los pagos (para que coincida con la vista de clientes/préstamos)
         }
-        // ADMIN, SUPER_ADMIN, ASESOR: todos los pagos del tenant
 
         const [payments, total] = await Promise.all([
             tenantPrisma.payment.findMany({

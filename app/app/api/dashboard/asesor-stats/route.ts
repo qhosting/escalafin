@@ -17,43 +17,49 @@ export async function GET() {
     const tenantId = session.user.tenantId;
     const tenantPrisma = getTenantPrisma(tenantId);
 
-    // Obtener estadísticas reales del asesor (aisladas por tenant)
+    // Lógica de visibilidad condicional para asesores
+    let clientWhere: any = { tenantId };
+    let loanWhere: any = { tenantId, status: 'ACTIVE' };
+    let appWhere: any = { tenantId };
+    let payWhere: any = {
+      tenantId,
+      paymentDate: {
+        gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+      }
+    };
+
+    if (session.user.role === 'ASESOR') {
+      const assignedCount = await tenantPrisma.client.count({
+        where: { asesorId: userId }
+      });
+
+      if (assignedCount > 0) {
+        // Solo ve su propia cartera si ya tiene clientes asignados
+        clientWhere.asesorId = userId;
+        loanWhere.client = { asesorId: userId };
+        appWhere.asesorId = userId;
+        payWhere.processedBy = userId; // Meta basada en lo que él ha cobrado
+      }
+    }
+
     const [
       myClientsCount,
       assignedPortfolio,
       submittedApplications,
       myLoans
     ] = await Promise.all([
-      // Todos los clientes activos del tenant
-      tenantPrisma.client.count({
-        where: { tenantId }
-      }),
-
-      // Cartera total activa del tenant
+      tenantPrisma.client.count({ where: clientWhere }),
       tenantPrisma.loan.aggregate({
-        where: { tenantId, status: 'ACTIVE' },
+        where: loanWhere,
         _sum: { balanceRemaining: true }
       }),
-
-      // Solicitudes activas del tenant
-      tenantPrisma.creditApplication.count({
-        where: { tenantId }
-      }),
-
-      // Préstamos activos del tenant
-      tenantPrisma.loan.count({
-        where: { tenantId, status: 'ACTIVE' }
-      })
+      tenantPrisma.creditApplication.count({ where: appWhere }),
+      tenantPrisma.loan.count({ where: loanWhere })
     ]);
 
-    // Calcular meta mensual (basada en pagos recibidos este mes)
+    // Calcular meta mensual
     const paymentsThisMonth = await tenantPrisma.payment.aggregate({
-      where: {
-        tenantId,
-        paymentDate: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-        }
-      },
+      where: payWhere,
       _sum: { amount: true }
     });
 

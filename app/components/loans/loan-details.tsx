@@ -29,6 +29,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { LoanStatementModal } from './loan-statement-modal';
 
 interface LoanDetail {
   id: string;
@@ -102,6 +103,7 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
   const { data: session } = useSession();
   const [loan, setLoan] = useState<LoanDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
 
   useEffect(() => {
     fetchLoanDetails();
@@ -194,6 +196,14 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
           <Badge className={statusConfig[loan.status as keyof typeof statusConfig]?.color}>
             {statusConfig[loan.status as keyof typeof statusConfig]?.label}
           </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsStatementModalOpen(true)}
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Estado de Cuenta
+          </Button>
           {userRole !== 'CLIENTE' && (
             <Button variant="outline" size="sm" asChild>
               <Link href={`/admin/loans/${loan.id}/edit`}>
@@ -482,6 +492,12 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <LoanStatementModal
+        isOpen={isStatementModalOpen}
+        onOpenChange={setIsStatementModalOpen}
+        loan={loan}
+      />
     </div>
   );
 }
