@@ -10,9 +10,12 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { OfflineBanner } from '@/components/pwa/offline-banner';
+import { GlobalSearch } from './global-search';
 
 export function MobileSidebar() {
   const { data: session } = useSession() || {};
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
 
   if (!session) {
     return null;
@@ -20,6 +23,7 @@ export function MobileSidebar() {
 
   return (
     <div className="md:hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
+      <OfflineBanner />
       {/* Header móvil premium */}
       <div className="flex items-center justify-between px-6 h-16">
         <Link href="/" className="flex items-center space-x-3 active:scale-95 transition-transform">
@@ -32,9 +36,16 @@ export function MobileSidebar() {
         </Link>
 
         <div className="flex items-center space-x-1">
-          <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 h-10 w-10">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 h-10 w-10"
+            onClick={() => setIsSearchOpen(true)}
+          >
             <Search className="h-5 w-5 text-gray-500" />
           </Button>
+
+          <GlobalSearch isOpen={isSearchOpen} onOpenChange={setIsSearchOpen} />
 
           <Link href="/notifications">
             <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 h-10 w-10 relative">

@@ -36,6 +36,7 @@ import {
 import { toast } from 'sonner';
 import { PersonalReferencesForm } from '@/components/clients/personal-references-form';
 import { ClientProfileImage } from '@/components/clients/client-profile-image';
+import { GPSCheckIn } from '@/components/collections/check-in-button';
 
 interface ClientData {
   id: string;
@@ -212,12 +213,15 @@ export default function ClientDetailPage() {
               </div>
             </div>
           </div>
-          <Link href={`/admin/clients/${client.id}/edit`}>
-            <Button>
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <GPSCheckIn clientId={client.id} />
+            <Link href={`/admin/clients/${client.id}/edit`}>
+              <Button variant="outline">
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

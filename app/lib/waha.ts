@@ -279,6 +279,65 @@ export class WahaService {
     }
   }
 
+  async sendFileMessage(
+    clientId: string,
+    phone: string,
+    fileBase64: string,
+    filename: string,
+    caption: string,
+    messageType: 'PAYMENT_RECEIVED' | 'CUSTOM',
+    paymentId?: string
+  ): Promise<string> {
+    try {
+      const config = await this.ensureConfig();
+      const chatId = this.formatChatId(phone);
+
+      // Crear registro en la base de datos
+      const whatsappMessage = await (prisma as any).whatsAppMessage.create({
+        data: {
+          clientId,
+          phone: chatId,
+          message: caption || filename,
+          messageType,
+          status: 'PENDING',
+          paymentId,
+        }
+      });
+
+      const payload = {
+        chatId,
+        file: {
+          mimetype: 'application/pdf',
+          filename,
+          data: fileBase64.split(',')[1] || fileBase64
+        },
+        caption,
+        session: config.sessionId
+      };
+
+      const response: AxiosResponse<WahaResponse> = await axios.post(
+        `${config.baseUrl}/api/sendFile`,
+        payload,
+        { headers: this.getHeaders(config.apiKey) }
+      );
+
+      await (prisma as any).whatsAppMessage.update({
+        where: { id: whatsappMessage.id },
+        data: {
+          status: 'SENT',
+          wahaMessageId: response.data.id || response.data.timestamp?.toString(),
+          wahaResponse: JSON.stringify(response.data),
+          sentAt: new Date()
+        }
+      });
+
+      return whatsappMessage.id;
+    } catch (error) {
+      console.error('Error in WahaService.sendFileMessage:', error);
+      throw error;
+    }
+  }
+
   async getSessionStatus(): Promise<any> {
     try {
       const config = await this.ensureConfig();

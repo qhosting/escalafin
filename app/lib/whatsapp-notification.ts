@@ -82,6 +82,43 @@ export class WhatsAppNotificationService {
     }
   }
 
+  async sendPaymentReceiptPDF(
+    paymentId: string,
+    fileBase64: string,
+    options: NotificationOptions = {}
+  ): Promise<void> {
+    try {
+      const payment = await this.db.payment.findUnique({
+        where: { id: paymentId },
+        include: {
+          loan: {
+            include: {
+              client: true
+            }
+          }
+        }
+      });
+
+      if (!payment || !payment.loan) return;
+
+      const client = payment.loan.client;
+      const filename = `recibo_pago_${payment.id.substring(0, 8)}.pdf`;
+      const caption = `Hola ${client.firstName}, adjuntamos tu comprobante de pago por ${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(payment.amount))}.`;
+
+      await this.wahaService.sendFileMessage(
+        client.id,
+        client.phone,
+        fileBase64,
+        filename,
+        caption,
+        'PAYMENT_RECEIVED',
+        payment.id
+      );
+    } catch (error) {
+      console.error('Error enviando PDF de recibo:', error);
+    }
+  }
+
   async sendPaymentReminderNotification(
     loanId: string,
     options: NotificationOptions = {}

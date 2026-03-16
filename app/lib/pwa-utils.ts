@@ -88,35 +88,39 @@ export class OfflineStorage {
 
   async init(tenantId?: string | null): Promise<void> {
     const finalDbName = tenantId ? `${this.dbName}_${tenantId}` : this.dbName;
+    
+    // Abrir DB principal del tenant
+    await this.openDatabase(finalDbName);
+    
+    // Abrir DB global de cola offline (para que el SW pueda acceder fácilmente)
+    await this.openOfflineDatabase();
+  }
 
+  private openDatabase(name: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(finalDbName, this.version);
-
+      const request = indexedDB.open(name, this.version);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         this.db = request.result;
         resolve();
       };
-
+      
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains('clients')) db.createObjectStore('clients', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('loans')) db.createObjectStore('loans', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('payments')) db.createObjectStore('payments', { keyPath: 'id' });
+      };
+    });
+  }
 
-        // Create stores
-        if (!db.objectStoreNames.contains('clients')) {
-          const clientStore = db.createObjectStore('clients', { keyPath: 'id' });
-          clientStore.createIndex('email', 'email', { unique: false });
-        }
-
-        if (!db.objectStoreNames.contains('loans')) {
-          const loanStore = db.createObjectStore('loans', { keyPath: 'id' });
-          loanStore.createIndex('clientId', 'clientId', { unique: false });
-        }
-
-        if (!db.objectStoreNames.contains('payments')) {
-          const paymentStore = db.createObjectStore('payments', { keyPath: 'id' });
-          paymentStore.createIndex('loanId', 'loanId', { unique: false });
-        }
-
+  private openOfflineDatabase(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('EscalaFin_Offline', 1);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve();
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
         if (!db.objectStoreNames.contains('offline_queue')) {
           db.createObjectStore('offline_queue', { keyPath: 'id', autoIncrement: true });
         }
@@ -188,23 +192,71 @@ export class OfflineStorage {
   }
 
   async addToOfflineQueue(action: any): Promise<void> {
-    await this.store('offline_queue', {
-      ...action,
-      timestamp: Date.now(),
-      synced: false
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('EscalaFin_Offline', 1);
+      request.onsuccess = () => {
+        const db = request.result;
+        const transaction = db.transaction(['offline_queue'], 'readwrite');
+        const store = transaction.objectStore('offline_queue');
+        store.put({
+          ...action,
+          timestamp: Date.now(),
+          synced: false
+        });
+        
+        transaction.oncomplete = async () => {
+          // Registrar evento de sincronización
+          if ('serviceWorker' in navigator && 'SyncManager' in window) {
+            try {
+              const registration = await navigator.serviceWorker.ready;
+              await (registration as any).sync.register('offline-sync');
+            } catch (err) {
+              console.error('Error registering sync:', err);
+            }
+          }
+          resolve();
+        };
+        transaction.onerror = () => reject(transaction.error);
+      };
+      request.onerror = () => reject(request.error);
     });
   }
 
   async getOfflineQueue(): Promise<any[]> {
-    const queue = await this.getAll('offline_queue');
-    return queue.filter(item => !item.synced);
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('EscalaFin_Offline', 1);
+      request.onsuccess = () => {
+        const db = request.result;
+        const transaction = db.transaction(['offline_queue'], 'readonly');
+        const store = transaction.objectStore('offline_queue');
+        const getRequest = store.getAll();
+        getRequest.onsuccess = () => {
+          resolve(getRequest.result.filter((item: any) => !item.synced));
+        };
+      };
+      request.onerror = () => reject(request.error);
+    });
   }
 
-  async markAsSynced(id: string): Promise<void> {
-    const item = await this.get('offline_queue', id);
-    if (item) {
-      await this.store('offline_queue', { ...item, synced: true });
-    }
+  async markAsSynced(id: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('EscalaFin_Offline', 1);
+      request.onsuccess = () => {
+        const db = request.result;
+        const transaction = db.transaction(['offline_queue'], 'readwrite');
+        const store = transaction.objectStore('offline_queue');
+        const getRequest = store.get(id);
+        getRequest.onsuccess = () => {
+          const item = getRequest.result;
+          if (item) {
+            item.synced = true;
+            store.put(item);
+          }
+        };
+        transaction.oncomplete = () => resolve();
+      };
+      request.onerror = () => reject(request.error);
+    });
   }
 }
 

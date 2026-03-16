@@ -46,7 +46,9 @@ export async function GET() {
       myClientsCount,
       assignedPortfolio,
       submittedApplications,
-      myLoans
+      myLoans,
+      unassignedClients,
+      urgentPaymentsCount
     ] = await Promise.all([
       tenantPrisma.client.count({ where: clientWhere }),
       tenantPrisma.loan.aggregate({
@@ -54,7 +56,25 @@ export async function GET() {
         _sum: { balanceRemaining: true }
       }),
       tenantPrisma.creditApplication.count({ where: appWhere }),
-      tenantPrisma.loan.count({ where: loanWhere })
+      tenantPrisma.loan.count({ where: loanWhere }),
+      // Clientes sin asesor asignado
+      tenantPrisma.client.count({ 
+        where: { tenantId, asesorId: null } 
+      }),
+      // Préstamos con pagos vencidos o próximos a vencer (esta semana)
+      tenantPrisma.loan.count({
+        where: {
+          ...loanWhere,
+          amortizationSchedule: {
+            some: {
+              isPaid: false,
+              paymentDate: {
+                lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+              }
+            }
+          }
+        }
+      })
     ]);
 
     // Calcular meta mensual
@@ -74,7 +94,9 @@ export async function GET() {
       assignedPortfolio: Number(assignedPortfolio._sum?.balanceRemaining || 0),
       submittedApplications,
       monthlyGoalPercentage: achievementPercentage,
-      activeLoans: myLoans
+      activeLoans: myLoans,
+      unassignedClients,
+      urgentPayments: urgentPaymentsCount
     });
 
   } catch (error) {

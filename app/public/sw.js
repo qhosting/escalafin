@@ -93,50 +93,77 @@ self.addEventListener('fetch', (event) => {
 
 // Background Sync
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'payment-sync') {
-    event.waitUntil(syncPayments());
-  }
-  if (event.tag === 'client-sync') {
-    event.waitUntil(syncClients());
+  if (event.tag === 'offline-sync' || event.tag === 'payment-sync') {
+    event.waitUntil(processOfflineQueue());
   }
 });
 
-async function syncPayments() {
-  // Sync offline payments when connection is restored
-  const payments = await getOfflinePayments();
-  for (const payment of payments) {
+async function processOfflineQueue() {
+  const db = await openOfflineDB();
+  const queue = await getOfflineQueue(db);
+  
+  for (const item of queue) {
+    if (item.synced) continue;
+
     try {
-      await fetch('/api/payments/sync', {
+      let endpoint = '';
+      if (item.type === 'payment') endpoint = '/api/payments/sync';
+      if (item.type === 'client') endpoint = '/api/clients/sync';
+      if (item.type === 'check-in') endpoint = '/api/collections/check-in';
+
+      if (!endpoint) continue;
+
+      const response = await fetch(endpoint, {
         method: 'POST',
-        body: JSON.stringify(payment),
+        body: JSON.stringify(item.data || item),
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      await removeOfflinePayment(payment.id);
+
+      if (response.ok) {
+        await markItemAsSynced(db, item.id);
+        console.log(`Item ${item.id} sincronizado exitosamente`);
+      }
     } catch (error) {
-      console.error('Error syncing payment:', error);
+      console.error('Error sincronizando item:', error);
     }
   }
 }
 
-async function syncClients() {
-  // Sync offline client updates
-  const clients = await getOfflineClients();
-  for (const client of clients) {
-    try {
-      await fetch('/api/clients/sync', {
-        method: 'POST',
-        body: JSON.stringify(client),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      await removeOfflineClient(client.id);
-    } catch (error) {
-      console.error('Error syncing client:', error);
-    }
-  }
+async function openOfflineDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('EscalaFin_Offline', 1);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function getOfflineQueue(db) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('offline_queue', 'readonly');
+    const store = transaction.objectStore('offline_queue');
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function markItemAsSynced(db, id) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('offline_queue', 'readwrite');
+    const store = transaction.objectStore('offline_queue');
+    const request = store.get(id);
+    request.onsuccess = () => {
+      const item = request.result;
+      if (item) {
+        item.synced = true;
+        store.put(item);
+      }
+    };
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
 }
 
 // Push Notifications
@@ -216,61 +243,4 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Helper functions for offline storage using IndexedDB
-async function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('EscalaFinMobileDB', 1);
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('pending_payments')) {
-        db.createObjectStore('pending_payments', { keyPath: 'id' });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function getOfflinePayments() {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('pending_payments', 'readonly');
-    const store = transaction.objectStore('pending_payments');
-    const request = store.getAll();
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function removeOfflinePayment(id) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('pending_payments', 'readwrite');
-    const store = transaction.objectStore('pending_payments');
-    const request = store.delete(id);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function getOfflineClients() {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('clients_cache', 'readonly');
-    const store = transaction.objectStore('clients_cache');
-    const request = store.getAll();
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function removeOfflineClient(id) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('clients_cache', 'readwrite');
-    const store = transaction.objectStore('clients_cache');
-    const request = store.delete(id);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
-}
+// End of Service Worker

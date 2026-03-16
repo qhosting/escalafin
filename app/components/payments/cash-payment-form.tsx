@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
+import { PaymentSuccessView } from './payment-success-view';
 
 interface CashPaymentData {
   loanId: string;
@@ -74,6 +75,7 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
   
   const [processing, setProcessing] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [successData, setSuccessData] = useState<any | null>(null);
 
   const handleInputChange = (field: keyof CashPaymentData, value: string | number | File) => {
     setFormData(prev => ({
@@ -154,6 +156,17 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
       }
 
       toast.success('Pago en efectivo registrado exitosamente');
+      
+      // Preparar datos para el recibo
+      setSuccessData({
+        ...result,
+        clientName: `${loan?.client.firstName} ${loan?.client.lastName}`,
+        loanNumber: loan?.loanNumber,
+        paymentMethod: 'Efectivo',
+        amount: formData.amount,
+        balanceAfter: result.updatedLoan?.balanceRemaining || (loan ? loan.balanceRemaining - formData.amount : 0)
+      });
+
       onSuccess?.(result);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
@@ -176,6 +189,22 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
         return '💰';
     }
   };
+
+  if (successData) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <PaymentSuccessView 
+            payment={successData} 
+            onClose={() => {
+              if (onCancel) onCancel();
+              else setSuccessData(null);
+            }} 
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">

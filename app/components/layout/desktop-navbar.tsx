@@ -35,9 +35,11 @@ import {
   Mail,
   ShieldCheck,
   Activity,
-  Layers
+  Layers,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { GlobalSearch } from './global-search';
 import { Badge } from '@/components/ui/badge';
 import { ModuleWrapper } from '@/components/ui/module-wrapper';
 import { useModules } from '@/hooks/use-modules';
@@ -75,6 +77,7 @@ interface MenuGroup {
 export function DesktopNavbar() {
   const pathname = usePathname();
   const { data: session } = useSession() || {};
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { modules, loading, isModuleEnabled } = useModules();
   const { tenant } = useTenant();
 
@@ -515,6 +518,22 @@ export function DesktopNavbar() {
 
           {/* Acciones del usuario */}
           <div className="flex items-center space-x-3">
+            {/* Buscador Global */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2 border-primary/20 hover:border-primary/50"
+              onClick={() => setIsSearchOpen(true)}
+            >
+              <Search className="h-4 w-4" />
+              <span className="text-xs">Buscar...</span>
+              <kbd className="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                <span className="text-xs">⌘</span>K
+              </kbd>
+            </Button>
+
+            <GlobalSearch isOpen={isSearchOpen} onOpenChange={setIsSearchOpen} />
+
             {/* Toggle de tema */}
             <ThemeToggle />
 

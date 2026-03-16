@@ -42,6 +42,8 @@ interface AsesorStats {
   submittedApplications: number;
   monthlyGoalPercentage: number;
   activeLoans: number;
+  unassignedClients: number;
+  urgentPayments: number;
 }
 
 export function EnhancedAsesorDashboard() {
@@ -115,6 +117,24 @@ export function EnhancedAsesorDashboard() {
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
       moduleKey: 'dashboard_overview'
+    },
+    {
+      title: 'Clientes Libres',
+      value: loadingStats ? '...' : stats?.unassignedClients.toString() || '0',
+      change: 'Sin asesor',
+      icon: UserPlus,
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-50',
+      moduleKey: 'client_list'
+    },
+    {
+      title: 'Cobros Urgentes',
+      value: loadingStats ? '...' : stats?.urgentPayments.toString() || '0',
+      change: 'Esta semana',
+      icon: AlertTriangle,
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      moduleKey: 'cash_collection'
     }
   ];
 
@@ -348,7 +368,7 @@ export function EnhancedAsesorDashboard() {
 
         {/* Stats Cards - Datos Reales */}
         <ModuleWrapper moduleKey="dashboard_overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
             {loadingStats ? (
               <div className="col-span-4 flex justify-center items-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600" />

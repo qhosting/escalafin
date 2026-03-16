@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { LoanStatementModal } from './loan-statement-modal';
+import { LoanListSkeleton } from './loan-list-skeleton';
 
 interface Loan {
   id: string;
@@ -137,13 +138,7 @@ export function LoanList({ userRole }: LoanListProps) {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
-        ))}
-      </div>
-    );
+    return <LoanListSkeleton />;
   }
 
   return (
