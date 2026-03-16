@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { AuditLogger } from '@/lib/audit';
+import { conversationService } from '@/lib/conversation-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -84,12 +85,19 @@ export async function POST(request: NextRequest) {
 
 async function handleMessage(data: any) {
   try {
-    // Waha incoming message
-    // { id: "...", from: "...", body: "..." }
-    // Aquí podríamos procesar mensajes entrantes si fuera un bot
-    console.log("Mensaje entrante:", data);
+    // Waha incoming message: { id: "...", from: "...", body: "..." }
+    console.log("Mensaje entrante recibido en webhook:", data);
+
+    // Integración con ConversationService para manejo de historial y chatbot
+    await conversationService.handleIncomingMessage({
+      from: data.from,
+      body: data.body || '',
+      wahaMessageId: data.id,
+      messageType: 'text' // WAHA standard message
+    });
+
   } catch (error) {
-    console.error('Error procesando mensaje entrante:', error);
+    console.error('Error procesando mensaje entrante en webhook:', error);
   }
 }
 
