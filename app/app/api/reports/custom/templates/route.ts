@@ -5,46 +5,51 @@ import { authOptions } from '@/lib/auth';
 import { customReportService } from '@/lib/custom-report-service';
 
 export async function GET(request: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return new NextResponse('Unauthorized', { status: 401 });
-        }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-        const templates = await customReportService.getTemplates(session.user.id);
-        return NextResponse.json(templates);
-    } catch (error) {
-        console.error('Error fetching report templates:', error);
-        return new NextResponse('Internal Server Error', { status: 500 });
-    }
+    const templates = await customReportService.getTemplates(session.user.id);
+
+    return NextResponse.json({
+      success: true,
+      templates
+    });
+  } catch (error) {
+    console.error('Error fetching report templates:', error);
+    return NextResponse.json(
+      { error: 'Error al cargar las plantillas de reportes' },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session || session.user.role !== 'ADMIN') {
-            return new NextResponse('Unauthorized', { status: 401 });
-        }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-        const body = await request.json();
-        const { name, description, config, category, isPublic } = body;
+    const body = await request.json();
+    const { name, description, config, category, isPublic } = body;
 
-        if (!name || !config) {
-            return NextResponse.json({ error: 'Name and config are required' }, { status: 400 });
-        }
+    const templateId = await customReportService.createTemplate(
+      name,
+      description,
+      config,
+      session.user.id,
+      category,
+      isPublic
+    );
 
-        const templateId = await customReportService.createTemplate(
-            name,
-            description,
-            config,
-            session.user.id,
-            category,
-            isPublic
-        );
-
-        return NextResponse.json({ success: true, id: templateId });
-    } catch (error) {
-        console.error('Error creating report template:', error);
-        return new NextResponse('Internal Server Error', { status: 500 });
-    }
+    return NextResponse.json({
+      success: true,
+      templateId
+    });
+  } catch (error) {
+    console.error('Error creating report template:', error);
+    return NextResponse.json(
+      { error: 'Error al crear la plantilla' },
+      { status: 500 }
+    );
+  }
 }

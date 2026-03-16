@@ -1,75 +1,57 @@
-/**
- * API: Rutas de Cobranza
- * GET  - Listar rutas
- * POST - Crear nueva ruta
- */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { collectionRouteService } from '@/lib/collection-route-service';
+import { UserRole } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
-    try {
-        const session = await getServerSession();
-        if (!session?.user) {
-            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-        }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-        const { searchParams } = new URL(request.url);
-        const tenantId = searchParams.get('tenantId') || (session.user as any).tenantId;
-        const advisorId = searchParams.get('advisorId');
-        const status = searchParams.get('status') as any;
-        const date = searchParams.get('date');
-        const page = parseInt(searchParams.get('page') || '1');
-        const limit = parseInt(searchParams.get('limit') || '10');
+    const { searchParams } = new URL(request.url);
+    const advisorId = searchParams.get('advisorId');
+    const status = searchParams.get('status') as any;
+    const dateStr = searchParams.get('date');
 
-        if (!tenantId) {
-            return NextResponse.json({ error: 'tenantId requerido' }, { status: 400 });
-        }
+    const results = await collectionRouteService.getRoutes({
+      tenantId: session.user.tenantId || '',
+      advisorId: advisorId || undefined,
+      status: status || undefined,
+      date: dateStr ? new Date(dateStr) : undefined,
+    });
 
-        const result = await collectionRouteService.getRoutes({
-            tenantId,
-            advisorId: advisorId || undefined,
-            status: status || undefined,
-            date: date ? new Date(date) : undefined,
-            page,
-            limit,
-        });
-
-        return NextResponse.json(result);
-    } catch (error: any) {
-        console.error('[API] Error en GET /api/collections/routes:', error);
-        return NextResponse.json({ error: error.message || 'Error interno' }, { status: 500 });
-    }
+    return NextResponse.json(results);
+  } catch (error) {
+    console.error('Error fetching collection routes:', error);
+    return NextResponse.json({ error: 'Error al cargar rutas' }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
-    try {
-        const session = await getServerSession();
-        if (!session?.user) {
-            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-        }
-
-        const body = await request.json();
-        const { name, date, advisorId, clientIds, autoOptimize, maxVisits, tenantId: bodyTenantId } = body;
-        const tenantId = bodyTenantId || (session.user as any).tenantId;
-
-        if (!tenantId || !name) {
-            return NextResponse.json({ error: 'Faltan campos requeridos: name, tenantId' }, { status: 400 });
-        }
-
-        const result = await collectionRouteService.createRoute({
-            advisorId: advisorId || (session.user as any).id,
-            tenantId,
-            name,
-            date: date ? new Date(date) : new Date(),
-            clientIds,
-            autoOptimize: autoOptimize ?? true,
-            maxVisits,
-        });
-
-        return NextResponse.json(result, { status: 201 });
-    } catch (error: any) {
-        console.error('[API] Error en POST /api/collections/routes:', error);
-        return NextResponse.json({ error: error.message || 'Error interno' }, { status: 500 });
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role === UserRole.CLIENTE) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
+
+    const body = await request.json();
+    const { advisorId, name, date, clientIds, autoOptimize, maxVisits } = body;
+
+    const result = await collectionRouteService.createRoute({
+      advisorId: advisorId || session.user.id,
+      tenantId: session.user.tenantId || '',
+      name: name || `Ruta ${new Date().toLocaleDateString()}`,
+      date: date ? new Date(date) : new Date(),
+      clientIds,
+      autoOptimize: autoOptimize ?? true,
+      maxVisits: maxVisits || 20,
+    });
+
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('Error creating collection route:', error);
+    return NextResponse.json({ error: 'Error al crear la ruta' }, { status: 500 });
+  }
 }

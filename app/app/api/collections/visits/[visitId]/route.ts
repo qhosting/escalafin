@@ -1,40 +1,23 @@
-/**
- * API: Visitas de Cobranza - Registrar resultado
- * PATCH - Registrar outcome de visita
- */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { collectionRouteService } from '@/lib/collection-route-service';
 
 export async function PATCH(
-    request: NextRequest,
-    { params }: { params: { visitId: string } }
+  request: NextRequest,
+  { params }: { params: { visitId: string } }
 ) {
-    try {
-        const session = await getServerSession();
-        if (!session?.user) {
-            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-        }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-        const body = await request.json();
-        const { outcome, notes, latitude, longitude, photoUrl, promiseDate, promiseAmount } = body;
+    const body = await request.json();
+    const result = await collectionRouteService.recordVisitOutcome(params.visitId, body);
 
-        if (!outcome) {
-            return NextResponse.json({ error: 'outcome requerido' }, { status: 400 });
-        }
-
-        const visit = await collectionRouteService.recordVisitOutcome(params.visitId, {
-            outcome,
-            notes,
-            latitude,
-            longitude,
-            photoUrl,
-            promiseDate: promiseDate ? new Date(promiseDate) : undefined,
-            promiseAmount,
-        });
-
-        return NextResponse.json(visit);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('Error recording visit outcome:', error);
+    return NextResponse.json({ error: 'Error al registrar visita' }, { status: 500 });
+  }
 }

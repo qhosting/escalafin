@@ -1,48 +1,42 @@
-/**
- * API: Verificación individual
- * POST - Procesar (OCR automático) o verificar manualmente
- */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { identityVerificationService } from '@/lib/identity-verification-service';
+import { UserRole } from '@prisma/client';
 
 export async function POST(
-    request: NextRequest,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-    try {
-        const session = await getServerSession();
-        if (!session?.user) {
-            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-        }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-        const body = await request.json();
-        const { action, approved, rejectionReason } = body;
+    const { action, approved, rejectionReason } = await request.json();
 
-        switch (action) {
-            case 'process':
-                // Procesar con OCR/biometría automática
-                const result = await identityVerificationService.processVerification(params.id);
-                return NextResponse.json(result);
-
-            case 'manual_verify':
-                // Verificación manual por admin
-                const role = (session.user as any).role;
-                if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
-                    return NextResponse.json({ error: 'Permisos insuficientes' }, { status: 403 });
-                }
-                const manualResult = await identityVerificationService.manualVerify(
-                    params.id,
-                    (session.user as any).id,
-                    approved ?? false,
-                    rejectionReason
-                );
-                return NextResponse.json(manualResult);
-
-            default:
-                return NextResponse.json({ error: 'Acción no válida. Usar: process, manual_verify' }, { status: 400 });
-        }
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    if (action === 'PROCESS') {
+      const result = await identityVerificationService.processVerification(params.id);
+      return NextResponse.json(result);
     }
+
+    if (action === 'MANUAL_VERIFY') {
+      if (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN) {
+        return NextResponse.json({ error: 'Permisos insuficientes' }, { status: 403 });
+      }
+
+      const result = await identityVerificationService.manualVerify(
+        params.id,
+        session.user.id,
+        approved,
+        rejectionReason
+      );
+      return NextResponse.json(result);
+    }
+
+    return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
+  } catch (error) {
+    console.error('Error processing verification action:', error);
+    return NextResponse.json({ error: 'Error al procesar acción' }, { status: 500 });
+  }
 }
