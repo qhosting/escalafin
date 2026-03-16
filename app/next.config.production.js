@@ -7,7 +7,9 @@ const nextConfig = {
   output: 'standalone',
   experimental: {
     outputFileTracingRoot: path.join(__dirname, '../'),
+    serverComponentsExternalPackages: ['pdfkit', 'canvas'],
   },
+  serverExternalPackages: ['pdfkit', 'canvas'],
   eslint: {
     ignoreDuringBuilds: true,
   },

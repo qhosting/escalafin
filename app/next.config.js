@@ -6,7 +6,9 @@ const nextConfig = {
   output: 'standalone',
   experimental: {
     outputFileTracingRoot: process.cwd(),
+    serverComponentsExternalPackages: ['pdfkit', 'canvas'],
   },
+  serverExternalPackages: ['pdfkit', 'canvas'],
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -15,6 +17,7 @@ const nextConfig = {
   },
   images: { unoptimized: true },
 };
+
 
 console.log('🚀 Next.js Config Loaded');
 console.log('📂 cwd:', process.cwd());

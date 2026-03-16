@@ -22,7 +22,7 @@ export async function GET(
         const tenantPrisma = getTenantPrisma(tenantId);
 
         // Obtener datos del préstamo con prisma de tenant (seguridad)
-        const loan = await (tenantPrisma.loan as any).findUnique({
+        const loan = await (tenantPrisma.loan as any).findFirst({
             where: { id: loanId },
             include: {
                 client: true,
@@ -132,8 +132,6 @@ export async function GET(
             50, 780, { align: 'center' }
         );
 
-        doc.end();
-
         return new Promise<NextResponse>((resolve) => {
             doc.on('end', () => {
                 const pdfData = Buffer.concat(chunks as any);
@@ -150,6 +148,9 @@ export async function GET(
                 console.error('PDF error:', err);
                 resolve(NextResponse.json({ error: 'Falla al generar PDF' }, { status: 500 }));
             });
+            
+            // Finalize PDF AFTER listeners are attached
+            doc.end();
         });
 
     } catch (error) {
