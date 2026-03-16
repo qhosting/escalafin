@@ -6,6 +6,44 @@ import { prisma } from '@/lib/db';
 import { UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
+export async function GET(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user || session.user.role !== UserRole.SUPER_ADMIN) {
+            return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+        }
+
+        const { id } = params;
+        const user = await prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                role: true,
+                status: true,
+                createdAt: true,
+                updatedAt: true,
+                tenantId: true,
+            }
+        });
+
+        if (!user) {
+            return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+        }
+
+        return NextResponse.json(user);
+    } catch (error) {
+        console.error('Error fetching user:', error);
+        return NextResponse.json({ error: 'Error al obtener usuario' }, { status: 500 });
+    }
+}
+
 export async function PATCH(
     request: NextRequest,
     { params }: { params: { id: string } }
@@ -18,9 +56,9 @@ export async function PATCH(
 
         const { id } = params;
         const body = await request.json();
-        const { firstName, lastName, email, phone, status, password } = body;
+        const { firstName, lastName, email, phone, role, status, password } = body;
 
-        // Verify target user is indeed a SUPER_ADMIN
+        // Verify target user exists
         const targetUser = await prisma.user.findUnique({
             where: { id }
         });
@@ -29,25 +67,26 @@ export async function PATCH(
             return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
 
-        // Prevent modifying non-super-admins from this endpoint
-        if (targetUser.role !== UserRole.SUPER_ADMIN) {
-            return NextResponse.json({ error: 'Este endpoint es solo para Super Admins' }, { status: 400 });
+        // Check email uniqueness if changed
+        if (email && email !== targetUser.email) {
+            const existing = await prisma.user.findUnique({ where: { email } });
+            if (existing) {
+                return NextResponse.json({ error: 'El email ya está en uso' }, { status: 409 });
+            }
         }
 
-        const updateData: any = {
-            firstName,
-            lastName,
-            email,
-            phone,
-            status
-        };
+        const updateData: any = {};
+
+        if (firstName !== undefined) updateData.firstName = firstName;
+        if (lastName !== undefined) updateData.lastName = lastName;
+        if (email !== undefined) updateData.email = email;
+        if (phone !== undefined) updateData.phone = phone;
+        if (role !== undefined) updateData.role = role;
+        if (status !== undefined) updateData.status = status;
 
         if (password && password.length >= 6) {
             updateData.password = await bcrypt.hash(password, 10);
         }
-
-        // Remove undefined fields
-        Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
 
         const updatedUser = await prisma.user.update({
             where: { id },
@@ -57,6 +96,7 @@ export async function PATCH(
                 firstName: true,
                 lastName: true,
                 email: true,
+                phone: true,
                 role: true,
                 status: true,
                 updatedAt: true
@@ -66,7 +106,7 @@ export async function PATCH(
         return NextResponse.json(updatedUser);
 
     } catch (error) {
-        console.error('Error updating super admin:', error);
+        console.error('Error updating user:', error);
         return NextResponse.json({ error: 'Error al actualizar usuario' }, { status: 500 });
     }
 }
@@ -88,26 +128,18 @@ export async function DELETE(
             return NextResponse.json({ error: 'No puedes eliminar tu propia cuenta' }, { status: 400 });
         }
 
-        const targetUser = await prisma.user.findUnique({
-            where: { id }
-        });
+        const targetUser = await prisma.user.findUnique({ where: { id } });
 
         if (!targetUser) {
             return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
 
-        if (targetUser.role !== UserRole.SUPER_ADMIN) {
-            return NextResponse.json({ error: 'Solo se pueden eliminar Super Admins desde aquí' }, { status: 400 });
-        }
+        await prisma.user.delete({ where: { id } });
 
-        await prisma.user.delete({
-            where: { id }
-        });
-
-        return NextResponse.json({ success: true, message: 'Super Admin eliminado correctamente' });
+        return NextResponse.json({ success: true, message: 'Usuario eliminado correctamente' });
 
     } catch (error) {
-        console.error('Error deleting super admin:', error);
+        console.error('Error deleting user:', error);
         return NextResponse.json({ error: 'Error al eliminar usuario' }, { status: 500 });
     }
 }

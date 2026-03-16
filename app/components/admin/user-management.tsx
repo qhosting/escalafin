@@ -107,10 +107,14 @@ export function UserManagement({
   const [editFormData, setEditFormData] = useState({
     firstName: '',
     lastName: '',
+    email: '',
     phone: '',
     role: '',
-    status: ''
+    status: '',
+    newPassword: '',
+    confirmNewPassword: ''
   });
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -219,9 +223,12 @@ export function UserManagement({
     setEditFormData({
       firstName: user.firstName,
       lastName: user.lastName,
+      email: user.email,
       phone: user.phone || '',
       role: user.role,
-      status: user.status
+      status: user.status,
+      newPassword: '',
+      confirmNewPassword: ''
     });
     setIsEditDialogOpen(true);
   };
@@ -230,11 +237,30 @@ export function UserManagement({
     e.preventDefault();
     if (!editingUser) return;
 
+    if (editFormData.newPassword && editFormData.newPassword !== editFormData.confirmNewPassword) {
+      toast.error('Las contraseñas nuevas no coinciden');
+      return;
+    }
+    if (editFormData.newPassword && editFormData.newPassword.length < 6) {
+      toast.error('La nueva contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    const payload: any = {
+      firstName: editFormData.firstName,
+      lastName: editFormData.lastName,
+      email: editFormData.email,
+      phone: editFormData.phone,
+      role: editFormData.role,
+      status: editFormData.status,
+    };
+    if (editFormData.newPassword) payload.password = editFormData.newPassword;
+
     try {
       const response = await fetch(`${apiEndpoint}/${editingUser.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editFormData)
+        body: JSON.stringify(payload)
       });
 
       const result = await response.json();
@@ -582,7 +608,7 @@ export function UserManagement({
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {user.role !== 'ADMIN' && (
+                      {((session?.user?.role as string) === 'SUPER_ADMIN' || user.role !== 'ADMIN') && (
                         <Select value={user.status} onValueChange={(value) => handleStatusChange(user.id, value)}>
                           <SelectTrigger className="w-32">
                             <SelectValue />
@@ -594,7 +620,7 @@ export function UserManagement({
                           </SelectContent>
                         </Select>
                       )}
-                      {user.role !== 'ADMIN' && user.id !== session?.user?.id && (
+                      {((session?.user?.role as string) === 'SUPER_ADMIN' || (user.role !== 'ADMIN' && user.id !== session?.user?.id)) && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -603,7 +629,7 @@ export function UserManagement({
                           <Edit className="w-4 h-4" />
                         </Button>
                       )}
-                      {user.role !== 'ADMIN' && user.id !== session?.user?.id && (
+                      {((session?.user?.role as string) === 'SUPER_ADMIN' || (user.role !== 'ADMIN' && user.id !== session?.user?.id)) && (
                         <Button
                           variant="destructive"
                           size="sm"
@@ -650,8 +676,14 @@ export function UserManagement({
                 </div>
               </div>
               <div>
-                <Label>Email (No editable)</Label>
-                <Input value={editingUser.email} disabled className="bg-gray-100" />
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editFormData.email}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, email: e.target.value }))}
+                  required
+                />
               </div>
               <div>
                 <Label htmlFor="edit-phone">Teléfono</Label>
@@ -692,7 +724,43 @@ export function UserManagement({
                   </Select>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-4">
+              <div className="border-t pt-4 mt-2">
+                <Label className="text-sm font-medium text-muted-foreground">Cambiar Contraseña (opcional)</Label>
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div>
+                    <Label htmlFor="edit-new-password">Nueva Contraseña</Label>
+                    <div className="relative">
+                      <Input
+                        id="edit-new-password"
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={editFormData.newPassword}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, newPassword: e.target.value }))}
+                        placeholder="Mínimo 6 caracteres"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                      >
+                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-confirm-password">Confirmar Contraseña</Label>
+                    <Input
+                      id="edit-confirm-password"
+                      type="password"
+                      value={editFormData.confirmNewPassword}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, confirmNewPassword: e.target.value }))}
+                      placeholder="Repite la contraseña"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
                 <Button
                   type="button"
                   variant="outline"
