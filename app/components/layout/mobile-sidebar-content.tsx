@@ -179,7 +179,8 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
                         {
                             title: 'Usuarios',
                             items: [
-                                { title: 'Gestión de Usuarios', icon: UserPlus, href: '/admin/users', moduleKey: 'user_management' }
+                                { title: 'Gestión de Usuarios', icon: UserPlus, href: '/admin/users', moduleKey: 'user_management' },
+                                { title: 'Verificación KYC', icon: ShieldCheck, href: '/admin/kyc', moduleKey: 'user_management' }
                             ]
                         }
                     ]
@@ -198,20 +199,40 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
                         {
                             title: 'Pagos',
                             items: [
-                                { title: 'Historial de Pagos', icon: DollarSign, href: '/admin/payments', moduleKey: 'payment_history' }
+                                { title: 'Historial de Pagos', icon: DollarSign, href: '/admin/payments', moduleKey: 'payment_history' },
+                                { title: 'Comisiones', icon: Layers, href: '/admin/commissions', moduleKey: 'payment_history' }
                             ]
                         }
                     ]
                 },
                 {
-                    category: 'Reportes',
+                    category: 'Comunicaciones',
+                    icon: MessageSquare,
+                    groups: [
+                        {
+                            title: 'WhatsApp',
+                            items: [
+                                { title: 'Chat Center', icon: MessageSquare, href: '/admin/whatsapp', moduleKey: 'whatsapp_notifications' }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    category: 'Reportes & IA',
                     icon: BarChart3,
                     groups: [
                         {
                             title: 'Análisis',
                             items: [
                                 { title: 'Dashboard Analítico', icon: BarChart3, href: '/admin/analytics', moduleKey: 'analytics_dashboard' },
-                                { title: 'Portfolio', icon: TrendingUp, href: '/admin/reports', moduleKey: 'report_portfolio' }
+                                { title: 'Personalizados', icon: FileText, href: '/admin/reports', moduleKey: 'report_portfolio' },
+                                { title: 'Administración IA', icon: RefreshCw, href: '/admin/scoring', moduleKey: 'analytics_dashboard' }
+                            ]
+                        },
+                        {
+                            title: 'Cobranza',
+                            items: [
+                                { title: 'Rutas de Cobranza', icon: Phone, href: '/admin/collections', moduleKey: 'report_collections' }
                             ]
                         }
                     ]

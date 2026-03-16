@@ -3,10 +3,11 @@
 
 import { useState } from 'react';
 import CreditScoringSystem from '@/components/scoring/credit-scoring-system';
+import MLDashboard from '@/components/scoring/ml-dashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calculator, History, TrendingUp } from 'lucide-react';
+import { Calculator, History, TrendingUp, BrainCircuit } from 'lucide-react';
 
 export default function ScoringPage() {
   const [activeTab, setActiveTab] = useState('calculator');
@@ -23,23 +24,31 @@ export default function ScoringPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="calculator" className="flex items-center gap-2">
             <Calculator className="h-4 w-4" />
-            Calculadora de Score
+            Calculadora
+          </TabsTrigger>
+          <TabsTrigger value="ml" className="flex items-center gap-2">
+            <BrainCircuit className="h-4 w-4" />
+            Administración IA
           </TabsTrigger>
           <TabsTrigger value="history" className="flex items-center gap-2">
             <History className="h-4 w-4" />
-            Historial de Evaluaciones
+            Historial
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
-            Analytics de Scoring
+            Analytics
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="calculator">
           <CreditScoringSystem />
+        </TabsContent>
+
+        <TabsContent value="ml">
+          <MLDashboard />
         </TabsContent>
 
         <TabsContent value="history">

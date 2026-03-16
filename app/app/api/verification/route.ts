@@ -1,78 +1,46 @@
-/**
- * API: Verificación de Identidad (KYC)
- * GET  - Listar verificaciones
- * POST - Iniciar verificación
- */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { identityVerificationService } from '@/lib/identity-verification-service';
+import { UserRole } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
-    try {
-        const session = await getServerSession();
-        if (!session?.user) {
-            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-        }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-        const { searchParams } = new URL(request.url);
-        const tenantId = searchParams.get('tenantId') || (session.user as any).tenantId;
-        const clientId = searchParams.get('clientId') || undefined;
-        const status = searchParams.get('status') as any;
-        const page = parseInt(searchParams.get('page') || '1');
-        const limit = parseInt(searchParams.get('limit') || '20');
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status') as any;
+    const clientId = searchParams.get('clientId');
 
-        if (!tenantId) {
-            return NextResponse.json({ error: 'tenantId requerido' }, { status: 400 });
-        }
+    const result = await identityVerificationService.list({
+      tenantId: session.user.tenantId || '',
+      status: status || undefined,
+      clientId: clientId || undefined,
+    });
 
-        // Si se pide un cliente específico, devolver su estado
-        if (clientId) {
-            const clientStatus = await identityVerificationService.getClientVerificationStatus(clientId);
-            return NextResponse.json(clientStatus);
-        }
-
-        const result = await identityVerificationService.list({
-            tenantId,
-            status: status || undefined,
-            page,
-            limit,
-        });
-
-        return NextResponse.json(result);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('Error fetching verifications:', error);
+    return NextResponse.json({ error: 'Error al cargar verificaciones' }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
-    try {
-        const session = await getServerSession();
-        if (!session?.user) {
-            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-        }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-        const body = await request.json();
-        const { clientId, documentType, frontImageUrl, backImageUrl, selfieUrl, tenantId: bodyTenantId } = body;
-        const tenantId = bodyTenantId || (session.user as any).tenantId;
+    const body = await request.json();
+    const result = await identityVerificationService.startVerification({
+      ...body,
+      tenantId: session.user.tenantId,
+    });
 
-        if (!clientId || !documentType) {
-            return NextResponse.json(
-                { error: 'Campos requeridos: clientId, documentType' },
-                { status: 400 }
-            );
-        }
-
-        const verification = await identityVerificationService.startVerification({
-            clientId,
-            documentType,
-            frontImageUrl,
-            backImageUrl,
-            selfieUrl,
-            tenantId,
-        });
-
-        return NextResponse.json(verification, { status: 201 });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('Error starting verification:', error);
+    return NextResponse.json({ error: 'Error al iniciar verificación' }, { status: 500 });
+  }
 }
