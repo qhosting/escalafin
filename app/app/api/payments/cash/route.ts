@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
+import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
 
 export async function POST(request: NextRequest) {
     try {
@@ -19,8 +20,9 @@ export async function POST(request: NextRequest) {
         }
 
         const tenantPrisma = getTenantPrisma(tenantId);
+        const whatsappService = new WhatsAppNotificationService(tenantId);
 
-        // Validate FormData vs JSON depending on how it's sent. Let's try FormData first since the component sends FormData
+        // Validate FormData vs JSON depending on how it's sent
         let formData;
         try {
             formData = await request.formData();
@@ -29,15 +31,13 @@ export async function POST(request: NextRequest) {
         }
 
         const loanId = formData.get('loanId') as string;
-        const clientId = formData.get('clientId') as string;
         const amountRaw = formData.get('amount');
         const paymentDateStr = formData.get('paymentDate') as string;
         const notes = formData.get('notes') as string | null;
         const receiptNumber = formData.get('receiptNumber') as string | null;
-        const collectionMethod = formData.get('collectionMethod') as string | null; // e.g. home, office, field
+        const collectionMethod = formData.get('collectionMethod') as string | null; 
         const collectorLocation = formData.get('collectorLocation') as string | null;
 
-        // We register the person receiving the payment as the current session user
         const processedBy = session.user.id;
 
         if (!loanId || !amountRaw) {
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Préstamo no encontrado' }, { status: 404 });
         }
 
-        // Begin Transaction to save Payment and reduce Loan Balance
+        // Begin Transaction
         const result = await tenantPrisma.$transaction(async (prismaTx) => {
             // 1. Create Payment
             const payment = await prismaTx.payment.create({
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
                     loanId: loanId,
                     amount: amount,
                     paymentDate: paymentDateStr ? new Date(paymentDateStr) : new Date(),
-                    paymentMethod: 'CASH', // Enum value
+                    paymentMethod: 'CASH',
                     status: 'COMPLETED',
                     reference: receiptNumber || `EXT-${Date.now()}`,
                     notes: `${queryNotes} | location: ${collectorLocation || 'N/A'} | method: ${collectionMethod || 'N/A'}`,
@@ -82,7 +82,6 @@ export async function POST(request: NextRequest) {
                 where: { id: loanId },
                 data: {
                     balanceRemaining: newBalance,
-                    // If the balance drops to 0 or below, set it to PAID_OFF 
                     status: newBalance <= 0 ? 'PAID_OFF' : loan.status
                 }
             });
@@ -98,10 +97,17 @@ export async function POST(request: NextRequest) {
             return { payment, updatedLoan };
         });
 
+        // WhatsApp Notification (non-blocking)
+        try {
+            await whatsappService.sendPaymentReceivedNotification(result.payment.id);
+        } catch (wsError) {
+            console.error('Error al enviar notificación WhatsApp:', wsError);
+        }
+
         return NextResponse.json(result, { status: 201 });
 
     } catch (error) {
         console.error('Error processing cash payment:', error);
-        return NextResponse.json({ error: 'Error interno del servidor al procesar el pago en efectivo' }, { status: 500 });
+        return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
     }
 }

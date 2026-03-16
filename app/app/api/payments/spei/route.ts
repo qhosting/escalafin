@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
+import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
 
 /**
  * POST /api/payments/spei
@@ -56,6 +57,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Préstamo no encontrado' }, { status: 404 });
         }
 
+        const whatsappService = new WhatsAppNotificationService(tenantId);
+
         const result = await tenantPrisma.$transaction(async (tx) => {
             const payment = await tx.payment.create({
                 data: {
@@ -90,6 +93,13 @@ export async function POST(request: NextRequest) {
 
             return { payment, updatedLoan };
         });
+
+        // Intentar enviar notificación de WhatsApp (no bloqueante)
+        try {
+            await whatsappService.sendPaymentReceivedNotification(result.payment.id);
+        } catch (wsError) {
+            console.error('Error al enviar notificación WhatsApp:', wsError);
+        }
 
         return NextResponse.json(result, { status: 201 });
 

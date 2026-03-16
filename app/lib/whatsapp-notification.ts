@@ -1,6 +1,6 @@
-
 import { PrismaClient } from '@prisma/client';
 import WahaService from './waha';
+import { getTenantPrisma } from './tenant-db';
 
 const prisma = new PrismaClient();
 
@@ -13,9 +13,13 @@ interface NotificationOptions {
 
 export class WhatsAppNotificationService {
   private wahaService: WahaService;
+  private tenantId: string | null = null;
+  private db: any;
 
-  constructor() {
-    this.wahaService = new WahaService();
+  constructor(tenantId?: string | null) {
+    this.tenantId = tenantId || null;
+    this.wahaService = new WahaService(tenantId);
+    this.db = tenantId ? getTenantPrisma(tenantId) : prisma;
   }
 
   async sendPaymentReceivedNotification(
@@ -24,7 +28,7 @@ export class WhatsAppNotificationService {
   ): Promise<void> {
     try {
       // Obtener información del pago
-      const payment = await prisma.payment.findUnique({
+      const payment = await this.db.payment.findUnique({
         where: { id: paymentId },
         include: {
           loan: {
@@ -84,7 +88,7 @@ export class WhatsAppNotificationService {
   ): Promise<void> {
     try {
       // Obtener información del préstamo y el próximo pago
-      const loan = await prisma.loan.findUnique({
+      const loan = await this.db.loan.findUnique({
         where: { id: loanId },
         include: {
           client: true,
@@ -156,7 +160,7 @@ export class WhatsAppNotificationService {
     options: NotificationOptions = {}
   ): Promise<void> {
     try {
-      const loan = await prisma.loan.findUnique({
+      const loan = await this.db.loan.findUnique({
         where: { id: loanId },
         include: {
           client: true
@@ -211,7 +215,7 @@ export class WhatsAppNotificationService {
     options: NotificationOptions = {}
   ): Promise<void> {
     try {
-      const client = await prisma.client.findUnique({
+      const client = await this.db.client.findUnique({
         where: { id: clientId }
       });
 
@@ -253,7 +257,7 @@ export class WhatsAppNotificationService {
   // Método para procesar mensajes programados
   async processScheduledMessages(): Promise<void> {
     try {
-      const scheduledMessages = await prisma.whatsAppMessage.findMany({
+      const scheduledMessages = await this.db.whatsAppMessage.findMany({
         where: {
           status: 'PENDING',
           scheduledFor: {

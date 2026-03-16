@@ -1,8 +1,8 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
+import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
 
     const tenantId = session.user.tenantId;
     const tenantPrisma = getTenantPrisma(tenantId);
+    const whatsappService = new WhatsAppNotificationService(tenantId);
     const paymentData = await request.json();
 
     // Validate required fields
@@ -25,8 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Verify loan exists (in tenant)
     const loan = await tenantPrisma.loan.findUnique({
-      where: { id: paymentData.loanId },
-      include: { client: true }
+      where: { id: paymentData.loanId }
     });
 
     if (!loan) {
@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
         paymentMethod: paymentData.paymentMethod || 'CASH',
         status: 'COMPLETED',
         reference: paymentData.transactionId || `OFFLINE_${Date.now()}`,
-        notes: paymentData.notes || 'Pago registrado offline'
+        notes: paymentData.notes || 'Pago registrado offline',
+        tenantId: tenantId
       }
     });
 
@@ -74,6 +75,13 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date()
       }
     });
+
+    // Send WhatsApp notification (non-blocking)
+    try {
+        await whatsappService.sendPaymentReceivedNotification(payment.id);
+    } catch (wsError) {
+        console.error('Error al enviar notificación WhatsApp offline sync:', wsError);
+    }
 
     return NextResponse.json({
       success: true,

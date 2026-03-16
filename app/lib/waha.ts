@@ -1,6 +1,7 @@
 
 import axios, { AxiosResponse } from 'axios';
 import { PrismaClient } from '@prisma/client';
+import { getTenantPrisma } from './tenant-db';
 
 const prisma = new PrismaClient();
 
@@ -38,14 +39,17 @@ interface WahaResponse {
 
 export class WahaService {
   private config: WahaSession | null = null;
+  private tenantId: string | null = null;
 
-  constructor() {
-    this.initializeConfig();
+  constructor(tenantId?: string | null) {
+    if (tenantId) this.tenantId = tenantId;
   }
 
   private async initializeConfig(): Promise<void> {
     try {
-      const config = await prisma.wahaConfig.findFirst({
+      // Usar el prisma del tenant si hay tenantId, sino usar el prisma global
+      const db = this.tenantId ? getTenantPrisma(this.tenantId) : prisma;
+      const config = await (db as any).wahaConfig.findFirst({
         where: { isActive: true }
       });
 
@@ -68,7 +72,7 @@ export class WahaService {
     }
 
     if (!this.config) {
-      throw new Error('Waha API no está configurado. Configure la instancia desde el panel de administración.');
+      throw new Error(`Waha API no está configurado${this.tenantId ? ' para este tenant' : ''}. Configure la instancia desde el panel de administración.`);
     }
 
     return this.config;

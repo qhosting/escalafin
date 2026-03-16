@@ -8,6 +8,7 @@ import { LoanType, LoanStatus } from '@prisma/client';
 import { LimitsService } from '@/lib/billing/limits';
 import { UsageTracker } from '@/lib/billing/usage-tracker';
 import { WebhooksService } from '@/lib/webhooks';
+import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
 
 export async function GET(request: NextRequest) {
   try {
@@ -250,6 +251,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const whatsappService = new WhatsAppNotificationService(tenantId);
+
     // 🔌 Disparar Webhook
     WebhooksService.dispatch(tenantId || '', 'loan.created', {
       loanId: loan.id,
@@ -265,6 +268,13 @@ export async function POST(request: NextRequest) {
     // 📈 Incrementar uso en SaaS
     if (tenantId) {
       await UsageTracker.incrementUsage(tenantId, 'loansCount');
+    }
+
+    // WhatsApp Notification (non-blocking)
+    try {
+        await whatsappService.sendLoanApprovedNotification(loan.id);
+    } catch (wsError) {
+        console.error('Error al enviar notificación WhatsApp préstamos:', wsError);
     }
 
     return NextResponse.json(loan, { status: 201 });
