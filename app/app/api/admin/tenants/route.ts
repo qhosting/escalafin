@@ -166,14 +166,39 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: 'ID es requerido' }, { status: 400 });
         }
 
+        // Validate slug format (only lowercase letters, numbers, hyphens)
+        if (slug && !/^[a-z0-9-]+$/.test(slug)) {
+            return NextResponse.json({ error: 'El slug solo puede contener letras minúsculas, números y guiones' }, { status: 400 });
+        }
+
+        // Check slug uniqueness (excluding current tenant)
+        if (slug) {
+            const slugConflict = await prisma.tenant.findFirst({
+                where: { slug, NOT: { id } }
+            });
+            if (slugConflict) {
+                return NextResponse.json({ error: `El slug "${slug}" ya está en uso por otra organización` }, { status: 409 });
+            }
+        }
+
+        // Check domain uniqueness (excluding current tenant)
+        if (domain) {
+            const domainConflict = await prisma.tenant.findFirst({
+                where: { domain, NOT: { id } }
+            });
+            if (domainConflict) {
+                return NextResponse.json({ error: `El dominio "${domain}" ya está en uso por otra organización` }, { status: 409 });
+            }
+        }
+
         // Build data object dynamically to only update provided fields
         const updateData: any = {};
         if (name !== undefined) updateData.name = name;
         if (slug !== undefined) updateData.slug = slug;
         if (domain !== undefined) updateData.domain = domain || null;
         if (status !== undefined) updateData.status = status;
-        if (logo !== undefined) updateData.logo = logo;
-        if (primaryColor !== undefined) updateData.primaryColor = primaryColor;
+        if (logo !== undefined) updateData.logo = logo || null;
+        if (primaryColor !== undefined) updateData.primaryColor = primaryColor || null;
         if (timezone !== undefined) updateData.timezone = timezone;
 
         const updated = await prisma.tenant.update({
@@ -182,8 +207,19 @@ export async function PATCH(request: NextRequest) {
         });
 
         return NextResponse.json(updated);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error updating tenant:', error);
+
+        // Prisma unique constraint error
+        if (error?.code === 'P2002') {
+            const field = error?.meta?.target?.[0];
+            const fieldLabel = field === 'slug' ? 'slug' : field === 'domain' ? 'dominio' : field;
+            return NextResponse.json(
+                { error: `El ${fieldLabel} ya está en uso por otra organización` },
+                { status: 409 }
+            );
+        }
+
         return NextResponse.json(
             { error: 'Error al actualizar organización' },
             { status: 500 }

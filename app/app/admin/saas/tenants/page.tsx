@@ -93,6 +93,13 @@ export default function TenantsManagementPage() {
 
     const handleSaveChanges = async () => {
         if (!editingTenant) return;
+
+        // Client-side slug validation
+        if (editingTenant.slug && !/^[a-z0-9-]+$/.test(editingTenant.slug)) {
+            toast.error('El slug solo puede contener letras minúsculas, números y guiones');
+            return;
+        }
+
         setIsSaving(true);
         try {
             const res = await fetch('/api/admin/tenants', {
@@ -102,24 +109,25 @@ export default function TenantsManagementPage() {
                     id: editingTenant.id,
                     name: editingTenant.name,
                     slug: editingTenant.slug,
-                    domain: editingTenant.domain,
+                    domain: editingTenant.domain || null,
                     status: editingTenant.status,
-                    logo: editingTenant.logo,
+                    logo: editingTenant.logo || null,
                     primaryColor: editingTenant.primaryColor,
                     timezone: editingTenant.timezone
                 })
             });
 
+            const data = await res.json();
+
             if (res.ok) {
-                toast.success("Información del tenant actualizada");
+                toast.success('Información del tenant actualizada correctamente');
                 setIsEditDialogOpen(false);
                 mutate();
             } else {
-                const error = await res.json();
-                toast.error(error.error || "Error al actualizar");
+                toast.error(data.error || 'Error al actualizar');
             }
         } catch (error) {
-            toast.error("Error de red al actualizar");
+            toast.error('Error de red al actualizar');
         } finally {
             setIsSaving(false);
         }
@@ -264,12 +272,16 @@ export default function TenantsManagementPage() {
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="slug" className="text-right">Slug</Label>
-                                <Input
-                                    id="slug"
-                                    value={editingTenant.slug}
-                                    onChange={(e) => setEditingTenant({ ...editingTenant, slug: e.target.value })}
-                                    className="col-span-3"
-                                />
+                                <div className="col-span-3">
+                                    <Input
+                                        id="slug"
+                                        value={editingTenant.slug}
+                                        onChange={(e) => setEditingTenant({ ...editingTenant, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                                        className="col-span-3"
+                                        placeholder="mi-empresa"
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-1">Solo minúsculas, números y guiones</p>
+                                </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="domain" className="text-right">Dominio</Label>
