@@ -1,5 +1,6 @@
 
 import { PrismaClient, Client, Loan, Payment, CreditScore } from '@prisma/client';
+import { mlTrainingService, ModelWeights } from './ml-training-service';
 
 const prisma = new PrismaClient();
 
@@ -34,6 +35,22 @@ export class PredictiveScoringModel {
   };
 
   async calculateScore(clientId: string, requestedAmount: number = 0): Promise<ScoringResult> {
+    // 0. Load Active Model Weights from DB if available
+    let activeWeights: ModelWeights | null = null;
+    try {
+      activeWeights = await mlTrainingService.getActiveModel();
+    } catch (e) {
+      console.warn('Could not load active ML model, using defaults:', e);
+    }
+
+    const currentWeights = activeWeights || {
+      incomeWeight: this.weights.paymentHistory, // heuristic mapping
+      creditScoreWeight: -5.0,
+      debtRatioWeight: this.weights.debtToIncome,
+      employmentWeight: -0.2,
+      biasWeight: this.weights.bias
+    };
+
     // 1. Fetch Data
     const client = await prisma.client.findUnique({
       where: { id: clientId },
@@ -54,11 +71,21 @@ export class PredictiveScoringModel {
     // 3. Calculate Probability of Default (PD)
     // Sigmoid function: P(y=1) = 1 / (1 + e^-z)
     // z = w1*x1 + w2*x2 + ... + b
-    const z =
-      (features.latePaymentRatio * 5.0) + // Penalize late payments heavily
+
+    // Using Dynamic Weights from ML training
+    const z = activeWeights ? (
+      (features.latePaymentRatio * 5.0) + // Keep this heuristic high
+      ((Number(client.monthlyIncome) / 100000) * currentWeights.incomeWeight) +
+      ((client.creditScore || 500) / 1000 * currentWeights.creditScoreWeight) +
+      (features.debtToIncomeRatio * currentWeights.debtRatioWeight) +
+      ((client.yearsEmployed || 0) / 10 * currentWeights.employmentWeight) +
+      currentWeights.biasWeight
+    ) : (
+      (features.latePaymentRatio * 5.0) +
       (features.debtToIncomeRatio * this.weights.debtToIncome) +
       (features.activeLoansCount * this.weights.activeLoansCount) +
-      this.weights.bias;
+      this.weights.bias
+    );
 
     const pd = 1 / (1 + Math.exp(-z));
 
