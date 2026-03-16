@@ -126,6 +126,14 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       console.log('🔄 Redirect callback:', { url, baseUrl });
 
+      // Si la URL es explícitamente la de login, redirigir según rol
+      // (esto evita el loop login → login)
+      if (url.includes('/auth/login') || url === baseUrl || url === `${baseUrl}/`) {
+        // No podemos leer el token aquí directamente, devolvemos baseUrl
+        // y dejamos que el MainLayout / middleware redirija según rol
+        return baseUrl;
+      }
+
       // Si es una URL relativa, usar baseUrl
       if (url.startsWith('/')) {
         const finalUrl = `${baseUrl}${url}`;

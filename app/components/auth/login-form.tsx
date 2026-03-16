@@ -176,7 +176,7 @@ export function LoginForm() {
                         <span className="font-semibold">Admin:</span>
                         <code>admin@escalafin.com / admin123</code>
                         <span className="font-semibold">S. Admin:</span>
-                        <code>superadmin@escalafin.com / SuperPassword2026!</code>
+                        <code>superadmin@escalafin.com / superadmin123</code>
                       </div>
                     </div>
                   </TooltipContent>

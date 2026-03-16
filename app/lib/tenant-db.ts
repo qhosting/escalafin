@@ -79,7 +79,8 @@ const createTenantQueryHandlers = (tenantId: string) => ({
  */
 export const getTenantPrisma = (tenantId: string | null | undefined) => {
     if (!tenantId) {
-        console.warn('⚠️ getTenantPrisma called without tenantId - returning unscoped prisma');
+        // This is expected for SUPER_ADMIN users who operate across all tenants
+        console.debug('ℹ️ getTenantPrisma called without tenantId - returning unscoped prisma (expected for SUPER_ADMIN)');
         return prisma;
     }
 
