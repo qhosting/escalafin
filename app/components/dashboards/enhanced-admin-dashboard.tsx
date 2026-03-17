@@ -121,7 +121,7 @@ export function EnhancedAdminDashboard() {
     },
     {
       title: 'Pagos Este Mes',
-      value: loadingStats ? '...' : `$${(stats?.paymentsThisMonth || 0).toLocaleString('es-MX')}`,
+      value: loadingStats ? '...' : `$${(stats?.paymentsThisMonth || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       change: '+0%',
       icon: DollarSign,
       color: 'text-emerald-600',
@@ -130,7 +130,7 @@ export function EnhancedAdminDashboard() {
     },
     {
       title: 'Cartera Total',
-      value: loadingStats ? '...' : `$${(stats?.totalPortfolio || 0).toLocaleString('es-MX')}`,
+      value: loadingStats ? '...' : `$${(stats?.totalPortfolio || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       change: '+0%',
       icon: TrendingUp,
       color: 'text-purple-600',
