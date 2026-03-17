@@ -41,9 +41,9 @@ export async function GET() {
         _sum: { amount: true }
       }),
 
-      // Cartera total (suma de saldos pendientes de préstamos activos)
+      // Cartera total (suma de saldos pendientes de préstamos activos y en mora)
       tenantPrisma.loan.aggregate({
-        where: { status: 'ACTIVE' },
+        where: { status: { in: ['ACTIVE', 'DEFAULTED'] } },
         _sum: { balanceRemaining: true }
       }),
 

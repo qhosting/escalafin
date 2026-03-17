@@ -134,23 +134,35 @@ export async function GET(
 
         return new Promise<NextResponse>((resolve) => {
             doc.on('end', () => {
-                const pdfData = Buffer.concat(chunks as any);
-                const response = new NextResponse(pdfData as any, {
-                    status: 200,
-                    headers: {
-                        'Content-Type': 'application/pdf',
-                        'Content-Disposition': `inline; filename="Estado_Cuenta_${loan.loanNumber}.pdf"`,
-                    },
-                });
-                resolve(response);
+                try {
+                    const pdfData = Buffer.concat(chunks);
+                    const response = new NextResponse(pdfData, {
+                        status: 200,
+                        headers: {
+                            'Content-Type': 'application/pdf',
+                            'Content-Disposition': `inline; filename="Estado_Cuenta_${loan.loanNumber}.pdf"`,
+                            'Content-Length': pdfData.length.toString(),
+                        },
+                    });
+                    resolve(response);
+                } catch (err) {
+                    console.error('Error concatenating PDF chunks:', err);
+                    resolve(NextResponse.json({ error: 'Error procesando el archivo PDF' }, { status: 500 }));
+                }
             });
+
             doc.on('error', (err) => {
-                console.error('PDF error:', err);
-                resolve(NextResponse.json({ error: 'Falla al generar PDF' }, { status: 500 }));
+                console.error('PDFKit Error:', err);
+                resolve(NextResponse.json({ error: 'Falla al generar PDF: ' + err.message }, { status: 500 }));
             });
             
             // Finalize PDF AFTER listeners are attached
-            doc.end();
+            try {
+                doc.end();
+            } catch (err) {
+                console.error('Error in doc.end():', err);
+                resolve(NextResponse.json({ error: 'Error al finalizar el PDF' }, { status: 500 }));
+            }
         });
 
     } catch (error) {
