@@ -20,8 +20,13 @@ export async function GET() {
       );
     }
 
+    const tenantId = session.user.tenantId;
+
     const config = await prisma.wahaConfig.findFirst({
-      where: { isActive: true }
+      where: { 
+        isActive: true,
+        tenantId: tenantId || null
+      }
     });
 
     // No retornar información sensible como API key completa
@@ -56,7 +61,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json(
         { error: 'Acceso no autorizado. Solo administradores pueden configurar.' },
         { status: 401 }
@@ -89,9 +94,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Desactivar configuraciones existentes
+    const tenantId = session.user.tenantId;
+
+    // Desactivar configuraciones existentes del mismo tenant
     await prisma.wahaConfig.updateMany({
-      where: { isActive: true },
+      where: { 
+        isActive: true,
+        tenantId: tenantId || null
+      },
       data: { isActive: false }
     });
 
@@ -108,7 +118,8 @@ export async function POST(request: NextRequest) {
         loanApprovedTemplate,
         loanUpdateTemplate,
         marketingTemplate,
-        n8nWebhookUrl
+        n8nWebhookUrl,
+        tenantId: tenantId || null
       }
     });
 
@@ -147,7 +158,7 @@ export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json(
         { error: 'Acceso no autorizado' },
         { status: 401 }
@@ -168,6 +179,16 @@ export async function PUT(request: NextRequest) {
     if (updateData.instanceName && !updateData.sessionId) {
       updateData.sessionId = updateData.instanceName;
       delete updateData.instanceName;
+    }
+
+    // Verificar pertenecia de WAHA config a este tenant
+    const tenantId = session.user.tenantId;
+    const existingConfig = await prisma.wahaConfig.findFirst({
+      where: { id, tenantId: tenantId || null }
+    });
+
+    if (!existingConfig && session.user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'Configuración no encontrada o no pertenece a su tenant' }, { status: 404 });
     }
 
     const updatedConfig = await prisma.wahaConfig.update({

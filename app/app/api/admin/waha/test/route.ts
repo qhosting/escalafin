@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json(
         { error: 'Acceso no autorizado' },
         { status: 401 }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const wahaService = new WahaService();
+    const wahaService = new WahaService(session.user.tenantId || null);
 
     // Probar el estado de la instancia
     const sessionStatus = await wahaService.getSessionStatus();

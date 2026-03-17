@@ -35,6 +35,7 @@ import { NotificationSettings } from '@/components/notifications/NotificationSet
 import { IntegrationsSettings } from '@/components/admin/integrations-settings';
 import { BrandingSettings } from '@/components/admin/branding-settings';
 import { SubscriptionSettings } from '@/components/admin/subscription-settings';
+import WahaConfig from '@/components/admin/waha-config';
 import { toast } from 'sonner';
 
 interface SystemSettings {
@@ -261,6 +262,10 @@ export default function AdminSettingsPage() {
               <Phone className="h-4 w-4" />
               Contacto Soporte
             </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+              WhatsApp API
+            </TabsTrigger>
             <TabsTrigger value="billing" className="flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
               Suscripción
@@ -269,6 +274,11 @@ export default function AdminSettingsPage() {
 
           <TabsContent value="billing">
             <SubscriptionSettings />
+          </TabsContent>
+
+          {/* WhatsApp API Settings */}
+          <TabsContent value="whatsapp">
+            <WahaConfig />
           </TabsContent>
 
 
