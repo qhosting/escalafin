@@ -4,7 +4,7 @@
  * Soporta dos tipos de cálculo: Interés y Tarifa Fija
  */
 
-import { PaymentFrequency, LoanCalculationType } from '@prisma/client';
+import { PaymentFrequency, LoanCalculationType, LateFeeType } from '@prisma/client';
 
 /**
  * Calcula el número de pagos por año según la periodicidad
@@ -253,6 +253,35 @@ export function calculateWeeklyInterestPayment(
 }
 
 /**
+ * Calcula el monto de pago periódico usando el método de POR CADA 1000 -> 120
+ * Pago = (Principal / 1000) * 120
+ */
+export function calculatePorMil120(
+  principalAmount: number,
+  numberOfPayments: number
+): {
+  paymentAmount: number;
+  totalAmount: number;
+  totalFee: number;
+} {
+  // Monto base por cada mil
+  const factor = principalAmount / 1000;
+  const paymentAmount = factor * 120;
+  
+  // Total a pagar
+  const totalAmount = paymentAmount * numberOfPayments;
+  
+  // Cargo/Interés total
+  const totalFee = totalAmount - principalAmount;
+
+  return {
+    paymentAmount: Math.round(paymentAmount * 100) / 100,
+    totalAmount: Math.round(totalAmount * 100) / 100,
+    totalFee: Math.round(totalFee * 100) / 100
+  };
+}
+
+/**
  * Calcula todos los datos del préstamo según el tipo de cálculo
  */
 export function calculateLoanDetails(params: {
@@ -315,6 +344,16 @@ export function calculateLoanDetails(params: {
     totalAmount = result.totalAmount;
     effectiveRate = result.effectiveRate;
     weeklyInterest = result.weeklyInterest;
+  } else if (loanCalculationType === 'POR_MIL_120') {
+    // Método de $120 por cada $1,000
+    const result = calculatePorMil120(principalAmount, numberOfPayments);
+    paymentAmount = result.paymentAmount;
+    totalAmount = result.totalAmount;
+
+    // Calcular tasa efectiva para referencia
+    if (result.totalFee > 0) {
+      effectiveRate = (result.totalFee / principalAmount) * 100;
+    }
   }
 
   // Calcular fecha de finalización
@@ -356,6 +395,149 @@ export function calculateEndDate(
   }
 
   return endDate;
+}
+
+export interface AmortizationEntry {
+  paymentNumber: number;
+  paymentDate: Date;
+  principalPayment: number;
+  interestPayment: number;
+  totalPayment: number;
+  remainingBalance: number;
+}
+
+/**
+ * Genera la tabla de amortización completa
+ */
+export function generateAmortizationSchedule(params: {
+  principalAmount: number;
+  numberOfPayments: number;
+  paymentFrequency: PaymentFrequency;
+  loanCalculationType: LoanCalculationType;
+  annualInterestRate?: number;
+  weeklyInterestAmount?: number;
+  startDate: Date;
+  paymentAmount: number;
+}): AmortizationEntry[] {
+  const {
+    principalAmount,
+    numberOfPayments,
+    paymentFrequency,
+    loanCalculationType,
+    annualInterestRate = 0,
+    weeklyInterestAmount,
+    startDate,
+    paymentAmount
+  } = params;
+
+  const schedule: AmortizationEntry[] = [];
+  let remainingBalance = principalAmount;
+
+  // Tasas periódicas según el tipo
+  const paymentsPerYear = getPaymentsPerYear(paymentFrequency);
+  const periodicInterestRate = annualInterestRate / paymentsPerYear;
+
+  for (let i = 1; i <= numberOfPayments; i++) {
+    const paymentDate = new Date(startDate);
+    
+    // Incrementar fecha según frecuencia
+    switch (paymentFrequency) {
+      case 'SEMANAL':
+        paymentDate.setDate(paymentDate.getDate() + (i * 7));
+        break;
+      case 'CATORCENAL':
+        paymentDate.setDate(paymentDate.getDate() + (i * 14));
+        break;
+      case 'QUINCENAL':
+        paymentDate.setDate(paymentDate.getDate() + (i * 15));
+        break;
+      case 'MENSUAL':
+      default:
+        paymentDate.setMonth(paymentDate.getMonth() + i);
+        break;
+    }
+
+    let interestPayment = 0;
+    let principalPayment = 0;
+
+    if (loanCalculationType === 'INTERES') {
+      // Método amortizado tradicional
+      interestPayment = remainingBalance * periodicInterestRate;
+      principalPayment = paymentAmount - interestPayment;
+    } else if (loanCalculationType === 'TARIFA_FIJA' || loanCalculationType === 'POR_MIL_120') {
+      // Tarifas fijas: el "interés" es la diferencia total dividida
+      const result = loanCalculationType === 'TARIFA_FIJA' 
+        ? calculateFixedFeePayment(principalAmount, numberOfPayments)
+        : calculatePorMil120(principalAmount, numberOfPayments);
+      
+      interestPayment = result.totalFee / numberOfPayments;
+      principalPayment = principalAmount / numberOfPayments;
+    } else if (loanCalculationType === 'INTERES_SEMANAL') {
+      // Interés semanal fijo sobre el capital
+      interestPayment = weeklyInterestAmount || getWeeklyInterestAmount(principalAmount);
+      principalPayment = principalAmount / numberOfPayments;
+    }
+
+    remainingBalance -= principalPayment;
+
+    schedule.push({
+      paymentNumber: i,
+      paymentDate,
+      principalPayment: Math.round(principalPayment * 100) / 100,
+      interestPayment: Math.round(interestPayment * 100) / 100,
+      totalPayment: Math.round((principalPayment + interestPayment) * 100) / 100,
+      remainingBalance: Math.max(0, Math.round(remainingBalance * 100) / 100)
+    });
+  }
+
+  return schedule;
+}
+
+/**
+ * Calcula el recargo por mora
+ */
+export function calculateLateFee(params: {
+  dueDate: Date;
+  paymentDate: Date;
+  lateFeeType: LateFeeType;
+  lateFeeAmount: number;
+  lateFeeMaxWeekly?: number;
+}): number {
+  if (params.lateFeeType === 'NONE' || !params.lateFeeAmount) return 0;
+  
+  const { dueDate, paymentDate, lateFeeType, lateFeeAmount, lateFeeMaxWeekly } = params;
+  
+  // Normalizar fechas a medianoche para contar días exactos
+  const d1 = new Date(dueDate);
+  d1.setHours(0, 0, 0, 0);
+  const d2 = new Date(paymentDate);
+  d2.setHours(0, 0, 0, 0);
+  
+  const diffTime = d2.getTime() - d1.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays <= 0) return 0;
+  
+  if (lateFeeType === 'DAILY_FIXED') {
+    if (lateFeeMaxWeekly && lateFeeMaxWeekly > 0) {
+      const weeks = Math.floor(diffDays / 7);
+      const remainingDays = diffDays % 7;
+      
+      // La regla del usuario: $200 por día, pero si se cumple la semana $800
+      const totalFee = (weeks * lateFeeMaxWeekly) + Math.min(remainingDays * lateFeeAmount, lateFeeMaxWeekly);
+      return totalFee;
+    }
+    
+    return diffDays * lateFeeAmount;
+  }
+  
+  if (lateFeeType === 'PERCENTAGE') {
+    // Interés simple sobre el monto del pago (lateFeeAmount actúa como %)
+    // No especificado por el usuario aún, pero dejamos el placeholder
+    return 0;
+  }
+
+  return 0;
 }
 
 /**
@@ -404,6 +586,13 @@ export function validateLoanParams(params: {
     }
     if (weeklyInterestAmount !== undefined && weeklyInterestAmount < 0) {
       return { valid: false, error: 'El interés semanal debe ser un número válido no negativo' };
+    }
+  }
+
+  // Para POR_MIL_120, validar que el monto esté en un rango razonable
+  if (loanCalculationType === 'POR_MIL_120') {
+    if (principalAmount < 1000) {
+      return { valid: false, error: 'El monto mínimo para este tipo de cálculo es $1,000' };
     }
   }
 

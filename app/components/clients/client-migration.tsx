@@ -46,6 +46,15 @@ interface MigrationClient {
   status?: string;
   notes?: string;
   originalSystem?: string;
+  // Loan fields for migration
+  loanCalculationType?: string;
+  paymentFrequency?: string;
+  termMonths?: number;
+  interestRate?: number;
+  loanEndDate?: string;
+  lateFeeType?: string;
+  lateFeeAmount?: string;
+  lateFeeMaxWeekly?: string;
 }
 
 interface ClientMigrationProps {
@@ -56,6 +65,20 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
   const [activeTab, setActiveTab] = useState('manual');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [migratedClients, setMigratedClients] = useState<any[]>([]);
+  
+  // Migration specific settings (Global for the batch)
+  const [migrationSettings, setMigrationSettings] = useState({
+    createLoan: false,
+    loanCalculationType: 'POR_MIL_120',
+    paymentFrequency: 'SEMANAL',
+    termMonths: 10,
+    interestRate: 0,
+    startDate: new Date().toISOString().split('T')[0],
+    loanEndDate: '',
+    lateFeeType: 'DAILY_FIXED',
+    lateFeeAmount: '200',
+    lateFeeMaxWeekly: '800'
+  });
   
   // Manual form state
   const [manualForm, setManualForm] = useState<MigrationClient>({
@@ -124,7 +147,8 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
         },
         body: JSON.stringify({
           clients: [manualForm],
-          migration: true
+          migration: true,
+          loanSettings: migrationSettings.createLoan ? migrationSettings : null
         }),
       });
 
@@ -272,7 +296,8 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
         },
         body: JSON.stringify({
           clients: csvData,
-          migration: true
+          migration: true,
+          loanSettings: migrationSettings.createLoan ? migrationSettings : null
         }),
       });
 
@@ -385,6 +410,103 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
             Importa clientes de otros sistemas con sus saldos y datos actuales
           </p>
         </CardHeader>
+      </Card>
+
+      {/* Configuración Global de Préstamo para Migración */}
+      <Card className="border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2 text-purple-900 dark:text-purple-100">
+            <DollarSign className="h-5 w-5" />
+            Configuración de Préstamo Automático
+          </CardTitle>
+          <p className="text-sm text-purple-700 dark:text-purple-300">
+            Si se activa, se creará un préstamo activo automáticamente para cada cliente con saldo mayor a $0.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <input 
+              type="checkbox" 
+              id="createLoan" 
+              className="h-4 w-4 rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+              checked={migrationSettings.createLoan}
+              onChange={(e) => setMigrationSettings(prev => ({ ...prev, createLoan: e.target.checked }))}
+            />
+            <label htmlFor="createLoan" className="text-sm font-medium text-purple-900 dark:text-purple-100 cursor-pointer">
+              Crear préstamo automático para saldos migrados
+            </label>
+          </div>
+
+          {migrationSettings.createLoan && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-white dark:bg-gray-900 rounded-lg border border-purple-100 dark:border-purple-900 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tipo de Cálculo</label>
+                <EnhancedSelect
+                  value={migrationSettings.loanCalculationType}
+                  onValueChange={(value) => {
+                    setMigrationSettings(prev => ({ 
+                      ...prev, 
+                      loanCalculationType: value,
+                      // Auto-set frequency for POR_MIL_120
+                      paymentFrequency: value === 'POR_MIL_120' ? 'SEMANAL' : prev.paymentFrequency
+                    }));
+                  }}
+                >
+                  <SelectItem value="INTERES">Interés Anual</SelectItem>
+                  <SelectItem value="TARIFA_FIJA">Tarifa Fija</SelectItem>
+                  <SelectItem value="INTERES_SEMANAL">Interés Semanal</SelectItem>
+                  <SelectItem value="POR_MIL_120">$120 por cada $1,000 (Semanal)</SelectItem>
+                </EnhancedSelect>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Frecuencia</label>
+                <EnhancedSelect
+                  value={migrationSettings.paymentFrequency}
+                  onValueChange={(value) => setMigrationSettings(prev => ({ ...prev, paymentFrequency: value }))}
+                  disabled={migrationSettings.loanCalculationType === 'POR_MIL_120'}
+                >
+                  <SelectItem value="SEMANAL">Semanal</SelectItem>
+                  <SelectItem value="CATORCENAL">Catorcenal</SelectItem>
+                  <SelectItem value="QUINCENAL">Quincenal</SelectItem>
+                  <SelectItem value="MENSUAL">Mensual</SelectItem>
+                </EnhancedSelect>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Número de Pagos</label>
+                <EnhancedInput
+                  type="number"
+                  value={migrationSettings.termMonths}
+                  onChange={(e) => setMigrationSettings(prev => ({ ...prev, termMonths: parseInt(e.target.value) || 0 }))}
+                  example="10"
+                />
+              </div>
+
+              {migrationSettings.loanCalculationType === 'INTERES' && (
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tasa Anual (%)</label>
+                  <EnhancedInput
+                    type="number"
+                    step="0.01"
+                    value={migrationSettings.interestRate}
+                    onChange={(e) => setMigrationSettings(prev => ({ ...prev, interestRate: parseFloat(e.target.value) || 0 }))}
+                    example="15"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha de Inicio</label>
+                <EnhancedInput
+                  type="date"
+                  value={migrationSettings.startDate}
+                  onChange={(e) => setMigrationSettings(prev => ({ ...prev, startDate: e.target.value }))}
+                />
+              </div>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

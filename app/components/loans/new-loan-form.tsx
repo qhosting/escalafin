@@ -22,7 +22,8 @@ import {
   AlertCircle,
   CheckCircle,
   Search,
-  Plus
+  Plus,
+  TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -35,7 +36,8 @@ import {
   calculateWeeklyInterestPayment,
   getWeeklyInterestAmount,
   getPaymentsPerYear,
-  calculateEndDate
+  calculateEndDate,
+  calculatePorMil120
 } from '@/lib/loan-calculations';
 
 interface Client {
@@ -73,7 +75,8 @@ const PAYMENT_FREQUENCIES = {
 const CALCULATION_TYPES = {
   INTERES: 'Con Interés (Tasa Anual)',
   TARIFA_FIJA: 'Tarifa Fija por Monto',
-  INTERES_SEMANAL: 'Interés Semanal sobre Capital'
+  INTERES_SEMANAL: 'Interés Semanal sobre Capital',
+  POR_MIL_120: '$120 por cada $1,000 de capital (Semanal)'
 };
 
 const INTEREST_RATES = {
@@ -109,7 +112,10 @@ export function NewLoanForm() {
     initialPayment: '', // pago inicial (informativo)
     startDate: format(new Date(), 'yyyy-MM-dd'),
     endDate: '',
-    notes: ''
+    notes: '',
+    lateFeeType: 'DAILY_FIXED',
+    lateFeeAmount: '200',
+    lateFeeMaxWeekly: '800'
   });
   
   const [calculation, setCalculation] = useState<LoanCalculation | null>(null);
@@ -307,6 +313,17 @@ export function NewLoanForm() {
             weeklyInterestAmount: result.weeklyInterest.toString() 
           }));
         }
+      } else if (calculationType === 'POR_MIL_120') {
+        // Método de $120 por cada $1,000
+        const result = calculatePorMil120(principal, numPayments);
+        monthlyPayment = result.paymentAmount;
+        totalAmount = result.totalAmount;
+        totalInterest = result.totalFee;
+        
+        // Calcular tasa efectiva para referencia
+        if (totalInterest > 0) {
+          interestRate = (totalInterest / principal) * 100;
+        }
       }
 
       const calc: LoanCalculation = {
@@ -337,6 +354,19 @@ export function NewLoanForm() {
   const handleClientSelect = (client: Client) => {
     setSelectedClient(client);
     setFormData(prev => ({ ...prev, clientId: client.id }));
+
+    // Fetch full client details for late fee settings
+    fetch(`/api/clients/${client.id}`)
+      .then(res => res.json())
+      .then(data => {
+        setFormData(prev => ({
+          ...prev,
+          lateFeeType: data.lateFeeType || 'DAILY_FIXED',
+          lateFeeAmount: data.lateFeeAmount?.toString() || '200',
+          lateFeeMaxWeekly: data.lateFeeMaxWeekly?.toString() || '800'
+        }));
+      })
+      .catch(err => console.error('Error fetching client late fee settings:', err));
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -352,8 +382,16 @@ export function NewLoanForm() {
     }
 
     if (!calculation) {
-      toast.error('Por favor calcula el préstamo antes de enviarlo');
-      return;
+      const principal = parseFloat(formData.principalAmount);
+      const numPayments = parseInt(formData.termMonths);
+      
+      if (principal > 0 && numPayments > 0) {
+        // Intentar calcular automáticamente antes de fallar
+        calculateLoan();
+      } else {
+        toast.error('Por favor completa los campos del préstamo y pulsa "Calcular"');
+        return;
+      }
     }
 
     try {
@@ -375,7 +413,10 @@ export function NewLoanForm() {
         monthlyPayment: calculation.monthlyPayment,
         initialPayment: formData.initialPayment ? parseFloat(formData.initialPayment) : null,
         startDate: new Date(formData.startDate).toISOString(),
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        lateFeeType: formData.lateFeeType,
+        lateFeeAmount: parseFloat(formData.lateFeeAmount),
+        lateFeeMaxWeekly: parseFloat(formData.lateFeeMaxWeekly)
       };
 
       const response = await fetch('/api/loans', {
@@ -537,7 +578,13 @@ export function NewLoanForm() {
                 placeholder="Selecciona el método de cálculo"
                 hint="Interés: tasa anual. Tarifa Fija: cargo fijo por monto prestado"
                 value={formData.loanCalculationType}
-                onValueChange={(value) => handleInputChange('loanCalculationType', value)}
+                onValueChange={(value) => {
+                  handleInputChange('loanCalculationType', value);
+                  // Si selecciona POR_MIL_120, poner frecuencia SEMANAL por defecto como pidió el usuario
+                  if (value === 'POR_MIL_120') {
+                    handleInputChange('paymentFrequency', 'SEMANAL');
+                  }
+                }}
               >
                 {Object.entries(CALCULATION_TYPES).map(([key, label]) => (
                   <SelectItem key={key} value={key}>{label}</SelectItem>
@@ -617,6 +664,24 @@ export function NewLoanForm() {
                     <li>• $4,000: $425 por pago</li>
                     <li>• $5,000: $600 por pago</li>
                     <li>• Más de $5,000: +$120 por cada mil adicional</li>
+                  </ul>
+                </div>
+              )}
+
+              {/* Info para POR_MIL_120 */}
+              {formData.loanCalculationType === 'POR_MIL_120' && (
+                <div className="space-y-2 p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <h4 className="font-semibold text-sm text-purple-900 dark:text-purple-100 flex items-center gap-2">
+                    <Calculator className="h-4 w-4" />
+                    Sistema de $120 por cada $1,000
+                  </h4>
+                  <p className="text-xs text-purple-700 dark:text-purple-300">
+                    Se cobra una cuota fija de $120 por cada $1,000 prestados en cada pago semanal.
+                  </p>
+                  <ul className="text-xs text-purple-700 dark:text-purple-300 space-y-1 mt-2">
+                    <li>• $1,000 prestados = $120 de pago.</li>
+                    <li>• $5,000 prestados = $600 de pago.</li>
+                    <li>• $10,000 prestados = $1,200 de pago.</li>
                   </ul>
                 </div>
               )}
@@ -732,7 +797,50 @@ export function NewLoanForm() {
               </div>
             </div>
 
+            <Separator className="my-6" />
 
+            {/* Configuración de Moratorios */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2 text-orange-600">
+                <TrendingUp className="h-4 w-4" />
+                Configuración de Moratorios (Multas por impago)
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <EnhancedSelect
+                  label="Tipo de Moratorio"
+                  value={formData.lateFeeType}
+                  onValueChange={(value) => handleInputChange('lateFeeType', value)}
+                >
+                  <SelectItem value="DAILY_FIXED">Monto Fijo por Día</SelectItem>
+                  <SelectItem value="PERCENTAGE">Porcentaje sobre Saldo</SelectItem>
+                  <SelectItem value="NONE">Sin Moratorios</SelectItem>
+                </EnhancedSelect>
+
+                {formData.lateFeeType !== 'NONE' && (
+                  <>
+                    <EnhancedInput
+                      label={formData.lateFeeType === 'DAILY_FIXED' ? 'Monto Pesos/Día' : 'Porcentaje (%)'}
+                      type="number"
+                      value={formData.lateFeeAmount}
+                      onChange={(e) => handleInputChange('lateFeeAmount', e.target.value)}
+                      placeholder={formData.lateFeeType === 'DAILY_FIXED' ? "200" : "5"}
+                    />
+                    
+                    {formData.lateFeeType === 'DAILY_FIXED' && (
+                      <EnhancedInput
+                        label="Máximo por Semana ($)"
+                        type="number"
+                        value={formData.lateFeeMaxWeekly}
+                        onChange={(e) => handleInputChange('lateFeeMaxWeekly', e.target.value)}
+                        placeholder="800"
+                        hint={`💡 Sugerido: $${formData.lateFeeMaxWeekly || '800'} por semana`}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
 
             {/* Botón de Cálculo */}
             <div className="flex justify-center">
@@ -753,9 +861,20 @@ export function NewLoanForm() {
                 }
               >
                 <Calculator className="h-4 w-4" />
-                Calcular Préstamo
+                {calculation ? 'Recalcular Préstamo' : 'Calcular Préstamo'}
               </Button>
             </div>
+            
+            {/* Mensaje de ayuda si el botón está desactivado */}
+            {!calculation && (
+              <p className="text-xs text-center text-muted-foreground mt-2 italic">
+                {!formData.principalAmount || parseFloat(formData.principalAmount) <= 0 
+                  ? "Ingresa el monto principal para habilitar el cálculo" 
+                  : !formData.termMonths || parseInt(formData.termMonths) <= 0
+                  ? "Ingresa el número de pagos para habilitar el cálculo"
+                  : ""}
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

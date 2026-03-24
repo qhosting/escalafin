@@ -166,6 +166,9 @@ model Client {
   whatsappMarketingMessages    Boolean                @default(false)
   profileImage                 String?
   tenantId                     String?
+  lateFeeType                  LateFeeType?           @default(DAILY_FIXED)
+  lateFeeAmount                Decimal?               @default(200) @db.Decimal(12, 2)
+  lateFeeMaxWeekly             Decimal?               @default(800) @db.Decimal(12, 2)
   asesor                       User?                  @relation("AsesorClients", fields: [asesorId], references: [id])
   tenant                       Tenant?                @relation(fields: [tenantId], references: [id])
   user                         User?                  @relation("UserClient", fields: [userId], references: [id])
@@ -312,6 +315,9 @@ model Loan {
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   tenantId             String?
+  lateFeeType          LateFeeType?           @default(DAILY_FIXED)
+  lateFeeAmount        Decimal?               @db.Decimal(12, 2)
+  lateFeeMaxWeekly     Decimal?               @db.Decimal(12, 2)
   amortizationSchedule AmortizationSchedule[]
   creditScores         CreditScore[]          @relation("LoanScoring")
   files                FileUpload[]           @relation("LoanFiles")
@@ -368,6 +374,7 @@ model Payment {
   createdAt              DateTime              @default(now())
   updatedAt              DateTime              @updatedAt
   tenantId               String?
+  lateFeePaid            Decimal?              @default(0) @db.Decimal(12, 2)
   cashCollection         CashCollection?       @relation("CashCollections")
   transactions           PaymentTransaction[]  @relation("PaymentTransactions")
   amortizationSchedule   AmortizationSchedule? @relation(fields: [amortizationScheduleId], references: [id])
@@ -1349,6 +1356,7 @@ enum LoanCalculationType {
   INTERES
   TARIFA_FIJA
   INTERES_SEMANAL
+  POR_MIL_120
 }
 
 enum PaymentStatus {
@@ -1591,4 +1599,9 @@ enum PaymentMethodType {
   BANK_TRANSFER
   PAYPAL
   CASH
+}
+enum LateFeeType {
+  DAILY_FIXED
+  PERCENTAGE
+  NONE
 }

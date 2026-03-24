@@ -4,11 +4,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
-import { LoanType, LoanStatus } from '@prisma/client';
-import { LimitsService } from '@/lib/billing/limits';
-import { UsageTracker } from '@/lib/billing/usage-tracker';
 import { WebhooksService } from '@/lib/webhooks';
 import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
+import { calculateLoanDetails, generateAmortizationSchedule } from '@/lib/loan-calculations';
+import { LoanType, LoanStatus, LoanCalculationType, PaymentFrequency } from '@prisma/client';
+import { LimitsService } from '@/lib/billing/limits';
+import { UsageTracker } from '@/lib/billing/usage-tracker';
 
 export async function GET(request: NextRequest) {
   try {
@@ -150,11 +151,19 @@ export async function POST(request: NextRequest) {
       principalAmount,
       interestRate,
       termMonths,
-      startDate
+      startDate,
+      loanCalculationType = 'INTERES' as LoanCalculationType,
+      paymentFrequency = 'MENSUAL' as PaymentFrequency,
+      weeklyInterestAmount,
+      initialPayment,
+      notes,
+      lateFeeType,
+      lateFeeAmount,
+      lateFeeMaxWeekly
     } = body;
 
-    // Validaciones
-    if (!clientId || !loanType || !principalAmount || !interestRate || !termMonths || !startDate) {
+    // Validaciones (interestRate puede ser 0 en tarifa fija)
+    if (!clientId || !loanType || !principalAmount || interestRate === undefined || !termMonths || !startDate) {
       return NextResponse.json({ error: 'Campos requeridos faltantes' }, { status: 400 });
     }
 
@@ -178,15 +187,20 @@ export async function POST(request: NextRequest) {
     const loanCount = await tenantPrisma.loan.count() + 1;
     const loanNumber = `ESF-${currentYear}-${loanCount.toString().padStart(4, '0')}`;
 
-    // Calcular valores del préstamo
-    const monthlyInterestRate = parseFloat(interestRate) / 100 / 12;
-    const monthlyPayment = (parseFloat(principalAmount) * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, termMonths)) /
-      (Math.pow(1 + monthlyInterestRate, termMonths) - 1);
-    const totalAmount = monthlyPayment * termMonths;
+    // Calcular valores del préstamo usando la librería única
+    const calculations = calculateLoanDetails({
+      loanCalculationType,
+      principalAmount: parseFloat(principalAmount),
+      numberOfPayments: parseInt(termMonths),
+      paymentFrequency,
+      annualInterestRate: parseFloat(interestRate),
+      weeklyInterestAmount: weeklyInterestAmount ? parseFloat(weeklyInterestAmount) : undefined,
+      startDate: new Date(startDate)
+    });
 
-    const startDateObj = new Date(startDate);
-    const endDate = new Date(startDateObj);
-    endDate.setMonth(endDate.getMonth() + termMonths);
+    const monthlyPayment = calculations.paymentAmount;
+    const totalAmount = calculations.totalAmount;
+    const endDate = calculations.endDate;
 
     // Crear préstamo
     const loan = await tenantPrisma.loan.create({
@@ -195,14 +209,22 @@ export async function POST(request: NextRequest) {
         creditApplicationId: creditApplicationId || null,
         loanNumber,
         loanType: loanType as LoanType,
+        loanCalculationType,
         principalAmount: parseFloat(principalAmount),
         interestRate: parseFloat(interestRate),
+        weeklyInterestAmount: weeklyInterestAmount ? parseFloat(weeklyInterestAmount) : null,
         termMonths: parseInt(termMonths),
+        paymentFrequency,
         monthlyPayment,
+        initialPayment: initialPayment ? parseFloat(initialPayment) : null,
         totalAmount,
         balanceRemaining: parseFloat(principalAmount),
-        startDate: startDateObj,
-        endDate
+        startDate: new Date(startDate),
+        endDate,
+        notes: notes || '',
+        lateFeeType: lateFeeType || 'DAILY_FIXED',
+        lateFeeAmount: lateFeeAmount ? parseFloat(lateFeeAmount) : 200,
+        lateFeeMaxWeekly: lateFeeMaxWeekly ? parseFloat(lateFeeMaxWeekly) : 800
       },
       include: {
         client: {
@@ -215,28 +237,27 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Crear tabla de amortización
-    const amortizationSchedule = [];
-    let remainingBalance = parseFloat(principalAmount);
+    // Crear tabla de amortización usando la librería única
+    const amortizationEntries = generateAmortizationSchedule({
+      principalAmount: parseFloat(principalAmount),
+      numberOfPayments: parseInt(termMonths),
+      paymentFrequency,
+      loanCalculationType,
+      annualInterestRate: parseFloat(interestRate),
+      weeklyInterestAmount: weeklyInterestAmount ? parseFloat(weeklyInterestAmount) : undefined,
+      startDate: new Date(startDate),
+      paymentAmount: monthlyPayment
+    });
 
-    for (let i = 1; i <= termMonths; i++) {
-      const paymentDate = new Date(startDateObj);
-      paymentDate.setMonth(paymentDate.getMonth() + i);
-
-      const interestPayment = remainingBalance * monthlyInterestRate;
-      const principalPayment = monthlyPayment - interestPayment;
-      remainingBalance -= principalPayment;
-
-      amortizationSchedule.push({
-        loanId: loan.id,
-        paymentNumber: i,
-        paymentDate,
-        principalPayment,
-        interestPayment,
-        totalPayment: monthlyPayment,
-        remainingBalance: Math.max(0, remainingBalance)
-      });
-    }
+    const amortizationSchedule = amortizationEntries.map(entry => ({
+      loanId: loan.id,
+      paymentNumber: entry.paymentNumber,
+      paymentDate: entry.paymentDate,
+      principalPayment: entry.principalPayment,
+      interestPayment: entry.interestPayment,
+      totalPayment: entry.totalPayment,
+      remainingBalance: entry.remainingBalance
+    }));
 
     // AmortizationSchedule no tiene tenantId directo aún, pero se accede vía Loan
     await (tenantPrisma as any).amortizationSchedule.createMany({

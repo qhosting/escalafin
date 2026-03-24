@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
 import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
     try {
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
         const receiptNumber = formData.get('receiptNumber') as string | null;
         const collectionMethod = formData.get('collectionMethod') as string | null; 
         const collectorLocation = formData.get('collectorLocation') as string | null;
+        const lateFeePaidRaw = formData.get('lateFeePaid');
 
         const processedBy = session.user.id;
 
@@ -49,6 +51,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Monto inválido' }, { status: 400 });
         }
 
+        const lateFeePaid = lateFeePaidRaw ? parseFloat(lateFeePaidRaw.toString()) : 0;
+
         const queryNotes = notes ? notes.trim() : '';
 
         const loan = await tenantPrisma.loan.findFirst({
@@ -60,7 +64,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Begin Transaction
-        const result = await tenantPrisma.$transaction(async (prismaTx) => {
+        const result = await prisma.$transaction(async (prismaTx) => {
             // 1. Create Payment
             const payment = await prismaTx.payment.create({
                 data: {
@@ -72,12 +76,14 @@ export async function POST(request: NextRequest) {
                     status: 'COMPLETED',
                     reference: receiptNumber || `EXT-${Date.now()}`,
                     notes: `${queryNotes} | location: ${collectorLocation || 'N/A'} | method: ${collectionMethod || 'N/A'}`,
-                    processedBy: processedBy
+                    processedBy: processedBy,
+                    lateFeePaid: lateFeePaid
                 }
             });
 
-            // 2. Reduce Balance on Loan
-            const newBalance = Math.max(0, Number(loan.balanceRemaining) - amount);
+            // 2. Reduce Balance on Loan (Solo el monto que no es mora)
+            const amortizedAmount = Math.max(0, amount - lateFeePaid);
+            const newBalance = Math.max(0, Number(loan.balanceRemaining) - amortizedAmount);
             const updatedLoan = await prismaTx.loan.update({
                 where: { id: loanId },
                 data: {

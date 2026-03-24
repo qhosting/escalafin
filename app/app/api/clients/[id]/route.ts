@@ -158,7 +158,10 @@ export async function PATCH(
       status,
       asesorId,
       guarantor,
-      collaterals
+      collaterals,
+      lateFeeType,
+      lateFeeAmount,
+      lateFeeMaxWeekly
     } = body;
 
     // Verificar email único si se está actualizando
@@ -197,30 +200,35 @@ export async function PATCH(
         accountNumber: accountNumber || existingClient.accountNumber,
         status: status as any || existingClient.status,
         asesorId: finalAsesorId,
-        guarantor: guarantor ? {
-          upsert: {
-            create: {
-              fullName: guarantor.fullName,
-              address: guarantor.address || '',
-              phone: guarantor.phone || '',
-              relationship: guarantor.relationship || 'OTHER',
-              tenantId: existingClient.tenantId
-            },
-            update: {
-              fullName: guarantor.fullName,
-              address: guarantor.address || '',
-              phone: guarantor.phone || '',
-              relationship: guarantor.relationship || 'OTHER'
+        guarantor: guarantor !== undefined ? (
+          guarantor === null ? { delete: true } : {
+            upsert: {
+              create: {
+                fullName: guarantor.fullName,
+                address: guarantor.address || '',
+                phone: guarantor.phone || '',
+                relationship: guarantor.relationship || 'OTHER',
+                tenantId: existingClient.tenantId
+              },
+              update: {
+                fullName: guarantor.fullName,
+                address: guarantor.address || '',
+                phone: guarantor.phone || '',
+                relationship: guarantor.relationship || 'OTHER'
+              }
             }
           }
-        } : (guarantor === null ? { delete: true } : undefined),
-        collaterals: collaterals ? {
+        ) : undefined,
+        collaterals: collaterals !== undefined ? {
           deleteMany: {},
           create: collaterals.map((description: string) => ({
             description,
             tenantId: existingClient.tenantId
           }))
-        } : undefined
+        } : undefined,
+        lateFeeType: lateFeeType || (existingClient as any).lateFeeType,
+        lateFeeAmount: lateFeeAmount ? parseFloat(lateFeeAmount) : (existingClient as any).lateFeeAmount,
+        lateFeeMaxWeekly: lateFeeMaxWeekly ? parseFloat(lateFeeMaxWeekly) : (existingClient as any).lateFeeMaxWeekly
       },
       include: {
         asesor: {

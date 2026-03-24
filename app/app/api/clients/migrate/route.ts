@@ -1,9 +1,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { prisma } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
+import { calculateLoanDetails, generateAmortizationSchedule } from '@/lib/loan-calculations';
+import { LoanCalculationType, PaymentFrequency, LoanType } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { clients, migration } = await req.json();
+    const { clients, migration, loanSettings } = await req.json();
 
     if (!clients || !Array.isArray(clients)) {
       return NextResponse.json(
@@ -75,11 +76,74 @@ export async function POST(req: NextRequest) {
             migrationDate: new Date(),
             initialBalance: clientData.currentBalance ? parseFloat(clientData.currentBalance.toString()) : 0,
             lastPaymentDate: clientData.lastPaymentDate ? new Date(clientData.lastPaymentDate) : null,
+            lateFeeType: loanSettings?.lateFeeType || 'DAILY_FIXED',
+            lateFeeAmount: loanSettings?.lateFeeAmount ? parseFloat(loanSettings.lateFeeAmount.toString()) : 200,
+            lateFeeMaxWeekly: loanSettings?.lateFeeMaxWeekly ? parseFloat(loanSettings.lateFeeMaxWeekly.toString()) : 800
           }
         });
 
         // El saldo inicial se guarda en el campo initialBalance del cliente
-        // No necesitamos crear pagos sin un préstamo asociado
+        // Si hay configuración de préstamo, crearlo automáticamente
+        if (loanSettings && clientData.currentBalance > 0) {
+          const principal = parseFloat(clientData.currentBalance.toString());
+          const calculations = calculateLoanDetails({
+            loanCalculationType: loanSettings.loanCalculationType as LoanCalculationType,
+            principalAmount: principal,
+            numberOfPayments: parseInt(loanSettings.termMonths.toString()),
+            paymentFrequency: loanSettings.paymentFrequency as PaymentFrequency,
+            annualInterestRate: parseFloat((loanSettings.interestRate || 0).toString()) / 100,
+            startDate: new Date(loanSettings.startDate || new Date())
+          });
+
+          const currentYear = new Date().getFullYear();
+          const loanCount = await tenantPrisma.loan.count() + 1;
+          const loanNumber = `MIG-${currentYear}-${loanCount.toString().padStart(4, '0')}`;
+
+          const loan = await tenantPrisma.loan.create({
+            data: {
+              clientId: newClient.id,
+              loanNumber,
+              loanType: 'PERSONAL' as LoanType, // Default para migración
+              loanCalculationType: loanSettings.loanCalculationType as LoanCalculationType,
+              principalAmount: principal,
+              interestRate: parseFloat((loanSettings.interestRate || 0).toString()) / 100,
+              termMonths: parseInt(loanSettings.termMonths.toString()),
+              paymentFrequency: loanSettings.paymentFrequency as PaymentFrequency,
+              monthlyPayment: calculations.paymentAmount,
+              totalAmount: calculations.totalAmount,
+              balanceRemaining: principal,
+              startDate: new Date(loanSettings.startDate || new Date()),
+              endDate: calculations.endDate,
+              notes: `Migración masiva - ${clientData.originalSystem || 'Manual'}`,
+              lateFeeType: loanSettings.lateFeeType || 'DAILY_FIXED',
+              lateFeeAmount: loanSettings.lateFeeAmount ? parseFloat(loanSettings.lateFeeAmount.toString()) : 200,
+              lateFeeMaxWeekly: loanSettings.lateFeeMaxWeekly ? parseFloat(loanSettings.lateFeeMaxWeekly.toString()) : 800
+            }
+          });
+
+          // Amortización
+          const amortizationEntries = generateAmortizationSchedule({
+            principalAmount: principal,
+            numberOfPayments: parseInt(loanSettings.termMonths.toString()),
+            paymentFrequency: loanSettings.paymentFrequency as PaymentFrequency,
+            loanCalculationType: loanSettings.loanCalculationType as LoanCalculationType,
+            annualInterestRate: parseFloat((loanSettings.interestRate || 0).toString()) / 100,
+            startDate: new Date(loanSettings.startDate || new Date()),
+            paymentAmount: calculations.paymentAmount
+          });
+
+          await (tenantPrisma as any).amortizationSchedule.createMany({
+            data: amortizationEntries.map(entry => ({
+              loanId: loan.id,
+              paymentNumber: entry.paymentNumber,
+              paymentDate: entry.paymentDate,
+              principalPayment: entry.principalPayment,
+              interestPayment: entry.interestPayment,
+              totalPayment: entry.totalPayment,
+              remainingBalance: entry.remainingBalance
+            }))
+          });
+        }
 
         migratedClients.push({
           id: newClient.id,

@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Save, User, Shield, FileText, Plus, X } from 'lucide-react';
+import { ArrowLeft, Save, User, Shield, FileText, Plus, X, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { ClientProfileImage } from '@/components/clients/client-profile-image';
@@ -50,6 +50,9 @@ interface ClientFormData {
   asesorId: string;
   guarantor?: GuarantorData;
   collaterals: string[];
+  lateFeeType: string;
+  lateFeeAmount: string;
+  lateFeeMaxWeekly: string;
 }
 
 const EMPLOYMENT_TYPES = [
@@ -102,7 +105,10 @@ export default function EditClientPage() {
     status: 'ACTIVE',
     asesorId: '',
     guarantor: undefined,
-    collaterals: []
+    collaterals: [],
+    lateFeeType: 'DAILY_FIXED',
+    lateFeeAmount: '200',
+    lateFeeMaxWeekly: '800'
   });
   
   const [newCollateral, setNewCollateral] = useState('');
@@ -149,7 +155,10 @@ export default function EditClientPage() {
           phone: client.guarantor.phone || '',
           relationship: client.guarantor.relationship || 'OTHER'
         } : undefined,
-        collaterals: client.collaterals?.map((c: any) => c.description) || []
+        collaterals: client.collaterals?.map((c: any) => c.description) || [],
+        lateFeeType: client.lateFeeType || 'DAILY_FIXED',
+        lateFeeAmount: client.lateFeeAmount?.toString() || '200',
+        lateFeeMaxWeekly: client.lateFeeMaxWeekly?.toString() || '800'
       });
       
       // Guardar imagen y nombre completo para el componente de imagen
@@ -494,6 +503,72 @@ export default function EditClientPage() {
                   placeholder="****1234"
                 />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Configuración de Moratorios */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-orange-600" />
+              Configuración de Moratorios (Multas)
+            </CardTitle>
+            <CardDescription>
+              Define cómo se cobrarán los recargos por falta de pago
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="lateFeeType">Tipo de Moratorio</Label>
+                <Select
+                  value={formData.lateFeeType}
+                  onValueChange={(value) => handleInputChange('lateFeeType', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DAILY_FIXED">Monto Fijo por Día</SelectItem>
+                    <SelectItem value="PERCENTAGE">Porcentaje sobre Saldo</SelectItem>
+                    <SelectItem value="NONE">Sin Moratorios</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.lateFeeType !== 'NONE' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="lateFeeAmount">
+                      {formData.lateFeeType === 'DAILY_FIXED' ? 'Monto Pesos/Día' : 'Porcentaje (%)'}
+                    </Label>
+                    <Input
+                      id="lateFeeAmount"
+                      type="number"
+                      value={formData.lateFeeAmount}
+                      onChange={(e) => handleInputChange('lateFeeAmount', e.target.value)}
+                      placeholder={formData.lateFeeType === 'DAILY_FIXED' ? "200" : "5"}
+                    />
+                  </div>
+                  
+                  {formData.lateFeeType === 'DAILY_FIXED' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="lateFeeMaxWeekly">Máximo por Semana ($)</Label>
+                      <Input
+                        id="lateFeeMaxWeekly"
+                        type="number"
+                        value={formData.lateFeeMaxWeekly}
+                        onChange={(e) => handleInputChange('lateFeeMaxWeekly', e.target.value)}
+                        placeholder="800"
+                      />
+                      <p className="text-xs text-muted-foreground italic">
+                        💡 Ejemplo: $200/día, pero si se vence la semana completa solo se cobran ${formData.lateFeeMaxWeekly || '800'}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
