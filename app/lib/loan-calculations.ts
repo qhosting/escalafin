@@ -264,15 +264,15 @@ export function calculatePorMil120(
   totalAmount: number;
   totalFee: number;
 } {
-  // Monto base por cada mil
+  // Cargo/Interés total: una vez por el crédito
   const factor = principalAmount / 1000;
-  const paymentAmount = factor * 120;
+  const totalFee = factor * 120;
   
   // Total a pagar
-  const totalAmount = paymentAmount * numberOfPayments;
+  const totalAmount = principalAmount + totalFee;
   
-  // Cargo/Interés total
-  const totalFee = totalAmount - principalAmount;
+  // Pago periódico
+  const paymentAmount = totalAmount / numberOfPayments;
 
   return {
     paymentAmount: Math.round(paymentAmount * 100) / 100,

@@ -108,6 +108,7 @@ export function NewLoanForm() {
     paymentFrequency: 'MENSUAL',
     interestRate: '',
     weeklyInterestAmount: '', // para INTERES_SEMANAL
+    expectedWeeklyPayment: '', // para POR_MIL_120
     monthlyPayment: '',
     initialPayment: '', // pago inicial (informativo)
     startDate: format(new Date(), 'yyyy-MM-dd'),
@@ -243,7 +244,7 @@ export function NewLoanForm() {
     console.log('Iniciando cálculo del préstamo', formData);
     
     const principal = parseFloat(formData.principalAmount);
-    const numPayments = parseInt(formData.termMonths);
+    let numPayments = parseInt(formData.termMonths);
     const frequency = formData.paymentFrequency as 'SEMANAL' | 'CATORCENAL' | 'QUINCENAL' | 'MENSUAL';
     const calculationType = formData.loanCalculationType;
 
@@ -258,9 +259,27 @@ export function NewLoanForm() {
       return;
     }
 
-    if (!numPayments || numPayments <= 0) {
-      toast.error('Por favor ingresa un número de pagos válido');
-      return;
+    if (calculationType === 'POR_MIL_120') {
+      const expectedWeekly = parseFloat(formData.expectedWeeklyPayment);
+      if (!expectedWeekly || expectedWeekly <= 0) {
+        toast.error('Por favor ingresa un monto de pago semanal deseado mayor a 0');
+        return;
+      }
+      
+      const factor = principal / 1000;
+      const totalFee = factor * 120;
+      const totalAmt = principal + totalFee;
+      
+      // Calculate how many payments needed
+      numPayments = Math.ceil(totalAmt / expectedWeekly);
+      
+      // Auto-update termMonths so the backend can receive it correctly
+      setFormData(prev => ({ ...prev, termMonths: numPayments.toString() }));
+    } else {
+      if (!numPayments || numPayments <= 0) {
+        toast.error('Por favor ingresa un número de pagos válido');
+        return;
+      }
     }
 
     try {
@@ -382,17 +401,12 @@ export function NewLoanForm() {
     }
 
     if (!calculation) {
-      const principal = parseFloat(formData.principalAmount);
-      const numPayments = parseInt(formData.termMonths);
-      
-      if (principal > 0 && numPayments > 0) {
-        // Intentar calcular automáticamente antes de fallar
-        calculateLoan();
-      } else {
-        toast.error('Por favor completa los campos del préstamo y pulsa "Calcular"');
-        return;
-      }
+      toast.error('Por favor pulsa "Calcular" antes de crear el préstamo');
+      return;
     }
+
+    const currentCalc = calculation;
+    if (!currentCalc) return;
 
     try {
       setSubmitting(true);
@@ -410,7 +424,7 @@ export function NewLoanForm() {
         weeklyInterestAmount: formData.loanCalculationType === 'INTERES_SEMANAL' && formData.weeklyInterestAmount
           ? parseFloat(formData.weeklyInterestAmount)
           : null,
-        monthlyPayment: calculation.monthlyPayment,
+        monthlyPayment: currentCalc.monthlyPayment,
         initialPayment: formData.initialPayment ? parseFloat(formData.initialPayment) : null,
         startDate: new Date(formData.startDate).toISOString(),
         status: 'ACTIVE',
@@ -622,21 +636,38 @@ export function NewLoanForm() {
                 ))}
               </EnhancedSelect>
 
-              {/* Número de Pagos */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="input-label required-field">Número de Pagos</span>
+              {/* Número de Pagos / Cuota Semanal Dependiendo de Método */}
+              {formData.loanCalculationType === 'POR_MIL_120' ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <span className="input-label required-field">Pago Semanal Deseado ($)</span>
+                  </div>
+                  <EnhancedInput
+                    type="number"
+                    example="200"
+                    hint="Calcularemos el número de semanas automáticamente en base a este pago y el porcentaje final de interés ($120 cada mil)."
+                    value={formData.expectedWeeklyPayment}
+                    onChange={(e) => handleInputChange('expectedWeeklyPayment', e.target.value)}
+                    required
+                  />
                 </div>
-                <EnhancedInput
-                  type="number"
-                  example="12"
-                  hint={`Número total de pagos según periodicidad seleccionada (${PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES]})`}
-                  value={formData.termMonths}
-                  onChange={(e) => handleInputChange('termMonths', e.target.value)}
-                  required
-                />
-              </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="input-label required-field">Número de Pagos</span>
+                  </div>
+                  <EnhancedInput
+                    type="number"
+                    example="12"
+                    hint={`Número total de pagos según periodicidad seleccionada (${PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES]})`}
+                    value={formData.termMonths}
+                    onChange={(e) => handleInputChange('termMonths', e.target.value)}
+                    required
+                  />
+                </div>
+              )}
 
               {/* Tasa de Interés - Solo para método de interés */}
               {formData.loanCalculationType === 'INTERES' && (
@@ -870,7 +901,9 @@ export function NewLoanForm() {
               <p className="text-xs text-center text-muted-foreground mt-2 italic">
                 {!formData.principalAmount || parseFloat(formData.principalAmount) <= 0 
                   ? "Ingresa el monto principal para habilitar el cálculo" 
-                  : !formData.termMonths || parseInt(formData.termMonths) <= 0
+                  : (formData.loanCalculationType === 'POR_MIL_120' && (!formData.expectedWeeklyPayment || parseFloat(formData.expectedWeeklyPayment) <= 0))
+                  ? "Ingresa el pago semanal deseado para calcular"
+                  : (formData.loanCalculationType !== 'POR_MIL_120' && (!formData.termMonths || parseInt(formData.termMonths) <= 0))
                   ? "Ingresa el número de pagos para habilitar el cálculo"
                   : ""}
               </p>
