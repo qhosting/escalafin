@@ -38,7 +38,7 @@ export default function MobileLayout({
   }
 
   // Check if user has mobile access (advisors and admins)
-  if (!['ADMIN', 'ADVISOR'].includes(session.user.role)) {
+  if (!['ADMIN', 'ASESOR', 'SUPER_ADMIN'].includes(session.user.role)) {
     redirect('/dashboard');
   }
 

@@ -161,7 +161,9 @@ export async function POST(request: NextRequest) {
       creditScore,
       bankName,
       accountNumber,
-      asesorId
+      asesorId,
+      guarantor,
+      collaterals
     } = body;
 
     // Validaciones
@@ -221,14 +223,29 @@ export async function POST(request: NextRequest) {
         state,
         postalCode,
         monthlyIncome: monthlyIncome ? parseFloat(monthlyIncome) : null,
-        employmentType: employmentType as EmploymentType || null,
+        employmentType: employmentType as any || null,
         employerName,
         workAddress,
         yearsEmployed: yearsEmployed ? parseInt(yearsEmployed) : null,
         creditScore: creditScore ? parseInt(creditScore) : null,
         bankName,
         accountNumber,
-        asesorId: finalAsesorId
+        asesorId: finalAsesorId,
+        guarantor: guarantor ? {
+          create: {
+            fullName: guarantor.fullName,
+            address: guarantor.address || '',
+            phone: guarantor.phone || '',
+            relationship: guarantor.relationship || 'OTHER' as any,
+            tenantId: tenantId
+          }
+        } : undefined,
+        collaterals: collaterals ? {
+          create: collaterals.map((description: string) => ({
+            description,
+            tenantId: tenantId
+          }))
+        } : undefined
       },
       include: {
         asesor: {

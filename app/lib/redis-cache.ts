@@ -50,6 +50,8 @@ class RedisCacheService {
             const value = await this.client.get(key);
             if (!value) return null;
 
+            // Handle potential BigInt revival if we were to use a more complex reviver, 
+            // but for now, simple parse is enough if the consumer uses Number() or similar.
             return JSON.parse(value) as T;
         } catch (error) {
             console.error(`Redis GET error for key ${key}:`, error);
@@ -61,7 +63,11 @@ class RedisCacheService {
         if (!this.isConnected || !this.client) return false;
 
         try {
-            await this.client.setEx(key, ttlSeconds, JSON.stringify(value));
+            // Stringify with BigInt support (transforms BigInt into string)
+            const serialized = JSON.stringify(value, (key, val) =>
+                typeof val === 'bigint' ? val.toString() : val
+            );
+            await this.client.setEx(key, ttlSeconds, serialized);
             return true;
         } catch (error) {
             console.error(`Redis SET error for key ${key}:`, error);

@@ -83,7 +83,9 @@ export async function GET(
             reviewedAt: true
           },
           orderBy: { createdAt: 'desc' }
-        }
+        },
+        guarantor: true,
+        collaterals: true
       }
     });
 
@@ -154,7 +156,9 @@ export async function PATCH(
       bankName,
       accountNumber,
       status,
-      asesorId
+      asesorId,
+      guarantor,
+      collaterals
     } = body;
 
     // Verificar email único si se está actualizando
@@ -184,24 +188,51 @@ export async function PATCH(
         state: state || existingClient.state,
         postalCode: postalCode || existingClient.postalCode,
         monthlyIncome: monthlyIncome ? parseFloat(monthlyIncome) : existingClient.monthlyIncome,
-        employmentType: employmentType as EmploymentType || existingClient.employmentType,
+        employmentType: employmentType as any || existingClient.employmentType,
         employerName: employerName || existingClient.employerName,
         workAddress: workAddress || existingClient.workAddress,
         yearsEmployed: yearsEmployed ? parseInt(yearsEmployed) : existingClient.yearsEmployed,
         creditScore: creditScore ? parseInt(creditScore) : existingClient.creditScore,
         bankName: bankName || existingClient.bankName,
         accountNumber: accountNumber || existingClient.accountNumber,
-        status: status as ClientStatus || existingClient.status,
-        asesorId: finalAsesorId
+        status: status as any || existingClient.status,
+        asesorId: finalAsesorId,
+        guarantor: guarantor ? {
+          upsert: {
+            create: {
+              fullName: guarantor.fullName,
+              address: guarantor.address || '',
+              phone: guarantor.phone || '',
+              relationship: guarantor.relationship || 'OTHER',
+              tenantId: existingClient.tenantId
+            },
+            update: {
+              fullName: guarantor.fullName,
+              address: guarantor.address || '',
+              phone: guarantor.phone || '',
+              relationship: guarantor.relationship || 'OTHER'
+            }
+          }
+        } : (guarantor === null ? { delete: true } : undefined),
+        collaterals: collaterals ? {
+          deleteMany: {},
+          create: collaterals.map((description: string) => ({
+            description,
+            tenantId: existingClient.tenantId
+          }))
+        } : undefined
       },
       include: {
         asesor: {
           select: {
+            id: true,
             firstName: true,
             lastName: true,
             email: true
           }
-        }
+        },
+        guarantor: true,
+        collaterals: true
       }
     });
 

@@ -63,10 +63,14 @@ export class AuditLogger {
           action: logData.action,
           resource: logData.resource || undefined,
           resourceId: logData.resourceId || undefined,
-          details: logData.details ? JSON.stringify(logData.details) : undefined,
+          details: logData.details 
+            ? JSON.stringify(logData.details, (key, val) => typeof val === 'bigint' ? val.toString() : val) 
+            : undefined,
           ipAddress: logData.ipAddress || undefined,
           userAgent: logData.userAgent || undefined,
-          metadata: logData.metadata ? JSON.stringify(logData.metadata) : undefined,
+          metadata: logData.metadata 
+            ? JSON.stringify(logData.metadata, (key, val) => typeof val === 'bigint' ? val.toString() : val) 
+            : undefined,
           tenantId: logData.tenantId || undefined,
           timestamp: new Date(),
         },
