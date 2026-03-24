@@ -9,47 +9,39 @@ datasource db {
 }
 
 model Tenant {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  domain      String?  @unique
-  status      String   @default("ACTIVE")
-  logo        String?  // URL del logo del tenant
-  primaryColor String? // Color primario para branding
-  timezone    String   @default("America/Mexico_City")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relaciones existentes
-  users       User[]
-  clients     Client[]
-  loans       Loan[]
-  payments    Payment[]
-  creditApplications CreditApplication[]
-  auditLogs   AuditLog[]
-  config      SystemConfig[]
-  wahaConfig  WahaConfig[]
-  messageTemplates MessageTemplate[]
-  reportTemplates  ReportTemplate[]
-  personalReferences PersonalReference[]
-  guarantors         Guarantor[]
+  id                 String                 @id @default(cuid())
+  name               String
+  slug               String                 @unique
+  domain             String?                @unique
+  status             String                 @default("ACTIVE")
+  logo               String?
+  primaryColor       String?
+  timezone           String                 @default("America/Mexico_City")
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  apiKeys            ApiKey[]
+  auditLogs          AuditLog[]
+  clients            Client[]
   collaterals        Collateral[]
+  collectionRoutes   CollectionRoute[]
+  commissionRecords  CommissionRecord[]
+  commissionSchemas  CommissionSchema[]
+  creditApplications CreditApplication[]
   creditScores       CreditScore[]
-  
-  // Relaciones SaaS - Billing
-  subscription Subscription?
-  usage        TenantUsage[]
-  
-  // Relaciones SaaS - Integraciones  
-  apiKeys          ApiKey[]
-  webhookEndpoints WebhookEndpoint[]
-
-  // Relaciones Q2 2026
-  collectionRoutes CollectionRoute[]
-  promises         PromiseToPay[]
-  commissionSchemas CommissionSchema[]
-  commissionRecords CommissionRecord[]
-  verifications    IdentityVerification[]
+  guarantors         Guarantor[]
+  verifications      IdentityVerification[]
+  loans              Loan[]
+  messageTemplates   MessageTemplate[]
+  payments           Payment[]
+  personalReferences PersonalReference[]
+  promises           PromiseToPay[]
+  reportTemplates    ReportTemplate[]
+  subscription       Subscription?
+  config             SystemConfig[]
+  usage              TenantUsage[]
+  users              User[]
+  wahaConfig         WahaConfig[]
+  webhookEndpoints   WebhookEndpoint[]
 
   @@map("tenants")
 }
@@ -89,72 +81,68 @@ model VerificationToken {
 }
 
 model User {
-  id                         String                   @id @default(cuid())
-  email                      String                   @unique
+  id                         String                    @id @default(cuid())
+  email                      String                    @unique
   password                   String?
   firstName                  String
   lastName                   String
   phone                      String?
-  role                       UserRole                 @default(CLIENTE)
-  status                     UserStatus               @default(ACTIVE)
-  createdAt                  DateTime                 @default(now())
-  updatedAt                  DateTime                 @updatedAt
+  role                       UserRole                  @default(CLIENTE)
+  status                     UserStatus                @default(ACTIVE)
+  createdAt                  DateTime                  @default(now())
+  updatedAt                  DateTime                  @updatedAt
   emailVerified              DateTime?
+  twoFactorEnabled           Boolean?                  @default(false)
+  twoFactorSecret            String?
+  twoFactorBackupCodes       String?
+  tenantId                   String?
   accounts                   Account[]
   sessions                   Session[]
-  auditLogs                  AuditLog[]               @relation("AuditLogs")
-  cashCollections            CashCollection[]         @relation("CashCollector")
-  clientsAssigned            Client[]                 @relation("AsesorClients")
-  clientProfile              Client?                  @relation("UserClient")
-  creditApplicationsCreated  CreditApplication[]      @relation("CreatedByAsesor")
-  creditApplicationsReviewed CreditApplication[]      @relation("ReviewedByAdmin")
-  files                      FileUpload[]             @relation("UserFiles")
-  verifiedFiles              FileUpload[]             @relation("VerifiedFiles")
-  filesUploaded              File[]                   @relation("UserDualFiles")
-  moduleChangeLogs           ModuleChangeLog[]        @relation("ModuleChangeLogs")
-  rolePermissionUpdates      ModuleRolePermission[]   @relation("RolePermissionUpdates")
-  notifications              Notification[]           @relation("UserNotifications")
-  paymentsProcessed          Payment[]                @relation("ProcessedBy")
-  moduleUpdates              PWAModule[]              @relation("ModuleUpdates")
-  generatedReports           ReportGeneration[]       @relation("GeneratedReports")
-  configUpdates              SystemConfig[]           @relation("ConfigUpdates")
-  collectionVisits           CollectionVisit[]        @relation("AdvisorVisits")
-  assignedConversations      Conversation[]           @relation("AssignedConversations")
-  sentMessages               ConversationMessage[]    @relation("SentMessages")
-  createdReportTemplates     ReportTemplate[]         @relation("CreatedReportTemplates")
-  customReports              CustomReportGeneration[] @relation("CustomReports")
-  tenantInvitationsSent      TenantInvitation[]       @relation("Inviter")
-  pushSubscriptions          PushSubscription[]       @relation("UserPushSubscriptions")
+  auditLogs                  AuditLog[]                @relation("AuditLogs")
+  cashCollections            CashCollection[]          @relation("CashCollector")
+  clientsAssigned            Client[]                  @relation("AsesorClients")
+  clientProfile              Client?                   @relation("UserClient")
+  advisorRoutes              CollectionRoute[]         @relation("AdvisorRoutes")
+  collectionVisits           CollectionVisit[]         @relation("AdvisorVisits")
+  commissions                CommissionRecord[]        @relation("AdvisorCommissions")
+  sentMessages               ConversationMessage[]     @relation("SentMessages")
+  assignedConversations      Conversation[]            @relation("AssignedConversations")
+  creditApplicationsCreated  CreditApplication[]       @relation("CreatedByAsesor")
+  creditApplicationsReviewed CreditApplication[]       @relation("ReviewedByAdmin")
+  customReports              CustomReportGeneration[]  @relation("CustomReports")
+  files                      FileUpload[]              @relation("UserFiles")
+  verifiedFiles              FileUpload[]              @relation("VerifiedFiles")
+  filesUploaded              File[]                    @relation("UserDualFiles")
+  verifications              IdentityVerification[]    @relation("VerifierUser")
+  moduleChangeLogs           ModuleChangeLog[]         @relation("ModuleChangeLogs")
+  rolePermissionUpdates      ModuleRolePermission[]    @relation("RolePermissionUpdates")
+  notifications              Notification[]            @relation("UserNotifications")
+  paymentsProcessed          Payment[]                 @relation("ProcessedBy")
+  pushSubscriptions          PushSubscription[]        @relation("UserPushSubscriptions")
+  moduleUpdates              PWAModule[]               @relation("ModuleUpdates")
+  generatedReports           ReportGeneration[]        @relation("GeneratedReports")
+  createdReportTemplates     ReportTemplate[]          @relation("CreatedReportTemplates")
+  configUpdates              SystemConfig[]            @relation("ConfigUpdates")
+  tenantInvitationsSent      TenantInvitation[]        @relation("Inviter")
   notificationSettings       UserNotificationSetting[] @relation("UserNotificationSettings")
-  // Two-Factor Authentication
-  twoFactorEnabled           Boolean?                 @default(false)
-  twoFactorSecret            String?
-  twoFactorBackupCodes       String?                  // JSON array of backup codes
-
-  // Relaciones Q2 2026
-  advisorRoutes              CollectionRoute[]        @relation("AdvisorRoutes")
-  commissions                CommissionRecord[]       @relation("AdvisorCommissions")
-  verifications              IdentityVerification[]   @relation("VerifierUser")
-
-  tenantId                   String?
-  tenant                     Tenant?                  @relation(fields: [tenantId], references: [id])
+  tenant                     Tenant?                   @relation(fields: [tenantId], references: [id])
 
   @@map("users")
 }
 
 model Client {
-  id                           String              @id @default(cuid())
-  userId                       String?             @unique
+  id                           String                 @id @default(cuid())
+  userId                       String?                @unique
   firstName                    String
   lastName                     String
-  email                        String?             @unique
+  email                        String?                @unique
   phone                        String
   dateOfBirth                  DateTime?
   address                      String?
   city                         String?
   state                        String?
   postalCode                   String?
-  monthlyIncome                Decimal?            @db.Decimal(12, 2)
+  monthlyIncome                Decimal?               @db.Decimal(12, 2)
   employmentType               EmploymentType?
   employerName                 String?
   workAddress                  String?
@@ -162,67 +150,61 @@ model Client {
   creditScore                  Int?
   bankName                     String?
   accountNumber                String?
-  status                       ClientStatus        @default(ACTIVE)
+  status                       ClientStatus           @default(ACTIVE)
   asesorId                     String?
-  createdAt                    DateTime            @default(now())
-  updatedAt                    DateTime            @updatedAt
+  createdAt                    DateTime               @default(now())
+  updatedAt                    DateTime               @updatedAt
   migratedFrom                 String?
   migrationDate                DateTime?
-  initialBalance               Decimal?            @db.Decimal(12, 2)
+  initialBalance               Decimal?               @db.Decimal(12, 2)
   lastPaymentDate              DateTime?
   notes                        String?
-  whatsappNotificationsEnabled Boolean             @default(true)
-  whatsappPaymentReceived      Boolean             @default(true)
-  whatsappPaymentReminder      Boolean             @default(true)
-  whatsappLoanUpdates          Boolean             @default(true)
-  whatsappMarketingMessages    Boolean             @default(false)
+  whatsappNotificationsEnabled Boolean                @default(true)
+  whatsappPaymentReceived      Boolean                @default(true)
+  whatsappPaymentReminder      Boolean                @default(true)
+  whatsappLoanUpdates          Boolean                @default(true)
+  whatsappMarketingMessages    Boolean                @default(false)
   profileImage                 String?
-  asesor                       User?               @relation("AsesorClients", fields: [asesorId], references: [id])
-  user                         User?               @relation("UserClient", fields: [userId], references: [id])
-  creditApplications           CreditApplication[]
-  creditScores                 CreditScore[]       @relation("ClientScoring")
-  files                        FileUpload[]        @relation("ClientFiles")
-  dualFiles                    File[]              @relation("ClientDualFiles")
-  loans                        Loan[]
-  personalReferences           PersonalReference[] @relation("ClientReferences")
-  guarantor                    Guarantor?          @relation("ClientGuarantor")
-  collaterals                  Collateral[]        @relation("ClientCollateral")
-  whatsappMessages             WhatsAppMessage[]   @relation("ClientMessages")
-  collectionVisits             CollectionVisit[]   @relation("ClientVisits")
-  conversations                Conversation[]      @relation("ClientConversations")
-  
-  // Relaciones Q2 2026
-  promises                     PromiseToPay[]      @relation("ClientPromises")
-  verifications                IdentityVerification[]
-
   tenantId                     String?
-  tenant                       Tenant?             @relation(fields: [tenantId], references: [id])
+  asesor                       User?                  @relation("AsesorClients", fields: [asesorId], references: [id])
+  tenant                       Tenant?                @relation(fields: [tenantId], references: [id])
+  user                         User?                  @relation("UserClient", fields: [userId], references: [id])
+  collaterals                  Collateral[]           @relation("ClientCollateral")
+  collectionVisits             CollectionVisit[]      @relation("ClientVisits")
+  conversations                Conversation[]         @relation("ClientConversations")
+  creditApplications           CreditApplication[]
+  creditScores                 CreditScore[]          @relation("ClientScoring")
+  files                        FileUpload[]           @relation("ClientFiles")
+  dualFiles                    File[]                 @relation("ClientDualFiles")
+  guarantor                    Guarantor?             @relation("ClientGuarantor")
+  verifications                IdentityVerification[]
+  loans                        Loan[]
+  personalReferences           PersonalReference[]    @relation("ClientReferences")
+  promises                     PromiseToPay[]         @relation("ClientPromises")
+  whatsappMessages             WhatsAppMessage[]      @relation("ClientMessages")
 
   @@map("clients")
 }
 
 model CollectionVisit {
-  id          String    @id @default(cuid())
+  id          String           @id @default(cuid())
   clientId    String
   advisorId   String
-  visitDate   DateTime  @default(now())
+  visitDate   DateTime         @default(now())
   latitude    Float?
   longitude   Float?
-  address     String? // Dirección aproximada o detectada
+  address     String?
   notes       String?
-  outcome     String? // Resultado: Promesa de pago, No encontrado, Pagó, etc.
-  promiseDate DateTime? // Si hubo promesa de pago
-  photoUrl    String? // Evidencia de visita
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  client  Client @relation("ClientVisits", fields: [clientId], references: [id], onDelete: Cascade)
-  advisor User   @relation("AdvisorVisits", fields: [advisorId], references: [id])
-  
-  // Relaciones Q2 2026
-  routeId String?
-  route   CollectionRoute? @relation(fields: [routeId], references: [id])
-  promises PromiseToPay[]
+  outcome     String?
+  promiseDate DateTime?
+  photoUrl    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  routeId     String?
+  advisor     User             @relation("AdvisorVisits", fields: [advisorId], references: [id])
+  client      Client           @relation("ClientVisits", fields: [clientId], references: [id], onDelete: Cascade)
+  route       CollectionRoute? @relation(fields: [routeId], references: [id])
+  promises    PromiseToPay[]
 
   @@index([clientId])
   @@index([advisorId])
@@ -242,9 +224,8 @@ model PersonalReference {
   isActive               Boolean                @default(true)
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
-  client                 Client                 @relation("ClientReferences", fields: [clientId], references: [id], onDelete: Cascade)
-
   tenantId               String?
+  client                 Client                 @relation("ClientReferences", fields: [clientId], references: [id], onDelete: Cascade)
   tenant                 Tenant?                @relation(fields: [tenantId], references: [id])
 
   @@index([clientId])
@@ -260,9 +241,8 @@ model Guarantor {
   relationship RelationshipType
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
-  client       Client           @relation("ClientGuarantor", fields: [clientId], references: [id], onDelete: Cascade)
-
   tenantId     String?
+  client       Client           @relation("ClientGuarantor", fields: [clientId], references: [id], onDelete: Cascade)
   tenant       Tenant?          @relation(fields: [tenantId], references: [id])
 
   @@map("guarantors")
@@ -274,9 +254,8 @@ model Collateral {
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  client      Client   @relation("ClientCollateral", fields: [clientId], references: [id], onDelete: Cascade)
-
   tenantId    String?
+  client      Client   @relation("ClientCollateral", fields: [clientId], references: [id], onDelete: Cascade)
   tenant      Tenant?  @relation(fields: [tenantId], references: [id])
 
   @@index([clientId])
@@ -300,14 +279,13 @@ model CreditApplication {
   interestRate    Decimal?          @db.Decimal(5, 4)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  tenantId        String?
   createdBy       User              @relation("CreatedByAsesor", fields: [asesorId], references: [id])
   client          Client            @relation(fields: [clientId], references: [id])
   reviewedByUser  User?             @relation("ReviewedByAdmin", fields: [reviewedBy], references: [id])
+  tenant          Tenant?           @relation(fields: [tenantId], references: [id])
   creditScores    CreditScore[]     @relation("ApplicationScoring")
   loan            Loan?
-
-  tenantId        String?
-  tenant          Tenant?           @relation(fields: [tenantId], references: [id])
 
   @@map("credit_applications")
 }
@@ -321,7 +299,7 @@ model Loan {
   loanCalculationType  LoanCalculationType    @default(INTERES)
   principalAmount      Decimal                @db.Decimal(12, 2)
   interestRate         Decimal                @db.Decimal(5, 4)
-  weeklyInterestAmount Decimal?               @db.Decimal(12, 2) // Para INTERES_SEMANAL
+  weeklyInterestAmount Decimal?               @db.Decimal(12, 2)
   termMonths           Int
   paymentFrequency     PaymentFrequency       @default(MENSUAL)
   monthlyPayment       Decimal                @db.Decimal(12, 2)
@@ -333,29 +311,26 @@ model Loan {
   endDate              DateTime
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
+  tenantId             String?
   amortizationSchedule AmortizationSchedule[]
   creditScores         CreditScore[]          @relation("LoanScoring")
   files                FileUpload[]           @relation("LoanFiles")
   client               Client                 @relation(fields: [clientId], references: [id])
   creditApplication    CreditApplication?     @relation(fields: [creditApplicationId], references: [id])
-  payments             Payment[]
-  
-  // Relaciones Q2 2026
-  promises             PromiseToPay[]
-
-  tenantId             String?
   tenant               Tenant?                @relation(fields: [tenantId], references: [id])
+  payments             Payment[]
+  promises             PromiseToPay[]
 
   @@map("loans")
 }
 
 model WeeklyInterestRate {
   id                   String   @id @default(cuid())
-  minAmount            Decimal  @db.Decimal(12, 2) // Monto mínimo
-  maxAmount            Decimal  @db.Decimal(12, 2) // Monto máximo
-  weeklyInterestRate   Decimal  @db.Decimal(5, 2) // Porcentaje de interés semanal
-  weeklyInterestAmount Decimal  @db.Decimal(12, 2) // Monto de interés semanal en pesos
-  isActive             Boolean  @default(true) // Para habilitar/deshabilitar
+  minAmount            Decimal  @db.Decimal(12, 2)
+  maxAmount            Decimal  @db.Decimal(12, 2)
+  weeklyInterestRate   Decimal  @db.Decimal(5, 2)
+  weeklyInterestAmount Decimal  @db.Decimal(12, 2)
+  isActive             Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -392,13 +367,12 @@ model Payment {
   processedBy            String?
   createdAt              DateTime              @default(now())
   updatedAt              DateTime              @updatedAt
+  tenantId               String?
   cashCollection         CashCollection?       @relation("CashCollections")
   transactions           PaymentTransaction[]  @relation("PaymentTransactions")
   amortizationSchedule   AmortizationSchedule? @relation(fields: [amortizationScheduleId], references: [id])
   loan                   Loan                  @relation(fields: [loanId], references: [id])
   processedByUser        User?                 @relation("ProcessedBy", fields: [processedBy], references: [id])
-
-  tenantId               String?
   tenant                 Tenant?               @relation(fields: [tenantId], references: [id])
 
   @@map("payments")
@@ -416,10 +390,9 @@ model AuditLog {
   userAgent  String?
   metadata   String?
   timestamp  DateTime @default(now())
-  user       User?    @relation("AuditLogs", fields: [userId], references: [id])
-
   tenantId   String?
   tenant     Tenant?  @relation(fields: [tenantId], references: [id])
+  user       User?    @relation("AuditLogs", fields: [userId], references: [id])
 
   @@index([userId])
   @@index([action])
@@ -442,11 +415,10 @@ model CreditScore {
   calculatedAt    DateTime              @default(now())
   validUntil      DateTime?
   createdAt       DateTime              @default(now())
+  tenantId        String?
   application     CreditApplication?    @relation("ApplicationScoring", fields: [applicationId], references: [id])
   client          Client?               @relation("ClientScoring", fields: [clientId], references: [id])
   loan            Loan?                 @relation("LoanScoring", fields: [loanId], references: [id])
-
-  tenantId        String?
   tenant          Tenant?               @relation(fields: [tenantId], references: [id])
 
   @@map("credit_scores")
@@ -552,10 +524,9 @@ model SystemConfig {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   updatedBy     String?
-  updatedByUser User?    @relation("ConfigUpdates", fields: [updatedBy], references: [id])
-  
   tenantId      String?
   tenant        Tenant?  @relation(fields: [tenantId], references: [id])
+  updatedByUser User?    @relation("ConfigUpdates", fields: [updatedBy], references: [id])
 
   @@unique([key, tenantId])
   @@index([category])
@@ -625,10 +596,9 @@ model MessageTemplate {
   isActive    Boolean             @default(true)
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
-
   tenantId    String?
   tenant      Tenant?             @relation(fields: [tenantId], references: [id])
-  
+
   @@unique([name, tenantId])
   @@index([category])
   @@index([channel])
@@ -650,7 +620,6 @@ model WahaConfig {
   n8nWebhookUrl           String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
-  
   tenantId                String?
   tenant                  Tenant?  @relation(fields: [tenantId], references: [id])
 
@@ -746,11 +715,534 @@ model ModuleChangeLog {
   @@map("module_change_logs")
 }
 
+model CollectionRoute {
+  id        String            @id @default(cuid())
+  advisorId String
+  name      String
+  date      DateTime          @default(now())
+  status    RouteStatus       @default(PENDING)
+  optimized Boolean           @default(false)
+  geometry  String?
+  distance  Float?
+  duration  Int?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  tenantId  String?
+  advisor   User              @relation("AdvisorRoutes", fields: [advisorId], references: [id])
+  tenant    Tenant?           @relation(fields: [tenantId], references: [id])
+  visits    CollectionVisit[]
+
+  @@index([advisorId])
+  @@index([date])
+  @@map("collection_routes")
+}
+
+model PromiseToPay {
+  id                String           @id @default(cuid())
+  loanId            String
+  clientId          String
+  amount            Decimal          @db.Decimal(12, 2)
+  promiseDate       DateTime
+  status            PromiseStatus    @default(PENDING)
+  notes             String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  collectionVisitId String?
+  tenantId          String?
+  client            Client           @relation("ClientPromises", fields: [clientId], references: [id])
+  collectionVisit   CollectionVisit? @relation(fields: [collectionVisitId], references: [id])
+  loan              Loan             @relation(fields: [loanId], references: [id])
+  tenant            Tenant?          @relation(fields: [tenantId], references: [id])
+
+  @@index([loanId])
+  @@index([clientId])
+  @@index([status])
+  @@map("promise_to_pay")
+}
+
+model CommissionSchema {
+  id          String             @id @default(cuid())
+  name        String
+  description String?
+  type        CommissionType
+  rules       String             @default("{}")
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  tenantId    String?
+  records     CommissionRecord[]
+  tenant      Tenant?            @relation(fields: [tenantId], references: [id])
+
+  @@map("commission_schemas")
+}
+
+model CommissionRecord {
+  id           String           @id @default(cuid())
+  advisorId    String
+  schemaId     String
+  amount       Decimal          @db.Decimal(12, 2)
+  status       CommissionStatus @default(PENDING)
+  sourceType   String
+  sourceId     String
+  calculatedAt DateTime         @default(now())
+  paidAt       DateTime?
+  tenantId     String?
+  advisor      User             @relation("AdvisorCommissions", fields: [advisorId], references: [id])
+  schema       CommissionSchema @relation(fields: [schemaId], references: [id])
+  tenant       Tenant?          @relation(fields: [tenantId], references: [id])
+
+  @@index([advisorId])
+  @@index([status])
+  @@map("commission_records")
+}
+
+model IdentityVerification {
+  id              String             @id @default(cuid())
+  clientId        String
+  status          VerificationStatus @default(PENDING)
+  provider        String             @default("INTERNAL")
+  documentType    String
+  frontImageUrl   String?
+  backImageUrl    String?
+  selfieUrl       String?
+  biometricScore  Float?
+  extractedData   String?
+  verifiedAt      DateTime?
+  verifiedBy      String?
+  rejectionReason String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  tenantId        String?
+  client          Client             @relation(fields: [clientId], references: [id])
+  tenant          Tenant?            @relation(fields: [tenantId], references: [id])
+  verifier        User?              @relation("VerifierUser", fields: [verifiedBy], references: [id])
+
+  @@index([clientId])
+  @@index([status])
+  @@map("identity_verifications")
+}
+
+model MLTrainingData {
+  id              String    @id @default(cuid())
+  loanId          String
+  clientId        String
+  predictionScore Int
+  actualOutcome   Boolean
+  predictionDate  DateTime
+  outcomeDate     DateTime?
+  features        String
+  createdAt       DateTime  @default(now())
+
+  @@index([loanId])
+  @@index([clientId])
+  @@index([predictionDate])
+  @@map("ml_training_data")
+}
+
+model MLModel {
+  id            String    @id @default(cuid())
+  version       String    @unique
+  weights       String
+  metrics       String
+  trainingSize  Int
+  isActive      Boolean   @default(false)
+  trainedAt     DateTime
+  activatedAt   DateTime?
+  deactivatedAt DateTime?
+  notes         String?
+  createdBy     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([isActive])
+  @@index([trainedAt])
+  @@map("ml_models")
+}
+
+model Conversation {
+  id            String                @id @default(cuid())
+  clientId      String
+  phone         String
+  status        ConversationStatus    @default(ACTIVE)
+  lastMessageAt DateTime              @default(now())
+  assignedToId  String?
+  notes         String?
+  metadata      String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  messages      ConversationMessage[]
+  assignedTo    User?                 @relation("AssignedConversations", fields: [assignedToId], references: [id])
+  client        Client                @relation("ClientConversations", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([status])
+  @@index([assignedToId])
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id             String                  @id @default(cuid())
+  conversationId String
+  direction      MessageDirection
+  content        String
+  messageType    ConversationMessageType @default(TEXT)
+  mediaUrl       String?
+  wahaMessageId  String?
+  status         MessageStatus           @default(SENT)
+  sentBy         String?
+  readAt         DateTime?
+  deliveredAt    DateTime?
+  metadata       String?
+  createdAt      DateTime                @default(now())
+  conversation   Conversation            @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User?                   @relation("SentMessages", fields: [sentBy], references: [id])
+
+  @@index([conversationId])
+  @@index([direction])
+  @@index([createdAt])
+  @@map("conversation_messages")
+}
+
+model ChatbotRule {
+  id           String       @id @default(cuid())
+  trigger      String
+  triggerType  TriggerType  @default(KEYWORD)
+  response     String
+  responseType ResponseType @default(TEXT)
+  priority     Int          @default(0)
+  isActive     Boolean      @default(true)
+  conditions   String?
+  actions      String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([isActive])
+  @@index([priority])
+  @@map("chatbot_rules")
+}
+
+model ReportTemplate {
+  id           String                   @id @default(cuid())
+  name         String
+  description  String?
+  category     String                   @default("custom")
+  config       String
+  layoutConfig String?
+  pdfTemplate  String?
+  isPublic     Boolean                  @default(false)
+  createdBy    String
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  tenantId     String?
+  generations  CustomReportGeneration[]
+  schedules    ReportSchedule[]
+  creator      User                     @relation("CreatedReportTemplates", fields: [createdBy], references: [id])
+  tenant       Tenant?                  @relation(fields: [tenantId], references: [id])
+
+  @@unique([name, tenantId])
+  @@index([category])
+  @@index([isPublic])
+  @@map("report_templates")
+}
+
+model ReportSchedule {
+  id         String            @id @default(cuid())
+  templateId String
+  frequency  ScheduleFrequency
+  dayOfWeek  Int?
+  dayOfMonth Int?
+  time       String
+  recipients String
+  isActive   Boolean           @default(true)
+  lastRunAt  DateTime?
+  nextRunAt  DateTime
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  template   ReportTemplate    @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([isActive])
+  @@index([nextRunAt])
+  @@map("report_schedules")
+}
+
+model CustomReportGeneration {
+  id           String         @id @default(cuid())
+  templateId   String
+  userId       String
+  status       ReportStatus   @default(PENDING)
+  parameters   String?
+  filePath     String?
+  fileSize     Int?
+  generatedAt  DateTime?
+  expiresAt    DateTime?
+  errorMessage String?
+  createdAt    DateTime       @default(now())
+  template     ReportTemplate @relation(fields: [templateId], references: [id])
+  user         User           @relation("CustomReports", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("custom_report_generations")
+}
+
+model TenantInvitation {
+  id         String    @id @default(cuid())
+  email      String
+  token      String    @unique
+  orgName    String?
+  role       UserRole  @default(ADMIN)
+  status     String    @default("PENDING")
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  acceptedAt DateTime?
+  invitedBy  String?
+  inviter    User?     @relation("Inviter", fields: [invitedBy], references: [id])
+
+  @@map("tenant_invitations")
+}
+
+model Plan {
+  id               String         @id @default(cuid())
+  name             String         @unique
+  displayName      String
+  description      String?
+  priceMonthly     Decimal        @db.Decimal(10, 2)
+  priceYearly      Decimal?       @db.Decimal(10, 2)
+  currency         String         @default("MXN")
+  features         String
+  limits           String
+  isActive         Boolean        @default(true)
+  isPopular        Boolean        @default(false)
+  sortOrder        Int            @default(0)
+  trialDays        Int            @default(14)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  openpayPlanId    String?
+  openpayProductId String?
+  subscriptions    Subscription[]
+
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("plans")
+}
+
+model Addon {
+  id                 String              @id @default(cuid())
+  name               String              @unique
+  displayName        String
+  description        String?
+  priceMonthly       Decimal             @db.Decimal(10, 2)
+  priceYearly        Decimal?            @db.Decimal(10, 2)
+  type               String
+  config             String?
+  isActive           Boolean             @default(true)
+  isPopular          Boolean             @default(false)
+  sortOrder          Int                 @default(0)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  subscriptionAddons SubscriptionAddon[]
+
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("addons")
+}
+
+model SubscriptionAddon {
+  id                 String       @id @default(cuid())
+  subscriptionId     String
+  addonId            String
+  status             String       @default("ACTIVE")
+  quantity           Int          @default(1)
+  currentPeriodStart DateTime     @default(now())
+  currentPeriodEnd   DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  addon              Addon        @relation(fields: [addonId], references: [id])
+  subscription       Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, addonId])
+  @@map("subscription_addons")
+}
+
+model Subscription {
+  id                    String              @id @default(cuid())
+  tenantId              String              @unique
+  planId                String
+  status                SubscriptionStatus  @default(TRIALING)
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  trialEndsAt           DateTime?
+  canceledAt            DateTime?
+  cancelAtPeriodEnd     Boolean             @default(false)
+  cancelReason          String?
+  paymentMethod         PaymentMethodType   @default(MANUAL)
+  billingEmail          String?
+  billingName           String?
+  billingAddress        String?
+  taxId                 String?
+  metadata              String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  openpayCustomerId     String?
+  openpaySubscriptionId String?
+  invoices              Invoice[]
+  addons                SubscriptionAddon[]
+  plan                  Plan                @relation(fields: [planId], references: [id])
+  tenant                Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([currentPeriodEnd])
+  @@map("subscriptions")
+}
+
+model Invoice {
+  id               String        @id @default(cuid())
+  subscriptionId   String
+  invoiceNumber    String        @unique
+  amount           Decimal       @db.Decimal(10, 2)
+  subtotal         Decimal       @db.Decimal(10, 2)
+  tax              Decimal       @default(0) @db.Decimal(10, 2)
+  discount         Decimal       @default(0) @db.Decimal(10, 2)
+  currency         String        @default("MXN")
+  status           InvoiceStatus @default(DRAFT)
+  dueDate          DateTime
+  paidAt           DateTime?
+  paymentIntent    String?
+  invoicePdf       String?
+  lineItems        String?
+  notes            String?
+  createdAt        DateTime      @default(now())
+  openpayInvoiceId String?
+  subscription     Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([dueDate])
+  @@index([subscriptionId])
+  @@map("invoices")
+}
+
+model TenantUsage {
+  id            String   @id @default(cuid())
+  tenantId      String
+  period        String
+  usersCount    Int      @default(0)
+  loansCount    Int      @default(0)
+  clientsCount  Int      @default(0)
+  storageBytes  BigInt   @default(0)
+  apiCalls      Int      @default(0)
+  smsCount      Int      @default(0)
+  whatsappCount Int      @default(0)
+  reportsCount  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, period])
+  @@index([period])
+  @@map("tenant_usage")
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  keyHash     String    @unique
+  keyPrefix   String
+  scopes      String
+  rateLimit   Int       @default(1000)
+  lastUsedAt  DateTime?
+  lastUsedIp  String?
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([keyHash])
+  @@index([tenantId])
+  @@index([isActive])
+  @@map("api_keys")
+}
+
+model WebhookEndpoint {
+  id              String            @id @default(cuid())
+  tenantId        String
+  url             String
+  description     String?
+  events          String
+  secret          String
+  isActive        Boolean           @default(true)
+  failureCount    Int               @default(0)
+  lastTriggeredAt DateTime?
+  lastStatusCode  Int?
+  lastError       String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deliveries      WebhookDelivery[]
+  tenant          Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([isActive])
+  @@map("webhook_endpoints")
+}
+
+model WebhookDelivery {
+  id          String          @id @default(cuid())
+  endpointId  String
+  event       String
+  payload     String
+  statusCode  Int?
+  response    String?
+  error       String?
+  attempts    Int             @default(1)
+  deliveredAt DateTime?
+  nextRetryAt DateTime?
+  createdAt   DateTime        @default(now())
+  endpoint    WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId])
+  @@index([event])
+  @@index([createdAt])
+  @@map("webhook_deliveries")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation("UserPushSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model UserNotificationSetting {
+  id        String              @id @default(cuid())
+  userId    String
+  type      NotificationType
+  channel   NotificationChannel
+  enabled   Boolean             @default(true)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  user      User                @relation("UserNotificationSettings", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, channel])
+  @@index([userId])
+  @@map("user_notification_settings")
+}
+
 enum UserRole {
-  SUPER_ADMIN
   ADMIN
   ASESOR
   CLIENTE
+  SUPER_ADMIN
 }
 
 enum UserStatus {
@@ -795,126 +1287,6 @@ enum ApplicationStatus {
   REJECTED
   CANCELLED
 }
-
-model CollectionRoute {
-  id          String   @id @default(cuid())
-  advisorId   String
-  name        String
-  date        DateTime @default(now())
-  status      RouteStatus @default(PENDING)
-  optimized   Boolean  @default(false)
-  geometry    String? // GeoJSON for the route
-  distance    Float? // Meters
-  duration    Int? // Seconds
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  advisor     User     @relation("AdvisorRoutes", fields: [advisorId], references: [id])
-  visits      CollectionVisit[]
-  
-  tenantId    String?
-  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
-
-  @@index([advisorId])
-  @@index([date])
-  @@map("collection_routes")
-}
-
-model PromiseToPay {
-  id          String   @id @default(cuid())
-  loanId      String
-  clientId    String
-  amount      Decimal  @db.Decimal(12, 2)
-  promiseDate DateTime
-  status      PromiseStatus @default(PENDING)
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  collectionVisitId String?
-  collectionVisit   CollectionVisit? @relation(fields: [collectionVisitId], references: [id])
-  
-  loan        Loan     @relation(fields: [loanId], references: [id])
-  client      Client   @relation("ClientPromises", fields: [clientId], references: [id])
-  
-  tenantId    String?
-  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
-
-  @@index([loanId])
-  @@index([clientId])
-  @@index([status])
-  @@map("promise_to_pay")
-}
-
-model CommissionSchema {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  type        CommissionType
-  rules       String   @default("{}") // JSON rules
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  records     CommissionRecord[]
-  
-  tenantId    String?
-  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
-
-  @@map("commission_schemas")
-}
-
-model CommissionRecord {
-  id          String   @id @default(cuid())
-  advisorId   String
-  schemaId    String
-  amount      Decimal  @db.Decimal(12, 2)
-  status      CommissionStatus @default(PENDING)
-  sourceType  String // LOAN_ORIGINATION, PAYMENT_COLLECTION
-  sourceId    String // ID of the loan or payment
-  calculatedAt DateTime @default(now())
-  paidAt      DateTime?
-  
-  advisor     User     @relation("AdvisorCommissions", fields: [advisorId], references: [id])
-  schema      CommissionSchema @relation(fields: [schemaId], references: [id])
-  
-  tenantId    String?
-  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
-
-  @@index([advisorId])
-  @@index([status])
-  @@map("commission_records")
-}
-
-model IdentityVerification {
-  id          String   @id @default(cuid())
-  clientId    String
-  status      VerificationStatus @default(PENDING)
-  provider    String   @default("INTERNAL")
-  documentType String
-  frontImageUrl String?
-  backImageUrl String?
-  selfieUrl   String?
-  biometricScore Float?
-  extractedData String? // JSON
-  verifiedAt  DateTime?
-  verifiedBy  String?
-  rejectionReason String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  client      Client   @relation(fields: [clientId], references: [id])
-  verifier    User?    @relation("VerifierUser", fields: [verifiedBy], references: [id])
-  
-  tenantId    String?
-  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
-
-  @@index([clientId])
-  @@index([status])
-  @@map("identity_verifications")
-}
-
-// Enums for new models
 
 enum RouteStatus {
   PENDING
@@ -983,9 +1355,9 @@ enum PaymentStatus {
   PENDING
   COMPLETED
   FAILED
+  CANCELLED
   REFUNDED
   PARTIALLY_REFUNDED
-  CANCELLED
 }
 
 enum PaymentMethod {
@@ -1142,191 +1514,10 @@ enum MessageTemplateType {
 enum MessageChannel {
   SMS
   WHATSAPP
+  CHATWOOT
   EMAIL
   PUSH
-  CHATWOOT
 }
-
-// ============================================
-// MODELOS NUEVOS - FEBRERO 2026
-// ============================================
-
-// 1. ENTRENAMIENTO CONTINUO DEL MODELO IA
-model MLTrainingData {
-  id              String    @id @default(cuid())
-  loanId          String
-  clientId        String
-  predictionScore Int // Score predicho
-  actualOutcome   Boolean // Resultado real (true = pagó bien, false = incumplió)
-  predictionDate  DateTime
-  outcomeDate     DateTime?
-  features        String // JSON con features usados en la predicción
-  createdAt       DateTime  @default(now())
-
-  @@index([loanId])
-  @@index([clientId])
-  @@index([predictionDate])
-  @@map("ml_training_data")
-}
-
-model MLModel {
-  id            String    @id @default(cuid())
-  version       String    @unique // v1.0.0, v1.1.0, etc.
-  weights       String // JSON con pesos del modelo
-  metrics       String // JSON con métricas (accuracy, precision, recall, etc.)
-  trainingSize  Int // Cantidad de registros usados para entrenar
-  isActive      Boolean   @default(false)
-  trainedAt     DateTime
-  activatedAt   DateTime?
-  deactivatedAt DateTime?
-  notes         String?
-  createdBy     String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@index([isActive])
-  @@index([trainedAt])
-  @@map("ml_models")
-}
-
-// 2. WHATSAPP BIDIRECCIONAL Y CONVERSACIONES
-model Conversation {
-  id            String             @id @default(cuid())
-  clientId      String
-  phone         String
-  status        ConversationStatus @default(ACTIVE)
-  lastMessageAt DateTime           @default(now())
-  assignedToId  String? // Asesor asignado
-  notes         String?
-  metadata      String? // JSON con metadata adicional
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-
-  client     Client                @relation("ClientConversations", fields: [clientId], references: [id], onDelete: Cascade)
-  assignedTo User?                 @relation("AssignedConversations", fields: [assignedToId], references: [id])
-  messages   ConversationMessage[]
-
-  @@index([clientId])
-  @@index([status])
-  @@index([assignedToId])
-  @@map("conversations")
-}
-
-model ConversationMessage {
-  id             String                  @id @default(cuid())
-  conversationId String
-  direction      MessageDirection // INBOUND / OUTBOUND
-  content        String
-  messageType    ConversationMessageType @default(TEXT)
-  mediaUrl       String?
-  wahaMessageId  String?
-  status         MessageStatus           @default(SENT)
-  sentBy         String? // User ID si es outbound
-  readAt         DateTime?
-  deliveredAt    DateTime?
-  metadata       String? // JSON
-  createdAt      DateTime                @default(now())
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User?        @relation("SentMessages", fields: [sentBy], references: [id])
-
-  @@index([conversationId])
-  @@index([direction])
-  @@index([createdAt])
-  @@map("conversation_messages")
-}
-
-model ChatbotRule {
-  id           String       @id @default(cuid())
-  trigger      String // Palabra clave o regex
-  triggerType  TriggerType  @default(KEYWORD)
-  response     String // Respuesta automática
-  responseType ResponseType @default(TEXT)
-  priority     Int          @default(0)
-  isActive     Boolean      @default(true)
-  conditions   String? // JSON con condiciones adicionales
-  actions      String? // JSON con acciones a ejecutar
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-
-  @@index([isActive])
-  @@index([priority])
-  @@map("chatbot_rules")
-}
-
-// 3. GENERACIÓN DE REPORTES PERSONALIZADOS
-model ReportTemplate {
-  id           String   @id @default(cuid())
-  name         String
-  description  String?
-  category     String   @default("custom")
-  config       String // JSON con configuración del reporte (queries, filtros, etc.)
-  layoutConfig String? // JSON con layout drag-and-drop
-  pdfTemplate  String? // Path al template PDF o HTML
-  isPublic     Boolean  @default(false)
-  createdBy    String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  creator     User                     @relation("CreatedReportTemplates", fields: [createdBy], references: [id])
-  schedules   ReportSchedule[]
-  generations CustomReportGeneration[]
-
-  tenantId    String?
-  tenant      Tenant?                  @relation(fields: [tenantId], references: [id])
-
-  @@unique([name, tenantId])
-  @@index([category])
-  @@index([isPublic])
-  @@map("report_templates")
-}
-
-model ReportSchedule {
-  id         String            @id @default(cuid())
-  templateId String
-  frequency  ScheduleFrequency
-  dayOfWeek  Int? // 0-6 para WEEKLY
-  dayOfMonth Int? // 1-31 para MONTHLY
-  time       String // HH:MM formato
-  recipients String // JSON array de emails
-  isActive   Boolean           @default(true)
-  lastRunAt  DateTime?
-  nextRunAt  DateTime
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
-
-  template ReportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-
-  @@index([isActive])
-  @@index([nextRunAt])
-  @@map("report_schedules")
-}
-
-model CustomReportGeneration {
-  id           String       @id @default(cuid())
-  templateId   String
-  userId       String
-  status       ReportStatus @default(PENDING)
-  parameters   String? // JSON con parámetros de generación
-  filePath     String?
-  fileSize     Int?
-  generatedAt  DateTime?
-  expiresAt    DateTime?
-  errorMessage String?
-  createdAt    DateTime     @default(now())
-
-  template ReportTemplate @relation(fields: [templateId], references: [id])
-  user     User           @relation("CustomReports", fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt])
-  @@map("custom_report_generations")
-}
-
-// ============================================
-// NUEVOS ENUMS
-// ============================================
 
 enum ConversationStatus {
   ACTIVE
@@ -1376,258 +1567,6 @@ enum ScheduleFrequency {
   CUSTOM
 }
 
-model TenantInvitation {
-  id          String   @id @default(cuid())
-  email       String
-  token       String   @unique
-  orgName     String?
-  role        UserRole @default(ADMIN)
-  status      String   @default("PENDING") // PENDING, ACCEPTED, EXPIRED
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
-  acceptedAt  DateTime?
-  
-  invitedBy   String?
-  inviter     User?    @relation("Inviter", fields: [invitedBy], references: [id])
-
-  @@map("tenant_invitations")
-}
-
-// ============================================
-// MODELOS SAAS - BILLING & SUBSCRIPTIONS
-// ============================================
-
-model Plan {
-  id           String   @id @default(cuid())
-  name         String   @unique  // "starter", "professional", "business", "enterprise"
-  displayName  String             // "Starter", "Profesional", etc.
-  description  String?
-  priceMonthly Decimal  @db.Decimal(10, 2)
-  priceYearly  Decimal? @db.Decimal(10, 2)
-  currency     String   @default("MXN")
-  openpayPlanId   String? // ID del plan en Openpay
-  openpayProductId String? // ID del producto/servicio en Openpay
-  features     String   // JSON: ["feature1", "feature2"]
-  limits       String   // JSON: { users: 3, loans: 100, storage: 1073741824 }
-  isActive     Boolean  @default(true)
-  isPopular    Boolean  @default(false)
-  sortOrder    Int      @default(0)
-  trialDays    Int      @default(14)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  subscriptions Subscription[]
-  
-  @@index([isActive])
-  @@index([sortOrder])
-  @@map("plans")
-}
-
-model Addon {
-  id            String   @id @default(cuid())
-  name          String   @unique  // "whatsapp_bot", "extra_storage"
-  displayName   String
-  description   String?
-  priceMonthly  Decimal  @db.Decimal(10, 2)
-  priceYearly   Decimal? @db.Decimal(10, 2)
-  type          String   // "FEATURE", "LIMIT_EXTENSION", "SERVICE"
-  config        String?  // JSON: { "storageGB": 10 } or { "feature": "whatsapp_bot" }
-  isActive      Boolean  @default(true)
-  isPopular     Boolean  @default(false)
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  subscriptionAddons SubscriptionAddon[]
-
-  @@index([isActive])
-  @@index([sortOrder])
-  @@map("addons")
-}
-
-model SubscriptionAddon {
-  id             String       @id @default(cuid())
-  subscriptionId String
-  addonId        String
-  status         String       @default("ACTIVE") // ACTIVE, CANCELED
-  quantity       Int          @default(1)
-  currentPeriodStart DateTime @default(now())
-  currentPeriodEnd   DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-
-  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  addon          Addon        @relation(fields: [addonId], references: [id])
-
-  @@unique([subscriptionId, addonId])
-  @@map("subscription_addons")
-}
-
-model Subscription {
-  id                   String             @id @default(cuid())
-  tenantId             String             @unique
-  planId               String
-  status               SubscriptionStatus @default(TRIALING)
-  currentPeriodStart   DateTime
-  currentPeriodEnd     DateTime
-  trialEndsAt          DateTime?
-  canceledAt           DateTime?
-  cancelAtPeriodEnd    Boolean            @default(false)
-  cancelReason         String?
-  openpaySubscriptionId String?
-  openpayCustomerId     String?
-  paymentMethod        PaymentMethodType  @default(MANUAL)
-  billingEmail         String?
-  billingName          String?
-  billingAddress       String?            // JSON con dirección
-  taxId                String?            // RFC en México
-  metadata             String?            // JSON adicional
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
-  
-  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  plan     Plan      @relation(fields: [planId], references: [id])
-  addons   SubscriptionAddon[]
-  invoices Invoice[]
-  
-  @@index([status])
-  @@index([currentPeriodEnd])
-  @@map("subscriptions")
-}
-
-model Invoice {
-  id              String        @id @default(cuid())
-  subscriptionId  String
-  invoiceNumber   String        @unique
-  amount          Decimal       @db.Decimal(10, 2)
-  subtotal        Decimal       @db.Decimal(10, 2)
-  tax             Decimal       @db.Decimal(10, 2) @default(0)
-  discount        Decimal       @db.Decimal(10, 2) @default(0)
-  currency        String        @default("MXN")
-  status          InvoiceStatus @default(DRAFT)
-  dueDate         DateTime
-  paidAt          DateTime?
-  openpayInvoiceId String?
-  paymentIntent   String?
-  invoicePdf      String?
-  lineItems       String?       // JSON con detalle de items
-  notes           String?
-  createdAt       DateTime      @default(now())
-  
-  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  
-  @@index([status])
-  @@index([dueDate])
-  @@index([subscriptionId])
-  @@map("invoices")
-}
-
-// ============================================
-// MODELOS SAAS - USO Y LÍMITES
-// ============================================
-
-model TenantUsage {
-  id            String   @id @default(cuid())
-  tenantId      String
-  period        String   // "2026-02" formato YYYY-MM
-  usersCount    Int      @default(0)
-  loansCount    Int      @default(0)
-  clientsCount  Int      @default(0)
-  storageBytes  BigInt   @default(0)
-  apiCalls      Int      @default(0)
-  smsCount      Int      @default(0)
-  whatsappCount Int      @default(0)
-  reportsCount  Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  @@unique([tenantId, period])
-  @@index([period])
-  @@map("tenant_usage")
-}
-
-// ============================================
-// MODELOS SAAS - API KEYS
-// ============================================
-
-model ApiKey {
-  id          String    @id @default(cuid())
-  tenantId    String
-  name        String
-  description String?
-  keyHash     String    @unique
-  keyPrefix   String    // Primeros 8 chars: "esk_abc1..."
-  scopes      String    // JSON: ["read:clients", "write:payments"]
-  rateLimit   Int       @default(1000)  // Requests por minuto
-  lastUsedAt  DateTime?
-  lastUsedIp  String?
-  expiresAt   DateTime?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  @@index([keyHash])
-  @@index([tenantId])
-  @@index([isActive])
-  @@map("api_keys")
-}
-
-// ============================================
-// MODELOS SAAS - WEBHOOKS
-// ============================================
-
-model WebhookEndpoint {
-  id              String    @id @default(cuid())
-  tenantId        String
-  url             String
-  description     String?
-  events          String    // JSON: ["payment.created", "loan.approved"]
-  secret          String    // Para firmar payloads con HMAC-SHA256
-  isActive        Boolean   @default(true)
-  failureCount    Int       @default(0)
-  lastTriggeredAt DateTime?
-  lastStatusCode  Int?
-  lastError       String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  tenant     Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  deliveries WebhookDelivery[]
-  
-  @@index([tenantId])
-  @@index([isActive])
-  @@map("webhook_endpoints")
-}
-
-model WebhookDelivery {
-  id           String   @id @default(cuid())
-  endpointId   String
-  event        String   // "payment.created"
-  payload      String   // JSON del payload enviado
-  statusCode   Int?
-  response     String?  // Respuesta del servidor
-  error        String?
-  attempts     Int      @default(1)
-  deliveredAt  DateTime?
-  nextRetryAt  DateTime?
-  createdAt    DateTime @default(now())
-  
-  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
-  
-  @@index([endpointId])
-  @@index([event])
-  @@index([createdAt])
-  @@map("webhook_deliveries")
-}
-
-// ============================================
-// ENUMS SAAS
-// ============================================
-
 enum SubscriptionStatus {
   TRIALING
   ACTIVE
@@ -1652,34 +1591,4 @@ enum PaymentMethodType {
   BANK_TRANSFER
   PAYPAL
   CASH
-}
-
-model PushSubscription {
-  id        String   @id @default(cuid())
-  userId    String
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
-  userAgent String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation("UserPushSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("push_subscriptions")
-}
-
-model UserNotificationSetting {
-  id        String           @id @default(cuid())
-  userId    String
-  type      NotificationType
-  channel   NotificationChannel
-  enabled   Boolean          @default(true) // Default to enabled
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  user      User             @relation("UserNotificationSettings", fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, type, channel])
-  @@index([userId])
-  @@map("user_notification_settings")
 }
