@@ -27,13 +27,29 @@ export function MainLayout({ children }: MainLayoutProps) {
     return <>{children}</>;
   }
 
-  // Loading state solo para rutas protegidas y solo si realmente está cargando
+  // Loading state premium para rutas protegidas
   if (status === 'loading' && pathname !== '/') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Cargando...</p>
+      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white dark:bg-gray-950">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/20 rounded-full blur-[100px] animate-pulse pointer-events-none" />
+        
+        <div className="relative flex flex-col items-center gap-8">
+          <div className="relative">
+            <div className="absolute -inset-4 border-2 border-primary/30 rounded-full animate-[spin_3s_linear_infinite] border-dashed" />
+            <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800">
+               <img src="/logoescalafin.png" alt="Logo" className="h-10 object-contain animate-pulse" />
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center gap-2">
+            <h3 className="font-black text-gray-900 dark:text-white tracking-tight">EscalaFin</h3>
+            <div className="flex items-center gap-2">
+               <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
+               <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
+               <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" />
+            </div>
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-2">Sincronizando seguridad...</p>
+          </div>
         </div>
       </div>
     );
