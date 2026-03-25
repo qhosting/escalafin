@@ -20,13 +20,17 @@ import {
   CheckCircle2, 
   AlertTriangle,
   Camera,
-  Save
+  Save,
+  DollarSign,
+  RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 import { PaymentSuccessView } from './payment-success-view';
 import { calculateLateFee } from '@/lib/loan-calculations';
 import { LateFeeType } from '@prisma/client';
+import { cn } from '@/lib/utils';
+import { useCallback } from 'react';
 
 interface CashPaymentData {
   loanId: string;
@@ -71,99 +75,103 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
   const [formData, setFormData] = useState<CashPaymentData>({
     loanId: loan?.id || '',
     clientId: loan?.client?.id || '',
-    amount: loan?.monthlyPayment || 0,
+    amount: 0, 
     paymentDate: new Date().toISOString().split('T')[0],
-    collectorLocation: '',
+    collectorLocation: 'Capturando GPS...', // Default text while capturing
     notes: '',
     receiptNumber: '',
-    collectionMethod: 'home',
+    collectionMethod: 'field',
     photoEvidence: undefined,
     lateFeePaid: 0
   });
   
   const [accumulatedLateFee, setAccumulatedLateFee] = useState(0);
-  
   const [processing, setProcessing] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [successData, setSuccessData] = useState<any | null>(null);
 
-  const handleInputChange = (field: keyof CashPaymentData, value: string | number | File) => {
+  // 🌍 Auto-GPS Capture
+  const getCurrentLocation = useCallback(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setFormData(prev => ({ ...prev, collectorLocation: `${latitude}, ${longitude}` }));
+          console.log('GPS Captured:', latitude, longitude);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          setFormData(prev => ({ ...prev, collectorLocation: 'Ubicación no disponible' }));
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    getCurrentLocation();
+  }, [getCurrentLocation, loan?.id]);
+
+  // 💰 Auto-calculate next payment and late fees
+  const [calcDoneForLoan, setCalcDoneForLoan] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (loan && calcDoneForLoan !== loan.id) {
+      const today = new Date();
+      
+      // 1. Calcular intereses moratorios
+      let totalMora = 0;
+      if (loan.amortizationSchedule) {
+        const lateItems = loan.amortizationSchedule.filter(
+          (item: any) => !item.isPaid && new Date(item.paymentDate) < today
+        );
+
+        lateItems.forEach((item: any) => {
+          const fee = calculateLateFee({
+            dueDate: new Date(item.paymentDate),
+            paymentDate: today,
+            lateFeeType: loan.lateFeeType || 'DAILY_FIXED',
+            lateFeeAmount: Number(loan.lateFeeAmount) || 200,
+            lateFeeMaxWeekly: Number(loan.lateFeeMaxWeekly) || 800
+          });
+          totalMora += fee;
+        });
+      }
+      setAccumulatedLateFee(totalMora);
+
+      // 2. Encontrar el siguiente pago vencido o por vencer
+      let nextPaymentAmount = loan.monthlyPayment;
+      if (loan.amortizationSchedule) {
+        const nextScheduled = loan.amortizationSchedule.find((item: any) => !item.isPaid);
+        if (nextScheduled) {
+          nextPaymentAmount = Number(nextScheduled.totalPayment);
+        }
+      }
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        loanId: loan.id,
+        clientId: loan.client.id,
+        amount: nextPaymentAmount + totalMora,
+        lateFeePaid: totalMora 
+      }));
+      setCalcDoneForLoan(loan.id);
+    }
+  }, [loan, calcDoneForLoan]);
+
+  const handleInputChange = (field: keyof CashPaymentData, value: string | number | File | null) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      handleInputChange('photoEvidence', file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPhotoPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Calcular mora acumulada
-  const [initialCalcDone, setInitialCalcDone] = useState(false);
-  
-  useEffect(() => {
-    if (loan?.amortizationSchedule && !initialCalcDone) {
-      const today = new Date();
-      const lateItems = loan.amortizationSchedule.filter(
-        (item: any) => !item.isPaid && new Date(item.paymentDate) < today
-      );
-
-      let total = 0;
-      lateItems.forEach((item: any) => {
-        const fee = calculateLateFee({
-          dueDate: new Date(item.paymentDate),
-          paymentDate: today,
-          lateFeeType: loan.lateFeeType || 'DAILY_FIXED',
-          lateFeeAmount: Number(loan.lateFeeAmount) || 200,
-          lateFeeMaxWeekly: Number(loan.lateFeeMaxWeekly) || 800
-        });
-        total += fee;
-      });
-      
-      setAccumulatedLateFee(total);
-      
-      if (total > 0) {
-        setFormData(prev => ({ 
-          ...prev, 
-          amount: prev.amount + total,
-          lateFeePaid: total 
-        }));
-      }
-      setInitialCalcDone(true);
-    }
-  }, [loan, initialCalcDone]);
-
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          handleInputChange('collectorLocation', `${latitude}, ${longitude}`);
-          toast.success('Ubicación capturada correctamente');
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          toast.error('No se pudo obtener la ubicación');
-        }
-      );
-    } else {
-      toast.error('Geolocalización no disponible en este dispositivo');
-    }
-  };
-
   const processCashPayment = async () => {
-    if (!formData.amount || !formData.collectorLocation) {
-      toast.error('Por favor completa todos los campos requeridos');
+    const isLocationCaptured = formData.collectorLocation && 
+                               formData.collectorLocation !== 'Capturando GPS...' && 
+                               formData.collectorLocation !== 'Ubicación no disponible';
+
+    if (!formData.amount) {
+      toast.error('Por favor ingresa un monto válido');
       return;
     }
 
@@ -179,16 +187,12 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
       formDataToSend.append('clientId', formData.clientId);
       formDataToSend.append('amount', formData.amount.toString());
       formDataToSend.append('paymentDate', formData.paymentDate);
-      formDataToSend.append('collectorLocation', formData.collectorLocation);
-      formDataToSend.append('notes', formData.notes);
+      formDataToSend.append('collectorLocation', isLocationCaptured ? formData.collectorLocation : 'Sin GPS - Registro PWA');
+      formDataToSend.append('notes', 'Cobro PWA - Registro Rápido'); // Notas automáticas
       formDataToSend.append('receiptNumber', formData.receiptNumber || '');
       formDataToSend.append('collectionMethod', formData.collectionMethod);
       formDataToSend.append('collectorId', session.user.id);
       formDataToSend.append('lateFeePaid', formData.lateFeePaid.toString());
-
-      if (formData.photoEvidence) {
-        formDataToSend.append('photoEvidence', formData.photoEvidence);
-      }
 
       const response = await fetch('/api/payments/cash', {
         method: 'POST',
@@ -201,9 +205,8 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
         throw new Error(result.error || 'Error al registrar el pago');
       }
 
-      toast.success('Pago en efectivo registrado exitosamente');
+      toast.success('Pago registrado exitosamente');
       
-      // Preparar datos para el recibo
       setSuccessData({
         ...result,
         clientName: `${loan?.client.firstName} ${loan?.client.lastName}`,
@@ -217,29 +220,15 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       toast.error(errorMessage);
-      console.error('Error processing cash payment:', error);
     } finally {
       setProcessing(false);
     }
   };
 
-  const getMethodIcon = (method: string) => {
-    switch (method) {
-      case 'home':
-        return '🏠';
-      case 'office':
-        return '🏢';
-      case 'field':
-        return '🚗';
-      default:
-        return '💰';
-    }
-  };
-
   if (successData) {
     return (
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="rounded-3xl border-0 shadow-none">
+        <CardContent className="pt-0 p-0">
           <PaymentSuccessView 
             payment={successData} 
             onClose={() => {
@@ -253,282 +242,174 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Banknote className="h-5 w-5 text-green-600" />
-            Registro de Pago en Efectivo
-          </CardTitle>
-          <CardDescription>
-            Registra pagos recibidos físicamente en efectivo - Cobranza Móvil
-          </CardDescription>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Resumen del Préstamo - Premium */}
+      <Card className="rounded-3xl overflow-hidden shadow-xl border-blue-50 dark:border-blue-900/50">
+        <CardHeader className="bg-blue-600 p-6 md:p-8">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <Badge className="bg-white/20 text-white border-0 font-black text-[10px] uppercase tracking-widest mb-2">
+                Recaudación en Campo
+              </Badge>
+              <CardTitle className="text-white text-3xl md:text-4xl font-black tracking-tight leading-none">
+                {loan ? `${loan.client.firstName} ${loan.client.lastName}` : 'Seleccione Préstamo'}
+              </CardTitle>
+              {loan && (
+                <div className="flex items-center gap-2 text-white/80 font-mono text-sm">
+                  <span className="font-black text-white">{loan.loanNumber}</span>
+                  <span>·</span>
+                  <span className="font-medium">{loan.client.address || 'Sin dirección registrada'}</span>
+                </div>
+              )}
+            </div>
+            <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-sm">
+              <Banknote className="h-8 w-8 text-white" />
+            </div>
+          </div>
         </CardHeader>
+        
         {loan && (
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <Label className="font-medium">Cliente:</Label>
-                <p>{loan.client.firstName} {loan.client.lastName}</p>
-              </div>
-              <div>
-                <Label className="font-medium">Préstamo:</Label>
-                <p className="font-mono">{loan.loanNumber}</p>
-              </div>
-              <div>
-                <Label className="font-medium">Saldo Pendiente:</Label>
-                <p className="font-bold text-red-600">
-                  {new Intl.NumberFormat('es-MX', {
-                    style: 'currency',
-                    currency: 'MXN'
-                  }).format(loan.balanceRemaining)}
+          <CardContent className="p-6 md:p-8 bg-white dark:bg-gray-900">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase text-gray-400">Saldo Total</Label>
+                <p className="text-xl md:text-2xl font-black text-red-600">
+                  {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(loan.balanceRemaining)}
                 </p>
               </div>
-              <div>
-                <Label className="font-medium">Pago Mensual:</Label>
-                <p className="font-semibold">
-                  {new Intl.NumberFormat('es-MX', {
-                    style: 'currency',
-                    currency: 'MXN'
-                  }).format(loan.monthlyPayment)}
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase text-gray-400">Cuota Base</Label>
+                <p className="text-xl md:text-2xl font-black text-blue-600">
+                  {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(loan.monthlyPayment)}
                 </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase text-gray-400">Interés Mora</Label>
+                <p className="text-xl md:text-2xl font-black text-orange-500">
+                  {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(accumulatedLateFee)}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase text-gray-400">Monto Sugerido</Label>
+                <div className="flex items-center gap-2">
+                  <p className="text-xl md:text-2xl font-black text-green-600">
+                    {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(formData.amount)}
+                  </p>
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                </div>
               </div>
             </div>
           </CardContent>
         )}
       </Card>
 
-      {/* Payment Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Información del Pago</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Amount and Date */}
+      {/* Formulario de Pago - Compacto y Eficiente */}
+      <Card className="rounded-3xl shadow-sm border-gray-100 dark:border-gray-800">
+        <CardContent className="p-6 md:p-8 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Monto Final - Enorme para visibilidad */}
+            <div className="space-y-2 md:col-span-1">
+              <Label htmlFor="amount" className="text-xs font-black uppercase text-gray-400">Monto a Cobrar (MXN)</Label>
+              <div className="relative group">
+                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 text-blue-600" />
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  className="pl-14 h-20 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800 font-black text-4xl text-blue-700 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 transition-all"
+                  value={formData.amount}
+                  onChange={(e) => handleInputChange('amount', parseFloat(e.target.value) || 0)}
+                />
+              </div>
+              <p className="text-[10px] font-bold text-gray-400 italic">Incluye {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(formData.lateFeePaid)} de interés moratorio.</p>
+            </div>
+
+            {/* Receipt Number - Importante tenerlo a la mano */}
+            <div className="space-y-2">
+              <Label htmlFor="receiptNumber" className="text-xs font-black uppercase text-gray-400">Número de Recibo / Folio</Label>
+              <Input
+                id="receiptNumber"
+                className="h-20 rounded-2xl bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-800 font-black text-2xl uppercase font-mono tracking-wider"
+                value={formData.receiptNumber}
+                onChange={(e) => handleInputChange('receiptNumber', e.target.value)}
+                placeholder="0001"
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount">Monto Recibido *</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={formData.amount}
-                onChange={(e) => handleInputChange('amount', parseFloat(e.target.value) || 0)}
-                placeholder="1000.00"
-              />
-              <div className="text-lg font-bold text-green-600">
-                {new Intl.NumberFormat('es-MX', {
-                  style: 'currency',
-                  currency: 'MXN'
-                }).format(formData.amount)}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="paymentDate">Fecha de Pago *</Label>
-              <Input
-                id="paymentDate"
-                type="date"
-                value={formData.paymentDate}
-                onChange={(e) => handleInputChange('paymentDate', e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Mora (Late Fee) */}
-          {accumulatedLateFee > 0 && (
-            <div className="p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg animate-in fade-in slide-in-from-top-2">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2 text-orange-800 dark:text-orange-200 font-semibold">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span>Interés Moratorio Acumulado</span>
-                </div>
-                <Badge variant="outline" className="bg-white dark:bg-orange-900 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300">
-                  {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(accumulatedLateFee)}
-                </Badge>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mt-3">
-                <div className="space-y-1">
-                  <Label htmlFor="lateFeePaid" className="text-xs text-orange-700 dark:text-orange-300 uppercase font-bold">Monto Multa a Cobrar</Label>
-                  <Input
-                    id="lateFeePaid"
-                    type="number"
-                    size={10}
-                    className="h-8 border-orange-300"
-                    value={formData.lateFeePaid}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value) || 0;
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        lateFeePaid: val,
-                        // Ajustar monto total si es necesario? O dejar que el usuario lo haga
-                      }));
-                    }}
-                  />
-                  <p className="text-[10px] text-orange-600">Este monto no reduce el capital del préstamo.</p>
-                </div>
-                <div className="flex flex-col justify-end text-right">
-                  <span className="text-xs text-muted-foreground italic">Restante p/ Préstamo:</span>
-                  <span className="font-bold text-blue-600">
-                    {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(formData.amount - formData.lateFeePaid)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Collection Method */}
-          <div className="space-y-2">
-            <Label>Método de Cobranza</Label>
-            <Select 
-              value={formData.collectionMethod} 
-              onValueChange={(value: any) => handleInputChange('collectionMethod', value)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="home">
-                  <div className="flex items-center gap-2">
-                    <span>{getMethodIcon('home')}</span>
-                    Domicilio del Cliente
-                  </div>
-                </SelectItem>
-                <SelectItem value="office">
-                  <div className="flex items-center gap-2">
-                    <span>{getMethodIcon('office')}</span>
-                    Oficina
-                  </div>
-                </SelectItem>
-                <SelectItem value="field">
-                  <div className="flex items-center gap-2">
-                    <span>{getMethodIcon('field')}</span>
-                    Trabajo de Campo
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Location */}
-          <div className="space-y-2">
-            <Label htmlFor="location">Ubicación de Cobranza *</Label>
-            <div className="flex gap-2">
-              <Input
-                id="location"
-                value={formData.collectorLocation}
-                onChange={(e) => handleInputChange('collectorLocation', e.target.value)}
-                placeholder="Coordenadas GPS o dirección"
-                readOnly
-              />
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={getCurrentLocation}
-                className="shrink-0"
-              >
-                <MapPin className="h-4 w-4" />
-                GPS
-              </Button>
-            </div>
-          </div>
-
-          {/* Receipt Number */}
-          <div className="space-y-2">
-            <Label htmlFor="receiptNumber">Número de Recibo (Opcional)</Label>
-            <Input
-              id="receiptNumber"
-              value={formData.receiptNumber}
-              onChange={(e) => handleInputChange('receiptNumber', e.target.value)}
-              placeholder="REC-001"
-            />
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Observaciones</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Detalles adicionales del pago..."
-              rows={3}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Photo Evidence */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Camera className="h-5 w-5" />
-            Evidencia Fotográfica
-          </CardTitle>
-          <CardDescription>
-            Toma una foto como comprobante del pago recibido
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="photo">Foto del Comprobante</Label>
-            <Input
-              id="photo"
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handlePhotoChange}
-            />
-          </div>
-
-          {photoPreview && (
-            <div className="space-y-2">
-              <Label>Vista Previa:</Label>
-              <div className="relative w-full max-w-md mx-auto">
-                <img 
-                  src={photoPreview} 
-                  alt="Comprobante de pago" 
-                  className="w-full h-48 object-cover rounded-lg border"
+             {/* Fecha - Automática pero editable */}
+             <div className="space-y-2">
+              <Label htmlFor="paymentDate" className="text-xs font-black uppercase text-gray-400">Fecha Valor</Label>
+              <div className="relative">
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  id="paymentDate"
+                  type="date"
+                  className="pl-12 h-14 rounded-2xl bg-gray-50 dark:bg-gray-800 border-gray-100 font-bold text-lg"
+                  value={formData.paymentDate}
+                  onChange={(e) => handleInputChange('paymentDate', e.target.value)}
                 />
               </div>
             </div>
-          )}
+
+             {/* Método - Solo selección */}
+             <div className="space-y-2">
+              <Label className="text-xs font-black uppercase text-gray-400">Lugar de Cobro</Label>
+              <Select 
+                value={formData.collectionMethod} 
+                onValueChange={(value: any) => handleInputChange('collectionMethod', value)}
+              >
+                <SelectTrigger className="h-14 rounded-2xl bg-gray-50 dark:bg-gray-800 border-gray-100 font-bold text-lg">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="field" className="font-bold">🚀 Trabajo de Campo</SelectItem>
+                  <SelectItem value="home" className="font-bold">🏠 Domicilio Cliente</SelectItem>
+                  <SelectItem value="office" className="font-bold">🏢 Oficina</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Location - Hidden pero capturado */}
+          <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-200">
+            <MapPin className={cn(
+              "h-4 w-4 animate-bounce",
+              formData.collectorLocation.includes(',') ? "text-green-500" : "text-orange-500"
+            )} />
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+              Ubicación GPS: {formData.collectorLocation}
+            </span>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Collector Info */}
-      <Alert>
-        <User className="h-4 w-4" />
-        <AlertDescription>
-          <strong>Cobrador:</strong> {session?.user?.name || 'Usuario no identificado'}
-          <br />
-          <strong>Fecha/Hora:</strong> {new Date().toLocaleString('es-MX')}
-        </AlertDescription>
-      </Alert>
-
-      {/* Action Buttons */}
-      <div className="flex gap-4">
-        {onCancel && (
-          <Button variant="outline" onClick={onCancel} disabled={processing}>
-            Cancelar
-          </Button>
-        )}
+      {/* Action Buttons - Grandes para PWA */}
+      <div className="flex gap-4 pt-4">
         <Button 
+          variant="outline" 
+          size="lg"
+          onClick={onCancel} 
+          disabled={processing}
+          className="h-20 w-1/3 rounded-3xl font-black text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all border-gray-200"
+        >
+          Anular
+        </Button>
+        <Button 
+          size="lg"
           onClick={processCashPayment} 
-          disabled={processing || !formData.amount || !formData.collectorLocation}
-          className="flex-1 flex items-center gap-2"
+          disabled={processing || !formData.amount}
+          className="flex-1 h-20 rounded-3xl bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 font-black text-xl uppercase tracking-widest active:scale-95 transition-all text-white"
         >
           {processing ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Procesando...
-            </>
+            <RefreshCw className="h-8 w-8 animate-spin" />
           ) : (
-            <>
-              <Save className="h-4 w-4" />
-              Registrar Pago en Efectivo
-            </>
+            <div className="flex items-center gap-3">
+              <Save className="h-6 w-6" />
+              Finalizar Cobro
+            </div>
           )}
         </Button>
       </div>
