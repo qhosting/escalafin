@@ -41,13 +41,21 @@ export async function GET(request: NextRequest) {
             whereClause.paymentDate = {};
             if (startDate) {
                 const start = new Date(startDate);
-                start.setHours(0, 0, 0, 0);
-                whereClause.paymentDate.gte = start;
+                if (!isNaN(start.getTime())) {
+                    start.setHours(0, 0, 0, 0);
+                    whereClause.paymentDate.gte = start;
+                }
             }
             if (endDate) {
                 const end = new Date(endDate);
-                end.setHours(23, 59, 59, 999);
-                whereClause.paymentDate.lte = end;
+                if (!isNaN(end.getTime())) {
+                    end.setHours(23, 59, 59, 999);
+                    whereClause.paymentDate.lte = end;
+                }
+            }
+            // Limpiar si no se agregaron filtros válidos
+            if (Object.keys(whereClause.paymentDate).length === 0) {
+                delete whereClause.paymentDate;
             }
         }
 

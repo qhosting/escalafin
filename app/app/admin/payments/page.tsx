@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -37,6 +39,9 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useSession } from 'next-auth/react';
+
+export const dynamic = 'force-dynamic';
 
 interface Payment {
   id: string;
@@ -66,6 +71,7 @@ interface Advisor {
 }
 
 export default function PaymentsPage() {
+  const { data: session } = useSession() || {};
   const [payments, setPayments] = useState<Payment[]>([]);
   const [advisors, setAdvisors] = useState<Advisor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +82,10 @@ export default function PaymentsPage() {
   const [endDate, setEndDate] = useState('');
   const [advisorId, setAdvisorId] = useState('all');
 
-  const fetchAdvisors = async () => {
+  const fetchAdvisors = useCallback(async () => {
+    // Solo los administradores pueden ver la lista completa de asesores
+    if (session?.user?.role !== 'ADMIN') return;
+    
     try {
       const res = await fetch('/api/admin/users');
       if (res.ok) {
@@ -88,7 +97,7 @@ export default function PaymentsPage() {
     } catch (e) {
       console.error('Error fetching advisors:', e);
     }
-  };
+  }, [session?.user?.role]);
 
   const fetchPayments = useCallback(async () => {
     setLoading(true);
@@ -111,9 +120,11 @@ export default function PaymentsPage() {
   }, [startDate, endDate, advisorId]);
 
   useEffect(() => {
-    fetchAdvisors();
-    fetchPayments();
-  }, [fetchPayments]);
+    if (session?.user) {
+        fetchAdvisors();
+        fetchPayments();
+    }
+  }, [session?.user, fetchAdvisors, fetchPayments]);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
@@ -212,26 +223,28 @@ export default function PaymentsPage() {
               </div>
             </div>
 
-            {/* Filtro Asesor */}
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-gray-400 ml-1">Asesor / Cobrador</Label>
-              <Select value={advisorId} onValueChange={setAdvisorId}>
-                <SelectTrigger className="h-12 rounded-xl bg-white dark:bg-gray-900 border-gray-200">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-400" />
-                    <SelectValue placeholder="Seleccionar Asesor" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="all">Todos los Asesores</SelectItem>
-                  {advisors.map(adv => (
-                    <SelectItem key={adv.id} value={adv.id}>
-                      {adv.firstName} {adv.lastName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Filtro Asesor - Solo visible para ADMIN */}
+            {session?.user?.role === 'ADMIN' && (
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-gray-400 ml-1">Asesor / Cobrador</Label>
+                <Select value={advisorId} onValueChange={setAdvisorId}>
+                  <SelectTrigger className="h-12 rounded-xl bg-white dark:bg-gray-900 border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-gray-400" />
+                      <SelectValue placeholder="Seleccionar Asesor" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="all">Todos los Asesores</SelectItem>
+                    {advisors.map(adv => (
+                      <SelectItem key={adv.id} value={adv.id}>
+                        {adv.firstName} {adv.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
