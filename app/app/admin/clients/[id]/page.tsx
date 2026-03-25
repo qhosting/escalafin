@@ -622,19 +622,69 @@ export default function ClientDetailPage() {
         </TabsContent>
 
         <TabsContent value="activity">
-          <Card>
-            <CardHeader>
-              <CardTitle>Actividad Reciente</CardTitle>
-              <CardDescription>
-                Historial de actividades y transacciones del cliente
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  El historial de actividades se implementará próximamente
-                </p>
+          <Card className="border-0 shadow-none bg-transparent">
+            <CardContent className="p-0 pt-2">
+              <div className="space-y-6 relative before:absolute before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100 dark:before:bg-gray-800">
+                {!client.auditLogs || client.auditLogs.length === 0 ? (
+                  <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-2xl border border-dashed">
+                    <Calendar className="h-10 w-10 mx-auto text-gray-300 mb-3" />
+                    <p className="text-gray-500 text-sm font-medium">No hay actividad reciente registrada</p>
+                  </div>
+                ) : (
+                  client.auditLogs.map((log: any, idx: number) => {
+                    const isLast = idx === client.auditLogs.length - 1;
+                    const date = new Date(log.timestamp);
+                    const timeStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                    const dateStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+                    
+                    // Icono basado en la acción
+                    let ActionIcon = FileText;
+                    let iconBg = 'bg-blue-100 text-blue-600';
+                    
+                    if (log.action.includes('PAYMENT')) {
+                       ActionIcon = DollarSign;
+                       iconBg = 'bg-green-100 text-green-600';
+                    } else if (log.action.includes('LOGIN')) {
+                       ActionIcon = UserCheck;
+                       iconBg = 'bg-purple-100 text-purple-600';
+                    } else if (log.action.includes('LOAN')) {
+                       ActionIcon = CreditCard;
+                       iconBg = 'bg-orange-100 text-orange-600';
+                    }
+
+                    return (
+                      <div key={log.id} className="relative pl-10">
+                        <div className={`absolute left-0 top-1 w-8 h-8 rounded-full ${iconBg} border-4 border-white dark:border-gray-950 flex items-center justify-center z-10 shadow-sm`}>
+                          <ActionIcon className="h-3.5 w-3.5" />
+                        </div>
+                        
+                        <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-bold text-sm text-gray-900 dark:text-white uppercase tracking-tight">
+                              {log.action.replace(/_/g, ' ')}
+                            </h4>
+                            <span className="text-[10px] font-bold text-gray-400 bg-gray-50 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                              {dateStr}, {timeStr}
+                            </span>
+                          </div>
+                          
+                          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                            {log.details || `Se registró una acción de ${log.action} en el sistema.`}
+                          </p>
+                          
+                          {log.userEmail && (
+                            <div className="mt-3 flex items-center gap-1.5 opacity-60">
+                              <div className="w-4 h-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                <User className="h-2 w-2 text-gray-500" />
+                              </div>
+                              <span className="text-[9px] font-medium text-gray-500">Realizado por: {log.userEmail}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </CardContent>
           </Card>

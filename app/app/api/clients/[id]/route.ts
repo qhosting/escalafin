@@ -93,7 +93,29 @@ export async function GET(
       return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 });
     }
 
-    return NextResponse.json(client);
+    const auditLogs = await prisma.auditLog.findMany({
+      where: {
+        OR: [
+          { resourceId: clientId },
+          { details: { contains: clientId } }
+        ]
+      },
+      select: {
+        id: true,
+        action: true,
+        resource: true,
+        details: true,
+        timestamp: true,
+        userEmail: true
+      },
+      orderBy: { timestamp: 'desc' },
+      take: 10
+    });
+
+    return NextResponse.json({
+      ...client,
+      auditLogs
+    });
 
   } catch (error) {
     console.error('Error fetching client:', error);
