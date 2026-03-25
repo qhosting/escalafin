@@ -193,7 +193,6 @@ export function LoanList({ userRole }: LoanListProps) {
           </div>
         </CardContent>
       </Card>
-
       {/* Lista de Préstamos */}
       <div className="space-y-4">
         {filteredLoans.map((loan) => {
@@ -212,12 +211,12 @@ export function LoanList({ userRole }: LoanListProps) {
               borderColor
             )}>
               <CardContent className="p-4 md:p-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="space-y-4 flex-1">
                     <div className="flex items-start justify-between">
                       <div>
                         <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}`}>
-                          <h3 className="font-extrabold text-lg md:text-xl text-primary hover:underline leading-none">
+                          <h3 className="font-extrabold text-lg md:text-xl text-primary hover:underline leading-none mb-1">
                             {loan.loanNumber}
                           </h3>
                         </Link>
@@ -292,29 +291,57 @@ export function LoanList({ userRole }: LoanListProps) {
                     )}
                   </div>
 
-                    <div className="flex md:flex-col lg:flex-row gap-2 mt-2 md:mt-0 md:min-w-[120px] lg:min-w-fit">
+                  <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    {/* Botón Ver */}
                     <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}`} className="flex-1">
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="w-full h-10 rounded-xl border-primary/20 text-primary font-bold hover:bg-primary hover:text-white transition-all shadow-sm"
+                        className="group w-full h-11 px-4 rounded-xl font-bold bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-gray-900 transition-all shadow-sm"
                       >
-                        <Eye className="h-4 w-4 mr-1.5" />
+                        <Eye className="h-4 w-4 mr-2 text-gray-500 group-hover:text-inherit" />
                         Ver
                       </Button>
                     </Link>
 
+                    {/* Botón Tabla Amortización */}
+                    <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}?tab=schedule`} className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="group w-full h-11 px-4 rounded-xl font-bold bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                      >
+                        <Table className="h-4 w-4 mr-2 text-blue-500 group-hover:text-inherit" />
+                        Tabla
+                      </Button>
+                    </Link>
+
+                    {/* Botón Cobrar */}
+                    {userRole !== 'CLIENTE' && (
+                      <Link href={`/${userRole?.toLowerCase() || 'admin'}/payments/new?loanId=${loan.id}`} className="flex-1">
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          className="w-full h-11 px-5 rounded-xl font-bold bg-green-600 hover:bg-green-700 text-white transition-all shadow-lg hover:shadow-green-500/20"
+                        >
+                          <Banknote className="h-4 w-4 mr-2" />
+                          Cobrar
+                        </Button>
+                      </Link>
+                    )}
+                    
+                    {/* Botón Edo Cta Modal */}
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 h-10 rounded-xl border-blue-200 text-blue-600 font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                      className="flex-1 h-11 rounded-xl border-blue-200 text-blue-600 font-bold hover:bg-blue-100 transition-all shadow-sm"
                       onClick={() => {
                         setSelectedLoanForStatement(loan);
                         setIsStatementModalOpen(true);
                       }}
                     >
                       <FileText className="h-4 w-4 mr-1.5" />
-                      Edo Cta
+                      Ticket
                     </Button>
 
                     {userRole !== 'CLIENTE' && (
@@ -322,7 +349,7 @@ export function LoanList({ userRole }: LoanListProps) {
                         <Button 
                           variant="secondary" 
                           size="sm" 
-                          className="w-full h-10 rounded-xl font-bold bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white dark:bg-amber-900/40 dark:text-amber-400 dark:hover:bg-amber-700 transition-all shadow-sm"
+                          className="w-full h-11 rounded-xl font-bold bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white dark:bg-amber-900/40 dark:text-amber-400 dark:hover:bg-amber-700 transition-all shadow-sm"
                         >
                           <Edit className="h-4 w-4 mr-1.5" />
                           Editar
@@ -355,7 +382,7 @@ export function LoanList({ userRole }: LoanListProps) {
 
       {/* Paginación */}
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-8">
           <p className="text-sm text-muted-foreground">
             Mostrando {((pagination.page - 1) * pagination.limit) + 1} a{' '}
             {Math.min(pagination.page * pagination.limit, pagination.totalCount)} de{' '}

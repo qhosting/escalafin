@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -19,7 +19,6 @@ import {
 import {
   CreditCard,
   DollarSign,
-  TrendingUp,
   AlertTriangle,
   CheckCircle,
   Clock,
@@ -28,9 +27,16 @@ import {
   Building2,
   Plus,
   Search,
+  Filter,
+  Calendar,
+  Users,
+  ChevronRight,
+  User as UserIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface Payment {
   id: string;
@@ -45,75 +51,87 @@ interface Payment {
     client?: {
       firstName: string;
       lastName: string;
+      asesor?: {
+        firstName: string;
+        lastName: string;
+      }
     };
   };
 }
 
-export const dynamic = 'force-dynamic';
+interface Advisor {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [advisors, setAdvisors] = useState<Advisor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalPayments: 0,
-    completedPayments: 0,
-    pendingPayments: 0,
-    totalAmount: 0,
-  });
   const [search, setSearch] = useState('');
+  
+  // Filtros
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [advisorId, setAdvisorId] = useState('all');
 
-  useEffect(() => {
-    fetchPayments();
-  }, []);
+  const fetchAdvisors = async () => {
+    try {
+      const res = await fetch('/api/admin/users');
+      if (res.ok) {
+        const data = await res.json();
+        // Filtrar solo los que sean ASESOR o tengan clientes asignados
+        const advisorUsers = data.users.filter((u: any) => u.role === 'ASESOR' || u.role === 'ADMIN');
+        setAdvisors(advisorUsers);
+      }
+    } catch (e) {
+      console.error('Error fetching advisors:', e);
+    }
+  };
 
-  const fetchPayments = async () => {
+  const fetchPayments = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/payments?limit=100');
+      let url = `/api/payments?limit=200`;
+      if (startDate) url += `&startDate=${startDate}`;
+      if (endDate) url += `&endDate=${endDate}`;
+      if (advisorId !== 'all') url += `&advisorId=${advisorId}`;
+
+      const response = await fetch(url);
       if (!response.ok) throw new Error('Error al cargar pagos');
       const data = await response.json();
       setPayments(data.payments || []);
-      if (data.stats) setStats(data.stats);
     } catch (error) {
       console.error('Error fetching payments:', error);
-      toast.error('Error al cargar los pagos');
+      toast.error('Error al cargar la lista de cobros');
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate, advisorId]);
+
+  useEffect(() => {
+    fetchAdvisors();
+    fetchPayments();
+  }, [fetchPayments]);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
 
-  const getStatusIcon = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'COMPLETED': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'FAILED': return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      default: return <Clock className="h-4 w-4 text-yellow-500" />;
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'COMPLETED': return 'Completado';
-      case 'FAILED': return 'Fallido';
-      case 'PENDING': return 'Pendiente';
-      default: return status;
-    }
-  };
-
-  const getMethodLabel = (method: string) => {
-    switch (method) {
-      case 'CASH': return 'Efectivo';
-      case 'SPEI': return 'SPEI';
-      case 'BANK_TRANSFER': return 'Transferencia';
-      default: return method;
+      case 'COMPLETED': 
+        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0 font-black text-[10px] uppercase px-2 py-0.5"><CheckCircle className="h-3 w-3 mr-1" /> Completado</Badge>;
+      case 'FAILED': 
+        return <Badge variant="destructive" className="font-black text-[10px] uppercase px-2 py-0.5">Fallido</Badge>;
+      default: 
+        return <Badge variant="outline" className="font-black text-[10px] uppercase px-2 py-0.5">Pendiente</Badge>;
     }
   };
 
   const getMethodIcon = (method: string) => {
-    if (method === 'CASH') return <Banknote className="h-4 w-4 text-green-600" />;
-    return <Building2 className="h-4 w-4 text-blue-600" />;
+    if (method === 'CASH') return <Banknote className="h-5 w-5 text-green-600" />;
+    return <Building2 className="h-5 w-5 text-blue-600" />;
   };
 
   const filteredPayments = payments.filter(p => {
@@ -126,179 +144,203 @@ export default function PaymentsPage() {
   });
 
   return (
-    <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Gestión de Pagos
+    <div className="space-y-6 max-w-7xl mx-auto px-4 pb-12">
+      {/* Header Premium - Sin cajas de resumen como se solicitó */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-4">
+        <div className="space-y-1">
+          <Badge className="bg-blue-600/10 text-blue-700 hover:bg-blue-600/10 border-0 font-black text-[11px] uppercase tracking-wider px-3 mb-2">
+            Finanzas & Control
+          </Badge>
+          <h1 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight leading-none">
+            Gestión de <span className="text-blue-600">Cobros</span>
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Registro de cobros en efectivo y SPEI
+          <p className="text-base md:text-lg text-gray-500 font-medium">
+            Historial detallado y filtros avanzados de recaudación.
           </p>
         </div>
-        <Button asChild>
+        <Button asChild size="lg" className="h-14 px-8 rounded-2xl font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95 transition-all">
           <Link href="/admin/payments/new">
-            <Plus className="h-4 w-4 mr-2" />
-            Registrar Cobro
+            <Plus className="h-5 w-5 mr-2" />
+            Registrar Pago
           </Link>
         </Button>
       </div>
 
-      {/* KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Total Cobros</h3>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
+      {/* Filtros Avanzados */}
+      <Card className="border border-gray-100 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm">
+        <CardContent className="p-4 md:p-6 bg-gray-50/50 dark:bg-gray-900/50">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Buscador */}
+            <div className="space-y-2 lg:col-span-1">
+              <Label className="text-[10px] font-black uppercase text-gray-400 ml-1">Buscar</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Cliente o Préstamo..."
+                  className="pl-10 h-12 rounded-xl bg-white dark:bg-gray-900 border-gray-200"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="text-2xl font-bold">{stats.totalPayments}</div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Monto Cobrado</h3>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            {/* Filtro Fecha Inicio */}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-gray-400 ml-1">Desde</Label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="date"
+                  className="pl-10 h-12 rounded-xl bg-white dark:bg-gray-900 border-gray-200"
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="text-2xl font-bold">
-              {formatCurrency(stats.totalAmount)}
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Completados</h3>
-              <CheckCircle className="h-4 w-4 text-green-500" />
+            {/* Filtro Fecha Fin */}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-gray-400 ml-1">Hasta</Label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="date"
+                  className="pl-10 h-12 rounded-xl bg-white dark:bg-gray-900 border-gray-200"
+                  value={endDate}
+                  onChange={e => setEndDate(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="text-2xl font-bold text-green-600">{stats.completedPayments}</div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Pendientes</h3>
-              <Clock className="h-4 w-4 text-yellow-500" />
+            {/* Filtro Asesor */}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-gray-400 ml-1">Asesor / Cobrador</Label>
+              <Select value={advisorId} onValueChange={setAdvisorId}>
+                <SelectTrigger className="h-12 rounded-xl bg-white dark:bg-gray-900 border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-gray-400" />
+                    <SelectValue placeholder="Seleccionar Asesor" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all">Todos los Asesores</SelectItem>
+                  {advisors.map(adv => (
+                    <SelectItem key={adv.id} value={adv.id}>
+                      {adv.firstName} {adv.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="text-2xl font-bold text-yellow-600">{stats.pendingPayments}</div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <Tabs defaultValue="payments" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="payments">Historial de Cobros</TabsTrigger>
-          <TabsTrigger value="spei">Registrar SPEI</TabsTrigger>
+      {/* Historial con Texto más grande y optimizado */}
+      <Tabs defaultValue="payments" className="w-full">
+        <TabsList className="bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl mb-4 h-14">
+          <TabsTrigger value="payments" className="rounded-xl px-8 h-12 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Historial de Cobros
+          </TabsTrigger>
+          <TabsTrigger value="spei" className="rounded-xl px-8 h-12 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Registro SPEI
+          </TabsTrigger>
         </TabsList>
 
-        {/* Historial de Cobros */}
         <TabsContent value="payments">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Historial de Cobros</CardTitle>
-                <CardDescription>
-                  Todos los pagos registrados (efectivo y SPEI)
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar cliente, préstamo..."
-                    className="pl-9 w-64"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                  />
-                </div>
-                <Button variant="outline" onClick={fetchPayments}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Actualizar
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
+          <Card className="border border-gray-100 dark:border-gray-800 rounded-3xl overflow-hidden shadow-xl shadow-gray-200/20">
+            <div className="overflow-x-auto">
               {loading ? (
-                <div className="flex items-center justify-center h-64">
-                  <RefreshCw className="h-8 w-8 animate-spin" />
+                <div className="p-20 flex flex-col items-center justify-center gap-4">
+                  <RefreshCw className="h-10 w-10 text-blue-600 animate-spin" />
+                  <p className="font-bold text-gray-500 animate-pulse text-xl">Sincronizando Cobros...</p>
                 </div>
               ) : (
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
+                <Table>
+                  <TableHeader className="bg-gray-900 dark:bg-gray-950">
+                    <TableRow className="hover:bg-transparent border-0 h-16">
+                      <TableHead className="text-white font-black uppercase tracking-widest text-[11px] pl-6">Cliente & Préstamo</TableHead>
+                      <TableHead className="text-white font-black uppercase tracking-widest text-[11px]">Monto</TableHead>
+                      <TableHead className="text-white font-black uppercase tracking-widest text-[11px]">Estado & Método</TableHead>
+                      <TableHead className="text-white font-black uppercase tracking-widest text-[11px]">Asesor</TableHead>
+                      <TableHead className="text-white font-black uppercase tracking-widest text-[11px] pr-6 text-right">Fecha</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPayments.length === 0 ? (
                       <TableRow>
-                        <TableHead>Cliente</TableHead>
-                        <TableHead>Préstamo</TableHead>
-                        <TableHead>Monto</TableHead>
-                        <TableHead>Método</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead>Referencia</TableHead>
-                        <TableHead>Fecha</TableHead>
+                        <TableCell colSpan={5} className="h-80 text-center">
+                          <div className="flex flex-col items-center justify-center gap-4 text-gray-400">
+                            <CreditCard className="h-16 w-16 opacity-20" />
+                            <p className="text-xl font-bold">No se encontraron cobros registrados</p>
+                            <Button variant="outline" className="rounded-xl" onClick={fetchPayments}>
+                              Limpiar Filtros
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredPayments.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8">
-                            <div className="flex flex-col items-center gap-2">
-                              <CreditCard className="h-12 w-12 text-muted-foreground" />
-                              <p className="text-muted-foreground">No hay cobros registrados</p>
-                              <Button asChild size="sm">
-                                <Link href="/admin/payments/new">Registrar primer cobro</Link>
-                              </Button>
+                    ) : (
+                      filteredPayments.map((payment) => (
+                        <TableRow key={payment.id} className="h-24 hover:bg-gray-50 dark:hover:bg-gray-900/50 border-b border-gray-100 dark:border-gray-800 group">
+                          <TableCell className="pl-6">
+                            <div className="space-y-1">
+                              <p className="text-lg font-black text-gray-900 dark:text-gray-100 leading-tight">
+                                {payment.loan?.client?.firstName} {payment.loan?.client?.lastName}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded leading-none">
+                                  {payment.loan?.loanNumber || 'TICKET'}
+                                </span>
+                                <span className="text-xs text-gray-400 font-mono">
+                                  Ref: {payment.reference || '--'}
+                                </span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-2xl font-black text-blue-700 tracking-tighter">
+                              {formatCurrency(payment.amount)}
+                            </p>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-2">
+                              {getStatusBadge(payment.status)}
+                              <div className="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase ml-1">
+                                {getMethodIcon(payment.paymentMethod)}
+                                {payment.paymentMethod === 'CASH' ? 'Efectivo' : 'Depósito/SPEI'}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-sm font-bold text-gray-600 dark:text-gray-400">
+                              <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                                <UserIcon className="h-4 w-4 text-blue-600" />
+                              </div>
+                              {payment.loan?.client?.asesor 
+                                ? `${payment.loan.client.asesor.firstName}` 
+                                : 'Sistema'}
+                            </div>
+                          </TableCell>
+                          <TableCell className="pr-6 text-right">
+                            <div className="space-y-1">
+                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                {format(new Date(payment.paymentDate), "d 'de' MMM", { locale: es })}
+                              </p>
+                              <p className="text-xs text-gray-400 uppercase font-bold">
+                                {format(new Date(payment.paymentDate), "yyyy", { locale: es })}
+                              </p>
                             </div>
                           </TableCell>
                         </TableRow>
-                      ) : (
-                        filteredPayments.map((payment) => (
-                          <TableRow key={payment.id}>
-                            <TableCell>
-                              {payment.loan?.client
-                                ? `${payment.loan.client.firstName} ${payment.loan.client.lastName}`
-                                : 'N/A'}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm">
-                              {payment.loan?.loanNumber || 'N/A'}
-                            </TableCell>
-                            <TableCell className="font-semibold">
-                              {formatCurrency(payment.amount)}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1.5">
-                                {getMethodIcon(payment.paymentMethod)}
-                                <span className="text-sm">{getMethodLabel(payment.paymentMethod)}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                {getStatusIcon(payment.status)}
-                                <Badge variant={payment.status === 'COMPLETED' ? 'default' : payment.status === 'FAILED' ? 'destructive' : 'secondary'}>
-                                  {getStatusLabel(payment.status)}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground font-mono">
-                              {payment.reference || '—'}
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {new Date(payment.paymentDate).toLocaleDateString('es-MX')}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               )}
-            </CardContent>
+            </div>
           </Card>
         </TabsContent>
 
-        {/* Registrar SPEI */}
         <TabsContent value="spei">
           <SpeiManualForm onSuccess={fetchPayments} />
         </TabsContent>
@@ -349,88 +391,89 @@ function SpeiManualForm({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-blue-600" />
-          Registrar Pago SPEI (Manual)
+    <Card className="rounded-3xl overflow-hidden border-orange-100">
+      <CardHeader className="bg-orange-50/50 dark:bg-orange-950/20 border-b">
+        <CardTitle className="flex items-center gap-2 text-2xl font-black">
+          <Building2 className="h-6 w-6 text-orange-600" />
+          Registro Manual SPEI
         </CardTitle>
         <CardDescription>
-          Registra una transferencia SPEI recibida manualmente con su número de referencia bancaria
+          Ingresa transferencias recibidas con su folio de rastreo bancario.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-5 max-w-lg">
-          <div className="space-y-2">
-            <Label htmlFor="loanId">ID del Préstamo <span className="text-red-500">*</span></Label>
-            <Input
-              id="loanId"
-              placeholder="Pega el ID del préstamo"
-              value={form.loanId}
-              onChange={e => setForm(f => ({ ...f, loanId: e.target.value }))}
-              required
-            />
-            <p className="text-xs text-muted-foreground">Puedes copiar el ID desde la pantalla de detalle del préstamo.</p>
+      <CardContent className="pt-8">
+        <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto pb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <Label htmlFor="loanId" className="text-sm font-black uppercase text-gray-500">ID del Préstamo</Label>
+              <Input
+                id="loanId"
+                placeholder="ID o Folio de Préstamo"
+                className="h-14 rounded-2xl bg-gray-50 border-gray-100 font-bold text-lg"
+                value={form.loanId}
+                onChange={e => setForm(f => ({ ...f, loanId: e.target.value }))}
+                required
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="amount" className="text-sm font-black uppercase text-gray-500">Monto Recibido (MXN)</Label>
+              <Input
+                id="amount"
+                type="number"
+                min="1"
+                step="0.01"
+                placeholder="0.00"
+                className="h-14 rounded-2xl bg-gray-50 border-gray-100 font-black text-2xl text-blue-700"
+                value={form.amount}
+                onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+                required
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="reference" className="text-sm font-black uppercase text-gray-500">Referencia Bancaria</Label>
+              <Input
+                id="reference"
+                placeholder="Folio SPEI"
+                className="h-14 rounded-2xl bg-gray-50 border-gray-100 font-mono font-bold"
+                value={form.reference}
+                onChange={e => setForm(f => ({ ...f, reference: e.target.value }))}
+                required
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="paymentDate" className="text-sm font-black uppercase text-gray-500">Fecha Valor</Label>
+              <Input
+                id="paymentDate"
+                type="date"
+                className="h-14 rounded-2xl bg-gray-50 border-gray-100 font-bold"
+                value={form.paymentDate}
+                onChange={e => setForm(f => ({ ...f, paymentDate: e.target.value }))}
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="amount">Monto Recibido (MXN) <span className="text-red-500">*</span></Label>
-            <Input
-              id="amount"
-              type="number"
-              min="1"
-              step="0.01"
-              placeholder="0.00"
-              value={form.amount}
-              onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="reference">Referencia SPEI / Folio <span className="text-red-500">*</span></Label>
-            <Input
-              id="reference"
-              placeholder="Ej: 202602261234567890"
-              value={form.reference}
-              onChange={e => setForm(f => ({ ...f, reference: e.target.value }))}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="paymentDate">Fecha del Depósito</Label>
-            <Input
-              id="paymentDate"
-              type="date"
-              value={form.paymentDate}
-              onChange={e => setForm(f => ({ ...f, paymentDate: e.target.value }))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Observaciones</Label>
+          <div className="space-y-3">
+            <Label htmlFor="notes" className="text-sm font-black uppercase text-gray-500">Observaciones</Label>
             <Textarea
               id="notes"
-              placeholder="Notas adicionales sobre la transferencia..."
+              placeholder="Notas del depósito..."
+              className="rounded-2xl bg-gray-50 border-gray-100 text-lg"
               value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={3}
             />
           </div>
 
-          <Button type="submit" disabled={submitting} className="w-full">
+          <Button type="submit" disabled={submitting} className="w-full h-16 rounded-2xl font-black text-xl uppercase tracking-widest transition-all bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20">
             {submitting ? (
-              <div className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4 animate-spin" />
-                Registrando...
-              </div>
+              <RefreshCw className="h-6 w-6 animate-spin mr-3" />
             ) : (
-              <>
-                <Building2 className="h-4 w-4 mr-2" />
-                Registrar Pago SPEI
-              </>
+              <CheckCircle className="h-6 w-6 mr-3" />
             )}
+            {submitting ? 'Procesando...' : 'Confirmar de Pago'}
           </Button>
         </form>
       </CardContent>

@@ -30,8 +30,26 @@ export async function GET(request: NextRequest) {
         const page = parseInt(searchParams.get('page') || '1');
         const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
         const skip = (page - 1) * limit;
+        const startDate = searchParams.get('startDate');
+        const endDate = searchParams.get('endDate');
+        const advisorId = searchParams.get('advisorId');
 
         let whereClause: any = { tenantId };
+
+        // Filtro por Fecha
+        if (startDate || endDate) {
+            whereClause.paymentDate = {};
+            if (startDate) {
+                const start = new Date(startDate);
+                start.setHours(0, 0, 0, 0);
+                whereClause.paymentDate.gte = start;
+            }
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                whereClause.paymentDate.lte = end;
+            }
+        }
 
         if (session.user.role === 'CLIENTE') {
             // Solo pagos del cliente logueado
@@ -44,20 +62,12 @@ export async function GET(request: NextRequest) {
             whereClause = {
                 loan: { clientId: clientProfile.id, tenantId }
             };
-        } else if (session.user.role === 'ASESOR') {
-            const assignedCount = await tenantPrisma.client.count({
-                where: { asesorId: session.user.id }
-            });
-
-            if (assignedCount > 0) {
-                // Si tiene clientes asignados, solo ve pagos de sus clientes
-                whereClause = {
-                    loan: {
-                        client: { asesorId: session.user.id }
-                    }
-                };
-            }
-            // Si no tiene ninguno, ve todos los pagos (para que coincida con la vista de clientes/préstamos)
+        } else if (session.user.role === 'ASESOR' || advisorId) {
+            const filterAsesorId = advisorId || session.user.id;
+            // Solo pagos de clientes del asesor especificado
+            whereClause.loan = {
+                client: { asesorId: filterAsesorId }
+            };
         }
 
         const [payments, total] = await Promise.all([
@@ -79,6 +89,12 @@ export async function GET(request: NextRequest) {
                                     firstName: true,
                                     lastName: true,
                                     phone: true,
+                                    asesor: {
+                                        select: {
+                                            firstName: true,
+                                            lastName: true,
+                                        }
+                                    }
                                 }
                             }
                         }
