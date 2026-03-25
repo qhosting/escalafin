@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
@@ -24,6 +25,12 @@ export async function GET() {
     if (!client) {
       return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 });
     }
+
+    // Obtener branding corporativo del Dueño (Tenant)
+    const tenantInfo = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { name: true, logo: true, primaryColor: true }
+    });
 
     // Obtener préstamos activos del cliente
     const activeLoans = await tenantPrisma.loan.findMany({
@@ -139,7 +146,12 @@ export async function GET() {
         totalMonthlyPayment,
         activeLoansCount: activeLoans.length,
         nextPayment
-      }
+      },
+      tenant: tenantInfo ? {
+        name: tenantInfo.name,
+        logo: tenantInfo.logo,
+        primaryColor: tenantInfo.primaryColor
+      } : null
     });
 
   } catch (error) {

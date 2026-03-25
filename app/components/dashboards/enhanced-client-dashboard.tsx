@@ -64,6 +64,11 @@ interface ClientDashboardData {
       loanNumber: string;
     } | null;
   };
+  tenant?: {
+    name: string;
+    logo: string | null;
+    primaryColor: string | null;
+  } | null;
 }
 
 export function EnhancedClientDashboard() {
@@ -240,9 +245,19 @@ export function EnhancedClientDashboard() {
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Building2 className="h-8 w-8 text-primary" />
+            {dashboardData?.tenant?.logo ? (
+              <img 
+                src={dashboardData.tenant.logo} 
+                alt={dashboardData.tenant.name} 
+                className="h-10 w-auto max-w-[120px] object-contain" 
+              />
+            ) : (
+              <Building2 className="h-8 w-8 text-primary" />
+            )}
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">EscalaFin</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {dashboardData?.tenant?.name || 'EscalaFin'}
+              </h1>
               <p className="text-sm text-gray-500">Portal del Cliente</p>
             </div>
           </div>
