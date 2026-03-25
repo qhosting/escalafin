@@ -39,18 +39,11 @@ export default function SoportePage() {
     // Cargar datos desde configuración global
     const fetchData = async () => {
       try {
-        // Cargar SPEI
-        const speiRes = await fetch('/api/admin/settings?category=support_spei');
-        if (speiRes.ok) {
-          const data = await speiRes.json();
-          if (data.settings) setSpeiData(data.settings);
-        }
-
-        // Cargar Contacto
-        const contactRes = await fetch('/api/admin/settings?category=support_contact');
-        if (contactRes.ok) {
-          const data = await contactRes.json();
-          if (data.settings) setContactData(data.settings);
+        const res = await fetch('/api/support/config');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.contact) setContactData(data.contact);
+          if (data.spei) setSpeiData(data.spei);
         }
       } catch (error) {
         console.error('Error fetching support data:', error);
@@ -77,6 +70,8 @@ export default function SoportePage() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
+
+  const isAdmin = session.user.role === 'ADMIN' || session.user.role === 'SUPER_ADMIN';
 
   return (
     <div className="container max-w-4xl mx-auto p-6 space-y-6">
@@ -145,7 +140,8 @@ export default function SoportePage() {
           </CardContent>
         </Card>
 
-        {/* Recarga de mensajes */}
+        {/* Recarga de mensajes (Solo Admins) */}
+        {isAdmin && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -198,9 +194,11 @@ export default function SoportePage() {
             </div>
           </CardContent>
         </Card>
+        )}
       </div>
 
-      {/* Información de transferencia SPEI */}
+      {/* Información de transferencia SPEI (Solo Admins) */}
+      {isAdmin && (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -292,8 +290,10 @@ export default function SoportePage() {
           </div>
         </CardContent>
       </Card>
+      )}
 
-      {/* FAQ o preguntas frecuentes */}
+      {/* FAQ o preguntas frecuentes (Solo Admins) */}
+      {isAdmin && (
       <Card>
         <CardHeader>
           <CardTitle>Preguntas Frecuentes</CardTitle>
@@ -323,6 +323,7 @@ export default function SoportePage() {
           </div>
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

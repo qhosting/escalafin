@@ -128,7 +128,7 @@ export default function ClientsPage() {
         totalClients,
         activeClients,
         totalLoans,
-        totalPortfolio,
+        totalPortfolio: data.stats?.totalPortfolio || 0,
         avgCreditScore: Math.round(avgCreditScore)
       });
 

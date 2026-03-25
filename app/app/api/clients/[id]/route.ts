@@ -130,7 +130,8 @@ export async function PATCH(
     }
 
     const existingClient = await prisma.client.findFirst({
-      where: whereClause
+      where: whereClause,
+      include: { guarantor: true }
     });
 
     if (!existingClient) {
@@ -201,7 +202,7 @@ export async function PATCH(
         status: status as any || existingClient.status,
         asesorId: finalAsesorId,
         guarantor: guarantor !== undefined ? (
-          guarantor === null ? { delete: true } : {
+          guarantor === null ? (existingClient.guarantor ? { delete: true } : undefined) : {
             upsert: {
               create: {
                 fullName: guarantor.fullName,

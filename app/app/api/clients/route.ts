@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       whereClause.asesorId = asesorId;
     }
 
-    const [clients, totalCount] = await Promise.all([
+    const [clients, totalCount, stats] = await Promise.all([
       tenantPrisma.client.findMany({
         where: whereClause,
         include: {
@@ -104,7 +104,14 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit
       }),
-      tenantPrisma.client.count({ where: whereClause })
+      tenantPrisma.client.count({ where: whereClause }),
+      tenantPrisma.loan.aggregate({
+        where: { 
+          status: { in: ['ACTIVE', 'DEFAULTED'] },
+          client: whereClause // Si hay filtros, sumamos solo para esos
+        },
+        _sum: { balanceRemaining: true }
+      })
     ]);
 
     return NextResponse.json({
@@ -114,6 +121,9 @@ export async function GET(request: NextRequest) {
         limit,
         totalCount,
         totalPages: Math.ceil(totalCount / limit)
+      },
+      stats: {
+        totalPortfolio: Number(stats._sum?.balanceRemaining || 0)
       }
     });
 

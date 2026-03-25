@@ -159,3 +159,13 @@
     @apply text-destructive;
   }
 }
+
+/* 
+  PWA text scaling for standard readability 
+  Uniformly increases text size and REM units when installed as a mobile app
+*/
+@media screen and (max-width: 768px) and (display-mode: standalone) {
+  html {
+    font-size: 17px !important;
+  }
+}

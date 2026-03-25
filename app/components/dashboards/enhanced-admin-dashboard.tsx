@@ -46,6 +46,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface DashboardStats {
   activeLoans: number;
@@ -54,6 +56,13 @@ interface DashboardStats {
   totalPortfolio: number;
   pendingApplications: number;
   loanGrowth: number;
+  recentActivities?: {
+    action: string;
+    details: string;
+    time: string;
+    status: string;
+    moduleKey: string;
+  }[];
 }
 
 export function EnhancedAdminDashboard() {
@@ -308,36 +317,7 @@ export function EnhancedAdminDashboard() {
     }
   ];
 
-  const recentActivities = [
-    {
-      action: 'Pago procesado',
-      details: '$9,025 - Cliente: María García',
-      time: '2 min',
-      status: 'success',
-      moduleKey: 'payment_history'
-    },
-    {
-      action: 'Nuevo préstamo creado',
-      details: '$50,000 - Cliente: Juan Pérez',
-      time: '15 min',
-      status: 'info',
-      moduleKey: 'loan_create'
-    },
-    {
-      action: 'Cliente registrado',
-      details: 'Ana López - Asesor: Carlos Ruiz',
-      time: '1 hr',
-      status: 'success',
-      moduleKey: 'client_add'
-    },
-    {
-      action: 'Pago vencido',
-      details: '$4,500 - Cliente: Pedro Martín',
-      time: '2 hrs',
-      status: 'warning',
-      moduleKey: 'report_collections'
-    }
-  ];
+  const recentActivities = stats?.recentActivities || [];
 
   if (status === 'loading' || modulesLoading) {
     return (
@@ -354,14 +334,21 @@ export function EnhancedAdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
       <div className="space-y-6">
         <SubscriptionBanner />
-        {/* Welcome Message */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-          <h2 className="text-2xl font-bold mb-2">
-            ¡Bienvenido, {session?.user?.name?.split(' ')[0] || 'Administrador'}!
-          </h2>
-          <p className="text-blue-100">
-            Tienes acceso completo a {modules.length} módulos. Panel de administración integral.
-          </p>
+        {/* Executive Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-gray-200 dark:border-gray-800 mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Resumen de Operaciones
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Indicadores clave de rendimiento (KPIs) y estado del negocio.
+            </p>
+          </div>
+          <div className="text-left sm:text-right mt-2 sm:mt-0">
+            <p className="text-sm font-medium text-gray-900 dark:text-white capitalize">
+              {new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
         </div>
 
         {/* Stats Cards - Datos Reales */}
@@ -606,7 +593,9 @@ export function EnhancedAdminDashboard() {
                           <p className="text-sm text-gray-600">{activity.details}</p>
                         </div>
                       </div>
-                      <Badge variant="outline">{activity.time}</Badge>
+                      <Badge variant="outline">
+                        {activity.time ? formatDistanceToNow(new Date(activity.time), { addSuffix: true, locale: es }) : ''}
+                      </Badge>
                     </div>
                   </ModuleWrapper>
                 ))}

@@ -200,29 +200,6 @@ export function DesktopNavbar() {
             ]
           }
         ],
-        'Comunicación': [
-          {
-            title: 'WhatsApp',
-            items: [
-              { title: 'Mensajes', icon: MessageSquare, href: '/admin/whatsapp/messages', moduleKey: 'whatsapp_notifications' },
-              { title: 'Recargas', icon: RefreshCw, href: '/admin/message-recharges', moduleKey: 'whatsapp_notifications' }
-            ]
-          },
-
-          {
-            title: 'SMS',
-            items: [
-              { title: 'LabsMobile', icon: Phone, href: '/admin/sms', moduleKey: 'labsmobile_sms' }
-            ]
-          },
-          {
-            title: 'Notificaciones',
-            items: [
-              { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' },
-              { title: 'Plantillas de Mensajes', icon: Mail, href: '/admin/message-templates', moduleKey: 'notifications_templates' }
-            ]
-          }
-        ],
         'Configuración': [
           {
             title: 'Sistema',
@@ -292,28 +269,6 @@ export function DesktopNavbar() {
             ]
           }
         ],
-        'Comunicación': [
-          {
-            title: 'WhatsApp',
-            items: [
-              { title: 'Mensajes', icon: MessageSquare, href: '/admin/whatsapp/messages', moduleKey: 'whatsapp_notifications' }
-            ]
-          },
-
-          {
-            title: 'SMS',
-            items: [
-              { title: 'LabsMobile', icon: Phone, href: '/admin/sms', moduleKey: 'labsmobile_sms' }
-            ]
-          },
-          {
-            title: 'Notificaciones',
-            items: [
-              { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' },
-              { title: 'Plantillas de Mensajes', icon: Mail, href: '/admin/message-templates', moduleKey: 'notifications_templates' }
-            ]
-          }
-        ]
       };
     } else { // CLIENTE
       return {
@@ -341,16 +296,6 @@ export function DesktopNavbar() {
             ]
           }
         ],
-        'Comunicación': [
-
-          {
-            title: 'Notificaciones',
-            items: [
-              { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' },
-              { title: 'Plantillas de Mensajes', icon: Mail, href: '/admin/message-templates', moduleKey: 'notifications_templates' }
-            ]
-          }
-        ]
       };
     }
   };

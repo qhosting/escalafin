@@ -21,7 +21,9 @@ export async function GET() {
       totalClients,
       paymentsThisMonth,
       totalPortfolio,
-      pendingApplications
+      pendingApplications,
+      recentPayments,
+      recentLoans
     ] = await Promise.all([
       // Préstamos activos
       tenantPrisma.loan.count({
@@ -50,6 +52,24 @@ export async function GET() {
       // Solicitudes pendientes
       tenantPrisma.creditApplication.count({
         where: { status: 'PENDING' }
+      }),
+
+      // Actividades recientes (pagos)
+      tenantPrisma.payment.findMany({
+        take: 3,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          loan: {
+            include: { client: { select: { firstName: true, lastName: true } } }
+          }
+        }
+      }),
+
+      // Actividades recientes (préstamos)
+      tenantPrisma.loan.findMany({
+        take: 2,
+        orderBy: { createdAt: 'desc' },
+        include: { client: { select: { firstName: true, lastName: true } } }
       })
     ]);
 
@@ -78,13 +98,31 @@ export async function GET() {
       ? Math.round(((thisMonthLoans - lastMonthLoans) / lastMonthLoans) * 100)
       : 0;
 
+    const recentActivities = [
+      ...recentPayments.map(p => ({
+        action: 'Pago procesado',
+        details: `$${Number(p.amount).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} - Cliente: ${p.loan?.client?.firstName || ''} ${p.loan?.client?.lastName || ''}`,
+        time: p.createdAt.toISOString(),
+        status: 'success',
+        moduleKey: 'payment_history'
+      })),
+      ...recentLoans.map(l => ({
+        action: 'Nuevo préstamo creado',
+        details: `$${Number(l.principalAmount).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} - Cliente: ${l.client?.firstName || ''} ${l.client?.lastName || ''}`,
+        time: l.createdAt.toISOString(),
+        status: 'info',
+        moduleKey: 'loan_create'
+      }))
+    ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+
     return NextResponse.json({
       activeLoans: activeLoansCount,
       totalClients,
       paymentsThisMonth: Number(paymentsThisMonth._sum?.amount || 0),
       totalPortfolio: Number(totalPortfolio._sum?.balanceRemaining || 0),
       pendingApplications,
-      loanGrowth
+      loanGrowth,
+      recentActivities
     });
 
   } catch (error) {

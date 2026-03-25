@@ -349,7 +349,7 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
                                 <CollapsibleTrigger asChild>
                                     <Button
                                         variant="ghost"
-                                        className="w-full justify-between items-center group px-4 py-3 h-auto font-medium text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 rounded-2xl transition-all"
+                                        className="w-full justify-between items-center group px-4 py-4 h-auto font-bold text-base text-gray-800 dark:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 rounded-2xl transition-all active:scale-[0.98]"
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className={cn(
@@ -386,8 +386,8 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
                                                             <Button
                                                                 variant={isActive(item.href) ? 'secondary' : 'ghost'}
                                                                 className={cn(
-                                                                    'w-full justify-start text-left h-10 px-4 text-sm rounded-xl',
-                                                                    isActive(item.href) && 'bg-primary/10 text-primary font-semibold'
+                                                                    'w-full justify-start text-left h-12 px-4 text-sm font-semibold rounded-xl transition-all active:scale-[0.98]',
+                                                                    isActive(item.href) && 'bg-primary/15 text-primary font-bold shadow-sm border border-primary/20'
                                                                 )}
                                                             >
                                                                 <item.icon className="h-4 w-4 mr-3 flex-shrink-0" />
