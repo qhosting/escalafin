@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { getTenantPrisma } from '@/lib/tenant-db';
 import { ClientStatus, EmploymentType } from '@prisma/client';
 
 export async function GET(
@@ -17,23 +18,21 @@ export async function GET(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+    const tenantId = session.user.tenantId;
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant no encontrado' }, { status: 400 });
     }
 
+    const tenantPrisma = getTenantPrisma(tenantId);
     const clientId = params.id;
 
-    // Verificar permisos
+    // Verificar permisos de rol
     let whereClause: any = { id: clientId };
-    if (user.role === 'ASESOR') {
-      whereClause.asesorId = user.id;
+    if (session.user.role === 'ASESOR') {
+      whereClause.asesorId = session.user.id;
     }
 
-    const client = await prisma.client.findFirst({
+    const client = await (tenantPrisma.client as any).findFirst({
       where: whereClause,
       include: {
         user: {
@@ -90,10 +89,10 @@ export async function GET(
     });
 
     if (!client) {
-      return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Cliente no encontrado o no pertenece a su tenant' }, { status: 404 });
     }
 
-    const auditLogs = await prisma.auditLog.findMany({
+    const auditLogs = await (tenantPrisma.auditLog as any).findMany({
       where: {
         OR: [
           { resourceId: clientId },
@@ -134,30 +133,28 @@ export async function PATCH(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
-
-    if (!user || user.role === 'CLIENTE') {
-      return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
+    const tenantId = session.user.tenantId;
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant no encontrado' }, { status: 400 });
     }
 
+    const tenantPrisma = getTenantPrisma(tenantId);
     const clientId = params.id;
     const body = await request.json();
 
-    // Verificar que el cliente existe y el usuario tiene permisos
+    // Verificar permisos
     let whereClause: any = { id: clientId };
-    if (user.role === 'ASESOR') {
-      whereClause.asesorId = user.id;
+    if (session.user.role === 'ASESOR') {
+      whereClause.asesorId = session.user.id;
     }
 
-    const existingClient = await prisma.client.findFirst({
+    const existingClient = await (tenantPrisma.client as any).findFirst({
       where: whereClause,
       include: { guarantor: true }
     });
 
     if (!existingClient) {
-      return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Cliente no encontrado o no pertenece a su tenant' }, { status: 404 });
     }
 
     const {
@@ -201,9 +198,9 @@ export async function PATCH(
     }
 
     // Solo admin puede cambiar el asesor asignado
-    const finalAsesorId = user.role === 'ADMIN' && asesorId ? asesorId : existingClient.asesorId;
+    const finalAsesorId = session.user.role === 'ADMIN' && asesorId ? asesorId : existingClient.asesorId;
 
-    const updatedClient = await prisma.client.update({
+    const updatedClient = await (tenantPrisma.client as any).update({
       where: { id: clientId },
       data: {
         firstName: firstName || existingClient.firstName,
@@ -294,18 +291,20 @@ export async function DELETE(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
+    const tenantId = session.user.tenantId;
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant no encontrado' }, { status: 400 });
+    }
 
-    if (!user || user.role !== 'ADMIN') {
+    const tenantPrisma = getTenantPrisma(tenantId);
+    const clientId = params.id;
+
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ error: 'Solo administradores pueden eliminar clientes' }, { status: 403 });
     }
 
-    const clientId = params.id;
-
-    // Verificar que el cliente no tenga préstamos activos
-    const activeLoans = await prisma.loan.findMany({
+    // Verificar que el cliente no tenga préstamos activos en este tenant
+    const activeLoans = await (tenantPrisma.loan as any).findMany({
       where: {
         clientId,
         status: 'ACTIVE'
@@ -318,7 +317,7 @@ export async function DELETE(
       }, { status: 400 });
     }
 
-    await prisma.client.delete({
+    await (tenantPrisma.client as any).delete({
       where: { id: clientId }
     });
 

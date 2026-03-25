@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { getTenantPrisma } from '@/lib/tenant-db';
 import { LoanStatus } from '@prisma/client';
 
 export async function GET(
@@ -17,15 +18,14 @@ export async function GET(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+    const tenantId = session.user.tenantId;
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant no encontrado' }, { status: 400 });
     }
 
-    const loan = await prisma.loan.findUnique({
+    const tenantPrisma = getTenantPrisma(tenantId);
+
+    const loan = await (tenantPrisma.loan as any).findFirst({
       where: { id: params.id },
       include: {
         client: {
@@ -70,21 +70,13 @@ export async function GET(
     });
 
     if (!loan) {
-      return NextResponse.json({ error: 'Préstamo no encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Préstamo no encontrado o no pertenece a su tenant' }, { status: 404 });
     }
 
-    // Verificar permisos
-    /* if (user.role === 'ASESOR') {
-      const client = await prisma.client.findUnique({
-        where: { id: loan.clientId }
-      });
-
-      if (client?.asesorId !== user.id) {
-        return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
-      }
-    } else */ if (user.role === 'CLIENTE') {
-      const clientProfile = await prisma.client.findFirst({
-        where: { userId: user.id }
+    // Verificar permisos de rol (si es cliente, que sea SU préstamo)
+    if (session.user.role === 'CLIENTE') {
+      const clientProfile = await (tenantPrisma.client as any).findFirst({
+        where: { userId: session.user.id }
       });
 
       if (loan.clientId !== clientProfile?.id) {
@@ -111,11 +103,14 @@ export async function PUT(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
+    const tenantId = session.user.tenantId;
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant no encontrado' }, { status: 400 });
+    }
 
-    if (!user || user.role === 'CLIENTE') {
+    const tenantPrisma = getTenantPrisma(tenantId);
+
+    if (session.user.role === 'CLIENTE') {
       return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
     }
 
@@ -134,13 +129,13 @@ export async function PUT(
       clientId
     } = body;
 
-    const loan = await prisma.loan.findUnique({
+    const loan = await (tenantPrisma.loan as any).findFirst({
       where: { id: params.id },
       include: { client: true }
     });
 
     if (!loan) {
-      return NextResponse.json({ error: 'Préstamo no encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Préstamo no encontrado o no pertenece a su tenant' }, { status: 404 });
     }
 
     const updateData: any = {};
@@ -160,7 +155,7 @@ export async function PUT(
     if (clientId) updateData.clientId = clientId;
     if (notes !== undefined) updateData.notes = notes;
 
-    const updatedLoan = await prisma.loan.update({
+    const updatedLoan = await (tenantPrisma.loan as any).update({
       where: { id: params.id },
       data: updateData,
       include: {
@@ -194,15 +189,18 @@ export async function DELETE(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
+    const tenantId = session.user.tenantId;
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant no encontrado' }, { status: 400 });
+    }
 
-    if (!user || user.role !== 'ADMIN') {
+    const tenantPrisma = getTenantPrisma(tenantId);
+
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ error: 'Solo administradores pueden eliminar préstamos' }, { status: 403 });
     }
 
-    const loan = await prisma.loan.findUnique({
+    const loan = await (tenantPrisma.loan as any).findFirst({
       where: { id: params.id },
       include: {
         payments: true,
@@ -211,7 +209,7 @@ export async function DELETE(
     });
 
     if (!loan) {
-      return NextResponse.json({ error: 'Préstamo no encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Préstamo no encontrado o no pertenece a su tenant' }, { status: 404 });
     }
 
     // No permitir eliminar préstamos con pagos
@@ -222,11 +220,11 @@ export async function DELETE(
     }
 
     // Eliminar tabla de amortización y préstamo
-    await prisma.$transaction([
-      prisma.amortizationSchedule.deleteMany({
+    await (tenantPrisma as any).$transaction([
+      (tenantPrisma.amortizationSchedule as any).deleteMany({
         where: { loanId: params.id }
       }),
-      prisma.loan.delete({
+      (tenantPrisma.loan as any).delete({
         where: { id: params.id }
       })
     ]);

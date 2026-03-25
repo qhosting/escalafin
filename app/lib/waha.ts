@@ -350,9 +350,45 @@ export class WahaService {
 
       // Filter for our session
       const session = response.data.find((s: any) => s.name === config.sessionId);
-      return session || { status: 'qh', details: 'Session not found in Waha response' };
+      return session || { status: 'DISCONNECTED', details: 'Session not found in Waha response' };
     } catch (error) {
       console.error('Error getting Waha session status:', error);
+      throw error;
+    }
+  }
+
+  async logout(): Promise<any> {
+    try {
+      const config = await this.ensureConfig();
+
+      // En WAHA, cerrar sesión suele requerir eliminar el directorio de la sesión o usar el endpoint logout
+      // Dependiendo de la versión de WAHA. Para WAHA >= 2024.x:
+      const response = await axios.post(
+        `${config.baseUrl}/api/sessions/logout`,
+        { name: config.sessionId },
+        { headers: this.getHeaders(config.apiKey) }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Error logging out Waha session:', error);
+      throw error;
+    }
+  }
+
+  async start(): Promise<any> {
+    try {
+      const config = await this.ensureConfig();
+
+      const response = await axios.post(
+        `${config.baseUrl}/api/sessions/start`,
+        { name: config.sessionId },
+        { headers: this.getHeaders(config.apiKey) }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Error starting Waha session:', error);
       throw error;
     }
   }
