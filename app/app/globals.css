@@ -164,8 +164,24 @@
   PWA text scaling for standard readability 
   Uniformly increases text size and REM units when installed as a mobile app
 */
+@media screen and (max-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+  
+  h1 { @apply text-3xl font-black; }
+  h2 { @apply text-2xl font-black; }
+  p { @apply text-base; }
+}
+
 @media screen and (max-width: 768px) and (display-mode: standalone) {
   html {
-    font-size: 17px !important;
+    font-size: 17.5px !important;
   }
-}
+  
+  /* Aumentar padding global en modo PWA para evitar cortes con bordes redondos */
+  body {
+    @apply antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
