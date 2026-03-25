@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -14,12 +14,10 @@ import {
     FileText,
     MessageCircle,
     Download,
-    X,
-    CheckCircle2,
+    Loader2,
     Calendar,
     DollarSign,
     User,
-    ArrowRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -49,6 +47,7 @@ export function LoanStatementModal({
     onOpenChange,
     loan
 }: LoanStatementModalProps) {
+    const [downloadingPDF, setDownloadingPDF] = useState(false);
     if (!loan) return null;
 
     const formatCurrency = (amount: number) => {
@@ -58,9 +57,41 @@ export function LoanStatementModal({
         }).format(amount);
     };
 
-    const handleDownloadPDF = () => {
-        window.open(`/api/loans/${loan.id}/statement`, '_blank');
-        toast.success('Generando PDF...');
+    const handleDownloadPDF = async () => {
+        try {
+            setDownloadingPDF(true);
+            toast.info('Generando PDF, un momento...');
+
+            // Usar fetch para preservar cookies de sesión en Safari / PWA
+            const response = await fetch(`/api/loans/${loan.id}/statement`, {
+                method: 'GET',
+                credentials: 'include', // ← clave para enviar cookie de sesión
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `Error ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            // Descarga programática — funciona en todos los browsers incluyendo iOS
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = `Estado_Cuenta_${loan.loanNumber}.pdf`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+            URL.revokeObjectURL(url);
+
+            toast.success('PDF descargado correctamente');
+        } catch (error: any) {
+            console.error('Error descargando PDF:', error);
+            toast.error(`Error al descargar: ${error.message || 'Intenta de nuevo'}`);
+        } finally {
+            setDownloadingPDF(false);
+        }
     };
 
     const handleShareWhatsApp = () => {
@@ -141,9 +172,14 @@ export function LoanStatementModal({
                             variant="outline"
                             className="h-24 flex flex-col gap-2 hover:bg-slate-50 border-2"
                             onClick={handleDownloadPDF}
+                            disabled={downloadingPDF}
                         >
-                            <Download className="h-6 w-6 text-blue-600" />
-                            <span>Descargar PDF</span>
+                            {downloadingPDF ? (
+                                <Loader2 className="h-6 w-6 text-blue-600 animate-spin" />
+                            ) : (
+                                <Download className="h-6 w-6 text-blue-600" />
+                            )}
+                            <span>{downloadingPDF ? 'Generando...' : 'Descargar PDF'}</span>
                         </Button>
 
                         <Button

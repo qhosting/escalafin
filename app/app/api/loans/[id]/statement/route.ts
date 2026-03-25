@@ -13,7 +13,7 @@ export async function GET(
 ) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session?.user?.tenantId) {
+        if (!session?.user) {
             return new NextResponse('No autorizado o sesión expirada', { status: 401 });
         }
 
@@ -38,6 +38,17 @@ export async function GET(
 
         if (!loan) {
             return new NextResponse('Préstamo no encontrado en su cuenta', { status: 404 });
+        }
+
+        // Si el rol es CLIENTE, solo puede ver SU propio préstamo
+        if (session.user.role === 'CLIENTE') {
+            // Verificar que el cliente esté vinculado a este préstamo vía userId
+            const clientRecord = await tenantPrisma.client.findFirst({
+                where: { userId: session.user.id }
+            });
+            if (!clientRecord || loan.clientId !== clientRecord.id) {
+                return new NextResponse('No autorizado para ver este préstamo', { status: 403 });
+            }
         }
 
         // Obtener branding del tenant (nombre, logo si existe)
