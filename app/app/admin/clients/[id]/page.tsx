@@ -275,63 +275,94 @@ export default function ClientDetailPage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="info" className="space-y-4">
-        {/* TabsList con scroll horizontal para PWA */}
-        <div className="overflow-x-auto -mx-1 px-1">
-          <TabsList className="inline-flex w-max min-w-full h-10 whitespace-nowrap">
-            <TabsTrigger value="info" className="text-xs px-3">Información</TabsTrigger>
-            <TabsTrigger value="references" className="text-xs px-3">Referencias</TabsTrigger>
-            <TabsTrigger value="loans" className="text-xs px-3">
+      <Tabs defaultValue="info" className="space-y-6">
+        {/* TabsList - Diseño Premium PWA con iconos */}
+        <div className="overflow-x-auto -mx-1 px-1 no-scrollbar">
+          <TabsList className="inline-flex w-max min-w-full h-12 p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-full border border-gray-100 dark:border-gray-800 backdrop-blur-sm">
+            <TabsTrigger value="info" className="rounded-full px-5 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-tight">
+              <User className="h-3.5 w-3.5" />
+              Información
+            </TabsTrigger>
+            <TabsTrigger value="references" className="rounded-full px-5 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-tight">
+              <Users className="h-3.5 w-3.5" />
+              Referencias
+            </TabsTrigger>
+            <TabsTrigger value="loans" className="rounded-full px-5 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-tight">
+              <CreditCard className="h-3.5 w-3.5" />
               Préstamos
               {client.loans.length > 0 && (
-                <span className="ml-1 bg-primary/20 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-bold">{client.loans.length}</span>
+                <span className="ml-1 bg-primary text-white text-[9px] px-1.5 py-0.5 rounded-full font-black">{client.loans.length}</span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="applications" className="text-xs px-3">
+            <TabsTrigger value="applications" className="rounded-full px-5 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-tight">
+              <FileText className="h-3.5 w-3.5" />
               Solicitudes
               {client.creditApplications.length > 0 && (
-                <span className="ml-1 bg-primary/20 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-bold">{client.creditApplications.length}</span>
+                <span className="ml-1 bg-primary text-white text-[9px] px-1.5 py-0.5 rounded-full font-black">{client.creditApplications.length}</span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="activity" className="text-xs px-3">Actividad</TabsTrigger>
+            <TabsTrigger value="activity" className="rounded-full px-5 py-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all flex items-center gap-2 font-bold text-xs uppercase tracking-tight">
+              <TrendingUp className="h-3.5 w-3.5" />
+              Actividad
+            </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="info">
+        <TabsContent value="info" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             {/* Información Personal */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
+            <Card className="rounded-2xl border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+              <CardHeader className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-100/50 dark:border-gray-800/50 py-4">
+                <CardTitle className="flex items-center gap-3 text-base">
+                  <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <User className="h-4 w-4 text-primary" />
+                  </div>
                   Información Personal
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>{client.email || 'Sin email'}</span>
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center shrink-0">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase text-gray-400">Email</p>
+                    <p className="text-sm font-bold truncate">{client.email || 'Sin email'}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{client.phone}</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center shrink-0">
+                    <Phone className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase text-gray-400">Teléfono</p>
+                    <p className="text-sm font-bold">{client.phone}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>
-                    {client.dateOfBirth 
-                      ? new Date(client.dateOfBirth).toLocaleDateString('es-MX')
-                      : 'Sin fecha de nacimiento'
-                    }
-                  </span>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center shrink-0">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase text-gray-400">Fecha de Nacimiento</p>
+                    <p className="text-sm font-bold">
+                      {client.dateOfBirth 
+                        ? new Date(client.dateOfBirth).toLocaleDateString('es-MX', { dateStyle: 'long' })
+                        : 'Sin fecha registrada'
+                      }
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
-                  <div>
-                    <p>{client.address || 'Sin dirección'}</p>
+                <div className="flex items-start gap-3 pt-2">
+                  <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase text-gray-400">Dirección Residencial</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{client.address || 'Sin dirección'}</p>
                     {(client.city || client.state) && (
-                      <p className="text-sm text-muted-foreground">
-                        {client.city} {client.state} {client.postalCode}
+                      <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                        {client.city}, {client.state} · CP {client.postalCode}
                       </p>
                     )}
                   </div>
@@ -340,114 +371,163 @@ export default function ClientDetailPage() {
             </Card>
 
             {/* Información Financiera */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
+            <Card className="rounded-2xl border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+              <CardHeader className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-100/50 dark:border-gray-800/50 py-4">
+                <CardTitle className="flex items-center gap-3 text-base">
+                  <div className="w-8 h-8 rounded-xl bg-green-500/10 flex items-center justify-center">
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                  </div>
                   Información Financiera
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ingreso Mensual:</span>
-                  <span className="font-semibold">
-                    {client.monthlyIncome 
-                      ? new Intl.NumberFormat('es-MX', {
-                          style: 'currency',
-                          currency: 'MXN'
-                        }).format(client.monthlyIncome)
-                      : 'No registrado'
-                    }
-                  </span>
+              <CardContent className="p-6 space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-2xl border border-gray-100/50 dark:border-gray-800/50">
+                    <p className="text-[10px] font-bold uppercase text-gray-400 mb-1">Ingreso Mensual</p>
+                    <p className="text-sm font-extrabold text-green-600">
+                      {client.monthlyIncome 
+                        ? new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(client.monthlyIncome)
+                        : 'N/A'
+                      }
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-2xl border border-gray-100/50 dark:border-gray-800/50">
+                    <p className="text-[10px] font-bold uppercase text-gray-400 mb-1">Score Crediticio</p>
+                    <p className="text-sm font-extrabold text-blue-600">{client.creditScore || 'N/A'}</p>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Score Crediticio:</span>
-                  <span className="font-semibold">{client.creditScore || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Banco Principal:</span>
-                  <span className="font-semibold">{client.bankName || 'No registrado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Cuenta:</span>
-                  <span className="font-mono text-sm">{client.accountNumber || 'N/A'}</span>
+                
+                <div className="space-y-4 pt-1">
+                  <div className="flex items-center justify-between border-b border-gray-50 dark:border-gray-900 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+                        <Building className="h-3 w-3 text-gray-400" />
+                      </div>
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-tight">Banco:</span>
+                    </div>
+                    <span className="text-sm font-bold">{client.bankName || 'No registrado'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+                        <CreditCard className="h-3 w-3 text-gray-400" />
+                      </div>
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-tight">Cuenta / CLABE:</span>
+                    </div>
+                    <span className="text-sm font-mono font-bold text-gray-700 dark:text-gray-300">{client.accountNumber || 'N/A'}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Información Laboral */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="h-5 w-5" />
+            <Card className="rounded-2xl border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+              <CardHeader className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-100/50 dark:border-gray-800/50 py-4">
+                <CardTitle className="flex items-center gap-3 text-base">
+                  <div className="w-8 h-8 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                    <Building className="h-4 w-4 text-orange-600" />
+                  </div>
                   Información Laboral
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tipo de Empleo:</span>
-                  <span className="font-semibold">{client.employmentType || 'No registrado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Empleador:</span>
-                  <span className="font-semibold">{client.employerName || 'No registrado'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Años de Experiencia:</span>
-                  <span className="font-semibold">{client.yearsEmployed || 0} años</span>
-                </div>
-                {client.workAddress && (
-                  <div className="flex items-start gap-2">
-                    <span className="text-muted-foreground text-sm">Dirección:</span>
-                    <span className="text-sm">{client.workAddress}</span>
+              <CardContent className="p-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold uppercase text-gray-400">Tipo de Empleo</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{client.employmentType || 'No registrado'}</p>
                   </div>
-                )}
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold uppercase text-gray-400">Tiempo en el puesto</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{client.yearsEmployed || 0} años</p>
+                  </div>
+                </div>
+                
+                <Separator className="opacity-50" />
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+                      <Package className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-gray-400">Empleador</p>
+                      <p className="text-sm font-bold">{client.employerName || 'No registrado'}</p>
+                    </div>
+                  </div>
+                  {client.workAddress && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center shrink-0 mt-0.5">
+                        <MapPin className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase text-gray-400">Dirección Laboral</p>
+                        <p className="text-xs font-bold leading-relaxed">{client.workAddress}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
-          </div>
 
-          {/* Información del Aval y Garantías */}
-          <div className="grid gap-6 md:grid-cols-2 mt-6">
             {/* Aval */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserCheck className="h-5 w-5" />
+            <Card className="rounded-2xl border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+              <CardHeader className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-100/50 dark:border-gray-800/50 py-4">
+                <CardTitle className="flex items-center gap-3 text-base">
+                  <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                    <UserCheck className="h-4 w-4 text-purple-600" />
+                  </div>
                   Información del Aval
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 {client.guarantor ? (
-                  <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Nombre Completo:</span>
-                      <span className="font-semibold">{client.guarantor.fullName}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Teléfono:</span>
-                      <span className="font-semibold">{client.guarantor.phone}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Parentesco:</span>
-                      <span className="font-semibold">
-                        {client.guarantor.relationship === 'FAMILY' && 'Familiar'}
-                        {client.guarantor.relationship === 'FRIEND' && 'Amigo'}
-                        {client.guarantor.relationship === 'COWORKER' && 'Compañero de Trabajo'}
-                        {client.guarantor.relationship === 'NEIGHBOR' && 'Vecino'}
-                        {client.guarantor.relationship === 'OTHER' && 'Otro'}
-                      </span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                  <div className="space-y-5">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-primary/5 flex items-center justify-center text-primary font-black text-xl">
+                        {client.guarantor.fullName.charAt(0)}
+                      </div>
                       <div>
-                        <p className="text-sm">{client.guarantor.address || 'Sin dirección'}</p>
+                        <p className="text-lg font-extrabold text-gray-900 dark:text-gray-100">{client.guarantor.fullName}</p>
+                        <Badge variant="secondary" className="text-[9px] uppercase font-black px-2 mt-0.5">
+                          {client.guarantor.relationship === 'FAMILY' && 'Familiar'}
+                          {client.guarantor.relationship === 'FRIEND' && 'Amigo'}
+                          {client.guarantor.relationship === 'COWORKER' && 'Compañero'}
+                          {client.guarantor.relationship === 'NEIGHBOR' && 'Vecino'}
+                          {client.guarantor.relationship === 'OTHER' && 'Otro'}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-2xl">
+                        <p className="text-[10px] font-bold uppercase text-gray-400 mb-0.5">Contacto</p>
+                        <p className="text-sm font-bold">{client.guarantor.phone}</p>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-2xl">
+                        <p className="text-[10px] font-bold uppercase text-gray-400 mb-0.5">Referencia</p>
+                        <p className="text-sm font-bold">Aval Solidario</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 bg-gray-50/50 dark:bg-gray-900/50 p-3 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                      <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
+                      <div>
+                        <p className="text-[10px] font-bold uppercase text-gray-400">Ubicación</p>
+                        <p className="text-xs font-bold leading-tight">{client.guarantor.address || 'Sin dirección'}</p>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <UserCheck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">No hay información de aval registrada</p>
+                  <div className="text-center py-10">
+                    <div className="w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center mx-auto mb-4 border border-dashed border-gray-200 dark:border-gray-700">
+                      <UserCheck className="h-8 w-8 text-gray-300" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-400">Sin aval registrado</p>
+                    <p className="text-[10px] uppercase font-bold text-gray-400 px-8 mt-1 leading-relaxed">
+                      Este cliente no cuenta con un aval o garante asignado actualmente.
+                    </p>
+                  </div>
+                )}
                   </div>
                 )}
               </CardContent>
