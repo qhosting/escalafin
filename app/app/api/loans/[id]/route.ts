@@ -92,7 +92,7 @@ export async function GET(
       }
     }
 
-    return NextResponse.json(loan);
+    return NextResponse.json({ loan });
 
   } catch (error) {
     console.error('Error fetching loan:', error);

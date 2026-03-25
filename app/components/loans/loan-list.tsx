@@ -292,10 +292,14 @@ export function LoanList({ userRole }: LoanListProps) {
                     )}
                   </div>
 
-                  <div className="flex md:flex-col lg:flex-row gap-2 mt-2 md:mt-0 md:min-w-[120px] lg:min-w-fit">
+                    <div className="flex md:flex-col lg:flex-row gap-2 mt-2 md:mt-0 md:min-w-[120px] lg:min-w-fit">
                     <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full h-10 rounded-xl border-gray-100 dark:border-gray-800 font-bold hover:bg-primary/5 hover:text-primary transition-all group">
-                        <Eye className="h-4 w-4 mr-1.5 text-gray-400 group-hover:text-primary transition-colors" />
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full h-10 rounded-xl border-primary/20 text-primary font-bold hover:bg-primary hover:text-white transition-all shadow-sm"
+                      >
+                        <Eye className="h-4 w-4 mr-1.5" />
                         Ver
                       </Button>
                     </Link>
@@ -303,20 +307,24 @@ export function LoanList({ userRole }: LoanListProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 h-10 rounded-xl border-gray-100 dark:border-gray-800 font-bold hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all group"
+                      className="flex-1 h-10 rounded-xl border-blue-200 text-blue-600 font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                       onClick={() => {
                         setSelectedLoanForStatement(loan);
                         setIsStatementModalOpen(true);
                       }}
                     >
-                      <FileText className="h-4 w-4 mr-1.5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                      <FileText className="h-4 w-4 mr-1.5" />
                       Edo Cta
                     </Button>
 
                     {userRole !== 'CLIENTE' && (
                       <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}/edit`} className="flex-1">
-                        <Button variant="secondary" size="sm" className="w-full h-10 rounded-xl font-bold bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all">
-                          <Edit className="h-4 w-4 mr-1.5 text-gray-600 dark:text-gray-400" />
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          className="w-full h-10 rounded-xl font-bold bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white dark:bg-amber-900/40 dark:text-amber-400 dark:hover:bg-amber-700 transition-all shadow-sm"
+                        >
+                          <Edit className="h-4 w-4 mr-1.5" />
                           Editar
                         </Button>
                       </Link>

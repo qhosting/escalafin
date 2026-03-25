@@ -241,15 +241,19 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 sm:flex-none h-10 rounded-xl font-bold bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800"
+              className="flex-1 sm:flex-none h-11 rounded-xl font-bold bg-white dark:bg-gray-900 border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
               onClick={() => setIsStatementModalOpen(true)}
             >
-              <FileText className="h-4 w-4 mr-2 text-primary" />
+              <FileText className="h-4 w-4 mr-2" />
               <span className="sm:inline">Estado de Cuenta</span>
             </Button>
             {userRole !== 'CLIENTE' && (
               <Link href={`/admin/loans/${loan.id}/edit`} className="flex-1 sm:flex-none">
-                <Button variant="secondary" size="sm" className="w-full h-10 rounded-xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  className="w-full h-11 rounded-xl font-bold bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white dark:bg-amber-900/40 dark:text-amber-400 dark:hover:bg-amber-700 transition-all shadow-sm"
+                >
                   <Edit className="h-4 w-4 mr-2" />
                   Editar
                 </Button>
