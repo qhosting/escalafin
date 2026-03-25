@@ -72,37 +72,66 @@ export async function GET(
         // Header decorativo
         doc.rect(0, 0, doc.page.width, 100).fill('#f8fafc');
 
-        // Texto de cabecera
-        doc.fillColor('#1e293b').fontSize(24).text(tenantInfo?.name || 'EscalaFin', 50, 40);
-        doc.fontSize(10).fillColor('#64748b').text('Tu Aliado Financiero', 50, 68);
+        // Logo y Nombre del Tenant
+        let textX = 50;
+        if (tenantInfo?.logo) {
+            try {
+                // Notar: En un entorno real necesitaríamos descargar la imagen si es URL
+                // pero si es path local o base64 funciona directo. 
+                // Para este caso, seremos precavidos.
+                const logoRes = await fetch(tenantInfo.logo).catch(() => null);
+                if (logoRes && logoRes.ok) {
+                    const logoBuffer = Buffer.from(await logoRes.arrayBuffer());
+                    doc.image(logoBuffer, 50, 25, { height: 50 });
+                    textX = 115;
+                }
+            } catch (e) {
+                console.warn('Could not load tenant logo in PDF:', e);
+            }
+        }
 
-        doc.fillColor('#0f172a').fontSize(16).text('ESTADO DE CUENTA', 400, 45, { align: 'right' });
-        doc.fontSize(9).fillColor('#64748b').text(`Folio: ${loan.loanNumber}`, 400, 65, { align: 'right' });
-        doc.text(`Fecha de Impresión: ${new Date().toLocaleDateString('es-MX')}`, 400, 78, { align: 'right' });
+        // Texto de cabecera (Izquierda)
+        doc.fillColor('#1e293b').fontSize(22).font('Helvetica-Bold').text(tenantInfo?.name || 'EscalaFin', textX, 35);
+        doc.fontSize(10).font('Helvetica').fillColor('#64748b').text('Tu Aliado Financiero', textX, 64);
+
+        // Título y Metadatos (Derecha) - Ajustado para evitar sobreposición
+        doc.fillColor('#0f172a').fontSize(14).font('Helvetica-Bold').text('ESTADO DE CUENTA', 350, 35, { align: 'right', width: 200 });
+        doc.fontSize(8).font('Helvetica').fillColor('#94a3b8').text(`Folio Interno:`, 350, 58, { align: 'right', width: 130 });
+        doc.fillColor('#475569').text(loan.loanNumber, 485, 58, { align: 'right', width: 60 });
+        
+        doc.fillColor('#94a3b8').text(`F. Impresión:`, 350, 70, { align: 'right', width: 130 });
+        doc.fillColor('#475569').text(new Date().toLocaleDateString('es-MX'), 485, 70, { align: 'right', width: 60 });
 
         doc.moveDown(4);
 
         // Grid de Información (Cliente y Préstamo)
         const startY = 130;
-        doc.lineCap('butt').moveTo(50, startY).lineTo(545, startY).strokeColor('#e2e8f0').stroke();
+        doc.lineCap('butt').moveTo(50, startY).lineTo(545, startY).strokeColor('#e2e8f0').lineWidth(1).stroke();
 
         // Columna 1: Cliente
-        doc.fillColor('#64748b').fontSize(9).text('DATOS DEL CLIENTE', 50, startY + 15);
+        doc.fillColor('#64748b').fontSize(8).font('Helvetica-Bold').text('DATOS DEL CLIENTE', 50, startY + 15);
         doc.fillColor('#0f172a').fontSize(11).text(`${loan.client.firstName} ${loan.client.lastName}`, 50, startY + 30);
-        doc.fontSize(9).text(`Tel: ${loan.client.phone}`, 50, startY + 45);
+        doc.fontSize(9).font('Helvetica').text(`Tel: ${loan.client.phone}`, 50, startY + 45);
         doc.text(`Email: ${loan.client.email}`, 50, startY + 58);
 
         // Columna 2: Resumen
-        doc.fillColor('#64748b').text('RESUMEN DE CRÉDITO', 350, startY + 15);
-        doc.fillColor('#0f172a').fontSize(10);
-        doc.text(`Monto Prestado:`, 350, startY + 30);
+        doc.fillColor('#64748b').fontSize(8).font('Helvetica-Bold').text('RESUMEN DE CRÉDITO', 350, startY + 15);
+        doc.fillColor('#0f172a').fontSize(10).font('Helvetica');
+        doc.text(`Monto Original:`, 350, startY + 30);
         doc.text(`Saldo a la Fecha:`, 350, startY + 45);
-        doc.text(`Estatus:`, 350, startY + 60);
+        doc.text(`Estado del Crédito:`, 350, startY + 60);
 
         doc.fontSize(10).font('Helvetica-Bold');
-        doc.text(`$${Number(loan.principalAmount).toLocaleString('es-MX')}`, 450, startY + 30, { align: 'right' });
-        doc.text(`$${Number(loan.balanceRemaining).toLocaleString('es-MX')}`, 450, startY + 45, { align: 'right' });
-        doc.text(loan.status === 'ACTIVE' ? 'ACTIVO' : loan.status, 450, startY + 60, { align: 'right' });
+        doc.text(`$${Number(loan.principalAmount).toLocaleString('es-MX')}`, 450, startY + 30, { align: 'right', width: 95 });
+        doc.fillColor('#2563eb').text(`$${Number(loan.balanceRemaining).toLocaleString('es-MX')}`, 450, startY + 45, { align: 'right', width: 95 });
+        
+        const statusColors: any = { 'ACTIVE': '#16a34a', 'PAID_OFF': '#2563eb', 'OVERDUE': '#dc2626' };
+        doc.fillColor(statusColors[loan.status] || '#475569').text(
+            loan.status === 'ACTIVE' ? 'VIGENTE' : 
+            loan.status === 'PAID_OFF' ? 'LIQUIDADO' : 
+            loan.status === 'OVERDUE' ? 'MOROSO' : loan.status, 
+            450, startY + 60, { align: 'right', width: 95 }
+        );
         doc.font('Helvetica');
 
         // Línea separadora
@@ -111,38 +140,50 @@ export async function GET(
         doc.moveDown(2);
 
         // Tabla de Historial de Pagos
-        doc.fillColor('#1e293b').fontSize(12).font('Helvetica-Bold').text('HISTORIAL DE MOVIMIENTOS', 50);
+        doc.fillColor('#1e293b').fontSize(11).font('Helvetica-Bold').text('HISTORIAL DE MOVIMIENTOS', 50);
         doc.moveDown(0.5);
 
         const tableTop = doc.y;
         doc.rect(50, tableTop, 495, 20).fill('#f1f5f9');
-        doc.fillColor('#475569').fontSize(9).font('Helvetica-Bold');
-        doc.text('FECHA', 60, tableTop + 6);
-        doc.text('CONCEPTO', 150, tableTop + 6);
-        doc.text('FOLIO/REF', 300, tableTop + 6);
-        doc.text('ABONO', 460, tableTop + 6, { width: 80, align: 'right' });
+        doc.fillColor('#475569').fontSize(8).font('Helvetica-Bold');
+        doc.text('FECHA', 60, tableTop + 7);
+        doc.text('CONCEPTO', 150, tableTop + 7);
+        doc.text('FOLIO/REF', 300, tableTop + 7);
+        doc.text('ABONO', 460, tableTop + 7, { width: 80, align: 'right' });
 
         let currentY = tableTop + 25;
-        doc.font('Helvetica').fillColor('#334155');
+        doc.font('Helvetica').fillColor('#334155').fontSize(9);
 
         if (loan.payments.length === 0) {
-            doc.text('No se registran pagos a la fecha.', 60, currentY);
+            doc.text('No se registran movimientos a la fecha.', 60, currentY);
+            currentY += 20;
         } else {
             loan.payments.forEach((p: any) => {
-                if (currentY > 750) {
+                if (currentY > 720) {
                     doc.addPage();
                     currentY = 50;
                 }
                 const pDate = new Date(p.paymentDate).toLocaleDateString('es-MX');
                 doc.text(pDate, 60, currentY);
-                doc.text(p.paymentMethod === 'CASH' ? 'Pago en Efectivo' : 'Referencia Bancaria', 150, currentY);
+                doc.text(p.paymentMethod === 'CASH' ? 'Abono en Efectivo' : 'Abono Transferencia', 150, currentY);
                 doc.text(p.reference || '-', 300, currentY);
                 doc.font('Helvetica-Bold').text(`$${Number(p.amount).toLocaleString('es-MX')}`, 460, currentY, { width: 80, align: 'right' }).font('Helvetica');
 
-                doc.moveTo(50, currentY + 12).lineTo(545, currentY + 12).strokeColor('#f1f5f9').lineWidth(0.5).stroke();
+                doc.moveTo(50, currentY + 12).lineTo(545, currentY + 12).strokeColor('#f8fafc').lineWidth(0.5).stroke();
                 currentY += 20;
             });
         }
+
+        // Fila de Saldo Final (Resaltada)
+        if (currentY > 720) {
+            doc.addPage();
+            currentY = 50;
+        }
+        doc.rect(50, currentY, 495, 25).fill('#f8fafc');
+        doc.fillColor('#1e293b').font('Helvetica-Bold').fontSize(10);
+        doc.text('SALDO ACTUAL AL CORTE', 60, currentY + 8);
+        doc.fillColor('#2563eb').text(`$${Number(loan.balanceRemaining).toLocaleString('es-MX')}`, 460, currentY + 8, { width: 80, align: 'right' });
+        doc.font('Helvetica');
 
         // Pie de página
         doc.fontSize(8).fillColor('#94a3b8').text(
