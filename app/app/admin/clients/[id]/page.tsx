@@ -100,6 +100,14 @@ interface ClientData {
     description: string;
     createdAt: string;
   }>;
+  auditLogs?: Array<{
+    id: string;
+    action: string;
+    resource?: string;
+    details?: string;
+    timestamp: string;
+    userEmail?: string;
+  }>;
 }
 
 export default function ClientDetailPage() {
