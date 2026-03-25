@@ -178,33 +178,35 @@ export default function ClientsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 md:mb-8 gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white mb-1 md:mb-2">
             Gestión de Clientes
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="hidden md:block text-gray-600 dark:text-gray-300">
             Administra todos los clientes y su información financiera
           </p>
         </div>
-        <div className="flex gap-3">
-          <Link href="/admin/clients/migrate">
-            <Button size="lg" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/50">
-              <Database className="h-4 w-4 mr-2" />
-              Migrar Clientes
-            </Button>
-          </Link>
-          <Link href="/admin/clients/new">
-            <Button size="lg">
+        <div className="flex gap-3 w-full md:w-auto">
+          {(session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN') && (
+            <Link href="/admin/clients/migrate" className="flex-1 md:flex-none">
+              <Button size="lg" variant="outline" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/50">
+                <Database className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Migrar Clientes</span>
+              </Button>
+            </Link>
+          )}
+          <Link href="/admin/clients/new" className="flex-1 md:flex-none">
+            <Button size="lg" className="w-full">
               <Plus className="h-4 w-4 mr-2" />
-              Nuevo Cliente
+              Nuevo
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8">
+      {/* KPIs (Visibles solo en Desktop) */}
+      <div className="hidden md:grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between space-y-0 pb-2">
@@ -306,7 +308,8 @@ export default function ClientsPage() {
             </div>
           ) : (
             <>
-              <div className="border rounded-lg">
+              {/* View Desktop: Table */}
+              <div className="hidden md:block border rounded-lg">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -390,6 +393,62 @@ export default function ClientsPage() {
                     )}
                   </TableBody>
                 </Table>
+              </div>
+
+              {/* View Mobile: Tarjetas */}
+              <div className="md:hidden space-y-4">
+                {filteredClients.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3 opacity-20" />
+                    <p className="text-muted-foreground text-sm">
+                      {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
+                    </p>
+                  </div>
+                ) : (
+                  filteredClients.map((client) => (
+                    <Card key={client.id} className="p-4 shadow-sm border-border active:scale-[0.99] transition-all">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="max-w-[70%]">
+                          <h3 className="font-bold text-base text-gray-900 dark:text-white leading-tight">
+                            {client.firstName} {client.lastName}
+                          </h3>
+                          <p className="text-sm text-gray-500 mt-1 truncate">
+                            {client.phone}
+                          </p>
+                        </div>
+                        <Badge variant={getStatusVariant(client.status) as any} className="text-[10px] px-1.5 h-4">
+                          {client.status}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mb-4 bg-muted/30 p-2 rounded-lg">
+                        <div className="flex items-center gap-1.5 overflow-hidden">
+                          <Users className="h-3.5 w-3.5 flex-shrink-0 opacity-70" />
+                          <span className="truncate">{client.asesor ? client.asesor.firstName : 'Sin Asesor'}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <DollarSign className="h-3.5 w-3.5 flex-shrink-0 opacity-70" />
+                          <span>{client.loans.length} préstamos</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <Link href={`/admin/clients/${client.id}`}>
+                          <Button variant="outline" size="sm" className="w-full h-9">
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver
+                          </Button>
+                        </Link>
+                        <Link href={`/admin/clients/${client.id}/edit`}>
+                          <Button variant="outline" size="sm" className="w-full h-9">
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </Button>
+                        </Link>
+                      </div>
+                    </Card>
+                  ))
+                )}
               </div>
 
               {/* Paginación */}

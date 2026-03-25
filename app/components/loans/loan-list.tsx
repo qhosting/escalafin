@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -144,17 +145,17 @@ export function LoanList({ userRole }: LoanListProps) {
   return (
     <div className="space-y-6">
       {/* Header y Filtros */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 md:mb-8 gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Gestión de Préstamos</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white mb-1 md:mb-2">Gestión de Préstamos</h2>
+          <p className="text-sm md:text-base text-muted-foreground hidden md:block">
             {pagination.totalCount} préstamo{pagination.totalCount !== 1 ? 's' : ''} encontrado{pagination.totalCount !== 1 ? 's' : ''}
           </p>
         </div>
 
         {userRole !== 'CLIENTE' && (
-          <Link href="/admin/loans/new">
-            <Button className="w-full lg:w-auto">
+          <Link href="/admin/loans/new" className="w-full md:w-auto">
+            <Button size="lg" className="w-full md:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Préstamo
             </Button>
@@ -164,6 +165,7 @@ export function LoanList({ userRole }: LoanListProps) {
 
       {/* Filtros de búsqueda */}
       <Card>
+
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
@@ -195,75 +197,76 @@ export function LoanList({ userRole }: LoanListProps) {
       {/* Lista de Préstamos */}
       <div className="space-y-4">
         {filteredLoans.map((loan) => (
-          <Card key={loan.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <Card key={loan.id} className="hover:shadow-md transition-all active:scale-[0.99] border-border">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-3 flex-1">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold text-lg text-foreground">
+                      <h3 className="font-bold text-base md:text-lg text-gray-900 dark:text-white">
                         {loan.loanNumber}
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-gray-500">
                         {loanTypeConfig[loan.loanType as keyof typeof loanTypeConfig] || loan.loanType}
                       </p>
                     </div>
-                    <Badge className={statusConfig[loan.status as keyof typeof statusConfig]?.color || 'bg-gray-100 text-gray-800'}>
+                    <Badge className={cn('text-[10px] px-1.5 h-4', statusConfig[loan.status as keyof typeof statusConfig]?.color || 'bg-gray-100 text-gray-800')}>
                       {statusConfig[loan.status as keyof typeof statusConfig]?.label || loan.status}
                     </Badge>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs md:text-sm text-muted-foreground bg-muted/30 p-2 md:p-0 md:bg-transparent rounded-lg">
+                    <div className="flex items-center gap-1.5">
+                      <User className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0 opacity-70" />
+                      <span className="truncate">
                         {loan.client.firstName} {loan.client.lastName}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">Saldo: {formatCurrency(loan.balanceRemaining)}</span>
+                    <div className="flex items-center gap-1.5 overflow-hidden">
+                      <DollarSign className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0 opacity-70" />
+                      <span className="truncate">Saldo: {formatCurrency(loan.balanceRemaining)}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">Pago: {formatCurrency(loan.monthlyPayment)}</span>
+                    <div className="flex items-center gap-1.5 overflow-hidden">
+                      <CreditCard className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0 opacity-70" />
+                      <span className="truncate">Pago: {formatCurrency(loan.monthlyPayment)}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">Vence: {formatDate(loan.endDate)}</span>
+                    <div className="flex items-center gap-1.5 overflow-hidden">
+                      <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0 opacity-70" />
+                      <span className="truncate">Vence: {formatDate(loan.endDate)}</span>
                     </div>
                   </div>
 
                   {loan.payments.length > 0 && (
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground hidden md:block mt-2">
                       Último pago: {formatDate(loan.payments[0].paymentDate)} - {formatCurrency(loan.payments[0].amount)}
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="grid grid-cols-2 md:flex md:items-center gap-2 mt-2 md:mt-0">
                   <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}`}>
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver
+                    <Button variant="outline" size="sm" className="w-full h-9">
+                      <Eye className="h-4 w-4 md:mr-1" />
+                      <span className="hidden md:inline">Ver</span>
                     </Button>
                   </Link>
 
                   <Button
                     variant="outline"
                     size="sm"
+                    className="w-full h-9"
                     onClick={() => {
                       setSelectedLoanForStatement(loan);
                       setIsStatementModalOpen(true);
                     }}
                   >
                     <FileText className="h-4 w-4 mr-1" />
-                    Estado de Cuenta
+                    <span className="truncate text-xs md:text-sm">Edo Cta</span>
                   </Button>
 
                   {userRole !== 'CLIENTE' && (
-                    <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}/edit`}>
-                      <Button variant="outline" size="sm">
+                    <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}/edit`} className="col-span-2 md:col-span-1">
+                      <Button variant="outline" size="sm" className="w-full h-9">
                         <Edit className="h-4 w-4 mr-1" />
                         Editar
                       </Button>
