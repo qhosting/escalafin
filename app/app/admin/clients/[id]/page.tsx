@@ -178,17 +178,16 @@ export default function ClientDetailPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
             <Link href="/admin/clients">
               <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4 mr-1" />
                 Volver
               </Button>
             </Link>
-            
-            {/* Imagen de perfil del cliente */}
             <ClientProfileImage
               clientId={client.id}
               currentImage={client.profileImage}
@@ -196,28 +195,27 @@ export default function ClientDetailPage() {
               editable={false}
               size="lg"
             />
-            
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight">
                 {client.firstName} {client.lastName}
               </h1>
-              <div className="flex items-center gap-4 mt-2">
-                <Badge variant={getStatusVariant(client.status) as any}>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <Badge variant={getStatusVariant(client.status) as any} className="text-xs">
                   {client.status}
                 </Badge>
                 {client.asesor && (
-                  <p className="text-gray-600 dark:text-gray-300">
+                  <span className="text-xs text-gray-500">
                     Asesor: {client.asesor.firstName} {client.asesor.lastName}
-                  </p>
+                  </span>
                 )}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-end sm:self-auto">
             <GPSCheckIn clientId={client.id} />
             <Link href={`/admin/clients/${client.id}/edit`}>
-              <Button variant="outline">
-                <Edit className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="sm">
+                <Edit className="h-4 w-4 mr-1" />
                 Editar
               </Button>
             </Link>
@@ -225,69 +223,71 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
-      {/* KPIs del cliente */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      {/* KPIs — 2-col en móvil */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Préstamos Activos</h3>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-xs font-medium text-muted-foreground">Préstamos</h3>
+              <FileText className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <div className="text-2xl font-bold">{totalLoans}</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Total Prestado</h3>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-xs font-medium text-muted-foreground">Total Prestado</h3>
+              <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <div className="text-2xl font-bold">
-              {new Intl.NumberFormat('es-MX', {
-                style: 'currency',
-                currency: 'MXN',
-                notation: 'compact'
-              }).format(totalBorrowed)}
+              {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', notation: 'compact' }).format(totalBorrowed)}
             </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Saldo Pendiente</h3>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-xs font-medium text-muted-foreground">Saldo Pendiente</h3>
+              <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <div className="text-2xl font-bold text-orange-600">
-              {new Intl.NumberFormat('es-MX', {
-                style: 'currency',
-                currency: 'MXN',
-                notation: 'compact'
-              }).format(totalBalance)}
+              {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', notation: 'compact' }).format(totalBalance)}
             </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Score Crediticio</h3>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-xs font-medium text-muted-foreground">Score</h3>
+              <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <div className="text-2xl font-bold">{client.creditScore || 'N/A'}</div>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="info" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="info">Información</TabsTrigger>
-          <TabsTrigger value="references">Referencias</TabsTrigger>
-          <TabsTrigger value="loans">Préstamos</TabsTrigger>
-          <TabsTrigger value="applications">Solicitudes</TabsTrigger>
-          <TabsTrigger value="activity">Actividad</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="info" className="space-y-4">
+        {/* TabsList con scroll horizontal para PWA */}
+        <div className="overflow-x-auto -mx-1 px-1">
+          <TabsList className="inline-flex w-max min-w-full h-10 whitespace-nowrap">
+            <TabsTrigger value="info" className="text-xs px-3">Información</TabsTrigger>
+            <TabsTrigger value="references" className="text-xs px-3">Referencias</TabsTrigger>
+            <TabsTrigger value="loans" className="text-xs px-3">
+              Préstamos
+              {client.loans.length > 0 && (
+                <span className="ml-1 bg-primary/20 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-bold">{client.loans.length}</span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="applications" className="text-xs px-3">
+              Solicitudes
+              {client.creditApplications.length > 0 && (
+                <span className="ml-1 bg-primary/20 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-bold">{client.creditApplications.length}</span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="text-xs px-3">Actividad</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="info">
           <div className="grid gap-6 md:grid-cols-2">
@@ -486,126 +486,139 @@ export default function ClientDetailPage() {
         </TabsContent>
 
         <TabsContent value="loans">
-          <Card>
-            <CardHeader>
-              <CardTitle>Préstamos del Cliente</CardTitle>
-              <CardDescription>
-                Historial completo de préstamos activos y pasados
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {client.loans.length === 0 ? (
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Este cliente no tiene préstamos registrados</p>
-                </div>
-              ) : (
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Número de Préstamo</TableHead>
-                        <TableHead>Monto Principal</TableHead>
-                        <TableHead>Saldo Restante</TableHead>
-                        <TableHead>Tasa de Interés</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead>Fecha de Inicio</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {client.loans.map((loan) => (
-                        <TableRow key={loan.id}>
-                          <TableCell className="font-mono">
-                            <Link 
-                              href={`/admin/loans/${loan.id}`}
-                              className="text-blue-600 hover:underline"
-                            >
-                              {loan.loanNumber}
-                            </Link>
-                          </TableCell>
-                          <TableCell className="font-semibold">
-                            {new Intl.NumberFormat('es-MX', {
-                              style: 'currency',
-                              currency: 'MXN'
-                            }).format(loan.principalAmount)}
-                          </TableCell>
-                          <TableCell className="font-semibold text-orange-600">
-                            {new Intl.NumberFormat('es-MX', {
-                              style: 'currency',
-                              currency: 'MXN'
-                            }).format(loan.balanceRemaining)}
-                          </TableCell>
-                          <TableCell>{loan.interestRate}%</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{loan.status}</Badge>
-                          </TableCell>
-                          <TableCell>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900 dark:text-white">
+                Préstamos del Cliente
+              </h3>
+              <Link href={`/admin/loans/new?clientId=${client.id}`}>
+                <Button size="sm" variant="outline">
+                  <CreditCard className="h-3.5 w-3.5 mr-1" />
+                  Nuevo
+                </Button>
+              </Link>
+            </div>
+
+            {client.loans.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <FileText className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground text-sm">Este cliente no tiene préstamos registrados</p>
+                </CardContent>
+              </Card>
+            ) : (
+              client.loans.map((loan) => {
+                const pct = loan.principalAmount > 0
+                  ? Math.round(((loan.principalAmount - loan.balanceRemaining) / loan.principalAmount) * 100)
+                  : 0;
+                const isActive = loan.status === 'ACTIVE';
+                return (
+                  <Card key={loan.id} className="border hover:shadow-md transition-all active:scale-[0.99]">
+                    <CardContent className="p-4">
+                      {/* Row 1: número + estado */}
+                      <div className="flex items-center justify-between mb-3">
+                        <Link href={`/admin/loans/${loan.id}`}>
+                          <span className="font-bold text-primary text-sm hover:underline">{loan.loanNumber}</span>
+                        </Link>
+                        <Badge
+                          className={`text-[10px] border-0 ${
+                            isActive ? 'bg-green-100 text-green-700'
+                            : loan.status === 'PAID_OFF' ? 'bg-gray-100 text-gray-600'
+                            : 'bg-red-100 text-red-700'
+                          }`}
+                        >
+                          {loan.status === 'ACTIVE' ? 'Activo' : loan.status === 'PAID_OFF' ? 'Liquidado' : loan.status}
+                        </Badge>
+                      </div>
+
+                      {/* Row 2: montos en grid 2x2 */}
+                      <div className="grid grid-cols-2 gap-3 mb-3 text-xs">
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2.5">
+                          <p className="text-gray-400 mb-0.5">Monto</p>
+                          <p className="font-bold text-gray-900 dark:text-white">
+                            {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(loan.principalAmount)}
+                          </p>
+                        </div>
+                        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2.5">
+                          <p className="text-gray-400 mb-0.5">Saldo</p>
+                          <p className="font-bold text-orange-600">
+                            {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(loan.balanceRemaining)}
+                          </p>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2.5">
+                          <p className="text-gray-400 mb-0.5">Inicio</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">
                             {new Date(loan.startDate).toLocaleDateString('es-MX')}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                          </p>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2.5">
+                          <p className="text-gray-400 mb-0.5">Pagos</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">{loan.payments.length} realizados</p>
+                        </div>
+                      </div>
+
+                      {/* Barra de progreso */}
+                      <div>
+                        <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                          <span>Progreso de pago</span>
+                          <span>{pct}% pagado</span>
+                        </div>
+                        <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1.5">
+                          <div
+                            className="bg-blue-500 h-1.5 rounded-full transition-all"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="applications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Solicitudes de Crédito</CardTitle>
-              <CardDescription>
-                Historial de solicitudes de crédito del cliente
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {client.creditApplications.length === 0 ? (
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Este cliente no tiene solicitudes de crédito</p>
-                </div>
-              ) : (
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Monto Solicitado</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead>Fecha de Solicitud</TableHead>
-                        <TableHead>Fecha de Revisión</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {client.creditApplications.map((application) => (
-                        <TableRow key={application.id}>
-                          <TableCell className="font-semibold">
-                            {new Intl.NumberFormat('es-MX', {
-                              style: 'currency',
-                              currency: 'MXN'
-                            }).format(application.requestedAmount)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{application.status}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            {new Date(application.createdAt).toLocaleDateString('es-MX')}
-                          </TableCell>
-                          <TableCell>
-                            {application.reviewedAt 
-                              ? new Date(application.reviewedAt).toLocaleDateString('es-MX')
-                              : 'Pendiente'
-                            }
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div className="space-y-3">
+            <h3 className="font-semibold text-gray-900 dark:text-white">Solicitudes de Crédito</h3>
+            {client.creditApplications.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <FileText className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground text-sm">Sin solicitudes de crédito</p>
+                </CardContent>
+              </Card>
+            ) : (
+              client.creditApplications.map((app) => (
+                <Card key={app.id} className="border hover:shadow-md transition-all">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-bold text-lg text-gray-900 dark:text-white">
+                        {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(app.requestedAmount)}
+                      </span>
+                      <Badge
+                        className={`text-[10px] border-0 ${
+                          app.status === 'APPROVED' ? 'bg-green-100 text-green-700'
+                          : app.status === 'REJECTED' ? 'bg-red-100 text-red-700'
+                          : app.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {app.status === 'APPROVED' ? 'Aprobada'
+                          : app.status === 'REJECTED' ? 'Rechazada'
+                          : app.status === 'PENDING' ? 'Pendiente'
+                          : app.status}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Solicitada: {new Date(app.createdAt).toLocaleDateString('es-MX')}</span>
+                      <span>{app.reviewedAt ? `Revisada: ${new Date(app.reviewedAt).toLocaleDateString('es-MX')}` : 'Sin revisar'}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="activity">
