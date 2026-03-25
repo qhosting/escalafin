@@ -640,7 +640,7 @@ export default function ClientDetailPage() {
                   </div>
                 ) : (
                   client.auditLogs.map((log: any, idx: number) => {
-                    const isLast = idx === client.auditLogs.length - 1;
+                    const isLast = idx === client.auditLogs!.length - 1;
                     const date = new Date(log.timestamp);
                     const timeStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
                     const dateStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
