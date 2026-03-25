@@ -19,7 +19,7 @@ import {
 import { ArrowLeft, Save, User, UserCheck, Package, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { ClientImageUpload } from '@/components/clients/client-image-upload';
+import { GPSCapture } from '@/components/ui/gps-capture';
 
 interface ClientFormData {
   firstName: string;
@@ -40,11 +40,15 @@ interface ClientFormData {
   bankName: string;
   accountNumber: string;
   asesorId: string;
+  latitude: number | null;
+  longitude: number | null;
   // Aval
   guarantorFullName: string;
   guarantorAddress: string;
   guarantorPhone: string;
   guarantorRelationship: string;
+  guarantorLatitude: number | null;
+  guarantorLongitude: number | null;
 }
 
 const EMPLOYMENT_TYPES = [
@@ -90,11 +94,15 @@ export default function NewClientPage() {
     bankName: '',
     accountNumber: '',
     asesorId: '',
+    latitude: null,
+    longitude: null,
     // Aval
     guarantorFullName: '',
     guarantorAddress: '',
     guarantorPhone: '',
-    guarantorRelationship: ''
+    guarantorRelationship: '',
+    guarantorLatitude: null,
+    guarantorLongitude: null
   });
 
   const handleInputChange = (field: keyof ClientFormData, value: string) => {
@@ -133,7 +141,9 @@ export default function NewClientPage() {
           fullName: formData.guarantorFullName,
           address: formData.guarantorAddress,
           phone: formData.guarantorPhone,
-          relationship: formData.guarantorRelationship
+          relationship: formData.guarantorRelationship,
+          latitude: formData.guarantorLatitude,
+          longitude: formData.guarantorLongitude
         } : undefined,
         collaterals: collaterals.length > 0 ? collaterals : undefined
       };
@@ -279,15 +289,29 @@ export default function NewClientPage() {
             <CardTitle>Información de Dirección</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="address">Dirección</Label>
-              <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="Calle, número, colonia..."
-                rows={3}
-              />
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="address">Dirección *</Label>
+                  <Textarea
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    placeholder="Calle, número, colonia..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <div>
+                <GPSCapture
+                  label="Ubicación Residencia"
+                  latitude={formData.latitude}
+                  longitude={formData.longitude}
+                  onLocationCapture={(lat, lng) => {
+                    setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                  }}
+                />
+              </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
@@ -449,25 +473,39 @@ export default function NewClientPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="guarantorFullName">Nombre Completo del Aval</Label>
-              <Input
-                id="guarantorFullName"
-                value={formData.guarantorFullName}
-                onChange={(e) => handleInputChange('guarantorFullName', e.target.value)}
-                placeholder="Ej: Juan Pérez García"
-              />
-            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="guarantorFullName">Nombre Completo del Aval</Label>
+                  <Input
+                    id="guarantorFullName"
+                    value={formData.guarantorFullName}
+                    onChange={(e) => handleInputChange('guarantorFullName', e.target.value)}
+                    placeholder="Ej: Juan Pérez García"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="guarantorAddress">Dirección Completa</Label>
-              <Textarea
-                id="guarantorAddress"
-                value={formData.guarantorAddress}
-                onChange={(e) => handleInputChange('guarantorAddress', e.target.value)}
-                placeholder="Calle, número, colonia, ciudad, estado..."
-                rows={3}
-              />
+                <div className="space-y-2">
+                  <Label htmlFor="guarantorAddress">Dirección Completa</Label>
+                  <Textarea
+                    id="guarantorAddress"
+                    value={formData.guarantorAddress}
+                    onChange={(e) => handleInputChange('guarantorAddress', e.target.value)}
+                    placeholder="Calle, número, colonia, ciudad, estado..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <div className="pt-2">
+                 <GPSCapture
+                  label="Ubicación Aval"
+                  latitude={formData.guarantorLatitude}
+                  longitude={formData.guarantorLongitude}
+                  onLocationCapture={(lat, lng) => {
+                    setFormData(prev => ({ ...prev, guarantorLatitude: lat, guarantorLongitude: lng }));
+                  }}
+                />
+              </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

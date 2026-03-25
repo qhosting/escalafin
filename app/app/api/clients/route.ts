@@ -172,6 +172,8 @@ export async function POST(request: NextRequest) {
       bankName,
       accountNumber,
       asesorId,
+      latitude,
+      longitude,
       guarantor,
       collaterals
     } = body;
@@ -241,12 +243,16 @@ export async function POST(request: NextRequest) {
         bankName,
         accountNumber,
         asesorId: finalAsesorId,
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
         guarantor: guarantor ? {
           create: {
             fullName: guarantor.fullName,
             address: guarantor.address || '',
             phone: guarantor.phone || '',
             relationship: guarantor.relationship || 'OTHER' as any,
+            latitude: guarantor.latitude ? parseFloat(guarantor.latitude) : null,
+            longitude: guarantor.longitude ? parseFloat(guarantor.longitude) : null,
             tenantId: tenantId
           }
         } : undefined,

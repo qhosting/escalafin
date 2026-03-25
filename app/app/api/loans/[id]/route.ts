@@ -120,7 +120,19 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { status, notes } = body;
+    const { 
+      status, 
+      notes,
+      loanType,
+      principalAmount,
+      interestRate,
+      termMonths,
+      startDate,
+      endDate,
+      monthlyPayment,
+      totalAmount,
+      clientId
+    } = body;
 
     const loan = await prisma.loan.findUnique({
       where: { id: params.id },
@@ -131,22 +143,22 @@ export async function PUT(
       return NextResponse.json({ error: 'Préstamo no encontrado' }, { status: 404 });
     }
 
-    // Permitir que todos los gestores (ASESOR) actualicen cualquier préstamo de la organización
-    // Si se quisiera volver a restringir, se descomenta esto:
-    /* if (user.role === 'ASESOR' && loan.client.asesorId !== user.id) {
-      return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
-    } */
-
     const updateData: any = {};
 
     if (status && Object.values(LoanStatus).includes(status as LoanStatus)) {
       updateData.status = status as LoanStatus;
     }
 
-    if (notes !== undefined) {
-      // Si necesitamos almacenar notas, podríamos agregar un campo notes al modelo
-      // Por ahora, podríamos crear un log de auditoría
-    }
+    if (loanType) updateData.loanType = loanType;
+    if (principalAmount !== undefined) updateData.principalAmount = parseFloat(principalAmount);
+    if (interestRate !== undefined) updateData.interestRate = parseFloat(interestRate);
+    if (termMonths !== undefined) updateData.termMonths = parseInt(termMonths);
+    if (monthlyPayment !== undefined) updateData.monthlyPayment = parseFloat(monthlyPayment);
+    if (totalAmount !== undefined) updateData.totalAmount = parseFloat(totalAmount);
+    if (startDate) updateData.startDate = new Date(startDate);
+    if (endDate) updateData.endDate = new Date(endDate);
+    if (clientId) updateData.clientId = clientId;
+    if (notes !== undefined) updateData.notes = notes;
 
     const updatedLoan = await prisma.loan.update({
       where: { id: params.id },
@@ -154,6 +166,7 @@ export async function PUT(
       include: {
         client: {
           select: {
+            id: true,
             firstName: true,
             lastName: true,
             email: true
@@ -162,7 +175,7 @@ export async function PUT(
       }
     });
 
-    return NextResponse.json(updatedLoan);
+    return NextResponse.json({ loan: updatedLoan });
 
   } catch (error) {
     console.error('Error updating loan:', error);

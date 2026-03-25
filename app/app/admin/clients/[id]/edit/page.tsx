@@ -20,12 +20,15 @@ import { ArrowLeft, Save, User, Shield, FileText, Plus, X, TrendingUp } from 'lu
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { ClientProfileImage } from '@/components/clients/client-profile-image';
+import { GPSCapture } from '@/components/ui/gps-capture';
 
 interface GuarantorData {
   fullName: string;
   address: string;
   phone: string;
   relationship: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 interface ClientFormData {
@@ -48,6 +51,8 @@ interface ClientFormData {
   accountNumber: string;
   status: string;
   asesorId: string;
+  latitude: number | null;
+  longitude: number | null;
   guarantor?: GuarantorData;
   collaterals: string[];
   lateFeeType: string;
@@ -104,6 +109,8 @@ export default function EditClientPage() {
     accountNumber: '',
     status: 'ACTIVE',
     asesorId: '',
+    latitude: null,
+    longitude: null,
     guarantor: undefined,
     collaterals: [],
     lateFeeType: 'DAILY_FIXED',
@@ -149,11 +156,15 @@ export default function EditClientPage() {
         accountNumber: client.accountNumber || '',
         status: client.status || 'ACTIVE',
         asesorId: client.asesorId || '',
+        latitude: client.latitude || null,
+        longitude: client.longitude || null,
         guarantor: client.guarantor ? {
           fullName: client.guarantor.fullName || '',
           address: client.guarantor.address || '',
           phone: client.guarantor.phone || '',
-          relationship: client.guarantor.relationship || 'OTHER'
+          relationship: client.guarantor.relationship || 'OTHER',
+          latitude: client.guarantor.latitude || null,
+          longitude: client.guarantor.longitude || null
         } : undefined,
         collaterals: client.collaterals?.map((c: any) => c.description) || [],
         lateFeeType: client.lateFeeType || 'DAILY_FIXED',
@@ -179,7 +190,7 @@ export default function EditClientPage() {
     }));
   };
 
-  const handleGuarantorChange = (field: keyof GuarantorData, value: string) => {
+  const handleGuarantorChange = (field: keyof GuarantorData, value: any) => {
     setFormData(prev => ({
       ...prev,
       guarantor: {
@@ -187,6 +198,8 @@ export default function EditClientPage() {
         address: prev.guarantor?.address || '',
         phone: prev.guarantor?.phone || '',
         relationship: prev.guarantor?.relationship || 'OTHER',
+        latitude: prev.guarantor?.latitude || null,
+        longitude: prev.guarantor?.longitude || null,
         [field]: value
       }
     }));
@@ -410,15 +423,29 @@ export default function EditClientPage() {
             <CardTitle>Información de Dirección</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="address">Dirección</Label>
-              <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="Calle, número, colonia..."
-                rows={3}
-              />
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="address">Dirección</Label>
+                  <Textarea
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    placeholder="Calle, número, colonia..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <div>
+                <GPSCapture
+                  label="Ubicación Residencia"
+                  latitude={formData.latitude}
+                  longitude={formData.longitude}
+                  onLocationCapture={(lat, lng) => {
+                    setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                  }}
+                />
+              </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
@@ -659,23 +686,36 @@ export default function EditClientPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="guarantorFullName">Nombre Completo del Aval</Label>
-                <Input
-                  id="guarantorFullName"
-                  value={formData.guarantor?.fullName || ''}
-                  onChange={(e) => handleGuarantorChange('fullName', e.target.value)}
-                  placeholder="Juan Pérez García"
-                />
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="guarantorFullName">Nombre Completo del Aval</Label>
+                  <Input
+                    id="guarantorFullName"
+                    value={formData.guarantor?.fullName || ''}
+                    onChange={(e) => handleGuarantorChange('fullName', e.target.value)}
+                    placeholder="Juan Pérez García"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="guarantorPhone">Teléfono del Aval</Label>
+                  <Input
+                    id="guarantorPhone"
+                    value={formData.guarantor?.phone || ''}
+                    onChange={(e) => handleGuarantorChange('phone', e.target.value)}
+                    placeholder="555-987-6543"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="guarantorPhone">Teléfono del Aval</Label>
-                <Input
-                  id="guarantorPhone"
-                  value={formData.guarantor?.phone || ''}
-                  onChange={(e) => handleGuarantorChange('phone', e.target.value)}
-                  placeholder="555-987-6543"
+              <div className="pt-2">
+                <GPSCapture
+                  label="Ubicación Aval"
+                  latitude={formData.guarantor?.latitude}
+                  longitude={formData.guarantor?.longitude}
+                  onLocationCapture={(lat, lng) => {
+                    handleGuarantorChange('latitude', lat);
+                    handleGuarantorChange('longitude', lng);
+                  }}
                 />
               </div>
             </div>

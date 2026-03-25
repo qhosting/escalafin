@@ -183,9 +183,8 @@ export async function POST(request: NextRequest) {
 
     // Generar número de préstamo único (por organización idealmente, o global)
     // Para simplicidad, usaremos el contador del tenant si fuera posible, pero Loan.count() con isolation funciona
-    const currentYear = new Date().getFullYear();
     const loanCount = await tenantPrisma.loan.count() + 1;
-    const loanNumber = `ESF-${currentYear}-${loanCount.toString().padStart(4, '0')}`;
+    const loanNumber = `EF-${loanCount}`;
 
     // Calcular valores del préstamo usando la librería única
     const calculations = calculateLoanDetails({

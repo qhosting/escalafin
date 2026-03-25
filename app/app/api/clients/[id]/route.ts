@@ -180,6 +180,8 @@ export async function PATCH(
       accountNumber,
       status,
       asesorId,
+      latitude,
+      longitude,
       guarantor,
       collaterals,
       lateFeeType,
@@ -223,6 +225,8 @@ export async function PATCH(
         accountNumber: accountNumber || existingClient.accountNumber,
         status: status as any || existingClient.status,
         asesorId: finalAsesorId,
+        latitude: latitude ? parseFloat(latitude) : existingClient.latitude,
+        longitude: longitude ? parseFloat(longitude) : existingClient.longitude,
         guarantor: guarantor !== undefined ? (
           guarantor === null ? (existingClient.guarantor ? { delete: true } : undefined) : {
             upsert: {
@@ -231,13 +235,17 @@ export async function PATCH(
                 address: guarantor.address || '',
                 phone: guarantor.phone || '',
                 relationship: guarantor.relationship || 'OTHER',
+                latitude: guarantor.latitude ? parseFloat(guarantor.latitude) : null,
+                longitude: guarantor.longitude ? parseFloat(guarantor.longitude) : null,
                 tenantId: existingClient.tenantId
               },
               update: {
                 fullName: guarantor.fullName,
                 address: guarantor.address || '',
                 phone: guarantor.phone || '',
-                relationship: guarantor.relationship || 'OTHER'
+                relationship: guarantor.relationship || 'OTHER',
+                latitude: guarantor.latitude ? parseFloat(guarantor.latitude) : (existingClient.guarantor as any)?.latitude,
+                longitude: guarantor.longitude ? parseFloat(guarantor.longitude) : (existingClient.guarantor as any)?.longitude
               }
             }
           }

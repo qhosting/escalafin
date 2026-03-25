@@ -165,6 +165,8 @@ model Client {
   whatsappLoanUpdates          Boolean                @default(true)
   whatsappMarketingMessages    Boolean                @default(false)
   profileImage                 String?
+  latitude                     Float?
+  longitude                    Float?
   tenantId                     String?
   lateFeeType                  LateFeeType?           @default(DAILY_FIXED)
   lateFeeAmount                Decimal?               @default(200) @db.Decimal(12, 2)
@@ -242,6 +244,8 @@ model Guarantor {
   address      String
   phone        String
   relationship RelationshipType
+  latitude     Float?
+  longitude    Float?
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
   tenantId     String?
