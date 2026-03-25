@@ -145,6 +145,42 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
     if (!loan) return 0;
     const paid = loan.principalAmount - loan.balanceRemaining;
     return (paid / loan.principalAmount) * 100;
+  };  const handlePaymentAction = async (payment: any, action: 'view' | 'download') => {
+    try {
+      const { generatePaymentReceiptPDF } = await import('@/lib/pdf-utils');
+      
+      const receiptData = {
+        tenantName: (session?.user as any)?.tenantName || 'EscalaFin',
+        paymentId: payment.id,
+        amount: payment.amount,
+        date: formatDate(payment.paymentDate),
+        clientName: `${loan!.client.firstName} ${loan!.client.lastName}`,
+        loanNumber: loan!.loanNumber,
+        concept: payment.notes || 'Abono a capital / Mensualidad',
+        paymentMethod: payment.paymentMethod,
+        balanceAfter: loan!.balanceRemaining 
+      };
+
+      const pdfBase64 = await generatePaymentReceiptPDF(receiptData);
+      
+      if (action === 'view') {
+        const win = window.open();
+        if (win) {
+          win.document.title = `Recibo ${loan!.loanNumber}`;
+          win.document.write(`<iframe src="${pdfBase64}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+        } else {
+          toast.error('El navegador bloqueó la ventana emergente');
+        }
+      } else {
+        const link = document.createElement('a');
+        link.href = pdfBase64;
+        link.download = `Recibo_${loan!.loanNumber}_${payment.id.substring(0,6)}.pdf`;
+        link.click();
+      }
+    } catch (error) {
+      console.error('Error generating receipt:', error);
+      toast.error('Error al generar el recibo');
+    }
   };
 
   if (loading) {
@@ -172,6 +208,7 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
       </div>
     );
   }
+
   return (
     <div className="space-y-6">
       {/* Header - Optimized for PWA/Mobile */}
@@ -418,30 +455,39 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
               ) : (
                 <div className="space-y-4">
                   {loan.payments.map((payment) => (
-                    <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div key={payment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-xl gap-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold">{formatCurrency(payment.amount)}</span>
-                          <Badge className={paymentStatusConfig[payment.status as keyof typeof paymentStatusConfig]?.color}>
+                          <span className="font-bold text-lg">{formatCurrency(payment.amount)}</span>
+                          <Badge className={cn('text-[10px] uppercase font-bold px-2 rounded-full', paymentStatusConfig[payment.status as keyof typeof paymentStatusConfig]?.color)}>
                             {paymentStatusConfig[payment.status as keyof typeof paymentStatusConfig]?.label}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {formatDatetime(payment.paymentDate)} • {payment.paymentMethod}
                         </p>
                         {payment.reference && (
-                          <p className="text-xs text-muted-foreground">Ref: {payment.reference}</p>
-                        )}
-                        {payment.notes && (
-                          <p className="text-xs text-muted-foreground">{payment.notes}</p>
+                          <p className="text-xs font-medium text-primary">Folio: {payment.reference}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 sm:flex-none shadow-sm h-9 rounded-lg"
+                          onClick={() => handlePaymentAction(payment, 'view')}
+                        >
+                          <Eye className="h-4 w-4 mr-1 text-gray-500" />
+                          <span className="text-xs">Ver</span>
                         </Button>
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4" />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 sm:flex-none shadow-sm h-9 rounded-lg"
+                          onClick={() => handlePaymentAction(payment, 'download')}
+                        >
+                          <Download className="h-4 w-4 mr-1 text-gray-500" />
+                          <span className="text-xs">Bajar</span>
                         </Button>
                       </div>
                     </div>
