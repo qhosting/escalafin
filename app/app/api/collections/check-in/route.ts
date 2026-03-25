@@ -27,11 +27,11 @@ export async function POST(request: NextRequest) {
       data: {
         clientId,
         advisorId: session.user.id,
-        latitude: latitude ? parseFloat(latitude) : null,
-        longitude: longitude ? parseFloat(longitude) : null,
-        address,
-        notes,
-        outcome: outcome || 'VISIT',
+        latitude:  latitude  != null ? parseFloat(latitude)  : null,
+        longitude: longitude != null ? parseFloat(longitude) : null,
+        address:   address   ?? null,
+        notes:     notes     ?? null,
+        outcome:   outcome   || 'VISIT',
         visitDate: new Date(),
       }
     });
