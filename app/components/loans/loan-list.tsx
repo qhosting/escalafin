@@ -196,87 +196,137 @@ export function LoanList({ userRole }: LoanListProps) {
 
       {/* Lista de Préstamos */}
       <div className="space-y-4">
-        {filteredLoans.map((loan) => (
-          <Card key={loan.id} className="hover:shadow-md transition-all active:scale-[0.99] border-border">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-3 flex-1">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-bold text-base md:text-lg text-gray-900 dark:text-white">
-                        {loan.loanNumber}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {loanTypeConfig[loan.loanType as keyof typeof loanTypeConfig] || loan.loanType}
-                      </p>
+        {filteredLoans.map((loan) => {
+          const isActive = loan.status === 'ACTIVE';
+          const isPaidOff = loan.status === 'PAID_OFF';
+          const isDefaulted = loan.status === 'DEFAULTED';
+          
+          let borderColor = 'border-l-gray-300';
+          if (isActive) borderColor = 'border-l-green-500';
+          if (isPaidOff) borderColor = 'border-l-blue-500';
+          if (isDefaulted) borderColor = 'border-l-red-500';
+
+          return (
+            <Card key={loan.id} className={cn(
+              "hover:shadow-lg transition-all active:scale-[0.99] border border-gray-100 dark:border-gray-800 border-l-4 rounded-2xl overflow-hidden shadow-sm",
+              borderColor
+            )}>
+              <CardContent className="p-4 md:p-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-4 flex-1">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}`}>
+                          <h3 className="font-extrabold text-lg md:text-xl text-primary hover:underline leading-none">
+                            {loan.loanNumber}
+                          </h3>
+                        </Link>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
+                          {loanTypeConfig[loan.loanType as keyof typeof loanTypeConfig] || loan.loanType}
+                        </p>
+                      </div>
+                      <Badge className={cn(
+                        'text-[10px] uppercase font-black px-2 py-0.5 rounded-full border-0', 
+                        isActive ? 'bg-green-100 text-green-700' :
+                        isPaidOff ? 'bg-blue-100 text-blue-700' :
+                        isDefaulted ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-800'
+                      )}>
+                        {statusConfig[loan.status as keyof typeof statusConfig]?.label || loan.status}
+                      </Badge>
                     </div>
-                    <Badge className={cn('text-[10px] px-1.5 h-4', statusConfig[loan.status as keyof typeof statusConfig]?.color || 'bg-gray-100 text-gray-800')}>
-                      {statusConfig[loan.status as keyof typeof statusConfig]?.label || loan.status}
-                    </Badge>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50/50 dark:bg-gray-900/50 p-3 rounded-2xl border border-gray-100/50 dark:border-gray-800/50">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                          <User className="h-4 w-4 text-primary opacity-80" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-bold uppercase text-gray-400">Cliente</p>
+                          <p className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate">
+                            {loan.client.firstName} {loan.client.lastName}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                          <DollarSign className="h-4 w-4 text-orange-500" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-bold uppercase text-gray-400">Saldo</p>
+                          <p className="text-xs font-extrabold text-orange-600">
+                            {formatCurrency(loan.balanceRemaining)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                          <CreditCard className="h-4 w-4 text-blue-500" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-bold uppercase text-gray-400">Cuota</p>
+                          <p className="text-xs font-extrabold text-blue-600">
+                            {formatCurrency(loan.monthlyPayment)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                          <Calendar className="h-4 w-4 text-gray-500" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-bold uppercase text-gray-400">Vence</p>
+                          <p className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                            {formatDate(loan.endDate)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {loan.payments.length > 0 && (
+                      <div className="flex items-center gap-2 px-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                        <p className="text-[10px] font-bold text-gray-500">
+                          Último pago: <span className="text-gray-900 dark:text-gray-100">{formatDate(loan.payments[0].paymentDate)}</span> · <span className="text-green-600 font-black">{formatCurrency(loan.payments[0].amount)}</span>
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs md:text-sm text-muted-foreground bg-muted/30 p-2 md:p-0 md:bg-transparent rounded-lg">
-                    <div className="flex items-center gap-1.5">
-                      <User className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0 opacity-70" />
-                      <span className="truncate">
-                        {loan.client.firstName} {loan.client.lastName}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 overflow-hidden">
-                      <DollarSign className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0 opacity-70" />
-                      <span className="truncate">Saldo: {formatCurrency(loan.balanceRemaining)}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 overflow-hidden">
-                      <CreditCard className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0 opacity-70" />
-                      <span className="truncate">Pago: {formatCurrency(loan.monthlyPayment)}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 overflow-hidden">
-                      <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0 opacity-70" />
-                      <span className="truncate">Vence: {formatDate(loan.endDate)}</span>
-                    </div>
-                  </div>
-
-                  {loan.payments.length > 0 && (
-                    <div className="text-xs text-muted-foreground hidden md:block mt-2">
-                      Último pago: {formatDate(loan.payments[0].paymentDate)} - {formatCurrency(loan.payments[0].amount)}
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 md:flex md:items-center gap-2 mt-2 md:mt-0">
-                  <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}`}>
-                    <Button variant="outline" size="sm" className="w-full h-9">
-                      <Eye className="h-4 w-4 md:mr-1" />
-                      <span className="hidden md:inline">Ver</span>
-                    </Button>
-                  </Link>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full h-9"
-                    onClick={() => {
-                      setSelectedLoanForStatement(loan);
-                      setIsStatementModalOpen(true);
-                    }}
-                  >
-                    <FileText className="h-4 w-4 mr-1" />
-                    <span className="truncate text-xs md:text-sm">Edo Cta</span>
-                  </Button>
-
-                  {userRole !== 'CLIENTE' && (
-                    <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}/edit`} className="col-span-2 md:col-span-1">
-                      <Button variant="outline" size="sm" className="w-full h-9">
-                        <Edit className="h-4 w-4 mr-1" />
-                        Editar
+                  <div className="flex md:flex-col lg:flex-row gap-2 mt-2 md:mt-0 md:min-w-[120px] lg:min-w-fit">
+                    <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}`} className="flex-1">
+                      <Button variant="outline" size="sm" className="w-full h-10 rounded-xl border-gray-100 dark:border-gray-800 font-bold hover:bg-primary/5 hover:text-primary transition-all group">
+                        <Eye className="h-4 w-4 mr-1.5 text-gray-400 group-hover:text-primary transition-colors" />
+                        Ver
                       </Button>
                     </Link>
-                  )}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 h-10 rounded-xl border-gray-100 dark:border-gray-800 font-bold hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all group"
+                      onClick={() => {
+                        setSelectedLoanForStatement(loan);
+                        setIsStatementModalOpen(true);
+                      }}
+                    >
+                      <FileText className="h-4 w-4 mr-1.5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                      Edo Cta
+                    </Button>
+
+                    {userRole !== 'CLIENTE' && (
+                      <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}/edit`} className="flex-1">
+                        <Button variant="secondary" size="sm" className="w-full h-10 rounded-xl font-bold bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all">
+                          <Edit className="h-4 w-4 mr-1.5 text-gray-600 dark:text-gray-400" />
+                          Editar
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
 
         {filteredLoans.length === 0 && (
           <Card>
