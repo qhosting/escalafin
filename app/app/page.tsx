@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { PricingSection } from '@/components/landing/pricing-section';
+import { motion } from 'framer-motion';
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -100,116 +101,153 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+      {/* Navigation - Optimized for Mobile/PWA */}
+      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
-              <Building2 className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold text-gray-900">EscalaFin</span>
-              <Badge variant="outline" className="hidden sm:inline-flex">Sistema de Gestión</Badge>
+          <div className="flex justify-between items-center py-3 lg:py-4">
+            <div className="flex items-center space-x-2 lg:space-x-3">
+              <div className="bg-primary/10 p-1.5 rounded-xl hidden sm:block">
+                <Building2 className="h-6 lg:h-7 w-6 lg:w-7 text-primary" />
+              </div>
+              <span className="text-xl lg:text-2xl font-black text-gray-900 tracking-tighter">EscalaFin</span>
+              <Badge variant="outline" className="hidden lg:inline-flex text-[10px] font-bold uppercase tracking-widest border-primary/20 bg-primary/5 text-primary">v2.7.2</Badge>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 lg:space-x-4">
               <Link href="/auth/login">
-                <Button variant="outline">
-                  Iniciar Sesión
+                <Button variant="ghost" size="sm" className="lg:text-sm font-bold text-gray-600">
+                  Entrar
                 </Button>
               </Link>
               <Link href="/auth/register-tenant">
-                <Button className="bg-indigo-600 hover:bg-indigo-700">
-                  Registrar Financiera
+                <Button size="sm" className="bg-primary hover:bg-primary/90 text-[11px] lg:text-sm font-extrabold rounded-xl px-4 lg:px-6 shadow-md shadow-primary/20">
+                  <span className="hidden sm:inline">Empezar Ahora</span>
+                  <span className="sm:hidden">Registrar</span>
                 </Button>
               </Link>
             </div>
           </div>
         </div>
       </nav>
-
       {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-12 lg:py-20 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+            <div className="space-y-6 lg:space-y-8 text-center lg:text-left">
               <div className="space-y-4">
-                <Badge variant="secondary" className="w-fit">
-                  <Star className="w-3 h-3 mr-1" />
-                  Plataforma Profesional
-                </Badge>
-                <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                  Gestión Integral de
-                  <span className="text-primary block">Créditos y Préstamos</span>
+                <div className="flex justify-center lg:justify-start">
+                  <Badge variant="secondary" className="w-fit px-4 py-1.5 bg-primary/5 text-primary border-primary/20">
+                    <Star className="w-3.5 h-3.5 mr-2 animate-pulse fill-primary/20" />
+                    Plataforma Profesional de Crédito
+                  </Badge>
+                </div>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 leading-[1.1] tracking-tight">
+                  Gestión Inteligente de
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600 block mt-1">
+                    Préstamos Digitales
+                  </span>
                 </h1>
-                <p className="text-xl text-gray-600 leading-relaxed">
-                  Automatiza tu negocio financiero con nuestra plataforma completa.
-                  Gestiona clientes, préstamos, pagos y reportes desde una sola aplicación.
+                <p className="text-lg lg:text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                  Automatiza tu negocio financiero con la suite más completa.
+                  Gestión de cobranza, scoring de clientes y reportes en tiempo real desde cualquier dispositivo.
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-4">
-                <Link href="/auth/login">
-                  <Button size="lg" className="px-8">
+              <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-4 pt-2">
+                <Link href="/auth/login" className="w-full sm:w-auto">
+                  <Button size="xl" className="w-full sm:px-8 shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all">
                     Comenzar Ahora
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                <Button size="lg" variant="outline" className="px-8" onClick={() => {
-                  // Scroll a la sección de features para mostrar funcionalidades
-                  document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth' });
-                }}>
-                  <Play className="mr-2 h-4 w-4" />
-                  Ver Demo
-                </Button>
+                <div className="flex gap-4 w-full sm:w-auto">
+                  <Button size="xl" variant="outline" className="flex-1 sm:px-8 bg-white/50 backdrop-blur-sm border-gray-200 hover:bg-white active:scale-[0.98] transition-all" onClick={() => {
+                    document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}>
+                    <Play className="mr-2 h-4 w-4 fill-primary text-primary" />
+                    Ver Demo
+                  </Button>
+                  <a 
+                    href="https://wa.me/524424000742?text=Hola,%20busco%20información%20sobre%20EscalaFin"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 sm:hidden lg:hidden"
+                  >
+                    <Button size="xl" className="w-full bg-[#25D366] hover:bg-[#128C7E] border-none">
+                       <Smartphone className="w-5 h-5" />
+                    </Button>
+                  </a>
+                </div>
               </div>
 
-              <div className="flex items-center space-x-8 pt-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">500+</div>
-                  <div className="text-sm text-gray-600">Clientes Activos</div>
+              {/* Trust badges on mobile */}
+              <div className="flex items-center justify-center lg:justify-start space-x-6 sm:space-x-8 pt-6 border-t border-gray-100 lg:border-none">
+                <div className="text-center lg:text-left">
+                  <div className="text-xl sm:text-2xl font-black text-gray-900">+500</div>
+                  <div className="text-[10px] sm:text-xs uppercase font-bold tracking-widest text-gray-500">Clientes</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">99.9%</div>
-                  <div className="text-sm text-gray-600">Uptime</div>
+                <div className="h-8 w-px bg-gray-100 hidden sm:block" />
+                <div className="text-center lg:text-left">
+                  <div className="text-xl sm:text-2xl font-black text-gray-900">99.9%</div>
+                  <div className="text-[10px] sm:text-xs uppercase font-bold tracking-widest text-gray-500">Uptime</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">24/7</div>
-                  <div className="text-sm text-gray-600">Soporte</div>
+                <div className="h-8 w-px bg-gray-100 hidden sm:block" />
+                <div className="text-center lg:text-left">
+                  <div className="text-xl sm:text-2xl font-black text-gray-900">24/7</div>
+                  <div className="text-[10px] sm:text-xs uppercase font-bold tracking-widest text-gray-500">Soporte</div>
                 </div>
               </div>
             </div>
 
-            <div className="relative">
-              <div className="relative bg-white rounded-2xl shadow-2xl p-6">
-                <div className="aspect-video bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl flex items-center justify-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-indigo-500/20"></div>
-                  <div className="relative z-10 text-center space-y-4">
-                    <Building2 className="h-16 w-16 text-primary mx-auto" />
-                    <h3 className="text-xl font-semibold text-gray-900">Dashboard Interactivo</h3>
-                    <p className="text-gray-600 text-sm max-w-xs">
-                      Visualiza todos tus datos financieros en tiempo real
+            {/* Dashboard Visualization - More impact on mobile */}
+            <div className="relative mt-8 lg:mt-0 px-4 sm:px-0">
+              <div className="absolute inset-0 bg-primary/10 rounded-3xl blur-[80px] -z-10 animate-pulse lg:block hidden" />
+              <div className="relative bg-white/70 backdrop-blur-md rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-white p-4 sm:p-6 transition-all hover:shadow-[0_20px_60px_-15px_rgba(var(--primary-rgb),0.2)]">
+                <div className="aspect-[16/10] bg-gradient-to-br from-gray-50 to-indigo-50/30 rounded-2xl flex items-center justify-center relative overflow-hidden group">
+                  <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                  <motion.div 
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="relative z-10 text-center space-y-4"
+                  >
+                    <div className="p-5 bg-white rounded-2xl shadow-xl w-fit mx-auto border border-gray-50">
+                      <Building2 className="h-10 sm:h-12 w-10 sm:h-12 text-primary" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-black text-gray-900 tracking-tight">Dashboard Central</h3>
+                    <p className="text-gray-500 text-xs sm:text-sm max-w-xs mx-auto font-medium">
+                      Control total de tu financiera en la palma de tu mano
                     </p>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
 
-              {/* Floating Cards */}
-              <div className="absolute -top-4 -left-4 bg-white rounded-lg shadow-lg p-3">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span className="text-sm font-medium">Pagos al día</span>
+              {/* More Floating elements for premium look */}
+              <motion.div 
+                animate={{ y: [0, 10, 0], x: [0, 5, 0] }}
+                transition={{ duration: 5, repeat: Infinity }}
+                className="absolute -top-6 -left-2 sm:-left-6 bg-white rounded-2xl shadow-xl p-3 sm:p-4 border border-gray-50 flex items-center space-x-3"
+              >
+                <div className="bg-green-100 p-2 rounded-lg">
+                   <CheckCircle className="h-4 sm:h-5 w-4 sm:w-5 text-green-600" />
                 </div>
-              </div>
+                <span className="text-xs sm:text-sm font-black text-gray-800 tracking-tighter">Cobros Validados</span>
+              </motion.div>
 
-              <div className="absolute -bottom-4 -right-4 bg-white rounded-lg shadow-lg p-3">
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="h-5 w-5 text-blue-500" />
-                  <span className="text-sm font-medium">+25% crecimiento</span>
+              <motion.div 
+                animate={{ y: [0, -15, 0], x: [0, -5, 0] }}
+                transition={{ duration: 6, repeat: Infinity, delay: 1 }}
+                className="absolute -bottom-8 -right-2 sm:-right-6 bg-white rounded-2xl shadow-xl p-3 sm:p-4 border border-gray-50 flex items-center space-x-3"
+              >
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <TrendingUp className="h-4 sm:h-5 w-4 sm:w-5 text-blue-600" />
                 </div>
-              </div>
+                <span className="text-xs sm:text-sm font-black text-gray-800 tracking-tighter">Rendimiento +40%</span>
+              </motion.div>
             </div>
           </div>
         </div>
       </section>
+  
 
       {/* Features Section */}
       <section id="features-section" className="py-20 bg-white">
@@ -329,6 +367,38 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Floating WhatsApp Button */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.5, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ delay: 1, duration: 0.5 }}
+        className="fixed bottom-6 right-6 z-[100]"
+      >
+        <a
+          href="https://wa.me/524424000742?text=Hola,%20me%20interesa%20EscalaFin"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group relative flex items-center gap-3 bg-[#25D366] hover:bg-[#128C7E] text-white p-3.5 lg:p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-white/20 sm:mb-env(safe-area-inset-bottom) sm:mr-env(safe-area-inset-right)"
+        >
+          {/* Pulse Effect */}
+          <div className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20 pointer-events-none" />
+          
+          <div className="flex flex-col items-end">
+            <span className="max-w-0 overflow-hidden lg:group-hover:max-w-xs transition-all duration-500 ease-in-out whitespace-nowrap text-xs lg:text-sm font-bold pr-2">
+              Hablar con soporte
+            </span>
+          </div>
+
+          <svg 
+            viewBox="0 0 24 24" 
+            className="w-6 h-6 lg:w-8 lg:h-8 fill-current"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.445 0 .01 5.437.01 12.045c0 2.112.552 4.173 1.594 6.002L0 24l6.117-1.605a11.772 11.772 0 005.925 1.585h.005c6.604 0 12.039-5.438 12.043-12.045a11.796 11.796 0 00-3.479-8.528z" />
+          </svg>
+        </a>
+      </motion.div>
     </div>
   );
 }
