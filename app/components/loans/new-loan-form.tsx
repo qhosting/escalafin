@@ -24,7 +24,10 @@ import {
   CheckCircle,
   Search,
   Plus,
-  TrendingUp
+  TrendingUp,
+  Download,
+  Share2,
+  Table as TableIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -32,14 +35,21 @@ import { useSession } from 'next-auth/react';
 import { format, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { 
-  calculateInterestBasedPayment, 
-  calculateFixedFeePayment,
-  calculateWeeklyInterestPayment,
-  getWeeklyInterestAmount,
-  getPaymentsPerYear,
   calculateEndDate,
-  calculatePorMil120
+  calculatePorMil120,
+  generateAmortizationSchedule,
+  AmortizationEntry
 } from '@/lib/loan-calculations';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
 
 interface Client {
   id: string;
@@ -119,6 +129,8 @@ export function NewLoanForm() {
     lateFeeAmount: '200',
     lateFeeMaxWeekly: '800'
   });
+  
+  const [schedule, setSchedule] = useState<AmortizationEntry[]>([]);
   
   const [calculation, setCalculation] = useState<LoanCalculation | null>(null);
   const [showCalculation, setShowCalculation] = useState(false);
@@ -217,26 +229,14 @@ export function NewLoanForm() {
       const startDate = new Date(formData.startDate);
       const numPayments = parseInt(formData.termMonths);
       
-      // Calculate total months based on payment frequency
-      let totalMonths = 0;
-      switch (formData.paymentFrequency) {
-        case 'SEMANAL':
-          totalMonths = Math.ceil((numPayments * 7) / 30);
-          break;
-        case 'CATORCENAL':
-          totalMonths = Math.ceil((numPayments * 14) / 30);
-          break;
-        case 'QUINCENAL':
-          totalMonths = Math.ceil((numPayments * 15) / 30);
-          break;
-        case 'MENSUAL':
-        default:
-          totalMonths = numPayments;
-          break;
+      if (!isNaN(numPayments) && numPayments > 0) {
+        const endDate = calculateEndDate(
+          startDate, 
+          numPayments, 
+          formData.paymentFrequency as any
+        );
+        setFormData(prev => ({ ...prev, endDate: format(endDate, 'yyyy-MM-dd') }));
       }
-      
-      const endDate = addMonths(startDate, totalMonths);
-      setFormData(prev => ({ ...prev, endDate: format(endDate, 'yyyy-MM-dd') }));
     }
   }, [formData.startDate, formData.termMonths, formData.paymentFrequency]);
 
@@ -355,6 +355,19 @@ export function NewLoanForm() {
 
       console.log('Cálculo completado:', calc);
 
+      // Generar tabla de amortización preliminar
+      const newSchedule = generateAmortizationSchedule({
+        principalAmount: principal,
+        numberOfPayments: numPayments,
+        paymentFrequency: frequency,
+        loanCalculationType: calculationType as any,
+        annualInterestRate: calculationType === 'INTERES' ? parseFloat(formData.interestRate) / 100 : 0,
+        weeklyInterestAmount: calculationType === 'INTERES_SEMANAL' ? (parseFloat(formData.weeklyInterestAmount) || 0) : 0,
+        startDate: new Date(formData.startDate),
+        paymentAmount: calc.monthlyPayment
+      });
+
+      setSchedule(newSchedule);
       setCalculation(calc);
       setFormData(prev => ({ ...prev, monthlyPayment: calc.monthlyPayment.toString() }));
       setShowCalculation(true);
@@ -465,6 +478,88 @@ export function NewLoanForm() {
       style: 'currency',
       currency: 'MXN'
     }).format(amount);
+  };
+
+  const handleDownloadPDF = () => {
+    if (!calculation || !selectedClient) return;
+
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.text('Cotización de Préstamo - EscalaFin', 14, 22);
+    
+    doc.setFontSize(10);
+    doc.text(`Fecha: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 30);
+    
+    // Client Info
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Información del Cliente', 14, 45);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Nombre: ${selectedClient.firstName} ${selectedClient.lastName}`, 14, 52);
+    doc.text(`Teléfono: ${selectedClient.phone}`, 14, 57);
+    doc.text(`Email: ${selectedClient.email || 'N/A'}`, 14, 62);
+    
+    // Loan Summary
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Resumen del Préstamo', 14, 75);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Monto Principal: ${formatCurrency(parseFloat(formData.principalAmount))}`, 14, 82);
+    doc.text(`Tipo de Cálculo: ${CALCULATION_TYPES[formData.loanCalculationType as keyof typeof CALCULATION_TYPES]}`, 14, 87);
+    doc.text(`Frecuencia de Pago: ${PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES]}`, 14, 92);
+    doc.text(`Número de Pagos: ${formData.termMonths}`, 14, 97);
+    doc.text(`Cuota Periódica: ${formatCurrency(calculation.monthlyPayment)}`, 14, 102);
+    doc.text(`Total a Pagar: ${formatCurrency(calculation.totalAmount)}`, 14, 107);
+    doc.text(`Costo de Interés: ${formatCurrency(calculation.totalInterest)}`, 14, 112);
+    doc.text(`Fecha de Inicio: ${format(new Date(formData.startDate), 'dd/MM/yyyy')}`, 14, 117);
+    doc.text(`Fecha de Término: ${format(new Date(formData.endDate), 'dd/MM/yyyy')}`, 14, 122);
+
+    // Amortization Table
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Tabla de Amortización', 14, 135);
+    
+    const tableData = schedule.map(row => [
+      row.paymentNumber.toString(),
+      format(row.paymentDate, 'dd/MM/yyyy'),
+      formatCurrency(row.principalPayment),
+      formatCurrency(row.interestPayment),
+      formatCurrency(row.totalPayment),
+      formatCurrency(row.remainingBalance)
+    ]);
+
+    autoTable(doc, {
+      startY: 140,
+      head: [['#', 'Fecha', 'Principal', 'Interés', 'Total', 'Saldo']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+      styles: { fontSize: 8 },
+    });
+
+    doc.save(`cotizacion_${selectedClient.lastName.toLowerCase()}_${format(new Date(), 'yyyyMMdd')}.pdf`);
+    toast.success('PDF generado correctamente');
+  };
+
+  const handleShareWhatsApp = () => {
+    if (!calculation || !selectedClient) return;
+
+    const message = `*Cotización Préstamo EscalaFin*%0A%0A` +
+      `👤 *Cliente:* ${selectedClient.firstName} ${selectedClient.lastName}%0A` +
+      `💰 *Monto:* ${formatCurrency(parseFloat(formData.principalAmount))}%0A` +
+      `🔢 *Pagos:* ${formData.termMonths} (${formData.paymentFrequency.toLowerCase()})%0A` +
+      `💵 *Cuota:* ${formatCurrency(calculation.monthlyPayment)}%0A` +
+      `📈 *Total:* ${formatCurrency(calculation.totalAmount)}%0A` +
+      `📅 *Inicia:* ${format(new Date(formData.startDate), 'dd/MM/yyyy')}%0A` +
+      `📅 *Termina:* ${format(new Date(formData.endDate), 'dd/MM/yyyy')}%0A%0A` +
+      `¡Gracias por su preferencia!`;
+
+    const url = `https://wa.me/${selectedClient.phone.replace(/\+/g, '')}?text=${message}`;
+    window.open(url, '_blank');
   };
 
   return (
@@ -924,57 +1019,128 @@ export function NewLoanForm() {
 
       {/* Cálculo del Préstamo — Premium Look */}
       {showCalculation && calculation && (
-        <Card className="border-none shadow-xl bg-gradient-to-br from-gray-900 to-gray-800 dark:from-inherit text-white overflow-hidden">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-primary-foreground/90 text-lg">
-              <TrendingUp className="h-5 w-5 text-green-400" />
-              Resumen del Préstamo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
-                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Pago por cuota</p>
-                <p className="text-xl font-black text-white">
-                  {formatCurrency(calculation.monthlyPayment)}
-                </p>
-                <p className="text-[10px] text-gray-400 mt-1">
-                  {PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES].split(' ')[0]}
-                </p>
+        <div className="space-y-6">
+          <Card className="border-none shadow-xl bg-gradient-to-br from-gray-900 to-gray-800 dark:from-inherit text-white overflow-hidden">
+            <CardHeader className="pb-4">
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2 text-primary-foreground/90 text-lg">
+                  <TrendingUp className="h-5 w-5 text-green-400" />
+                  Resumen del Préstamo
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button 
+                    type="button"
+                    size="sm" 
+                    variant="outline" 
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-9 rounded-xl px-4"
+                    onClick={handleDownloadPDF}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    PDF
+                  </Button>
+                  <Button 
+                    type="button"
+                    size="sm" 
+                    className="bg-green-600 hover:bg-green-700 text-white border-none h-9 rounded-xl px-4"
+                    onClick={handleShareWhatsApp}
+                  >
+                    <Share2 className="h-4 w-4 mr-2" />
+                    WhatsApp
+                  </Button>
+                </div>
               </div>
-              
-              <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
-                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Total a devolver</p>
-                <p className="text-xl font-black text-green-400">
-                  {formatCurrency(calculation.totalAmount)}
-                </p>
-                {formData.initialPayment && parseFloat(formData.initialPayment) > 0 && (
-                  <p className="text-[10px] text-green-400/70 mt-1">
-                    + {formatCurrency(parseFloat(formData.initialPayment))} inicial
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
+                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Pago por cuota</p>
+                  <p className="text-xl font-black text-white">
+                    {formatCurrency(calculation.monthlyPayment)}
                   </p>
-                )}
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    {PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES].split(' ')[0]}
+                  </p>
+                </div>
+                
+                <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
+                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Total a devolver</p>
+                  <p className="text-xl font-black text-green-400">
+                    {formatCurrency(calculation.totalAmount)}
+                  </p>
+                  {formData.initialPayment && parseFloat(formData.initialPayment) > 0 && (
+                    <p className="text-[10px] text-green-400/70 mt-1">
+                      + {formatCurrency(parseFloat(formData.initialPayment))} inicial
+                    </p>
+                  )}
+                </div>
+                
+                <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
+                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Costo financiero</p>
+                  <p className="text-xl font-black text-orange-400">
+                    {formatCurrency(calculation.totalInterest)}
+                  </p>
+                  <p className="text-[10px] text-gray-400 mt-1">Interés total</p>
+                </div>
+                
+                <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
+                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Tasa aplicada</p>
+                  <p className="text-xl font-black text-blue-400">
+                    {calculation.interestRate.toFixed(1)}%
+                  </p>
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    {formData.termMonths} x {formData.paymentFrequency.toLowerCase()}
+                  </p>
+                </div>
               </div>
-              
-              <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
-                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Costo financiero</p>
-                <p className="text-xl font-black text-orange-400">
-                  {formatCurrency(calculation.totalInterest)}
-                </p>
-                <p className="text-[10px] text-gray-400 mt-1">Interés total</p>
-              </div>
-              
-              <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
-                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Tasa aplicada</p>
-                <p className="text-xl font-black text-blue-400">
-                  {calculation.interestRate.toFixed(1)}%
-                </p>
-                <p className="text-[10px] text-gray-400 mt-1">
-                  {formData.termMonths} x {formData.paymentFrequency.toLowerCase()}
-                </p>
-              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tabla de Amortización Preview */}
+          <Card className="border border-gray-100 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm">
+            <CardHeader className="bg-gray-50 dark:bg-gray-900 border-b">
+              <CardTitle className="flex items-center gap-2 text-lg font-bold">
+                <TableIcon className="h-5 w-5 text-primary" />
+                Tabla de Amortización (Proyección de Pagos)
+              </CardTitle>
+            </CardHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50/50 hover:bg-transparent">
+                    <TableHead className="w-[80px] font-black uppercase text-[10px]"># Pago</TableHead>
+                    <TableHead className="font-black uppercase text-[10px]">Fecha</TableHead>
+                    <TableHead className="font-black uppercase text-[10px]">Cuota Total</TableHead>
+                    <TableHead className="font-black uppercase text-[10px]">Capital</TableHead>
+                    <TableHead className="font-black uppercase text-[10px]">Interés</TableHead>
+                    <TableHead className="text-right font-black uppercase text-[10px]">Saldo Pendiente</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {schedule.map((row) => (
+                    <TableRow key={row.paymentNumber} className="hover:bg-gray-50/50">
+                      <TableCell className="font-bold py-3">{row.paymentNumber}</TableCell>
+                      <TableCell className="py-3">
+                        <span className="font-medium">{format(row.paymentDate, "dd 'de' MMM, yyyy", { locale: es })}</span>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <span className="font-black text-blue-600">{formatCurrency(row.totalPayment)}</span>
+                      </TableCell>
+                      <TableCell className="py-3 text-gray-500 font-medium">
+                        {formatCurrency(row.principalPayment)}
+                      </TableCell>
+                      <TableCell className="py-3 text-gray-500 font-medium">
+                        {formatCurrency(row.interestPayment)}
+                      </TableCell>
+                      <TableCell className="text-right py-3 font-bold">
+                        {formatCurrency(row.remainingBalance)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          </CardContent>
-        </Card>
+          </Card>
+        </div>
       )}
 
       {/* Notas Adicionales */}
