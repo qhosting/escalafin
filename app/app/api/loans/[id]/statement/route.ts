@@ -51,11 +51,18 @@ export async function GET(
             }
         }
 
-        // Obtener branding del tenant (nombre, logo si existe) — solo si tiene tenantId
-        const tenantInfo = tenantId ? await prisma.tenant.findUnique({
-            where: { id: tenantId },
-            select: { name: true, logo: true }
-        }) : null;
+        // Obtener branding del tenant (nombre, logo si existe)
+        let tenantInfo = null;
+        if (tenantId && typeof tenantId === 'string' && tenantId.length > 0 && tenantId !== 'null') {
+            try {
+                tenantInfo = await prisma.tenant.findUnique({
+                    where: { id: tenantId },
+                    select: { name: true, logo: true }
+                });
+            } catch (err) {
+                console.error('Error fetching tenant info for branding:', err);
+            }
+        }
 
         // Crear PDF
         const doc = new PDFDocument({ margin: 50, size: 'A4' });

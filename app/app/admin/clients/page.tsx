@@ -177,121 +177,115 @@ export default function ClientsPage() {
   };
 
   return (
-    <div>
-      <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 md:mb-8 gap-4">
+    <div className="pb-20 md:pb-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white mb-1 md:mb-2">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight">
             Gestión de Clientes
           </h1>
-          <p className="hidden md:block text-gray-600 dark:text-gray-300">
+          <p className="hidden sm:block text-sm text-gray-500 mt-1">
             Administra todos los clientes y su información financiera
           </p>
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-2">
           {(session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN') && (
-            <Link href="/admin/clients/migrate" className="flex-1 md:flex-none">
-              <Button size="lg" variant="outline" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/50">
-                <Database className="h-4 w-4 md:mr-2" />
-                <span className="hidden md:inline">Migrar Clientes</span>
+            <Link href="/admin/clients/migrate">
+              <Button size="sm" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/50">
+                <Database className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Migrar</span>
+                <span className="sm:hidden">Migrar</span>
               </Button>
             </Link>
           )}
-          <Link href="/admin/clients/new" className="flex-1 md:flex-none">
-            <Button size="lg" className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo
+          <Link href="/admin/clients/new" className="hidden sm:inline-block">
+            <Button size="sm" className="bg-primary hover:bg-primary/90 text-white font-bold px-4">
+              <Plus className="h-4 w-4 mr-1" />
+              Nuevo Cliente
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* KPIs (Visibles solo en Desktop) */}
-      <div className="hidden md:grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Total Clientes</h3>
-              <Users className="h-4 w-4 text-muted-foreground" />
+      {/* KPIs — 2-col en móvil */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+        <Card className="border-none bg-blue-50/50 dark:bg-blue-900/10">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-[10px] uppercase font-bold text-blue-600 tracking-wider">Total</h3>
+              <Users className="h-3.5 w-3.5 text-blue-500" />
             </div>
-            <div className="text-2xl font-bold">{stats.totalClients}</div>
+            <div className="text-xl font-black text-blue-900 dark:text-blue-100">{stats.totalClients}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Activos</h3>
-              <UserCheck className="h-4 w-4 text-green-500" />
+        <Card className="border-none bg-green-50/50 dark:bg-green-900/10">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-[10px] uppercase font-bold text-green-600 tracking-wider">Activos</h3>
+              <UserCheck className="h-3.5 w-3.5 text-green-500" />
             </div>
-            <div className="text-2xl font-bold text-green-600">{stats.activeClients}</div>
+            <div className="text-xl font-black text-green-900 dark:text-green-100">{stats.activeClients}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Préstamos Activos</h3>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <Card className="border-none bg-purple-50/50 dark:bg-purple-900/10 hidden sm:block">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-[10px] uppercase font-bold text-purple-600 tracking-wider">Préstamos</h3>
+              <TrendingUp className="h-3.5 w-3.5 text-purple-500" />
             </div>
-            <div className="text-2xl font-bold">{stats.totalLoans}</div>
+            <div className="text-xl font-black text-purple-900 dark:text-purple-100">{stats.totalLoans}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Cartera Total</h3>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <Card className="border-none bg-orange-50/50 dark:bg-orange-900/10">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-[10px] uppercase font-bold text-orange-600 tracking-wider">Cartera</h3>
+              <DollarSign className="h-3.5 w-3.5 text-orange-500" />
             </div>
-            <div className="text-2xl font-bold">
-              {new Intl.NumberFormat('es-MX', {
-                style: 'currency',
-                currency: 'MXN',
-                notation: 'compact'
-              }).format(stats.totalPortfolio)}
+            <div className="text-xl font-black text-orange-900 dark:text-orange-100">
+              {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', notation: 'compact' }).format(stats.totalPortfolio)}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between space-y-0 pb-2">
-              <h3 className="tracking-tight text-sm font-medium">Score Promedio</h3>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <Card className="border-none bg-indigo-50/50 dark:bg-indigo-900/10">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider">Score</h3>
+              <TrendingUp className="h-3.5 w-3.5 text-indigo-500" />
             </div>
-            <div className="text-2xl font-bold">{stats.avgCreditScore}</div>
+            <div className="text-xl font-black text-indigo-900 dark:text-indigo-100">{stats.avgCreditScore}</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filtros y búsqueda */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nombre, email o teléfono..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-48">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="ACTIVE">Activo</SelectItem>
-                <SelectItem value="INACTIVE">Inactivo</SelectItem>
-                <SelectItem value="SUSPENDED">Suspendido</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Filtros y búsqueda — Compactos */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Buscar por nombre, email o teléfono..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-11 bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 rounded-xl"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-48 h-11 bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 rounded-xl">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los estados</SelectItem>
+            <SelectItem value="ACTIVE">Activo</SelectItem>
+            <SelectItem value="INACTIVE">Inactivo</SelectItem>
+            <SelectItem value="SUSPENDED">Suspendido</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Tabla de clientes */}
       <Card>
@@ -395,59 +389,79 @@ export default function ClientsPage() {
                 </Table>
               </div>
 
-              {/* View Mobile: Tarjetas */}
-              <div className="md:hidden space-y-4">
+              {/* View Mobile: Tarjetas Premium */}
+              <div className="md:hidden grid grid-cols-1 gap-4">
                 {filteredClients.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3 opacity-20" />
-                    <p className="text-muted-foreground text-sm">
+                  <div className="text-center py-12 bg-gray-50 dark:bg-gray-900 rounded-2xl">
+                    <Users className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+                    <p className="text-sm font-medium text-gray-500">
                       {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
                     </p>
                   </div>
                 ) : (
-                  filteredClients.map((client) => (
-                    <Card key={client.id} className="p-4 shadow-sm border-border active:scale-[0.99] transition-all">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="max-w-[70%]">
-                          <h3 className="font-bold text-base text-gray-900 dark:text-white leading-tight">
-                            {client.firstName} {client.lastName}
-                          </h3>
-                          <p className="text-sm text-gray-500 mt-1 truncate">
-                            {client.phone}
-                          </p>
-                        </div>
-                        <Badge variant={getStatusVariant(client.status) as any} className="text-[10px] px-1.5 h-4">
-                          {client.status}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mb-4 bg-muted/30 p-2 rounded-lg">
-                        <div className="flex items-center gap-1.5 overflow-hidden">
-                          <Users className="h-3.5 w-3.5 flex-shrink-0 opacity-70" />
-                          <span className="truncate">{client.asesor ? client.asesor.firstName : 'Sin Asesor'}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <DollarSign className="h-3.5 w-3.5 flex-shrink-0 opacity-70" />
-                          <span>{client.loans.length} préstamos</span>
-                        </div>
-                      </div>
+                  filteredClients.map((client) => {
+                    const initials = `${client.firstName[0]}${client.lastName[0]}`;
+                    const hasActiveLoan = client.loans.some(l => l.status === 'ACTIVE');
+                    return (
+                      <Card key={client.id} className="relative overflow-hidden border-gray-100 dark:border-gray-800 shadow-sm active:scale-[0.98] transition-all">
+                        {!client.loans.some(l => l.status === 'PAID_OFF') && hasActiveLoan && (
+                          <div className="absolute top-0 right-0 w-12 h-12">
+                             <div className="absolute top-[-2px] right-[-2px] p-1 pb-1 pr-1 bg-green-500 text-white rounded-bl-xl">
+                               <UserCheck className="h-3 w-3" />
+                             </div>
+                          </div>
+                        )}
+                        
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center font-black text-primary text-base shrink-0 shadow-inner">
+                              {initials}
+                            </div>
+                            <div className="flex-1 min-w-0 pr-6">
+                              <h3 className="font-bold text-gray-900 dark:text-white truncate">
+                                {client.firstName} {client.lastName}
+                              </h3>
+                              <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                <Badge variant={getStatusVariant(client.status) as any} className="text-[9px] h-3.5 px-1 py-0 border-0">
+                                  {client.status}
+                                </Badge>
+                                <span className="text-[11px] text-gray-400 font-medium">#{client.phone}</span>
+                              </div>
+                            </div>
+                          </div>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <Link href={`/admin/clients/${client.id}`}>
-                          <Button variant="outline" size="sm" className="w-full h-9">
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver
-                          </Button>
-                        </Link>
-                        <Link href={`/admin/clients/${client.id}/edit`}>
-                          <Button variant="outline" size="sm" className="w-full h-9">
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </Button>
-                        </Link>
-                      </div>
-                    </Card>
-                  ))
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div className="bg-gray-50 dark:bg-gray-800/50 p-2 rounded-xl border border-gray-100/50 dark:border-gray-700/50">
+                              <p className="text-[9px] uppercase font-bold text-gray-400 mb-0.5">Asesor</p>
+                              <p className="text-xs font-bold text-gray-700 dark:text-gray-300 truncate">
+                                {client.asesor ? `${client.asesor.firstName}` : 'Sin Asesor'}
+                              </p>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-gray-800/50 p-2 rounded-xl border border-gray-100/50 dark:border-gray-700/50">
+                              <p className="text-[9px] uppercase font-bold text-gray-400 mb-0.5">Préstamos</p>
+                              <p className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                {client.loans.length} <span className="text-[10px] font-medium opacity-60">histórico</span>
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Link href={`/admin/clients/${client.id}`} className="flex-1">
+                              <Button variant="outline" size="sm" className="w-full rounded-xl border-gray-100 dark:border-gray-800 text-xs font-bold h-10 group bg-white dark:bg-gray-900 hover:bg-gray-50">
+                                <Eye className="h-3.5 w-3.5 mr-2 text-gray-400 group-hover:text-primary" />
+                                Gestionar
+                              </Button>
+                            </Link>
+                            <Link href={`/admin/clients/${client.id}/edit`}>
+                              <Button variant="ghost" size="sm" className="rounded-xl h-10 w-10 p-0 text-gray-400 hover:text-primary hover:bg-primary/5">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })
                 )}
               </div>
 
@@ -481,6 +495,13 @@ export default function ClientsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Floating Action Button for Mobile */}
+      <Link href="/admin/clients/new" className="sm:hidden fixed bottom-20 right-4 z-50">
+        <Button className="w-14 h-14 rounded-2xl bg-primary text-white shadow-2xl shadow-primary/40 flex items-center justify-center p-0 active:scale-90 transition-transform">
+          <Plus className="h-7 w-7" />
+        </Button>
+      </Link>
     </div>
   );
 }

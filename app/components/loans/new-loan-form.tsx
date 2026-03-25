@@ -478,75 +478,85 @@ export function NewLoanForm() {
         </CardHeader>
         <CardContent className="space-y-4">
           {!selectedClient ? (
-            <>
+            <div className="space-y-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Buscar cliente por nombre, email o teléfono..."
-                  className="pl-10"
+                  placeholder="Nombre, email o teléfono..."
+                  className="pl-10 h-12 bg-gray-50 dark:bg-gray-800 border-none rounded-xl"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               
               {loading ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                  <p className="text-muted-foreground mt-2">Cargando clientes...</p>
+                <div className="flex flex-col items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <p className="text-xs text-muted-foreground mt-3 font-medium">Buscando clientes...</p>
                 </div>
               ) : (
-                <div className="max-h-60 overflow-y-auto space-y-2">
+                <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                   {filteredClients.map((client) => (
-                    <div
+                    <button
                       key={client.id}
-                      className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                      type="button"
+                      className="w-full text-left p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:bg-primary/5 hover:border-primary/20 transition-all group flex items-start gap-3 active:scale-[0.98]"
                       onClick={() => handleClientSelect(client)}
                     >
-                      <div className="font-medium">{client.firstName} {client.lastName}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {client.email} • {client.phone}
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                        <User className="h-5 w-5" />
                       </div>
-                      {client.monthlyIncome && (
-                        <div className="text-xs text-muted-foreground">
-                          Ingresos: {formatCurrency(client.monthlyIncome)}/mes
-                          {client.creditScore && ` • Score: ${client.creditScore}`}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-sm text-gray-900 dark:text-gray-100">{client.firstName} {client.lastName}</div>
+                        <div className="text-xs text-gray-500 truncate">{client.email || 'Sin email'}</div>
+                        <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                          <span className="flex items-center gap-1"><CreditCard className="h-3 w-3" /> {client.phone}</span>
+                          {client.creditScore && (
+                            <span className="px-1.5 py-0.5 bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 rounded text-[10px] font-bold uppercase">
+                              Score {client.creditScore}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    </button>
                   ))}
                   
                   {filteredClients.length === 0 && searchTerm && (
-                    <div className="text-center py-8">
-                      <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-muted-foreground">No se encontraron clientes</p>
+                    <div className="text-center py-10 bg-gray-50 dark:bg-gray-800/50 rounded-2xl">
+                      <AlertCircle className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                      <p className="text-sm font-medium text-gray-500">No hay resultados para "{searchTerm}"</p>
+                      <Button variant="ghost" className="mt-2 text-primary text-xs" onClick={() => router.push('/admin/clients/new')}>
+                        <Plus className="h-3 w-3 mr-1" /> Crear nuevo cliente
+                      </Button>
                     </div>
                   )}
                 </div>
               )}
-            </>
+            </div>
           ) : (
-            <div className="p-4 bg-muted/30 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg">{selectedClient.firstName} {selectedClient.lastName}</h3>
-                  <p className="text-muted-foreground">{selectedClient.email} • {selectedClient.phone}</p>
-                  {selectedClient.monthlyIncome && (
-                    <div className="flex gap-4 mt-2">
-                      <Badge variant="outline">
-                        Ingresos: {formatCurrency(selectedClient.monthlyIncome)}/mes
-                      </Badge>
-                      {selectedClient.creditScore && (
-                        <Badge variant="outline">
-                          Score: {selectedClient.creditScore}
+            <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-2xl border border-primary/10 ring-1 ring-primary/5">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                    {selectedClient.firstName[0]}{selectedClient.lastName[0]}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-base truncate">{selectedClient.firstName} {selectedClient.lastName}</h3>
+                    <p className="text-xs text-gray-500 truncate">{selectedClient.email || selectedClient.phone}</p>
+                    {selectedClient.monthlyIncome && (
+                      <div className="flex gap-2 mt-1">
+                        <Badge variant="outline" className="text-[10px] py-0 h-4 border-primary/20 bg-white/50 dark:bg-black/20">
+                          {formatCurrency(selectedClient.monthlyIncome)}/mes
                         </Badge>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
+                  className="shrink-0 h-8 text-xs text-primary hover:bg-primary/10 font-semibold"
                   onClick={() => {
                     setSelectedClient(null);
                     setFormData(prev => ({ ...prev, clientId: '' }));
@@ -873,12 +883,11 @@ export function NewLoanForm() {
               </div>
             </div>
 
-            {/* Botón de Cálculo */}
-            <div className="flex justify-center">
+            {/* Botón de Cálculo — Estilo PWA */}
+            <div className="flex justify-center pt-2">
               <Button
                 type="button"
-                variant="outline"
-                className="flex items-center gap-2"
+                className="w-full sm:w-auto px-10 py-6 rounded-2xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white font-bold transition-all active:scale-[0.98] flex items-center gap-3"
                 onClick={calculateLoan}
                 disabled={
                   !formData.principalAmount?.trim() || 
@@ -891,20 +900,20 @@ export function NewLoanForm() {
                   ))
                 }
               >
-                <Calculator className="h-4 w-4" />
+                <Calculator className="h-5 w-5" />
                 {calculation ? 'Recalcular Préstamo' : 'Calcular Préstamo'}
               </Button>
             </div>
             
             {/* Mensaje de ayuda si el botón está desactivado */}
             {!calculation && (
-              <p className="text-xs text-center text-muted-foreground mt-2 italic">
+              <p className="text-[11px] text-center text-gray-400 mt-3 font-medium animate-pulse">
                 {!formData.principalAmount || parseFloat(formData.principalAmount) <= 0 
-                  ? "Ingresa el monto principal para habilitar el cálculo" 
+                  ? "ⓘ Ingresa el monto para habilitar el cálculo" 
                   : (formData.loanCalculationType === 'POR_MIL_120' && (!formData.expectedWeeklyPayment || parseFloat(formData.expectedWeeklyPayment) <= 0))
-                  ? "Ingresa el pago semanal deseado para calcular"
+                  ? "ⓘ Ingresa el pago semanal deseado"
                   : (formData.loanCalculationType !== 'POR_MIL_120' && (!formData.termMonths || parseInt(formData.termMonths) <= 0))
-                  ? "Ingresa el número de pagos para habilitar el cálculo"
+                  ? "ⓘ Ingresa el número de pagos"
                   : ""}
               </p>
             )}
@@ -912,58 +921,54 @@ export function NewLoanForm() {
         </Card>
       )}
 
-      {/* Cálculo del Préstamo */}
+      {/* Cálculo del Préstamo — Premium Look */}
       {showCalculation && calculation && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-600">
-              <CheckCircle className="h-5 w-5" />
-              Cálculo del Préstamo
+        <Card className="border-none shadow-xl bg-gradient-to-br from-gray-900 to-gray-800 dark:from-inherit text-white overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-primary-foreground/90 text-lg">
+              <TrendingUp className="h-5 w-5 text-green-400" />
+              Resumen del Préstamo
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="text-center p-4 bg-muted/30 rounded-lg">
-                <DollarSign className="h-6 w-6 mx-auto mb-2 text-blue-600" />
-                <p className="text-sm text-muted-foreground">
-                  Monto por Pago ({PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES].split(' ')[0]})
-                </p>
-                <p className="text-xl font-bold text-foreground">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Pago por cuota</p>
+                <p className="text-xl font-black text-white">
                   {formatCurrency(calculation.monthlyPayment)}
+                </p>
+                <p className="text-[10px] text-gray-400 mt-1">
+                  {PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES].split(' ')[0]}
                 </p>
               </div>
               
-              <div className="text-center p-4 bg-muted/30 rounded-lg">
-                <CreditCard className="h-6 w-6 mx-auto mb-2 text-green-600" />
-                <p className="text-sm text-muted-foreground">Total a Pagar</p>
-                <p className="text-xl font-bold text-foreground">
+              <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Total a devolver</p>
+                <p className="text-xl font-black text-green-400">
                   {formatCurrency(calculation.totalAmount)}
                 </p>
                 {formData.initialPayment && parseFloat(formData.initialPayment) > 0 && (
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-[10px] text-green-400/70 mt-1">
                     + {formatCurrency(parseFloat(formData.initialPayment))} inicial
                   </p>
                 )}
               </div>
               
-              <div className="text-center p-4 bg-muted/30 rounded-lg">
-                <AlertCircle className="h-6 w-6 mx-auto mb-2 text-orange-600" />
-                <p className="text-sm text-muted-foreground">Total Intereses</p>
-                <p className="text-xl font-bold text-foreground">
+              <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Costo financiero</p>
+                <p className="text-xl font-black text-orange-400">
                   {formatCurrency(calculation.totalInterest)}
                 </p>
+                <p className="text-[10px] text-gray-400 mt-1">Interés total</p>
               </div>
               
-              <div className="text-center p-4 bg-muted/30 rounded-lg">
-                <FileText className="h-6 w-6 mx-auto mb-2 text-purple-600" />
-                <p className="text-sm text-muted-foreground">
-                  {formData.loanCalculationType === 'INTERES' ? 'Tasa de Interés' : 'Tasa Efectiva'}
+              <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/5">
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Tasa aplicada</p>
+                <p className="text-xl font-black text-blue-400">
+                  {calculation.interestRate.toFixed(1)}%
                 </p>
-                <p className="text-xl font-bold text-foreground">
-                  {calculation.interestRate.toFixed(2)}%
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formData.termMonths} pagos • {CALCULATION_TYPES[formData.loanCalculationType as keyof typeof CALCULATION_TYPES]}
+                <p className="text-[10px] text-gray-400 mt-1">
+                  {formData.termMonths} x {formData.paymentFrequency.toLowerCase()}
                 </p>
               </div>
             </div>
@@ -999,12 +1004,17 @@ export function NewLoanForm() {
         </Card>
       )}
 
-      {/* Botones de Acción */}
+      {/* Botones de Acción — Sticky en móvil */}
       {showCalculation && calculation && (
-        <div className="flex justify-end gap-4">
-          <Button
+        <div className={cn(
+          "flex items-center justify-end gap-3",
+          "fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-t border-gray-100 dark:border-gray-800 z-50",
+          "sm:static sm:bg-transparent sm:p-0 sm:border-0 sm:backdrop-blur-none"
+        )}>
+           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
+            className="text-gray-500 font-semibold"
             onClick={() => router.back()}
           >
             Cancelar
@@ -1012,7 +1022,7 @@ export function NewLoanForm() {
           <Button
             type="submit"
             disabled={submitting}
-            className="min-w-[120px]"
+            className="px-8 h-12 rounded-xl bg-primary text-white font-bold shadow-xl shadow-primary/20 transition-all active:scale-[0.98] grow sm:grow-0"
           >
             {submitting ? (
               <div className="flex items-center gap-2">
@@ -1021,13 +1031,15 @@ export function NewLoanForm() {
               </div>
             ) : (
               <>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-5 w-5 mr-2" />
                 Crear Préstamo
               </>
             )}
           </Button>
         </div>
       )}
+      {/* Spacer for sticky footer on mobile */}
+      {showCalculation && calculation && <div className="h-20 sm:hidden" />}
     </form>
   );
 }
