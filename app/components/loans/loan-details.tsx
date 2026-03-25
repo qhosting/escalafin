@@ -172,46 +172,53 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
       </div>
     );
   }
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/loans">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{loan.loanNumber}</h1>
-            <p className="text-muted-foreground">
-              {loanTypeConfig[loan.loanType as keyof typeof loanTypeConfig]} • {loan.client.firstName} {loan.client.lastName}
-            </p>
+      {/* Header - Optimized for PWA/Mobile */}
+      <div className="flex flex-col gap-4">
+        {/* Superior: Botón Volver e Info Básica */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <Link href="/admin/loans">
+              <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-xl">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <h1 className="text-xl md:text-3xl font-extrabold text-primary truncate">
+                  {loan.loanNumber}
+                </h1>
+                <Badge className={cn('text-[10px] px-2 h-5 rounded-full border-0 uppercase font-black shrink-0', statusConfig[loan.status as keyof typeof statusConfig]?.color)}>
+                  {statusConfig[loan.status as keyof typeof statusConfig]?.label}
+                </Badge>
+              </div>
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">
+                {loanTypeConfig[loan.loanType as keyof typeof loanTypeConfig]} • {loan.client.firstName} {loan.client.lastName}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <Badge className={statusConfig[loan.status as keyof typeof statusConfig]?.color}>
-            {statusConfig[loan.status as keyof typeof statusConfig]?.label}
-          </Badge>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsStatementModalOpen(true)}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Estado de Cuenta
-          </Button>
-          {userRole !== 'CLIENTE' && (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/admin/loans/${loan.id}/edit`}>
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
-              </Link>
+          {/* Acciones de Préstamo */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-none h-10 rounded-xl font-bold bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800"
+              onClick={() => setIsStatementModalOpen(true)}
+            >
+              <FileText className="h-4 w-4 mr-2 text-primary" />
+              <span className="sm:inline">Estado de Cuenta</span>
             </Button>
-          )}
+            {userRole !== 'CLIENTE' && (
+              <Link href={`/admin/loans/${loan.id}/edit`} className="flex-1 sm:flex-none">
+                <Button variant="secondary" size="sm" className="w-full h-10 rounded-xl font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
