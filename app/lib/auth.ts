@@ -82,7 +82,8 @@ export const authOptions: NextAuthOptions = {
             name: `${user.firstName} ${user.lastName}`,
             role: user.role,
             tenantId: user.tenantId,
-            tenantSlug: user.tenant?.slug || null
+            tenantSlug: user.tenant?.slug || null,
+            tenantName: user.tenant?.name || 'EscalaFin'
           };
         } catch (error) {
           console.error('💥 Auth error:', error);
@@ -107,6 +108,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.tenantId = user.tenantId;
         token.tenantSlug = (user as any).tenant?.slug;
+        token.tenantName = (user as any).tenantName;
       }
       return token;
     },
@@ -116,6 +118,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
         session.user.tenantId = token.tenantId as string | null;
         session.user.tenantSlug = token.tenantSlug as string | null;
+        session.user.tenantName = token.tenantName as string | null;
       }
       return session;
     },

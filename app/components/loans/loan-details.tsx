@@ -150,7 +150,7 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
       const { generatePaymentReceiptPDF } = await import('@/lib/pdf-utils');
       
       const receiptData = {
-        tenantName: (session?.user as any)?.tenantName || 'EscalaFin',
+        tenantName: session?.user?.tenantName || 'EscalaFin',
         paymentId: payment.id,
         amount: payment.amount,
         date: formatDate(payment.paymentDate),
@@ -158,24 +158,24 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
         loanNumber: loan!.loanNumber,
         concept: payment.notes || 'Abono a capital / Mensualidad',
         paymentMethod: payment.paymentMethod,
-        balanceAfter: loan!.balanceRemaining 
+        balanceAfter: loan!.balanceRemaining,
+        clientAddress: (loan!.client as any).address || null
       };
 
-      const pdfBase64 = await generatePaymentReceiptPDF(receiptData);
+      const pdfUrl = await generatePaymentReceiptPDF(receiptData);
       
       if (action === 'view') {
-        const win = window.open();
-        if (win) {
-          win.document.title = `Recibo ${loan!.loanNumber}`;
-          win.document.write(`<iframe src="${pdfBase64}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
-        } else {
-          toast.error('El navegador bloqueó la ventana emergente');
+        const win = window.open(pdfUrl, '_blank');
+        if (!win) {
+          toast.error('El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.');
         }
       } else {
         const link = document.createElement('a');
-        link.href = pdfBase64;
+        link.href = pdfUrl;
         link.download = `Recibo_${loan!.loanNumber}_${payment.id.substring(0,6)}.pdf`;
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
       }
     } catch (error) {
       console.error('Error generating receipt:', error);

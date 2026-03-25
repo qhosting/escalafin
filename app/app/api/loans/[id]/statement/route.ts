@@ -91,7 +91,7 @@ export async function GET(
         }
 
         // Texto de cabecera (Izquierda)
-        doc.fillColor('#1e293b').fontSize(22).font('Helvetica-Bold').text(tenantInfo?.name || 'EscalaFin', textX, 35);
+        doc.fillColor('#1e293b').fontSize(22).font('Helvetica-Bold').text(tenantInfo?.name || session.user.tenantName || 'EscalaFin', textX, 35);
         doc.fontSize(10).font('Helvetica').fillColor('#64748b').text('Tu Aliado Financiero', textX, 64);
 
         // Título y Metadatos (Derecha) - Ajustado para evitar sobreposición
@@ -112,7 +112,14 @@ export async function GET(
         doc.fillColor('#64748b').fontSize(8).font('Helvetica-Bold').text('DATOS DEL CLIENTE', 50, startY + 15);
         doc.fillColor('#0f172a').fontSize(11).text(`${loan.client.firstName} ${loan.client.lastName}`, 50, startY + 30);
         doc.fontSize(9).font('Helvetica').text(`Tel: ${loan.client.phone}`, 50, startY + 45);
-        doc.text(`Email: ${loan.client.email}`, 50, startY + 58);
+        
+        let addressY = startY + 58;
+        if (loan.client.address) {
+            doc.text('Dirección:', 50, addressY, { stroke: true });
+            doc.text(loan.client.address, 50, addressY + 12, { width: 250 });
+            addressY += 35;
+        }
+        doc.text(`Email: ${loan.client.email}`, 50, addressY);
 
         // Columna 2: Resumen
         doc.fillColor('#64748b').fontSize(8).font('Helvetica-Bold').text('RESUMEN DE CRÉDITO', 350, startY + 15);
