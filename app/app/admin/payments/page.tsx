@@ -35,11 +35,10 @@ import {
   ChevronRight,
   User as UserIcon
 } from 'lucide-react';
-import { toast } from 'sonner';
-import Link from 'next/link';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { useSession } from 'next-auth/react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { Download, Share2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,6 +80,10 @@ export default function PaymentsPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [advisorId, setAdvisorId] = useState('all');
+  const [tenantData, setTenantData] = useState<{
+    name: string;
+    logo: string | null;
+  } | null>(null);
 
   const fetchAdvisors = useCallback(async () => {
     // Solo los administradores pueden ver la lista completa de asesores
@@ -126,6 +129,16 @@ export default function PaymentsPage() {
     }
   }, [session?.user, fetchAdvisors, fetchPayments]);
 
+  useEffect(() => {
+    fetch('/api/admin/branding')
+      .then(res => res.json())
+      .then(data => setTenantData(data))
+      .catch(err => {
+        console.error('Error fetching branding:', err);
+        setTenantData({ name: 'EscalaFin', logo: null });
+      });
+  }, []);
+
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
 
@@ -154,6 +167,100 @@ export default function PaymentsPage() {
     return clientName.includes(s) || loanNum.includes(s) || ref.includes(s);
   });
 
+  const totalFiltered = filteredPayments.reduce((acc, p) => acc + p.amount, 0);
+
+  const imageUrlToBase64 = (url: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject('Could not get canvas context');
+          return;
+        }
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  };
+
+  const handleDownloadPDF = async () => {
+    const doc = new jsPDF();
+    const margin = 14;
+    let currentY = 22;
+
+    if (tenantData?.logo) {
+      try {
+        const base64Logo = await imageUrlToBase64(tenantData.logo);
+        doc.addImage(base64Logo, 'PNG', margin, 15, 30, 15);
+        currentY = 35;
+      } catch (err) {
+        console.warn('Logo error:', err);
+      }
+    }
+
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(37, 99, 235);
+    doc.text(tenantData?.name || 'EscalaFin', tenantData?.logo ? 50 : margin, 25);
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Reporte de Cobranza - ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, margin, currentY);
+    currentY += 10;
+
+    if (startDate || endDate) {
+      doc.text(`Periodo: ${startDate || 'Inicio'} al ${endDate || 'Hoy'}`, margin, currentY);
+      currentY += 5;
+    }
+
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Total Recaudado: ${formatCurrency(totalFiltered)}`, margin, currentY + 10);
+    currentY += 20;
+
+    const tableData = filteredPayments.map(p => [
+      `${p.loan?.client?.firstName} ${p.loan?.client?.lastName}`,
+      p.loan?.loanNumber || 'TICKET',
+      formatCurrency(p.amount),
+      p.paymentMethod === 'CASH' ? 'Efectivo' : 'Depósito',
+      p.loan?.client?.asesor?.firstName || 'Sistema',
+      format(new Date(p.paymentDate), 'dd/MM/yyyy')
+    ]);
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Cliente', 'Préstamo', 'Monto', 'Método', 'Asesor', 'Fecha']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontSize: 8 },
+      styles: { fontSize: 8 },
+    });
+
+    doc.save(`reporte_cobros_${format(new Date(), 'yyyyMMdd')}.pdf`);
+    toast.success('Reporte PDF generado');
+  };
+
+  const handleShareWhatsApp = () => {
+    const tenantName = tenantData?.name || 'EscalaFin';
+    const message = `*Reporte de Cobranza - ${tenantName}*%0A%0A` +
+      `📅 *Fecha:* ${format(new Date(), 'dd/MM/yyyy')}%0A` +
+      `💰 *Total Recaudado:* ${formatCurrency(totalFiltered)}%0A` +
+      `📊 *Movimientos:* ${filteredPayments.length}%0A%0A` +
+      `Filtros aplicados: ${startDate || 'n/a'} a ${endDate || 'n/a'}`;
+
+    const url = `https://wa.me/?text=${message}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 pb-12">
       {/* Header Premium - Sin cajas de resumen como se solicitó */}
@@ -169,12 +276,34 @@ export default function PaymentsPage() {
             Historial detallado y filtros avanzados de recaudación.
           </p>
         </div>
-        <Button asChild size="lg" className="h-14 px-8 rounded-2xl font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95 transition-all">
-          <Link href="/admin/payments/new">
-            <Plus className="h-5 w-5 mr-2" />
-            Registrar Pago
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="h-14 rounded-2xl font-black bg-white dark:bg-gray-900 shadow-sm px-6 border-gray-200"
+            onClick={handleDownloadPDF}
+            disabled={filteredPayments.length === 0}
+          >
+            <Download className="h-5 w-5 mr-2" />
+            PDF
+          </Button>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="h-14 rounded-2xl font-black bg-green-50 text-green-700 hover:bg-green-100 shadow-sm px-6 border-green-200"
+            onClick={handleShareWhatsApp}
+            disabled={filteredPayments.length === 0}
+          >
+            <Share2 className="h-5 w-5 mr-2" />
+            WhatsApp
+          </Button>
+          <Button asChild size="lg" className="h-14 px-8 rounded-2xl font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95 transition-all">
+            <Link href="/admin/payments/new">
+              <Plus className="h-5 w-5 mr-2" />
+              Registrar Pago
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filtros Avanzados */}
@@ -346,6 +475,30 @@ export default function PaymentsPage() {
                           </TableCell>
                         </TableRow>
                       ))
+                    )}
+                    
+                    {/* Fila de Total */}
+                    {!loading && filteredPayments.length > 0 && (
+                      <TableRow className="h-24 bg-blue-50/30 dark:bg-blue-900/10 border-t-2 border-blue-100">
+                        <TableCell className="pl-6">
+                          <p className="text-xl font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">
+                            Total Recaudado
+                          </p>
+                          <p className="text-[10px] font-bold text-gray-500">
+                            {filteredPayments.length} movimientos filtrados
+                          </p>
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-3xl font-black text-blue-700 tracking-tighter">
+                            {formatCurrency(totalFiltered)}
+                          </p>
+                        </TableCell>
+                        <TableCell colSpan={3} className="pr-6 text-right">
+                           <Badge className="bg-blue-600 text-white border-0 font-black text-xs px-4 py-2 rounded-full shadow-lg shadow-blue-500/20">
+                             BALANCE DE FILTRO
+                           </Badge>
+                        </TableCell>
+                      </TableRow>
                     )}
                   </TableBody>
                 </Table>
