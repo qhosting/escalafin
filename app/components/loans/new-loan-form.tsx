@@ -665,6 +665,7 @@ export function NewLoanForm() {
     toast.success('PDF generado con éxito');
   };
 
+  /*
   const handleShareWhatsApp = () => {
     if (!calculation || !selectedClient) return;
 
@@ -684,8 +685,9 @@ export function NewLoanForm() {
     const url = `https://wa.me/${selectedClient.phone.replace(/\+/g, '')}?text=${message}`;
     window.open(url, '_blank');
   };
+  */
 
-  return (<form onSubmit={handleSubmit} className="space-y-8">
+  return (<div className="space-y-8">
       {/* Selección de Cliente */}
       <Card>
         <CardHeader>
@@ -1156,7 +1158,7 @@ export function NewLoanForm() {
                     <Download className="h-4 w-4 mr-2" />
                     PDF
                   </Button>
-                  <Button 
+                  {/* <Button 
                     type="button"
                     size="sm" 
                     className="bg-green-600 hover:bg-green-700 text-white border-none h-9 rounded-xl px-4"
@@ -1164,7 +1166,7 @@ export function NewLoanForm() {
                   >
                     <Share2 className="h-4 w-4 mr-2" />
                     WhatsApp
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             </CardHeader>
@@ -1327,6 +1329,6 @@ export function NewLoanForm() {
       )}
       {/* Spacer for sticky footer on mobile */}
       {showCalculation && calculation && <div className="h-20 sm:hidden" />}
-    </form>
+    </div>
   );
 }
