@@ -8,7 +8,6 @@ const nextConfig = {
     outputFileTracingRoot: process.cwd(),
     serverComponentsExternalPackages: ['pdfkit', 'canvas'],
   },
-  serverExternalPackages: ['pdfkit', 'canvas'],
   eslint: {
     ignoreDuringBuilds: true,
   },

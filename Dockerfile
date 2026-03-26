@@ -42,8 +42,8 @@ WORKDIR /app
 # Copy configuration files
 COPY app/package.json ./
 COPY app/package-lock.json ./
-# Global cache breaker
-RUN echo "Full rebuild: 2026-03-25-11-15"
+# Global cache breaker para forzar reinstalación de nuevas dependencias (p. ej. jspdf-autotable)
+RUN echo "Full rebuild: 2026-03-25-18-05"
 
 # Instalar dependencias con NPM (con reintentos para redes inestables)
 RUN echo "📦 Instalando dependencias con NPM..." && \
@@ -77,7 +77,7 @@ COPY --from=deps /app/node_modules ./node_modules
 
 # Copy application source
 # Cache breaker to force refresh of application source
-RUN echo "Refresh source at: 2026-03-25-11-15"
+RUN echo "Refresh source at: 2026-03-25-18-05"
 COPY app/ ./
 
 # Build environment variables
