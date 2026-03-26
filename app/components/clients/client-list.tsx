@@ -117,7 +117,7 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
+        <Card className="border-2 border-gray-100 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-blue-100 rounded-lg">
@@ -131,7 +131,7 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-2 border-gray-100 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-green-100 rounded-lg">
@@ -147,7 +147,7 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-2 border-gray-100 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-purple-100 rounded-lg">
@@ -165,7 +165,7 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
       </div>
 
       {/* Clients List */}
-      <Card>
+      <Card className="border-2 border-gray-100 dark:border-gray-800 rounded-[2.5rem] overflow-hidden shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="w-5 h-5" />

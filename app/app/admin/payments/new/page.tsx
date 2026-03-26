@@ -157,7 +157,7 @@ function NewPaymentContent() {
 export default function NewPaymentPage() {
     return (
         <AuthWrapper allowedRoles={['ADMIN', 'ASESOR']}>
-            <Suspense fallback={<div className="p-8 text-center text-muted-foreground animate-pulse font-bold">Iniciando Motor de Pagos...</div>}>
+            <Suspense fallback={<div className="flex items-center justify-center p-20"><LoadingSpinner size="lg" /></div>}>
                 <NewPaymentContent />
             </Suspense>
         </AuthWrapper>

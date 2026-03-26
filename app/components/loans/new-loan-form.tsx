@@ -27,6 +27,7 @@ import {
   TrendingUp,
   Download,
   Share2,
+  RefreshCw,
   Table as TableIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -790,13 +791,37 @@ export function NewLoanForm() {
 
       {/* Información del Préstamo */}
       {selectedClient && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Información del Préstamo
-            </CardTitle>
-          </CardHeader>
+      <>
+      {/* Header Formulario */}
+      <div className="flex justify-between items-center mb-6 px-2">
+        <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Nuevo Préstamo</h2>
+        <Button 
+          type="submit" 
+          size="lg"
+          disabled={submitting || !calculation}
+          className="rounded-2xl h-14 px-8 font-black uppercase tracking-widest shadow-xl shadow-green-500/20 bg-green-600 hover:bg-green-700 text-white border-0"
+        >
+          {submitting ? (
+            <RefreshCw className="h-5 w-5 animate-spin mr-2" />
+          ) : (
+            <Plus className="h-5 w-5 mr-2" />
+          )}
+          {submitting ? 'Guardando...' : 'Crear Préstamo'}
+        </Button>
+      </div>
+
+      <Card className="border-2 border-gray-100 dark:border-gray-800 rounded-[3rem] overflow-hidden shadow-2xl shadow-blue-500/5">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 p-8 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-5">
+            <div className="w-16 h-16 rounded-[1.5rem] bg-white dark:bg-gray-800 flex items-center justify-center text-blue-600 shadow-lg">
+              <CreditCard className="h-8 w-8 stroke-[1.5px]" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-black text-gray-900 dark:text-white leading-none">Configuración del Crédito</CardTitle>
+              <p className="text-sm font-bold text-gray-400 mt-2 uppercase tracking-widest">Ajuste de parámetros financieros</p>
+            </div>
+          </div>
+        </CardHeader>
           <CardContent className="p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Tipo de Préstamo */}
@@ -829,7 +854,6 @@ export function NewLoanForm() {
                   value={formData.loanCalculationType}
                   onValueChange={(value) => {
                     handleInputChange('loanCalculationType', value);
-                    // Si selecciona POR_MIL_120, poner frecuencia SEMANAL por defecto como pidió el usuario
                     if (value === 'POR_MIL_120') {
                       handleInputChange('paymentFrequency', 'SEMANAL');
                     }
@@ -874,6 +898,7 @@ export function NewLoanForm() {
                   ))}
                 </EnhancedSelect>
               </div>
+
               {/* Cuota Semanal o Número de Pagos */}
               {formData.loanCalculationType === 'POR_MIL_120' ? (
                 <div className="space-y-3">
@@ -905,7 +930,7 @@ export function NewLoanForm() {
                 </div>
               )}
 
-              {/* Tasa Interés y Fecha Inicio */}
+              {/* Fecha Inicio */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-blue-500" />
@@ -968,8 +993,8 @@ export function NewLoanForm() {
               </div>
             </div>
 
-
-              {/* Info para Tarifa Fija */}
+            {/* Info adicional */}
+            <div className="mt-8">
               {formData.loanCalculationType === 'TARIFA_FIJA' && (
                 <div className="space-y-2 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
                   <h4 className="font-semibold text-sm text-blue-900 dark:text-blue-100 flex items-center gap-2">
@@ -985,7 +1010,6 @@ export function NewLoanForm() {
                 </div>
               )}
 
-              {/* Info para POR_MIL_120 */}
               {formData.loanCalculationType === 'POR_MIL_120' && (
                 <div className="space-y-2 p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
                   <h4 className="font-semibold text-sm text-purple-900 dark:text-purple-100 flex items-center gap-2">
@@ -995,132 +1019,40 @@ export function NewLoanForm() {
                   <p className="text-xs text-purple-700 dark:text-purple-300">
                     Se cobra una cuota fija de $120 por cada $1,000 prestados en cada pago semanal.
                   </p>
-                  <ul className="text-xs text-purple-700 dark:text-purple-300 space-y-1 mt-2">
-                    <li>• $1,000 prestados = $120 de pago.</li>
-                    <li>• $5,000 prestados = $600 de pago.</li>
-                    <li>• $10,000 prestados = $1,200 de pago.</li>
-                  </ul>
                 </div>
               )}
-
-              {/* Campo de Interés Semanal */}
+              
               {formData.loanCalculationType === 'INTERES_SEMANAL' && (
-                <div className="space-y-3">
-                  {/* Mostrar tasa sugerida si está disponible */}
-                  {suggestedWeeklyRate && (
-                    <div className="space-y-2 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-                      <h4 className="font-semibold text-sm text-green-900 dark:text-green-100 flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4" />
-                        Tasa Sugerida {suggestedWeeklyRate.isCalculated && '(calculada proporcionalmente)'}
-                      </h4>
-                      <div className="space-y-1">
+                 <div className="space-y-4">
+                    {suggestedWeeklyRate && (
+                        <div className="space-y-2 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                        <h4 className="font-semibold text-sm text-green-900 dark:text-green-100 flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4" />
+                            Tasa Sugerida {suggestedWeeklyRate.isCalculated && '(calculada proporcionalmente)'}
+                        </h4>
                         <p className="text-sm text-green-700 dark:text-green-300">
-                          <span className="font-semibold">Interés Semanal:</span> ${suggestedWeeklyRate.amount.toLocaleString()}
+                            <span className="font-semibold">Interés Semanal:</span> ${suggestedWeeklyRate.amount.toLocaleString()}
                         </p>
-                        <p className="text-xs text-green-600 dark:text-green-400">
-                          Equivale al {suggestedWeeklyRate.rate.toFixed(2)}% del monto prestado
-                        </p>
-                        {suggestedWeeklyRate.isCalculated && (
-                          <p className="text-xs text-green-600 dark:text-green-400 italic">
-                            * Esta tasa fue calculada proporcionalmente ya que no hay una configuración exacta para este monto
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Si no hay tasa sugerida, mostrar tabla de referencia */}
-                  {!suggestedWeeklyRate && formData.principalAmount && parseFloat(formData.principalAmount) > 0 && (
-                    <div className="space-y-2 p-4 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
-                      <h4 className="font-semibold text-sm text-amber-900 dark:text-amber-100 flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4" />
-                        Tabla de Referencia
-                      </h4>
-                      <ul className="text-xs text-amber-700 dark:text-amber-300 space-y-1">
-                        <li>• $3,000: $170/semana (5.67%)</li>
-                        <li>• $4,000: $200/semana (5.00%)</li>
-                        <li>• $5,000: $230/semana (4.60%)</li>
-                        <li>• $6,000: $260/semana (4.34%)</li>
-                        <li>• $7,000: $291/semana (4.15%)</li>
-                        <li>• $8,000+: proporcional (aprox. 4.00%)</li>
-                      </ul>
-                    </div>
-                  )}
-                  
-                  <EnhancedInput
-                    label="Interés Semanal (pesos)"
-                    type="number"
-                    step="0.01"
-                    example={suggestedWeeklyRate ? suggestedWeeklyRate.amount.toString() : "170.00"}
-                    hint={suggestedWeeklyRate 
-                      ? "Tasa sugerida basada en configuración. Puedes modificarla si es necesario" 
-                      : "Se calcula automáticamente según el monto, pero puedes modificarlo si es necesario"
-                    }
-                    value={formData.weeklyInterestAmount}
-                    onChange={(e) => handleInputChange('weeklyInterestAmount', e.target.value)}
-                  />
-                </div>
+                        </div>
+                    )}
+                    <EnhancedInput
+                        label="Interés Semanal (pesos)"
+                        type="number"
+                        step="0.01"
+                        value={formData.weeklyInterestAmount}
+                        onChange={(e) => handleInputChange('weeklyInterestAmount', e.target.value)}
+                    />
+                 </div>
               )}
-
-              {/* Pago Inicial */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span className="input-label">Pago Inicial (Opcional)</span>
-                </div>
-                <EnhancedInput
-                  type="number"
-                  step="0.01"
-                  example="5000.00"
-                  hint="Depósito en garantía o pago inicial (informativo, no afecta el cálculo del préstamo)"
-                  value={formData.initialPayment}
-                  onChange={(e) => handleInputChange('initialPayment', e.target.value)}
-                />
-              </div>
-
-              {/* Fecha de Inicio */}
-              <EnhancedInput
-                label="Fecha de Inicio"
-                type="date"
-                required
-                hint="Fecha en que inicia el préstamo y se activa la primera cuota"
-                value={formData.startDate}
-                onChange={(e) => handleInputChange('startDate', e.target.value)}
-              />
-
-              {/* Fecha de Fin (calculada automáticamente) */}
-              <div className="space-y-2">
-                <Label htmlFor="endDate" className="input-label">
-                  Fecha de Fin 
-                  {formData.startDate && formData.termMonths && (
-                    <span className="system-text ml-2">
-                      (Calculada automáticamente)
-                    </span>
-                  )}
-                </Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  className="user-input"
-                  value={formData.endDate}
-                  onChange={(e) => handleInputChange('endDate', e.target.value)}
-                  placeholder="Fecha de finalización del préstamo"
-                />
-                {formData.startDate && formData.termMonths && (
-                  <p className="example-hint">
-                    📅 Fecha calculada: {formData.endDate ? format(new Date(formData.endDate), "dd 'de' MMMM, yyyy", { locale: es }) : 'N/A'}
-                  </p>
-                )}
-              </div>
             </div>
 
-            <Separator className="my-6" />
+            <Separator className="my-8" />
 
             {/* Configuración de Moratorios */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold flex items-center gap-2 text-orange-600">
                 <TrendingUp className="h-4 w-4" />
-                Configuración de Moratorios (Multas por impago)
+                Configuración de Moratorios
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1141,7 +1073,6 @@ export function NewLoanForm() {
                       type="number"
                       value={formData.lateFeeAmount}
                       onChange={(e) => handleInputChange('lateFeeAmount', e.target.value)}
-                      placeholder={formData.lateFeeType === 'DAILY_FIXED' ? "200" : "5"}
                     />
                     
                     {formData.lateFeeType === 'DAILY_FIXED' && (
@@ -1150,8 +1081,6 @@ export function NewLoanForm() {
                         type="number"
                         value={formData.lateFeeMaxWeekly}
                         onChange={(e) => handleInputChange('lateFeeMaxWeekly', e.target.value)}
-                        placeholder="800"
-                        hint={`💡 Sugerido: $${formData.lateFeeMaxWeekly || '800'} por semana`}
                       />
                     )}
                   </>
@@ -1159,44 +1088,54 @@ export function NewLoanForm() {
               </div>
             </div>
 
-            {/* Botón de Cálculo — Estilo PWA */}
+            {/* Pago Inicial y Fechas — Layout PWA */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-emerald-500" />
+                  <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Pago Inicial (Opcional)</span>
+                </div>
+                <EnhancedInput
+                  type="number"
+                  step="0.01"
+                  className="h-16 rounded-2xl bg-gray-50 border-gray-100 font-extrabold text-2xl"
+                  placeholder="0.00"
+                  value={formData.initialPayment}
+                  onChange={(e) => handleInputChange('initialPayment', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-red-500" />
+                  <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Fecha de Finalización</span>
+                </div>
+                <div className="h-16 rounded-2xl bg-gray-100/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 flex items-center px-4">
+                  <span className="font-extrabold text-lg text-gray-600 dark:text-gray-300">
+                    {formData.endDate ? format(new Date(formData.endDate), "dd 'de' MMMM, yyyy", { locale: es }) : 'Por calcular...'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <Separator className="my-8" />
+
             <div className="flex justify-center pt-2">
               <Button
                 type="button"
-                className="w-full sm:w-auto px-10 py-6 rounded-2xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white font-bold transition-all active:scale-[0.98] flex items-center gap-3"
+                className="w-full sm:w-auto px-12 py-8 rounded-3xl shadow-2xl shadow-primary/30 bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest text-lg transition-all active:scale-[0.98] flex items-center gap-4 group"
                 onClick={calculateLoan}
-                disabled={
-                  !formData.principalAmount?.trim() || 
-                  !formData.termMonths?.trim() || 
-                  parseFloat(formData.principalAmount || '0') <= 0 ||
-                  parseInt(formData.termMonths || '0') <= 0 ||
-                  (formData.loanCalculationType === 'INTERES' && (
-                    !formData.interestRate?.trim() ||
-                    parseFloat(formData.interestRate || '0') <= 0
-                  ))
-                }
+                disabled={!formData.principalAmount || (formData.loanCalculationType !== 'POR_MIL_120' && !formData.termMonths)}
               >
-                <Calculator className="h-5 w-5" />
-                {calculation ? 'Recalcular Préstamo' : 'Calcular Préstamo'}
+                <div className="bg-white/20 p-2 rounded-xl group-hover:rotate-12 transition-transform">
+                  <Calculator className="h-6 w-6" />
+                </div>
+                {calculation ? 'Recalcular Todo' : 'Generar Préstamo'}
               </Button>
             </div>
-            
-            {/* Mensaje de ayuda si el botón está desactivado */}
-            {!calculation && (
-              <p className="text-[11px] text-center text-gray-400 mt-3 font-medium animate-pulse">
-                {!formData.principalAmount || parseFloat(formData.principalAmount) <= 0 
-                  ? "ⓘ Ingresa el monto para habilitar el cálculo" 
-                  : (formData.loanCalculationType === 'POR_MIL_120' && (!formData.expectedWeeklyPayment || parseFloat(formData.expectedWeeklyPayment) <= 0))
-                  ? "ⓘ Ingresa el pago semanal deseado"
-                  : (formData.loanCalculationType !== 'POR_MIL_120' && (!formData.termMonths || parseInt(formData.termMonths) <= 0))
-                  ? "ⓘ Ingresa el número de pagos"
-                  : ""}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
+        </CardContent>
+      </Card>
+      
       {/* Cálculo del Préstamo — Premium Look */}
       {showCalculation && calculation && (
         <div className="space-y-6" id="calculation-result">
@@ -1384,6 +1323,8 @@ export function NewLoanForm() {
             )}
           </Button>
         </div>
+      </>
+      )}
       )}
       {/* Spacer for sticky footer on mobile */}
       {showCalculation && calculation && <div className="h-20 sm:hidden" />}

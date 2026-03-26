@@ -198,7 +198,8 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
                         {
                             title: 'Pagos',
                             items: [
-                                { title: 'Historial de Pagos', icon: DollarSign, href: '/admin/payments', moduleKey: 'payment_history' }
+                                { title: 'Historial de Pagos', icon: DollarSign, href: '/admin/payments', moduleKey: 'payment_history' },
+                                { title: 'No Pagos (Incidencias)', icon: Navigation, href: '/admin/non-payments', moduleKey: 'loan_list' }
                             ]
                         }
                     ]
@@ -240,6 +241,13 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
                             items: [
                                 { title: 'Mis Clientes', icon: Users, href: '/asesor/clients', moduleKey: 'client_list' },
                                 { title: 'Nuevo Cliente', icon: UserPlus, href: '/admin/clients/new', moduleKey: 'client_list' }
+                            ]
+                        },
+                        {
+                            title: 'Control de Pagos',
+                            items: [
+                                { title: 'Mis Préstamos', icon: CreditCard, href: '/asesor/loans', moduleKey: 'loan_list' },
+                                { title: 'No Pagos (Incidencias)', icon: Navigation, href: '/admin/non-payments', moduleKey: 'loan_list' }
                             ]
                         }
                     ]

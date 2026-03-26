@@ -1,113 +1,70 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 export default function Loading() {
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white dark:bg-gray-950 overflow-hidden">
-      {/* Background Ambient Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+      {/* Background Ambient Glow - Sophisticated and subtle */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[140px] pointer-events-none animate-pulse opacity-50" />
       
-      <div className="relative flex flex-col items-center gap-12 text-center px-6">
-        {/* Animated Logo Container */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative"
-        >
-          {/* Outer Ring Animation */}
+      <div className="relative flex flex-col items-center justify-center">
+        {/* Orbital Loading Core */}
+        <div className="relative h-32 w-32 md:h-48 md:w-48">
+          {/* External Orbital Ring */}
           <motion.div
-            animate={{ 
-              rotate: 360,
-              scale: [1, 1.05, 1],
-            }}
-            transition={{ 
-              rotate: { duration: 4, repeat: Infinity, ease: "linear" },
-              scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-            }}
-            className="absolute -inset-8 border-[1.5px] border-primary/20 rounded-full border-dashed"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 border-[1.5px] border-primary/20 rounded-full border-dashed"
           />
           
+          {/* Middle Kinetic Ring */}
           <motion.div
-            animate={{ 
-              rotate: -360,
-            }}
-            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-            className="absolute -inset-14 border-[1px] border-primary/10 rounded-full"
+            animate={{ rotate: -360 }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-4 border-[2px] border-primary/30 rounded-full border-t-primary"
           />
 
-          {/* Logo with pulse */}
+          {/* Inner Glowing Core */}
           <motion.div
             animate={{ 
-              scale: [1, 1.02, 1],
-              opacity: [0.9, 1, 0.9]
+              scale: [1, 1.15, 1],
+              opacity: [0.5, 1, 0.5]
             }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="relative bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-2xl shadow-primary/10 border border-gray-100 dark:border-gray-800"
+            className="absolute inset-10 rounded-full bg-gradient-to-br from-primary via-blue-600 to-indigo-700 shadow-[0_0_50px_rgba(var(--primary-rgb),0.5)] flex items-center justify-center overflow-hidden"
           >
-            <Image
-              src="/logoescalafin.png"
-              alt="EscalaFin Logo"
-              width={180}
-              height={45}
-              className="object-contain"
-              priority
-            />
+             {/* Reflection Layer */}
+             <div className="absolute top-0 left-0 w-full h-1/2 bg-white/20 -skew-y-12 blur-sm" />
           </motion.div>
-        </motion.div>
 
-        {/* Loading Message & Progress Bar */}
-        <div className="flex flex-col items-center gap-6 max-w-xs w-full">
+          {/* Micro Particles / Orbital Dots */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="space-y-2"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0"
           >
-            <h2 className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 tracking-tight">
-              Iniciando sistema...
-            </h2>
-            <p className="text-sm text-gray-500 font-medium">
-              Cargando tu experiencia financiera
-            </p>
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-primary shadow-glow shadow-primary/80" />
           </motion.div>
 
-          {/* Premium Progress Bar */}
-          <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden relative">
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: '100%' }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-primary to-transparent"
-            />
-          </div>
+           <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0"
+          >
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-blue-400 shadow-glow shadow-blue-400/80" />
+          </motion.div>
         </div>
-
-        {/* Footer info/Tip */}
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400 mt-8"
-        >
-          EscalaFin v2.7 • Secure Banking
-        </motion.p>
       </div>
 
-      {/* Modern Top Progress (Global) */}
+      {/* Extreme Top Progress Line - For consistent browser experience */}
       <div className="fixed top-0 left-0 right-0 h-1 z-[10000]">
         <motion.div 
           initial={{ width: "0%" }}
-          animate={{ width: "100%" }}
-          transition={{ duration: 2, ease: "easeInOut", repeat: Infinity }}
-          className="h-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]"
+          animate={{ x: ["-100%", "100%"] }}
+          transition={{ duration: 2.5, ease: "easeInOut", repeat: Infinity }}
+          className="w-full h-full bg-gradient-to-r from-transparent via-primary to-transparent opacity-60"
         />
       </div>
     </div>

@@ -77,7 +77,7 @@ export function BottomNavbar() {
                                 href={item.href}
                                 className={cn(
                                     "relative flex flex-col items-center justify-center flex-1 transition-all duration-300",
-                                    active ? "scale-110" : "opacity-60 hover:opacity-100"
+                                    active ? "scale-110" : "opacity-80 hover:opacity-100"
                                 )}
                             >
                                 <div className={cn(
