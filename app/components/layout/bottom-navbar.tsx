@@ -100,31 +100,30 @@ export function BottomNavbar() {
                                 
                                  {/* Label Text - Subtle and elegant */}
                                 <span className={cn(
-                                    "text-[9px] font-black uppercase tracking-tighter mt-1 transition-all duration-300",
-                                    active ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-500"
+                                    "text-[10px] sm:text-[11px] font-black uppercase tracking-widest mt-1.5 transition-all duration-300",
+                                    active ? "text-gray-950 dark:text-white" : "text-gray-500 dark:text-gray-400"
                                 )}>
                                     {item.label}
                                 </span>
 
                                 {/* Indicator Dot */}
                                 {active && (
-                                    <div className="absolute -bottom-1.5 w-1 h-1 rounded-full bg-gray-900 dark:bg-white animate-pulse" />
+                                    <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-gray-900 dark:bg-white animate-pulse" />
                                 )}
                             </Link>
                         );
                     })}
 
-                    {/* Separator */}
+                    {/* Menu Button */}
                     <div className="w-px h-8 bg-gray-200 dark:bg-gray-800 mx-1 opacity-50" />
 
-                    {/* Menu Button */}
                     <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                         <SheetTrigger asChild>
-                            <button className="flex flex-col items-center justify-center w-14 transition-all opacity-60 hover:opacity-100 active:scale-90">
-                                <div className="p-2.5 rounded-2xl bg-gray-100 dark:bg-gray-800">
-                                    <Menu className="h-5 w-5 text-gray-600 dark:text-gray-400 stroke-2" />
+                            <button className="flex flex-col items-center justify-center flex-1 transition-all active:scale-95">
+                                <div className="p-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent hover:border-gray-100 transition-all">
+                                    <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300 stroke-[2.5px]" />
                                 </div>
-                                <span className="text-[9px] font-black uppercase tracking-tighter mt-1 text-gray-400 dark:text-gray-500">Menú</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest mt-1.5 text-gray-500 dark:text-gray-400">Menú</span>
                             </button>
                         </SheetTrigger>
                         <SheetContent side="bottom" className="h-[90vh] p-0 rounded-t-[3rem] border-t-0 bg-transparent">

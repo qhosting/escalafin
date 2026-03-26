@@ -194,6 +194,7 @@ model Client {
 model CollectionVisit {
   id          String           @id @default(cuid())
   clientId    String
+  loanId      String?
   advisorId   String
   visitDate   DateTime         @default(now())
   latitude    Float?
@@ -208,6 +209,7 @@ model CollectionVisit {
   routeId     String?
   advisor     User             @relation("AdvisorVisits", fields: [advisorId], references: [id])
   client      Client           @relation("ClientVisits", fields: [clientId], references: [id], onDelete: Cascade)
+  loan        Loan?            @relation("LoanVisits", fields: [loanId], references: [id])
   route       CollectionRoute? @relation(fields: [routeId], references: [id])
   promises    PromiseToPay[]
 
@@ -329,6 +331,7 @@ model Loan {
   creditApplication    CreditApplication?     @relation(fields: [creditApplicationId], references: [id])
   tenant               Tenant?                @relation(fields: [tenantId], references: [id])
   payments             Payment[]
+  visits               CollectionVisit[]      @relation("LoanVisits")
   promises             PromiseToPay[]
 
   @@map("loans")

@@ -338,16 +338,16 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100 dark:border-gray-800">
              {/* Fecha - Automática pero editable */}
-             <div className="space-y-2">
-              <Label htmlFor="paymentDate" className="text-xs font-black uppercase text-gray-400">Fecha Valor</Label>
-              <div className="relative">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600" />
+             <div className="space-y-3">
+              <Label htmlFor="paymentDate" className="text-[11px] font-black uppercase text-gray-400 tracking-widest ml-1">Fecha Operativa (Valor)</Label>
+              <div className="relative group">
+                <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600 transition-transform group-focus-within:scale-110" />
                 <Input
                   id="paymentDate"
                   type="date"
-                  className="pl-12 h-14 rounded-2xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 font-black text-lg focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30"
+                  className="pl-14 h-16 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-800 font-black text-xl md:text-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 transition-all"
                   value={formData.paymentDate}
                   onChange={(e) => handleInputChange('paymentDate', e.target.value)}
                 />
@@ -355,19 +355,19 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
             </div>
 
              {/* Método - Solo selección */}
-             <div className="space-y-2">
-              <Label className="text-xs font-black uppercase text-gray-400">Lugar de Cobro</Label>
+             <div className="space-y-3">
+              <Label className="text-[11px] font-black uppercase text-gray-400 tracking-widest ml-1">Lugar de Recaudación</Label>
               <Select 
                 value={formData.collectionMethod} 
                 onValueChange={(value: any) => handleInputChange('collectionMethod', value)}
               >
-                <SelectTrigger className="h-14 rounded-2xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 font-black text-lg focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30">
+                <SelectTrigger className="h-16 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-800 font-black text-lg md:text-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 transition-all">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl">
-                  <SelectItem value="field" className="font-black text-base">🚀 Trabajo de Campo</SelectItem>
-                  <SelectItem value="home" className="font-black text-base">🏠 Domicilio Cliente</SelectItem>
-                  <SelectItem value="office" className="font-black text-base">🏢 Oficina</SelectItem>
+                <SelectContent className="rounded-2xl border-0 shadow-2xl p-2">
+                  <SelectItem value="field" className="font-black text-lg py-3 rounded-xl focus:bg-blue-50 focus:text-blue-700">🚀 Trabajo de Campo</SelectItem>
+                  <SelectItem value="home" className="font-black text-lg py-3 rounded-xl focus:bg-blue-50 focus:text-blue-700">🏠 Domicilio Cliente</SelectItem>
+                  <SelectItem value="office" className="font-black text-lg py-3 rounded-xl focus:bg-blue-50 focus:text-blue-700">🏢 Oficina Central</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -21,7 +21,10 @@ import {
   Plus,
   FileText,
   Table,
-  Banknote
+  Banknote,
+  Navigation,
+  MessageSquare,
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -31,6 +34,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { LoanStatementModal } from './loan-statement-modal';
 import { LoanListSkeleton } from './loan-list-skeleton';
+import { NonPaymentModal } from './non-payment-modal';
 
 interface Loan {
   id: string;
@@ -90,6 +94,8 @@ export function LoanList({ userRole }: LoanListProps) {
   });
   const [selectedLoanForStatement, setSelectedLoanForStatement] = useState<Loan | null>(null);
   const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
+  const [selectedLoanForNonPayment, setSelectedLoanForNonPayment] = useState<Loan | null>(null);
+  const [isNonPaymentModalOpen, setIsNonPaymentModalOpen] = useState(false);
 
   const fetchLoans = async () => {
     try {
@@ -157,9 +163,13 @@ export function LoanList({ userRole }: LoanListProps) {
 
         {userRole !== 'CLIENTE' && (
           <Link href="/admin/loans/new" className="w-full md:w-auto">
-            <Button size="lg" className="w-full md:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button 
+              size="lg" 
+              className="w-full md:w-auto h-14 px-8 rounded-2xl font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95 transition-all text-white border-0"
+            >
+              <Plus className="h-5 w-5 mr-2" />
               Nuevo Préstamo
+              <Sparkles className="h-4 w-4 ml-2 text-blue-200" />
             </Button>
           </Link>
         )}
@@ -343,8 +353,24 @@ export function LoanList({ userRole }: LoanListProps) {
                       }}
                     >
                       <FileText className="h-4 w-4 mr-1.5" />
-                      Ticket
+                      Saldos
                     </Button>
+
+                    {/* Botón NO PAGO */}
+                    {userRole !== 'CLIENTE' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 h-11 rounded-xl border-red-200 text-red-600 font-bold hover:bg-red-50 transition-all shadow-sm"
+                        onClick={() => {
+                          setSelectedLoanForNonPayment(loan);
+                          setIsNonPaymentModalOpen(true);
+                        }}
+                      >
+                        <Navigation className="h-4 w-4 mr-1.5" />
+                        No Pago
+                      </Button>
+                    )}
 
                     {userRole !== 'CLIENTE' && (
                       <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}/edit`} className="flex-1">
@@ -420,6 +446,13 @@ export function LoanList({ userRole }: LoanListProps) {
         isOpen={isStatementModalOpen}
         onOpenChange={setIsStatementModalOpen}
         loan={selectedLoanForStatement}
+      />
+
+      <NonPaymentModal
+        isOpen={isNonPaymentModalOpen}
+        onOpenChange={setIsNonPaymentModalOpen}
+        loan={selectedLoanForNonPayment}
+        onSuccess={fetchLoans}
       />
     </div>
   );

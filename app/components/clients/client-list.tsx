@@ -184,50 +184,56 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
           ) : (
             <div className="space-y-4">
               {filteredClients.map((client) => (
-                <div key={client.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-blue-100 rounded-lg">
-                        <Users className="w-6 h-6 text-blue-600" />
+                <div 
+                  key={client.id} 
+                  className="p-6 border-2 border-gray-100 dark:border-gray-800 rounded-[2rem] hover:border-blue-200 dark:hover:border-blue-900 transition-all hover:bg-blue-50/30 dark:hover:bg-blue-900/10 group shadow-sm hover:shadow-xl hover:shadow-blue-500/5 cursor-pointer relative overflow-hidden"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-start gap-5">
+                      <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                        <Users className="w-8 h-8 stroke-[1.5px]" />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-gray-900">{client.name}</h3>
-                          <Badge variant={client.status === 'ACTIVO' ? 'default' : 'secondary'}>
+                      <div className="space-y-1 mt-1">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none group-hover:text-blue-600 transition-colors">{client.name}</h3>
+                          <Badge className={cn(
+                            "text-[10px] font-black uppercase tracking-widest px-2.5 h-6 rounded-lg",
+                            client.status === 'ACTIVO' 
+                              ? "bg-green-100 text-green-700 hover:bg-green-100" 
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-100"
+                          )}>
                             {client.status}
                           </Badge>
                         </div>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4" />
-                            {client.email}
+                        <div className="flex flex-col gap-1.5 mt-3">
+                          <div className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400">
+                            <Phone className="w-4 h-4 text-indigo-400" />
+                            {client.phone || 'Sin teléfono'}
                           </div>
-                          {client.phone && (
-                            <div className="flex items-center gap-2">
-                              <Phone className="w-4 h-4" />
-                              {client.phone}
-                            </div>
-                          )}
-                          <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4" />
-                            Documento: {client.documentNumber}
+                          <div className="flex items-center gap-2 text-sm font-medium text-gray-400 dark:text-gray-500 italic">
+                            <Mail className="w-4 h-4 text-gray-300" />
+                            {client.email || 'Sin correo electrónico'}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <div className="text-right text-sm">
-                        <p className="font-medium text-gray-900">
+                    <div className="flex items-center justify-between md:justify-end gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-gray-50 dark:border-gray-800">
+                      <div className="text-left md:text-right space-y-1">
+                        <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Saldo Pendiente</p>
+                        <p className="text-2xl font-black text-blue-600 dark:text-blue-400 leading-none">
                           ${client.totalAmount.toLocaleString()}
                         </p>
-                        <p className="text-gray-600">
-                          {client.totalLoans} préstamos
+                        <p className="text-xs font-bold text-gray-400">
+                          {client.totalLoans} préstamos activos
                         </p>
                       </div>
-                      <Link href={`/admin/clients/${client.id}`}>
-                        <Button variant="outline" size="sm">
-                          Ver Detalles
+                      <Link href={`/${userRole?.toLowerCase() || 'admin'}/clients/${client.id}`} className="md:ml-4">
+                        <Button 
+                          variant="secondary" 
+                          className="h-14 px-6 rounded-2xl font-black uppercase tracking-widest text-xs bg-gray-50 dark:bg-gray-800 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                        >
+                          Ver Perfil
                         </Button>
                       </Link>
                     </div>

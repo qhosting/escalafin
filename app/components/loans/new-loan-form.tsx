@@ -797,53 +797,60 @@ export function NewLoanForm() {
               Información del Préstamo
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Tipo de Préstamo */}
-              <EnhancedSelect
-                label="Tipo de Préstamo"
-                required
-                placeholder="Selecciona el tipo de préstamo"
-                hint="El tipo determina la tasa de interés automáticamente"
-                value={formData.loanType}
-                onValueChange={(value) => handleInputChange('loanType', value)}
-              >
-                {Object.entries(LOAN_TYPES).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </EnhancedSelect>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-blue-600" />
+                  <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Modalidad de Crédito</span>
+                </div>
+                <EnhancedSelect
+                  required
+                  placeholder="Selecciona el tipo"
+                  value={formData.loanType}
+                  onValueChange={(value) => handleInputChange('loanType', value)}
+                >
+                  {Object.entries(LOAN_TYPES).map(([key, label]) => (
+                    <SelectItem key={key} value={key} className="font-bold">{label}</SelectItem>
+                  ))}
+                </EnhancedSelect>
+              </div>
 
-              {/* Tipo de Cálculo */}
-              <EnhancedSelect
-                label="Tipo de Cálculo"
-                required
-                placeholder="Selecciona el método de cálculo"
-                hint="Interés: tasa anual. Tarifa Fija: cargo fijo por monto prestado"
-                value={formData.loanCalculationType}
-                onValueChange={(value) => {
-                  handleInputChange('loanCalculationType', value);
-                  // Si selecciona POR_MIL_120, poner frecuencia SEMANAL por defecto como pidió el usuario
-                  if (value === 'POR_MIL_120') {
-                    handleInputChange('paymentFrequency', 'SEMANAL');
-                  }
-                }}
-              >
-                {Object.entries(CALCULATION_TYPES).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </EnhancedSelect>
+              {/* Método de Cálculo */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Calculator className="h-4 w-4 text-blue-600" />
+                  <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Modelo de Cálculo</span>
+                </div>
+                <EnhancedSelect
+                  required
+                  placeholder="Selecciona el método"
+                  value={formData.loanCalculationType}
+                  onValueChange={(value) => {
+                    handleInputChange('loanCalculationType', value);
+                    // Si selecciona POR_MIL_120, poner frecuencia SEMANAL por defecto como pidió el usuario
+                    if (value === 'POR_MIL_120') {
+                      handleInputChange('paymentFrequency', 'SEMANAL');
+                    }
+                  }}
+                >
+                  {Object.entries(CALCULATION_TYPES).map(([key, label]) => (
+                    <SelectItem key={key} value={key} className="font-bold">{label}</SelectItem>
+                  ))}
+                </EnhancedSelect>
+              </div>
 
               {/* Monto Principal */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span className="input-label required-field">Monto Principal</span>
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                  <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Capital a Entregar</span>
                 </div>
                 <EnhancedInput
                   type="number"
                   step="0.01"
-                  example="50000.00"
-                  hint="Monto total del préstamo que se otorgará al cliente"
+                  className="h-16 rounded-2xl bg-gray-50 border-gray-100 font-extrabold text-2xl"
                   value={formData.principalAmount}
                   onChange={(e) => handleInputChange('principalAmount', e.target.value)}
                   required
@@ -851,45 +858,46 @@ export function NewLoanForm() {
               </div>
 
               {/* Periodicidad de Pago */}
-              <EnhancedSelect
-                label="Periodicidad de Pago"
-                required
-                placeholder="Selecciona la periodicidad"
-                hint="Frecuencia con la que se realizarán los pagos"
-                value={formData.paymentFrequency}
-                onValueChange={(value) => handleInputChange('paymentFrequency', value)}
-              >
-                {Object.entries(PAYMENT_FREQUENCIES).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </EnhancedSelect>
-
-              {/* Número de Pagos / Cuota Semanal Dependiendo de Método */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4 text-orange-600" />
+                  <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Frecuencia de Abonos</span>
+                </div>
+                <EnhancedSelect
+                  required
+                  placeholder="Selecciona frecuencia"
+                  value={formData.paymentFrequency}
+                  onValueChange={(value) => handleInputChange('paymentFrequency', value)}
+                >
+                  {Object.entries(PAYMENT_FREQUENCIES).map(([key, label]) => (
+                    <SelectItem key={key} value={key} className="font-bold">{label}</SelectItem>
+                  ))}
+                </EnhancedSelect>
+              </div>
+              {/* Cuota Semanal o Número de Pagos */}
               {formData.loanCalculationType === 'POR_MIL_120' ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="input-label required-field">Pago Semanal Deseado ($)</span>
+                    <DollarSign className="h-4 w-4 text-purple-600" />
+                    <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Pago Semanal Deseado</span>
                   </div>
                   <EnhancedInput
                     type="number"
-                    example="200"
-                    hint="Calcularemos el número de semanas automáticamente en base a este pago y el porcentaje final de interés ($120 cada mil)."
+                    className="h-16 rounded-2xl bg-gray-50 border-gray-100 font-extrabold text-2xl"
                     value={formData.expectedWeeklyPayment}
                     onChange={(e) => handleInputChange('expectedWeeklyPayment', e.target.value)}
                     required
                   />
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="input-label required-field">Número de Pagos</span>
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Número de Pagos</span>
                   </div>
                   <EnhancedInput
                     type="number"
-                    example="12"
-                    hint={`Número total de pagos según periodicidad seleccionada (${PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES]})`}
+                    className="h-16 rounded-2xl bg-gray-50 border-gray-100 font-extrabold text-2xl"
                     value={formData.termMonths}
                     onChange={(e) => handleInputChange('termMonths', e.target.value)}
                     required
@@ -897,19 +905,69 @@ export function NewLoanForm() {
                 </div>
               )}
 
-              {/* Tasa de Interés - Solo para método de interés */}
-              {formData.loanCalculationType === 'INTERES' && (
-                <EnhancedInput
-                  label="Tasa de Interés Anual (%)"
-                  type="number"
-                  step="0.01"
-                  example="18.50"
-                  hint="Tasa anual de interés (se calcula automáticamente según el tipo de préstamo)"
-                  value={formData.interestRate}
-                  onChange={(e) => handleInputChange('interestRate', e.target.value)}
+              {/* Tasa Interés y Fecha Inicio */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-blue-500" />
+                  <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Fecha de Inicio</span>
+                </div>
+                <Input
+                  type="date"
+                  className="h-16 rounded-2xl bg-gray-50 border-gray-100 font-bold text-lg px-4"
+                  value={formData.startDate}
+                  onChange={(e) => handleInputChange('startDate', e.target.value)}
                   required
                 />
+              </div>
+
+              {formData.loanCalculationType === 'INTERES' && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-blue-600" />
+                    <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Tasa Anual (%)</span>
+                  </div>
+                  <EnhancedInput
+                    type="number"
+                    step="0.01"
+                    className="h-16 rounded-2xl bg-gray-50 border-gray-100 font-extrabold text-xl"
+                    placeholder="Ej: 18.50"
+                    value={formData.interestRate}
+                    onChange={(e) => handleInputChange('interestRate', e.target.value)}
+                    required
+                  />
+                </div>
               )}
+
+              {/* Mora */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Multa Diaria (Mora)</span>
+                </div>
+                <EnhancedInput
+                  type="number"
+                  className="h-16 rounded-2xl bg-gray-50 border-gray-100 font-extrabold text-xl"
+                  value={formData.lateFeeAmount}
+                  onChange={(e) => handleInputChange('lateFeeAmount', e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <span className="text-[11px] font-black uppercase text-gray-400 tracking-widest">Máximo Mora Semanal</span>
+                </div>
+                <EnhancedInput
+                  type="number"
+                  className="h-16 rounded-2xl bg-gray-50 border-gray-100 font-extrabold text-xl"
+                  value={formData.lateFeeMaxWeekly}
+                  onChange={(e) => handleInputChange('lateFeeMaxWeekly', e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
 
               {/* Info para Tarifa Fija */}
               {formData.loanCalculationType === 'TARIFA_FIJA' && (

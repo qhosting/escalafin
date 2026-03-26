@@ -11,6 +11,9 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { MessageSquare, FileText, TrendingUp, Sparkles, Navigation } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Payment {
   id: string;
@@ -34,9 +37,19 @@ export function PaymentHistory({ userRole = 'CLIENTE' }: PaymentHistoryProps) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'overdue'>('all');
 
+  const [tenantData, setTenantData] = useState<any>(null);
+
   useEffect(() => {
     fetchPayments();
+    fetchTenantData();
   }, []);
+
+  const fetchTenantData = async () => {
+    try {
+      const res = await fetch('/api/tenant');
+      if (res.ok) setTenantData(await res.json());
+    } catch (e) { console.error(e); }
+  };
 
   const fetchPayments = async () => {
     try {
@@ -106,6 +119,65 @@ export function PaymentHistory({ userRole = 'CLIENTE' }: PaymentHistoryProps) {
     );
   }
 
+  const calculateTotal = () => {
+    return filteredPayments.reduce((sum, p) => sum + p.amount, 0);
+  };
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const margin = 14;
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text(tenantData?.name || 'EscalaFin', margin, 20);
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100);
+    doc.text(`Estado de Cuenta de Pagos: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, margin, 28);
+    
+    // Totals
+    doc.setFontSize(12);
+    doc.setTextColor(37, 99, 235);
+    doc.text(`Resumen General`, margin, 38);
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.text(`Total en lista: $${calculateTotal().toLocaleString()}`, margin, 45);
+    doc.text(`Registros: ${filteredPayments.length}`, margin, 50);
+
+    const tableData = filteredPayments.map((p, i) => [
+      i + 1,
+      format(new Date(p.dueDate), 'dd/MM/yyyy'),
+      p.paymentDate ? format(new Date(p.paymentDate), 'dd/MM/yyyy') : '-',
+      p.loanDescription,
+      `$${p.amount.toLocaleString()}`,
+      getStatusLabel(p.status)
+    ]);
+
+    autoTable(doc, {
+      startY: 55,
+      head: [['#', 'Vencimiento', 'Pago', 'Concepto', 'Monto', 'Estado']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [37, 99, 235], fontStyle: 'bold' },
+      styles: { fontSize: 8 }
+    });
+
+    doc.save(`historial_pagos_${format(new Date(), 'yyyyMMdd')}.pdf`);
+    toast.success('PDF generado correctamente');
+  };
+
+  const shareWhatsApp = () => {
+    const text = `*Resumen de Pagos - ${tenantData?.name || 'EscalaFin'}*%0A%0A` +
+      `Filtro: ${filter.toUpperCase()}%0A` +
+      `Total: $${calculateTotal().toLocaleString()}%0A` +
+      `Pagos listados: ${filteredPayments.length}%0A%0A` +
+      `Generado el: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`;
+      
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
   const displayPayments = filteredPayments;
 
   return (
@@ -120,8 +192,12 @@ export function PaymentHistory({ userRole = 'CLIENTE' }: PaymentHistoryProps) {
             Consulta el historial de pagos y próximos vencimientos
           </p>
         </div>
-        <Button variant="outline" className="flex items-center gap-2">
-          <Download className="w-4 h-4" />
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2 h-11 rounded-xl font-black border-blue-200 text-blue-600 px-6 shadow-sm hover:bg-blue-600 hover:text-white transition-all"
+          onClick={generatePDF}
+        >
+          <FileText className="w-4 h-4" />
           Exportar
         </Button>
       </div>
@@ -226,11 +302,38 @@ export function PaymentHistory({ userRole = 'CLIENTE' }: PaymentHistoryProps) {
 
       {/* Payments List */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5" />
-            Historial de Pagos ({displayPayments.length})
-          </CardTitle>
+        <CardHeader className="border-b border-gray-100/50">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <CardTitle className="flex items-center gap-3 text-2xl font-black">
+                <div className="p-2 bg-blue-100 rounded-xl">
+                    <DollarSign className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                    <div>Listado de Pagos</div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-0.5">Visibilidad: {filter}</div>
+                </div>
+            </CardTitle>
+            <div className="flex items-center gap-2">
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-11 rounded-xl font-black gap-2 border-green-200 text-green-600 hover:bg-green-50"
+                    onClick={shareWhatsApp}
+                >
+                    <MessageSquare className="w-4 h-4" />
+                    WhatsApp
+                </Button>
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-11 rounded-xl font-black gap-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+                    onClick={generatePDF}
+                >
+                    <FileText className="w-4 h-4" />
+                    PDF
+                </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -294,6 +397,30 @@ export function PaymentHistory({ userRole = 'CLIENTE' }: PaymentHistoryProps) {
                 </div>
               </div>
             ))}
+            {/* Total acumulado al final */}
+            <div className="p-8 mt-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2rem] text-white shadow-xl shadow-blue-500/20 flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in-95 duration-700">
+                <div className="flex items-center gap-4">
+                    <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-md">
+                        <TrendingUp className="w-8 h-8 text-white" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-black uppercase tracking-widest text-blue-100 opacity-80">Monto Total Seleccionado</p>
+                        <h4 className="text-4xl font-black tracking-tight leading-none">${calculateTotal().toLocaleString()}</h4>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="h-14 px-6 bg-white/10 rounded-2xl flex items-center gap-3 backdrop-blur-sm flex-1 md:flex-none">
+                        <Sparkles className="w-5 h-5 text-blue-200" />
+                        <span className="text-sm font-black uppercase tracking-widest">{filteredPayments.length} Registros</span>
+                    </div>
+                    <Button 
+                        className="h-14 px-8 bg-white text-blue-600 hover:bg-blue-50 font-black rounded-2xl uppercase tracking-widest shadow-lg flex-1 md:flex-none"
+                        onClick={generatePDF}
+                    >
+                        Reporte
+                    </Button>
+                </div>
+            </div>
           </div>
         </CardContent>
       </Card>
