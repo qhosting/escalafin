@@ -116,9 +116,12 @@ export async function GET(
       auditLogs
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching client:', error);
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error interno del servidor', 
+      details: error.message 
+    }, { status: 500 });
   }
 }
 
@@ -274,9 +277,12 @@ export async function PATCH(
 
     return NextResponse.json(updatedClient);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating client:', error);
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error interno del servidor', 
+      details: error.message 
+    }, { status: 500 });
   }
 }
 

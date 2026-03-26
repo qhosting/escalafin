@@ -71,7 +71,7 @@ const EMPLOYMENT_TYPES = [
 const CLIENT_STATUSES = [
   { value: 'ACTIVE', label: 'Activo' },
   { value: 'INACTIVE', label: 'Inactivo' },
-  { value: 'SUSPENDED', label: 'Suspendido' }
+  { value: 'BLACKLISTED', label: 'Lista Negra/Suspendido' }
 ];
 
 const RELATIONSHIP_TYPES = [
@@ -132,7 +132,10 @@ export default function EditClientPage() {
     setLoading(true);
     try {
       const response = await fetch(`/api/clients/${clientId}`);
-      if (!response.ok) throw new Error('Error al cargar cliente');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.details || errorData.error || 'Error al cargar cliente');
+      }
 
       const client = await response.json();
       

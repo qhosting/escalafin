@@ -165,12 +165,12 @@ model Client {
   whatsappLoanUpdates          Boolean                @default(true)
   whatsappMarketingMessages    Boolean                @default(false)
   profileImage                 String?
-  latitude                     Float?
-  longitude                    Float?
   tenantId                     String?
-  lateFeeType                  LateFeeType?           @default(DAILY_FIXED)
   lateFeeAmount                Decimal?               @default(200) @db.Decimal(12, 2)
   lateFeeMaxWeekly             Decimal?               @default(800) @db.Decimal(12, 2)
+  lateFeeType                  LateFeeType?           @default(DAILY_FIXED)
+  latitude                     Float?
+  longitude                    Float?
   asesor                       User?                  @relation("AsesorClients", fields: [asesorId], references: [id])
   tenant                       Tenant?                @relation(fields: [tenantId], references: [id])
   user                         User?                  @relation("UserClient", fields: [userId], references: [id])
@@ -194,7 +194,6 @@ model Client {
 model CollectionVisit {
   id          String           @id @default(cuid())
   clientId    String
-  loanId      String?
   advisorId   String
   visitDate   DateTime         @default(now())
   latitude    Float?
@@ -207,6 +206,7 @@ model CollectionVisit {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   routeId     String?
+  loanId      String?
   advisor     User             @relation("AdvisorVisits", fields: [advisorId], references: [id])
   client      Client           @relation("ClientVisits", fields: [clientId], references: [id], onDelete: Cascade)
   loan        Loan?            @relation("LoanVisits", fields: [loanId], references: [id])
@@ -246,11 +246,11 @@ model Guarantor {
   address      String
   phone        String
   relationship RelationshipType
-  latitude     Float?
-  longitude    Float?
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
   tenantId     String?
+  latitude     Float?
+  longitude    Float?
   client       Client           @relation("ClientGuarantor", fields: [clientId], references: [id], onDelete: Cascade)
   tenant       Tenant?          @relation(fields: [tenantId], references: [id])
 
@@ -321,17 +321,17 @@ model Loan {
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   tenantId             String?
-  lateFeeType          LateFeeType?           @default(DAILY_FIXED)
   lateFeeAmount        Decimal?               @db.Decimal(12, 2)
   lateFeeMaxWeekly     Decimal?               @db.Decimal(12, 2)
+  lateFeeType          LateFeeType?           @default(DAILY_FIXED)
   amortizationSchedule AmortizationSchedule[]
+  visits               CollectionVisit[]      @relation("LoanVisits")
   creditScores         CreditScore[]          @relation("LoanScoring")
   files                FileUpload[]           @relation("LoanFiles")
   client               Client                 @relation(fields: [clientId], references: [id])
   creditApplication    CreditApplication?     @relation(fields: [creditApplicationId], references: [id])
   tenant               Tenant?                @relation(fields: [tenantId], references: [id])
   payments             Payment[]
-  visits               CollectionVisit[]      @relation("LoanVisits")
   promises             PromiseToPay[]
 
   @@map("loans")
@@ -1607,6 +1607,7 @@ enum PaymentMethodType {
   PAYPAL
   CASH
 }
+
 enum LateFeeType {
   DAILY_FIXED
   PERCENTAGE
