@@ -65,11 +65,14 @@ interface LoanListProps {
   userRole?: string;
 }
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string, color: string }> = {
   ACTIVE: { label: 'Activo', color: 'status-badge-active' },
   PAID_OFF: { label: 'Liquidado', color: 'status-badge-completed' },
   DEFAULTED: { label: 'En Mora', color: 'status-badge-failed' },
-  CANCELLED: { label: 'Cancelado', color: 'status-badge-cancelled' }
+  CANCELLED: { label: 'Cancelado', color: 'status-badge-cancelled' },
+  PENDING: { label: 'Pendiente', color: 'status-badge-pending' },
+  APPROVED: { label: 'Aprobado', color: 'bg-indigo-100 text-indigo-700' },
+  REJECTED: { label: 'Rechazado', color: 'bg-rose-100 text-rose-700' }
 };
 
 const loanTypeConfig = {
@@ -238,11 +241,9 @@ export function LoanList({ userRole }: LoanListProps) {
                       </div>
                       <Badge className={cn(
                         'text-[10px] uppercase font-black px-2 py-0.5 rounded-full border-0', 
-                        isActive ? 'bg-green-100 text-green-700' :
-                        isPaidOff ? 'bg-blue-100 text-blue-700' :
-                        isDefaulted ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-800'
+                        statusConfig[loan.status]?.color || 'bg-gray-100 text-gray-800'
                       )}>
-                        {statusConfig[loan.status as keyof typeof statusConfig]?.label || loan.status}
+                        {statusConfig[loan.status]?.label || loan.status}
                       </Badge>
                     </div>
 

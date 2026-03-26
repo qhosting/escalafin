@@ -71,11 +71,14 @@ interface LoanDetailsProps {
   userRole?: string;
 }
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string, color: string }> = {
   ACTIVE: { label: 'Activo', color: 'status-badge-active' },
   PAID_OFF: { label: 'Liquidado', color: 'status-badge-completed' },
   DEFAULTED: { label: 'En Mora', color: 'status-badge-failed' },
-  CANCELLED: { label: 'Cancelado', color: 'status-badge-cancelled' }
+  CANCELLED: { label: 'Cancelado', color: 'status-badge-cancelled' },
+  PENDING: { label: 'Pendiente', color: 'status-badge-pending' },
+  APPROVED: { label: 'Aprobado', color: 'bg-indigo-100 text-indigo-700' },
+  REJECTED: { label: 'Rechazado', color: 'bg-rose-100 text-rose-700' }
 };
 
 const loanTypeConfig = {
@@ -226,12 +229,12 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
                 <h1 className="text-xl md:text-3xl font-extrabold text-primary truncate">
                   {loan.loanNumber}
                 </h1>
-                <Badge className={cn('text-[10px] px-2 h-5 rounded-full border-0 uppercase font-black shrink-0', statusConfig[loan.status as keyof typeof statusConfig]?.color)}>
-                  {statusConfig[loan.status as keyof typeof statusConfig]?.label}
+                <Badge className={cn('text-[10px] px-2 h-5 rounded-full border-0 uppercase font-black shrink-0', statusConfig[loan.status]?.color || 'bg-gray-100 text-gray-700')}>
+                  {statusConfig[loan.status]?.label || loan.status}
                 </Badge>
               </div>
               <p className="text-xs md:text-sm text-muted-foreground font-medium">
-                {loanTypeConfig[loan.loanType as keyof typeof loanTypeConfig]} • {loan.client.firstName} {loan.client.lastName}
+                {loanTypeConfig[loan.loanType as keyof typeof loanTypeConfig] || loan.loanType} • {loan.client.firstName} {loan.client.lastName}
               </p>
             </div>
           </div>
@@ -356,8 +359,8 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Estado</Label>
                   <div className="mt-1">
-                    <Badge className={statusConfig[loan.status as keyof typeof statusConfig]?.color}>
-                      {statusConfig[loan.status as keyof typeof statusConfig]?.label}
+                    <Badge className={statusConfig[loan.status]?.color || 'bg-gray-100 text-gray-700'}>
+                      {statusConfig[loan.status]?.label || loan.status}
                     </Badge>
                   </div>
                 </div>
