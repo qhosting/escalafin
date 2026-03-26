@@ -35,6 +35,10 @@ import { useSession } from 'next-auth/react';
 import { format, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { 
+  calculateInterestBasedPayment, 
+  calculateFixedFeePayment,
+  calculateWeeklyInterestPayment,
+  getWeeklyInterestAmount,
   calculateEndDate,
   calculatePorMil120,
   generateAmortizationSchedule,
@@ -355,23 +359,36 @@ export function NewLoanForm() {
 
       console.log('Cálculo completado:', calc);
 
-      // Generar tabla de amortización preliminar
+      // Generar tabla de amortización preliminar con valores calculados LOCALMENTE
+      // para evitar desfases con el estado asincrónico de React
       const newSchedule = generateAmortizationSchedule({
         principalAmount: principal,
         numberOfPayments: numPayments,
         paymentFrequency: frequency,
         loanCalculationType: calculationType as any,
-        annualInterestRate: calculationType === 'INTERES' ? parseFloat(formData.interestRate) / 100 : 0,
-        weeklyInterestAmount: calculationType === 'INTERES_SEMANAL' ? (parseFloat(formData.weeklyInterestAmount) || 0) : 0,
+        annualInterestRate: calculationType === 'INTERES' ? (parseFloat(formData.interestRate) / 100) : 0,
+        weeklyInterestAmount: calculationType === 'INTERES_SEMANAL' 
+          ? (parseFloat(formData.weeklyInterestAmount) || 0) // Si ya existe uno ingresado, usarlo
+          : 0,
         startDate: new Date(formData.startDate),
         paymentAmount: calc.monthlyPayment
       });
+
+      console.log('Tabla generada:', newSchedule.length, 'filas');
 
       setSchedule(newSchedule);
       setCalculation(calc);
       setFormData(prev => ({ ...prev, monthlyPayment: calc.monthlyPayment.toString() }));
       setShowCalculation(true);
       
+      // Hacer scroll suave hacia el cálculo
+      setTimeout(() => {
+        const target = document.getElementById('calculation-result');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+
       if (calculationType === 'TARIFA_FIJA') {
         toast.success(`¡Préstamo calculado! ${numPayments} pagos de $${calc.monthlyPayment.toFixed(2)}`);
       } else {
@@ -1019,7 +1036,7 @@ export function NewLoanForm() {
 
       {/* Cálculo del Préstamo — Premium Look */}
       {showCalculation && calculation && (
-        <div className="space-y-6">
+        <div className="space-y-6" id="calculation-result">
           <Card className="border-none shadow-xl bg-gradient-to-br from-gray-900 to-gray-800 dark:from-inherit text-white overflow-hidden">
             <CardHeader className="pb-4">
               <div className="flex justify-between items-center">
