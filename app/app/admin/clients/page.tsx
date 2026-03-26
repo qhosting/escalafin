@@ -208,7 +208,7 @@ export default function ClientsPage() {
 
       {/* KPIs — 2-col en móvil */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-        <Card className="border-none bg-blue-50/50 dark:bg-blue-900/10">
+        <Card className="border border-blue-100 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-900/10 shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-[10px] uppercase font-bold text-blue-600 tracking-wider">Total</h3>
@@ -218,7 +218,7 @@ export default function ClientsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-none bg-green-50/50 dark:bg-green-900/10">
+        <Card className="border border-green-100 dark:border-green-900/50 bg-green-50/50 dark:bg-green-900/10 shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-[10px] uppercase font-bold text-green-600 tracking-wider">Activos</h3>
@@ -228,7 +228,7 @@ export default function ClientsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-none bg-purple-50/50 dark:bg-purple-900/10 hidden sm:block">
+        <Card className="border border-purple-100 dark:border-purple-900/50 bg-purple-50/50 dark:bg-purple-900/10 hidden sm:block shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-[10px] uppercase font-bold text-purple-600 tracking-wider">Préstamos</h3>
@@ -238,7 +238,7 @@ export default function ClientsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-none bg-orange-50/50 dark:bg-orange-900/10">
+        <Card className="border border-orange-100 dark:border-orange-900/50 bg-orange-50/50 dark:bg-orange-900/10 shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-[10px] uppercase font-bold text-orange-600 tracking-wider">Cartera</h3>
@@ -250,7 +250,7 @@ export default function ClientsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-none bg-indigo-50/50 dark:bg-indigo-900/10">
+        <Card className="border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-900/10 shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider">Score</h3>

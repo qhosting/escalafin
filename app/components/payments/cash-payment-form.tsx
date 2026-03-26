@@ -343,11 +343,11 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
              <div className="space-y-2">
               <Label htmlFor="paymentDate" className="text-xs font-black uppercase text-gray-400">Fecha Valor</Label>
               <div className="relative">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-600" />
                 <Input
                   id="paymentDate"
                   type="date"
-                  className="pl-12 h-14 rounded-2xl bg-gray-50 dark:bg-gray-800 border-gray-100 font-bold text-lg"
+                  className="pl-12 h-14 rounded-2xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 font-black text-lg focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30"
                   value={formData.paymentDate}
                   onChange={(e) => handleInputChange('paymentDate', e.target.value)}
                 />
@@ -361,13 +361,13 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
                 value={formData.collectionMethod} 
                 onValueChange={(value: any) => handleInputChange('collectionMethod', value)}
               >
-                <SelectTrigger className="h-14 rounded-2xl bg-gray-50 dark:bg-gray-800 border-gray-100 font-bold text-lg">
+                <SelectTrigger className="h-14 rounded-2xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 font-black text-lg focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl">
-                  <SelectItem value="field" className="font-bold">🚀 Trabajo de Campo</SelectItem>
-                  <SelectItem value="home" className="font-bold">🏠 Domicilio Cliente</SelectItem>
-                  <SelectItem value="office" className="font-bold">🏢 Oficina</SelectItem>
+                  <SelectItem value="field" className="font-black text-base">🚀 Trabajo de Campo</SelectItem>
+                  <SelectItem value="home" className="font-black text-base">🏠 Domicilio Cliente</SelectItem>
+                  <SelectItem value="office" className="font-black text-base">🏢 Oficina</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -408,7 +408,7 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
           ) : (
             <div className="flex items-center gap-3">
               <Save className="h-6 w-6" />
-              Finalizar Cobro
+              GUARDAR
             </div>
           )}
         </Button>

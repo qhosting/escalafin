@@ -98,10 +98,10 @@ export function BottomNavbar() {
                                     )}
                                 </div>
                                 
-                                {/* Label Text - Subtle and elegant */}
+                                 {/* Label Text - Subtle and elegant */}
                                 <span className={cn(
                                     "text-[9px] font-black uppercase tracking-tighter mt-1 transition-all duration-300",
-                                    active ? "text-gray-900 dark:text-white" : "text-transparent"
+                                    active ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-500"
                                 )}>
                                     {item.label}
                                 </span>
@@ -124,7 +124,7 @@ export function BottomNavbar() {
                                 <div className="p-2.5 rounded-2xl bg-gray-100 dark:bg-gray-800">
                                     <Menu className="h-5 w-5 text-gray-600 dark:text-gray-400 stroke-2" />
                                 </div>
-                                <span className="text-[9px] font-black uppercase tracking-tighter mt-1 text-transparent">Menú</span>
+                                <span className="text-[9px] font-black uppercase tracking-tighter mt-1 text-gray-400 dark:text-gray-500">Menú</span>
                             </button>
                         </SheetTrigger>
                         <SheetContent side="bottom" className="h-[90vh] p-0 rounded-t-[3rem] border-t-0 bg-transparent">
