@@ -685,8 +685,7 @@ export function NewLoanForm() {
     window.open(url, '_blank');
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+  return (<form onSubmit={handleSubmit} className="space-y-8">
       {/* Selección de Cliente */}
       <Card>
         <CardHeader>
