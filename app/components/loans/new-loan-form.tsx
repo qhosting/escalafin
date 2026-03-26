@@ -135,6 +135,11 @@ export function NewLoanForm() {
   });
   
   const [schedule, setSchedule] = useState<AmortizationEntry[]>([]);
+  const [tenantData, setTenantData] = useState<{
+    name: string;
+    logo: string | null;
+    primaryColor: string | null;
+  } | null>(null);
   
   const [calculation, setCalculation] = useState<LoanCalculation | null>(null);
   const [showCalculation, setShowCalculation] = useState(false);
@@ -210,6 +215,18 @@ export function NewLoanForm() {
     };
 
     loadClients();
+  }, []);
+
+  // Fetch branding
+  useEffect(() => {
+    fetch('/api/admin/branding')
+      .then(res => res.json())
+      .then(data => setTenantData(data))
+      .catch(err => {
+        console.error('Error fetching branding:', err);
+        // Fallback to default name if error
+        setTenantData({ name: 'EscalaFin', logo: null, primaryColor: null });
+      });
   }, []);
 
   // Filter clients based on search
@@ -497,48 +514,116 @@ export function NewLoanForm() {
     }).format(amount);
   };
 
-  const handleDownloadPDF = () => {
+  const imageUrlToBase64 = (url: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject('Could not get canvas context');
+          return;
+        }
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  };
+
+  const handleDownloadPDF = async () => {
     if (!calculation || !selectedClient) return;
 
     const doc = new jsPDF();
+    const margin = 14;
+    let currentY = 22;
     
-    // Header
-    doc.setFontSize(20);
-    doc.text('Cotización de Préstamo - EscalaFin', 14, 22);
+    // Header con logo si existe
+    if (tenantData?.logo) {
+      try {
+        const base64Logo = await imageUrlToBase64(tenantData.logo);
+        doc.addImage(base64Logo, 'PNG', margin, 15, 30, 15); // logo de 30x15mm aprox
+        currentY = 35;
+      } catch (err) {
+        console.warn('Could not load logo for PDF:', err);
+      }
+    }
+
+    // Tenant info
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(37, 99, 235); // Primary Blue
+    doc.text(tenantData?.name || 'EscalaFin', tenantData?.logo ? 50 : margin, 25);
     
     doc.setFontSize(10);
-    doc.text(`Fecha: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 30);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Proyección de Crédito - Folio: APP-${format(new Date(), 'yyyyMMdd')}`, margin, currentY);
+    currentY += 10;
     
+    doc.setFontSize(8);
+    doc.text(`Generado el: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, margin, currentY);
+    currentY += 15;
+    
+    // Horizontal Line
+    doc.setDrawColor(230, 230, 230);
+    doc.line(margin, currentY, 196, currentY);
+    currentY += 10;
+    
+    doc.setTextColor(0, 0, 0);
+
     // Client Info
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Información del Cliente', 14, 45);
+    doc.text('Información del Cliente', margin, currentY);
+    currentY += 8;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    doc.text(`Nombre: ${selectedClient.firstName} ${selectedClient.lastName}`, 14, 52);
-    doc.text(`Teléfono: ${selectedClient.phone}`, 14, 57);
-    doc.text(`Email: ${selectedClient.email || 'N/A'}`, 14, 62);
+    doc.text(`Nombre: ${selectedClient.firstName} ${selectedClient.lastName}`, margin, currentY);
+    currentY += 5;
+    doc.text(`Teléfono: ${selectedClient.phone}`, margin, currentY);
+    currentY += 15;
     
     // Loan Summary
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Resumen del Préstamo', 14, 75);
+    doc.text('Resumen del Préstamo', margin, currentY);
+    currentY += 8;
+    
+    // Grid de resumen
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    doc.text(`Monto Principal: ${formatCurrency(parseFloat(formData.principalAmount))}`, 14, 82);
-    doc.text(`Tipo de Cálculo: ${CALCULATION_TYPES[formData.loanCalculationType as keyof typeof CALCULATION_TYPES]}`, 14, 87);
-    doc.text(`Frecuencia de Pago: ${PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES]}`, 14, 92);
-    doc.text(`Número de Pagos: ${formData.termMonths}`, 14, 97);
-    doc.text(`Cuota Periódica: ${formatCurrency(calculation.monthlyPayment)}`, 14, 102);
-    doc.text(`Total a Pagar: ${formatCurrency(calculation.totalAmount)}`, 14, 107);
-    doc.text(`Costo de Interés: ${formatCurrency(calculation.totalInterest)}`, 14, 112);
-    doc.text(`Fecha de Inicio: ${format(new Date(formData.startDate), 'dd/MM/yyyy')}`, 14, 117);
-    doc.text(`Fecha de Término: ${format(new Date(formData.endDate), 'dd/MM/yyyy')}`, 14, 122);
+    const summaryData = [
+      ['Capital Solicitado:', formatCurrency(parseFloat(formData.principalAmount))],
+      ['Tipo de Cálculo:', CALCULATION_TYPES[formData.loanCalculationType as keyof typeof CALCULATION_TYPES]],
+      ['Frecuencia de Pagos:', PAYMENT_FREQUENCIES[formData.paymentFrequency as keyof typeof PAYMENT_FREQUENCIES]],
+      ['Número total de pagos:', formData.termMonths],
+      ['Cuota Periódica:', formatCurrency(calculation.monthlyPayment)],
+      ['Monto Total a Devolver:', formatCurrency(calculation.totalAmount)],
+      ['Costo de Interés:', formatCurrency(calculation.totalInterest)],
+      ['Fecha de Primer Pago:', format(new Date(formData.startDate), 'dd/MM/yyyy')],
+      ['Fecha de Finalización:', format(new Date(formData.endDate), 'dd/MM/yyyy')],
+    ];
+
+    autoTable(doc, {
+      startY: currentY,
+      body: summaryData,
+      theme: 'plain',
+      styles: { fontSize: 9, cellPadding: 1 },
+      columnStyles: { 0: { fontStyle: 'bold', width: 50 } }
+    });
+    
+    currentY = (doc as any).lastAutoTable.finalY + 15;
 
     // Amortization Table
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Tabla de Amortización', 14, 135);
+    doc.text('Cronograma Proyectado de Pagos', margin, currentY);
+    currentY += 5;
     
     const tableData = schedule.map(row => [
       row.paymentNumber.toString(),
@@ -550,22 +635,42 @@ export function NewLoanForm() {
     ]);
 
     autoTable(doc, {
-      startY: 140,
-      head: [['#', 'Fecha', 'Principal', 'Interés', 'Total', 'Saldo']],
+      startY: currentY + 3,
+      head: [['#', 'Vencimiento', 'Capital', 'Interés', 'Cuota Total', 'Saldo Restante']],
       body: tableData,
       theme: 'striped',
-      headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontSize: 8, fontStyle: 'bold' },
       styles: { fontSize: 8 },
+      columnStyles: { 
+        0: { halign: 'center' },
+        2: { halign: 'right' },
+        3: { halign: 'right' },
+        4: { halign: 'right', fontStyle: 'bold' },
+        5: { halign: 'right' }
+      }
     });
 
+    // Footer
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Página ${i} de ${pageCount}`, 196, 285, { align: 'right' });
+        doc.text(`EscalaFin - El sistema líder en gestión de microcréditos`, margin, 285);
+    }
+
     doc.save(`cotizacion_${selectedClient.lastName.toLowerCase()}_${format(new Date(), 'yyyyMMdd')}.pdf`);
-    toast.success('PDF generado correctamente');
+    toast.success('PDF generado con éxito');
   };
 
   const handleShareWhatsApp = () => {
     if (!calculation || !selectedClient) return;
 
-    const message = `*Cotización Préstamo EscalaFin*%0A%0A` +
+    const tenantPrefix = tenantData?.name ? `*${tenantData.name}*` : `*EscalaFin*`;
+
+    const message = `${tenantPrefix}%0A` +
+      `*Cotización de Préstamo*%0A%0A` +
       `👤 *Cliente:* ${selectedClient.firstName} ${selectedClient.lastName}%0A` +
       `💰 *Monto:* ${formatCurrency(parseFloat(formData.principalAmount))}%0A` +
       `🔢 *Pagos:* ${formData.termMonths} (${formData.paymentFrequency.toLowerCase()})%0A` +
