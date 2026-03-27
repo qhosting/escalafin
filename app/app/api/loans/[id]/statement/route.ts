@@ -94,7 +94,9 @@ export async function GET(
             } catch (e) {
                 console.warn('Could not load tenant logo in PDF:', e);
             }
-            // Texto de cabecera (Izquierda)
+        }
+
+        // Texto de cabecera (Izquierda)
         doc.fillColor('#1e293b').fontSize(22).font('Helvetica-Bold').text(tenantInfo?.name || session.user.tenantName || 'EscalaFin', textX, 35);
         doc.fontSize(10).font('Helvetica').fillColor('#64748b').text('Tu Aliado Financiero', textX, 63);
 

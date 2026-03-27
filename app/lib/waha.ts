@@ -382,6 +382,11 @@ export class WahaService {
       }
 
       const session = response.data;
+ 
+      // Normalizar estados para el frontend (SCAN_QR_CODE -> SCAN_QR)
+      if (session.status === 'SCAN_QR_CODE') {
+        session.status = 'SCAN_QR';
+      }
 
       // Si el estado es SCAN_QR o similar, intentar obtener el QR
       if (session.status === 'SCAN_QR' || session.status === 'UNPAIRED' || !session.me) {
@@ -403,7 +408,7 @@ export class WahaService {
           console.warn('No se pudo obtener el QR de WAHA:', (qrError as any).message);
         }
       }
-
+ 
       return session;
     } catch (error) {
       console.error('Error getting Waha session status:', error);
