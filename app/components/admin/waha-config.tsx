@@ -140,7 +140,14 @@ export default function WahaConfig() {
       const response = await fetch('/api/admin/waha/config');
       const data = await response.json();
       if (response.ok && data.config) {
-        setTemplates(data.config);
+        setTemplates(prev => ({
+          ...prev,
+          ...data.config,
+          // Mantener los valores por defecto si los del servidor son nulos o vacíos
+          paymentReceivedTemplate: data.config.paymentReceivedTemplate || prev.paymentReceivedTemplate,
+          paymentReminderTemplate: data.config.paymentReminderTemplate || prev.paymentReminderTemplate,
+          loanApprovedTemplate: data.config.loanApprovedTemplate || prev.loanApprovedTemplate,
+        }));
       }
     } catch (error) {
       console.error('Error fetching templates:', error);
