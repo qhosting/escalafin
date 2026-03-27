@@ -5,11 +5,14 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import CashPaymentForm from '@/components/payments/cash-payment-form';
 import { AuthWrapper } from '@/components/auth-wrapper';
 import { Label } from '@/components/ui/label';
-import { Search, Landmark, User, Hash, ChevronRight } from 'lucide-react';
+import { Search, Landmark, User, Hash, ChevronRight, ArrowLeft, ShieldAlert, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,19 +25,35 @@ function NewPaymentContent() {
     const [loans, setLoans] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [errorInfo, setErrorInfo] = useState<{ code?: string; message?: string } | null>(null);
 
     // Fetch single loan if ID provided
     useEffect(() => {
         if (initialLoanId) {
             setLoading(true);
+            setErrorInfo(null);
             fetch(`/api/loans/${initialLoanId}`)
-                .then(res => res.json())
+                .then(async res => {
+                    if (!res.ok) {
+                        const errorData = await res.json().catch(() => ({}));
+                        setErrorInfo({
+                            code: errorData.code || (res.status === 403 ? 'CROSS_TENANT_ACCESS' : 'NOT_FOUND'),
+                            message: errorData.message || errorData.error || 'No se pudo cargar el préstamo.'
+                        });
+                        setLoading(false);
+                        return;
+                    }
+                    return res.json();
+                })
                 .then(data => {
-                    setLoan(data.loan || data);
+                    if (data) {
+                        setLoan(data.loan || data);
+                    }
                     setLoading(false);
                 })
                 .catch(err => {
                     console.error(err);
+                    setErrorInfo({ code: 'NETWORK_ERROR', message: 'No se pudo conectar con el servidor.' });
                     setLoading(false);
                 });
         } else {
@@ -61,6 +80,72 @@ function NewPaymentContent() {
             l.client?.lastName?.toLowerCase().includes(query)
         );
     });
+
+    // Error state - premium view
+    if (errorInfo) {
+        const isCrossTenant = errorInfo.code === 'CROSS_TENANT_ACCESS';
+        return (
+            <div className="max-w-lg mx-auto px-4 py-12 md:py-20">
+                <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {/* Icono */}
+                    <div className={cn(
+                        'mx-auto w-20 h-20 rounded-3xl flex items-center justify-center',
+                        isCrossTenant ? 'bg-red-100 dark:bg-red-900/20' : 'bg-orange-100 dark:bg-orange-900/20'
+                    )}>
+                        {isCrossTenant ? (
+                            <ShieldAlert className="h-10 w-10 text-red-600" />
+                        ) : (
+                            <AlertTriangle className="h-10 w-10 text-orange-600" />
+                        )}
+                    </div>
+
+                    {/* Mensaje */}
+                    <div className="space-y-2">
+                        <h2 className="text-2xl font-black text-foreground">
+                            {isCrossTenant ? 'Acceso No Autorizado' : 'Préstamo No Encontrado'}
+                        </h2>
+                        <p className="text-muted-foreground font-medium leading-relaxed">
+                            {errorInfo.message}
+                        </p>
+                    </div>
+
+                    {/* Badge de seguridad */}
+                    {isCrossTenant && (
+                        <div className="inline-flex items-center gap-2 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-2xl px-4 py-2.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <span className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-widest">
+                                Aislamiento de datos activo
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Acciones */}
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                        <Link href="/admin/loans">
+                            <Button className="rounded-2xl h-12 px-6 font-bold">
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Ir a Mis Préstamos
+                            </Button>
+                        </Link>
+                        <Link href="/admin/payments/new">
+                            <Button variant="outline" className="rounded-2xl h-12 px-6 font-bold">
+                                Seleccionar Otro Préstamo
+                            </Button>
+                        </Link>
+                    </div>
+
+                    {/* Ref técnica */}
+                    {initialLoanId && (
+                        <p className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">
+                            REF: {initialLoanId.substring(0, 12)}… • {errorInfo.code}
+                        </p>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     if (loading && !loan) {
         return (

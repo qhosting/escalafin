@@ -36,9 +36,14 @@ import {
   User as UserIcon
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Download, Share2 } from 'lucide-react';
+import { PageSkeleton } from '@/components/ui/page-skeleton';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 export const dynamic = 'force-dynamic';
 
@@ -261,6 +266,10 @@ export default function PaymentsPage() {
     window.open(url, '_blank');
   };
 
+  if (loading && payments.length === 0) {
+    return <PageSkeleton showStats={false} />;
+  }
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 pb-12">
       {/* Header Premium - Sin cajas de resumen como se solicitó */}
@@ -393,9 +402,16 @@ export default function PaymentsPage() {
           <Card className="border border-gray-100 dark:border-gray-800 rounded-3xl overflow-hidden shadow-xl shadow-gray-200/20">
             <div className="overflow-x-auto">
               {loading ? (
-                <div className="p-20 flex flex-col items-center justify-center gap-4">
-                  <RefreshCw className="h-10 w-10 text-blue-600 animate-spin" />
-                  <p className="font-bold text-gray-500 animate-pulse text-xl">Sincronizando Cobros...</p>
+                <div className="p-10 space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-xl gap-4">
+                      <div className="space-y-2 flex-1">
+                        <div className="h-6 w-56 bg-gray-100 animate-pulse rounded" />
+                        <div className="h-4 w-40 bg-gray-50 animate-pulse rounded" />
+                      </div>
+                      <div className="h-8 w-32 bg-gray-100 animate-pulse rounded-full" />
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <Table>

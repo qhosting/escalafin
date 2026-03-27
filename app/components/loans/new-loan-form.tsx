@@ -30,6 +30,7 @@ import {
   RefreshCw,
   Table as TableIcon
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -460,26 +461,31 @@ export function NewLoanForm() {
     try {
       setSubmitting(true);
       
+      const parseSafeFloat = (val: any, def = 0) => {
+        const num = parseFloat(val);
+        return isNaN(num) ? def : num;
+      };
+
       const loanData = {
         clientId: formData.clientId,
         loanType: formData.loanType,
         loanCalculationType: formData.loanCalculationType,
-        principalAmount: parseFloat(formData.principalAmount),
-        termMonths: parseInt(formData.termMonths),
+        principalAmount: parseSafeFloat(formData.principalAmount),
+        termMonths: parseInt(formData.termMonths) || 0,
         paymentFrequency: formData.paymentFrequency,
         interestRate: formData.loanCalculationType === 'INTERES' 
-          ? parseFloat(formData.interestRate) / 100 
+          ? parseSafeFloat(formData.interestRate) / 100 
           : 0,
         weeklyInterestAmount: formData.loanCalculationType === 'INTERES_SEMANAL' && formData.weeklyInterestAmount
-          ? parseFloat(formData.weeklyInterestAmount)
+          ? parseSafeFloat(formData.weeklyInterestAmount)
           : null,
         monthlyPayment: currentCalc.monthlyPayment,
-        initialPayment: formData.initialPayment ? parseFloat(formData.initialPayment) : null,
+        initialPayment: formData.initialPayment ? parseSafeFloat(formData.initialPayment) : null,
         startDate: new Date(formData.startDate).toISOString(),
         status: 'ACTIVE',
-        lateFeeType: formData.lateFeeType,
-        lateFeeAmount: parseFloat(formData.lateFeeAmount),
-        lateFeeMaxWeekly: parseFloat(formData.lateFeeMaxWeekly)
+        lateFeeType: formData.lateFeeType || 'DAILY_FIXED',
+        lateFeeAmount: parseSafeFloat(formData.lateFeeAmount, 200),
+        lateFeeMaxWeekly: parseSafeFloat(formData.lateFeeMaxWeekly, 800)
       };
 
       const response = await fetch('/api/loans', {
@@ -688,8 +694,462 @@ export function NewLoanForm() {
   */
 
   return (
-    <div className="p-8">
-      <span className="text-2xl font-bold">Diagnóstico: El error estaba en el cuerpo.</span>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* ── Header ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+            <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-200">
+              <Plus className="h-6 w-6 text-white" />
+            </div>
+            Nuevo Préstamo
+          </h1>
+          <p className="text-muted-foreground mt-1 font-medium">
+            Configura y activa una nueva línea de crédito para un cliente.
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          onClick={() => router.back()}
+          className="rounded-xl border-gray-200 hover:bg-gray-50 transition-all font-bold"
+        >
+          Cancelar
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ── Columna Izquierda: Formulario ── */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Tarjeta de Cliente */}
+          <Card className="rounded-2xl border-none shadow-sm overflow-hidden ring-1 ring-gray-100">
+            <CardHeader className="bg-gray-50/50 pb-4">
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <User className="h-4 w-4 text-blue-600" />
+                Selección de Cliente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {!selectedClient ? (
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por nombre, teléfono o email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 h-12 rounded-xl bg-gray-50 border-gray-200 focus:ring-blue-500 transition-all"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    {loading ? (
+                      <div className="col-span-2 py-8 text-center text-muted-foreground flex flex-col items-center gap-2">
+                        <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
+                        Cargando clientes...
+                      </div>
+                    ) : filteredClients.length > 0 ? (
+                      filteredClients.map(client => (
+                        <div
+                          key={client.id}
+                          onClick={() => handleClientSelect(client)}
+                          className="p-4 rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-blue-50/30 cursor-pointer transition-all flex items-center gap-3 group"
+                        >
+                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-gray-100">
+                            <AvatarFallback className="bg-blue-100 h-full w-full flex items-center justify-center font-bold text-blue-700 text-xs">
+                              {client.firstName[0]}{client.lastName[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="font-bold text-sm text-gray-900 group-hover:text-blue-700 transition-colors uppercase truncate">
+                              {client.firstName} {client.lastName}
+                            </p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <DollarSign className="h-3 w-3" /> {client.phone}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-2 py-8 text-center text-muted-foreground bg-gray-50 rounded-xl border-2 border-dashed border-gray-100">
+                        {searchTerm ? 'No se encontraron clientes.' : 'Comienza a escribir para buscar.'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-14 w-14 border-4 border-white shadow-sm">
+                      <AvatarFallback className="bg-blue-600 h-full w-full flex items-center justify-center font-bold text-white text-lg">
+                        {selectedClient.firstName[0]}{selectedClient.lastName[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-lg font-black text-gray-900 uppercase tracking-tight leading-none">
+                        {selectedClient.firstName} {selectedClient.lastName}
+                      </p>
+                      <p className="text-sm text-blue-600 font-bold mt-1">
+                        ID: {selectedClient.id.substring(0, 8).toUpperCase()} • {selectedClient.phone}
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                        setSelectedClient(null);
+                        setCalculation(null);
+                        setShowCalculation(false);
+                        setSchedule([]);
+                    }}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl font-bold"
+                  >
+                    Cambiar Cliente
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Configuración del Préstamo */}
+          <Card className={cn(
+            "rounded-2xl border-none shadow-sm ring-1 ring-gray-100 overflow-hidden transition-all duration-300",
+            !selectedClient && "opacity-50 pointer-events-none grayscale"
+          )}>
+            <CardHeader className="bg-gray-50/50 pb-4">
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-blue-600" />
+                Parámetros Financieros
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Tipo de Préstamo</Label>
+                  <EnhancedSelect
+                    value={formData.loanType}
+                    onValueChange={(val) => handleInputChange('loanType', val)}
+                    placeholder="Selecciona el tipo..."
+                    items={Object.entries(LOAN_TYPES).map(([k, v]) => ({ value: k, label: v }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Método de Cálculo</Label>
+                  <EnhancedSelect
+                    value={formData.loanCalculationType}
+                    onValueChange={(val) => {
+                      handleInputChange('loanCalculationType', val);
+                      setCalculation(null);
+                      setShowCalculation(false);
+                    }}
+                    placeholder="Tipo de cálculo..."
+                    items={Object.entries(CALCULATION_TYPES).map(([k, v]) => ({ value: k, label: v }))}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-2">
+                <div className="space-y-2 lg:col-span-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Monto del Préstamo (Capital)</Label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-blue-50 rounded-lg group-focus-within:bg-blue-600 transition-colors">
+                      <DollarSign className="h-4 w-4 text-blue-600 group-focus-within:text-white" />
+                    </div>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.principalAmount}
+                      onChange={(e) => handleInputChange('principalAmount', e.target.value)}
+                      className="h-14 pl-14 text-xl font-bold bg-white border-2 border-gray-100 focus:border-blue-500 rounded-2xl transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">
+                    {formData.loanCalculationType === 'POR_MIL_120' ? 'Pago Semanal Deseado' : 'Num. Pagos'}
+                  </Label>
+                  {formData.loanCalculationType === 'POR_MIL_120' ? (
+                    <Input
+                      type="number"
+                      placeholder="Ej: 500"
+                      value={formData.expectedWeeklyPayment}
+                      onChange={(e) => handleInputChange('expectedWeeklyPayment', e.target.value)}
+                      className="h-14 font-bold border-2 border-gray-100 focus:border-blue-500 rounded-2xl"
+                    />
+                  ) : (
+                    <Input
+                      type="number"
+                      placeholder="Ej: 12"
+                      value={formData.termMonths}
+                      onChange={(e) => handleInputChange('termMonths', e.target.value)}
+                      className="h-14 font-bold border-2 border-gray-100 focus:border-blue-500 rounded-2xl"
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Frecuencia</Label>
+                  <EnhancedSelect
+                    value={formData.paymentFrequency}
+                    onValueChange={(val) => handleInputChange('paymentFrequency', val)}
+                    placeholder="Frecuencia..."
+                    disabled={formData.loanCalculationType === 'INTERES_SEMANAL' || formData.loanCalculationType === 'POR_MIL_120'}
+                    items={Object.entries(PAYMENT_FREQUENCIES).map(([k, v]) => ({ value: k, label: v }))}
+                  />
+                </div>
+              </div>
+
+              {/* Parámetros específicos según cálculo */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50/30 p-5 rounded-2xl border border-blue-50/50">
+                {formData.loanCalculationType === 'INTERES' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-blue-600">
+                      Tasa de Interés Anual (%)
+                    </Label>
+                    <div className="relative">
+                      <TrendingUp className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
+                      <Input
+                        type="number"
+                        placeholder="18.0"
+                        value={formData.interestRate}
+                        onChange={(e) => handleInputChange('interestRate', e.target.value)}
+                        className="pl-10 h-11 font-bold border-blue-100"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {formData.loanCalculationType === 'INTERES_SEMANAL' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-blue-600">
+                      Monto de Interés Fijo (Semanal)
+                    </Label>
+                    <div className="relative">
+                      <TrendingUp className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
+                      <Input
+                        type="number"
+                        placeholder="Ej: 100"
+                        value={formData.weeklyInterestAmount}
+                        onChange={(e) => handleInputChange('weeklyInterestAmount', e.target.value)}
+                        className="pl-10 h-11 font-bold border-blue-100"
+                      />
+                    </div>
+                    {suggestedWeeklyRate && (
+                      <p className="text-[10px] text-blue-600 font-bold ml-1 flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" /> Sugerido: {formatCurrency(suggestedWeeklyRate.amount)} ({suggestedWeeklyRate.rate}%)
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase text-blue-600">Fecha de Inicio / Primer Pago</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
+                    <Input
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => handleInputChange('startDate', e.target.value)}
+                      className="pl-10 h-11 font-bold border-blue-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button 
+                  type="button"
+                  onClick={calculateLoan}
+                  className="flex-1 h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100 font-black text-lg transition-all"
+                >
+                  <Calculator className="h-5 w-5 mr-2" />
+                  Calcular Préstamo
+                </Button>
+                {showCalculation && (
+                   <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleDownloadPDF}
+                    className="h-14 px-6 rounded-2xl border-gray-200 font-bold"
+                  >
+                    <Download className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ── Columna Derecha: Sticky Resumen ── */}
+        <div className="space-y-6">
+          {/* Configuración de Mora (Inline) */}
+          <Card className={cn(
+            "rounded-2xl border-none shadow-sm ring-1 ring-gray-100 overflow-hidden",
+            !selectedClient && "opacity-50 pointer-events-none grayscale"
+          )}>
+            <CardHeader className="bg-orange-50/50 pb-3">
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-orange-600" />
+                Configuración de Moras
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-3">
+              <div className="space-y-1">
+                <Label className="text-[10px] font-bold text-gray-500 uppercase">Monto de Mora (Diario)</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-orange-400" />
+                  <Input
+                    type="number"
+                    value={formData.lateFeeAmount}
+                    onChange={(e) => handleInputChange('lateFeeAmount', e.target.value)}
+                    className="pl-8 h-9 font-bold bg-orange-50/20 border-orange-100 focus:border-orange-500 rounded-xl"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] font-bold text-gray-500 uppercase">Límite Semanal de Mora</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-orange-400" />
+                  <Input
+                    type="number"
+                    value={formData.lateFeeMaxWeekly}
+                    onChange={(e) => handleInputChange('lateFeeMaxWeekly', e.target.value)}
+                    className="pl-8 h-9 font-bold bg-orange-50/20 border-orange-100 focus:border-orange-500 rounded-xl"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {showCalculation && calculation && (
+            <div className="sticky top-6 space-y-6">
+              <Card id="calculation-result" className="rounded-3xl border-none bg-gray-900 text-white shadow-2xl overflow-hidden ring-4 ring-white">
+                <CardHeader className="pb-2">
+                  <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Resumen de Proyección</p>
+                  <CardTitle className="text-3xl font-black mt-1 flex items-baseline gap-2">
+                    {formatCurrency(calculation.monthlyPayment)}
+                    <span className="text-sm font-medium text-gray-400">/{formData.paymentFrequency.toLowerCase().substring(0, 3)}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-5 pt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+                      <p className="text-[9px] font-bold text-gray-400 uppercase">Capital</p>
+                      <p className="text-sm font-black">{formatCurrency(parseFloat(formData.principalAmount))}</p>
+                    </div>
+                    <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+                      <p className="text-[9px] font-bold text-gray-400 uppercase">Interés Total</p>
+                      <p className="text-sm font-black text-green-400">{formatCurrency(calculation.totalInterest)}</p>
+                    </div>
+                    <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+                      <p className="text-[9px] font-bold text-gray-400 uppercase">Num. Pagos</p>
+                      <p className="text-sm font-black">{formData.termMonths}</p>
+                    </div>
+                    <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+                      <p className="text-[9px] font-bold text-gray-400 uppercase">Tasa Efectiva</p>
+                      <p className="text-sm font-black text-blue-400">{calculation.interestRate.toFixed(1)}%</p>
+                    </div>
+                  </div>
+
+                  <div className="py-2">
+                     <Separator className="bg-white/10" />
+                  </div>
+                  
+                  <div className="flex justify-between items-center bg-blue-600/20 p-4 rounded-2xl border border-white/10 shadow-inner">
+                    <span className="text-sm font-bold text-blue-100">MONTO TOTAL</span>
+                    <span className="text-xl font-black text-white">{formatCurrency(calculation.totalAmount)}</span>
+                  </div>
+
+                  <Button 
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="w-full h-14 rounded-2xl bg-white text-gray-900 hover:bg-gray-100 font-black text-lg transition-transform active:scale-95 shadow-xl"
+                  >
+                    {submitting ? (
+                      <RefreshCw className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
+                        Activar Préstamo
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl border-none bg-blue-50/50 p-4">
+                <div className="flex gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <AlertCircle className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="text-xs text-blue-900 leading-relaxed font-medium">
+                    Al activar este préstamo, se generaráautomáticamente el plan de pagos y el cliente recibirá una notificación.
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Tabla de Amortización (Si hay cálculo) ── */}
+      {showCalculation && schedule.length > 0 && (
+        <Card className="rounded-2xl border-none shadow-sm ring-1 ring-gray-100 overflow-hidden mt-8">
+          <CardHeader className="bg-gray-50/50 py-4 px-6 flex flex-row items-center justify-between border-b border-gray-100">
+            <CardTitle className="text-base font-bold flex items-center gap-2 tracking-tight">
+              <TableIcon className="h-4 w-4 text-blue-600" />
+              Cronograma de Pagos Proyectado
+            </CardTitle>
+            <Badge variant="outline" className="bg-white font-black text-blue-700 rounded-full py-1">
+              {schedule.length} CUOTAS
+            </Badge>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-gray-50">
+                  <TableRow>
+                    <TableHead className="w-[80px] text-center font-bold text-[10px] uppercase">No.</TableHead>
+                    <TableHead className="font-bold text-[10px] uppercase">Vencimiento</TableHead>
+                    <TableHead className="text-right font-bold text-[10px] uppercase">Capital</TableHead>
+                    <TableHead className="text-right font-bold text-[10px] uppercase">Interés</TableHead>
+                    <TableHead className="text-right font-bold text-[10px] uppercase">Cuota Total</TableHead>
+                    <TableHead className="text-right font-bold text-[10px] uppercase">Saldo Final</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {schedule.map((row) => (
+                    <TableRow key={row.paymentNumber} className="hover:bg-blue-50/30 transition-colors border-gray-50">
+                      <TableCell className="text-center font-bold text-gray-500">{row.paymentNumber}</TableCell>
+                      <TableCell className="font-medium">{format(row.paymentDate, 'dd/MM/yyyy', { locale: es })}</TableCell>
+                      <TableCell className="text-right text-gray-600">{formatCurrency(row.principalPayment)}</TableCell>
+                      <TableCell className="text-right text-green-600 font-medium">{formatCurrency(row.interestPayment)}</TableCell>
+                      <TableCell className="text-right font-black text-gray-900">{formatCurrency(row.totalPayment)}</TableCell>
+                      <TableCell className="text-right font-semibold text-gray-400">{formatCurrency(row.remainingBalance)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+          <div className="bg-gray-50 p-4 flex justify-center border-t border-gray-100">
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleDownloadPDF}
+                className="text-blue-600 font-bold hover:bg-blue-100 rounded-xl"
+            >
+                <Download className="h-4 w-4 mr-2" />
+                Descargar Tabla Completa (PDF)
+            </Button>
+          </div>
+        </Card>
+      )}
+      
+      {/* ── Padding inferior extra ── */}
+      <div className="h-10" />
     </div>
   );
 }

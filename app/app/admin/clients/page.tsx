@@ -39,6 +39,7 @@ import {
   Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageSkeleton } from '@/components/ui/page-skeleton';
 
 interface Client {
   id: string;
@@ -176,6 +177,10 @@ export default function ClientsPage() {
     }
   };
 
+  if (loading && clients.length === 0) {
+    return <PageSkeleton />;
+  }
+
   return (
     <div className="pb-20 md:pb-0">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -297,8 +302,16 @@ export default function ClientsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-xl gap-4">
+                  <div className="space-y-2 flex-1">
+                    <div className="h-5 w-48 bg-gray-100 animate-pulse rounded" />
+                    <div className="h-4 w-32 bg-gray-50 animate-pulse rounded" />
+                  </div>
+                  <div className="h-10 w-32 bg-gray-100 animate-pulse rounded-xl" />
+                </div>
+              ))}
             </div>
           ) : (
             <>

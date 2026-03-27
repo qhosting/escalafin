@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { getTenantPrisma } from '@/lib/tenant-db';
 
 export async function GET(
   request: NextRequest,
@@ -12,19 +12,13 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.email || !session?.user?.tenantId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    });
+    const tenantPrisma = getTenantPrisma(session.user.tenantId);
 
-    if (!user) {
-      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
-    }
-
-    const loan = await prisma.loan.findUnique({
+    const loan = await (tenantPrisma.loan as any).findFirst({
       where: { id: params.id },
       include: { client: true }
     });
@@ -33,12 +27,10 @@ export async function GET(
       return NextResponse.json({ error: 'Préstamo no encontrado' }, { status: 404 });
     }
 
-    // Verificar permisos
-    /* if (user.role === 'ASESOR' && loan.client.asesorId !== user.id) {
-      return NextResponse.json({ error: 'Sin permisos' }, { status: 403 });
-    } else */ if (user.role === 'CLIENTE') {
-      const clientProfile = await prisma.client.findFirst({
-        where: { userId: user.id }
+    // Verificar permisos para CLIENTE
+    if (session.user.role === 'CLIENTE') {
+      const clientProfile = await (tenantPrisma.client as any).findFirst({
+        where: { userId: session.user.id }
       });
 
       if (loan.clientId !== clientProfile?.id) {
@@ -46,7 +38,7 @@ export async function GET(
       }
     }
 
-    const amortizationSchedule = await prisma.amortizationSchedule.findMany({
+    const amortizationSchedule = await (tenantPrisma.amortizationSchedule as any).findMany({
       where: { loanId: params.id },
       include: {
         payment: {
@@ -63,19 +55,26 @@ export async function GET(
       orderBy: { paymentNumber: 'asc' }
     });
 
+    if (!amortizationSchedule || amortizationSchedule.length === 0) {
+      return NextResponse.json({
+        amortizationSchedule: [],
+        summary: null
+      });
+    }
+
     // Calcular resumen
     const summary = {
       totalPayments: amortizationSchedule.length,
-      paidPayments: amortizationSchedule.filter(item => item.isPaid).length,
-      pendingPayments: amortizationSchedule.filter(item => !item.isPaid).length,
-      totalPrincipal: amortizationSchedule.reduce((sum, item) => sum + parseFloat(item.principalPayment.toString()), 0),
-      totalInterest: amortizationSchedule.reduce((sum, item) => sum + parseFloat(item.interestPayment.toString()), 0),
+      paidPayments: amortizationSchedule.filter((item: any) => item.isPaid).length,
+      pendingPayments: amortizationSchedule.filter((item: any) => !item.isPaid).length,
+      totalPrincipal: amortizationSchedule.reduce((sum: number, item: any) => sum + parseFloat((item.principalPayment || 0).toString()), 0),
+      totalInterest: amortizationSchedule.reduce((sum: number, item: any) => sum + parseFloat((item.interestPayment || 0).toString()), 0),
       paidAmount: amortizationSchedule
-        .filter(item => item.isPaid)
-        .reduce((sum, item) => sum + parseFloat(item.totalPayment.toString()), 0),
+        .filter((item: any) => item.isPaid)
+        .reduce((sum: number, item: any) => sum + parseFloat((item.totalPayment || 0).toString()), 0),
       pendingAmount: amortizationSchedule
-        .filter(item => !item.isPaid)
-        .reduce((sum, item) => sum + parseFloat(item.totalPayment.toString()), 0)
+        .filter((item: any) => !item.isPaid)
+        .reduce((sum: number, item: any) => sum + parseFloat((item.totalPayment || 0).toString()), 0)
     };
 
     return NextResponse.json({

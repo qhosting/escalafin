@@ -44,7 +44,7 @@ const loanSchema = z.object({
   startDate: z.date({
     required_error: 'Selecciona la fecha de inicio'
   }),
-  purpose: z.string().optional()
+  notes: z.string().optional()
 });
 
 type LoanFormData = z.infer<typeof loanSchema>;
@@ -114,10 +114,10 @@ export function LoanForm({ loanId, userRole }: LoanFormProps) {
         clientId: loan.clientId,
         loanType: loan.loanType,
         principalAmount: loan.principalAmount.toString(),
-        interestRate: loan.interestRate.toString(),
+        interestRate: (parseFloat(loan.interestRate.toString()) * 100).toString(),
         termMonths: loan.termMonths.toString(),
         startDate: new Date(loan.startDate),
-        purpose: loan.purpose || ''
+        notes: loan.notes || loan.purpose || ''
       });
     } catch (error) {
       console.error('Error fetching loan:', error);
@@ -172,12 +172,13 @@ export function LoanForm({ loanId, userRole }: LoanFormProps) {
       const payload = {
         ...data,
         principalAmount: principal,
-        interestRate: rate,
+        interestRate: rate / 100,
         termMonths: term,
         monthlyPayment: calculatedMonthlyPayment,
         totalAmount: calculatedTotalAmount,
         startDate: data.startDate.toISOString(),
-        endDate: endDate.toISOString()
+        endDate: endDate.toISOString(),
+        notes: data.notes
       };
 
       const url = loanId ? `/api/loans/${loanId}` : '/api/loans';
@@ -199,7 +200,7 @@ export function LoanForm({ loanId, userRole }: LoanFormProps) {
       const result = await response.json();
       
       // Obtener el ID del préstamo correctamente según el tipo de respuesta
-      const loanIdResult = loanId ? result.loan.id : result.loan.id;
+      const loanIdResult = loanId ? result.loan.id : result.id;
       
       toast.success(loanId ? 'Préstamo actualizado exitosamente' : 'Préstamo creado exitosamente');
       router.push(`/${userRole?.toLowerCase() || 'admin'}/loans/${loanIdResult}`);
@@ -365,11 +366,11 @@ export function LoanForm({ loanId, userRole }: LoanFormProps) {
             </div>
 
             <div>
-              <Label htmlFor="purpose">Propósito del Préstamo</Label>
+              <Label htmlFor="notes">Propósito / Notas del Préstamo</Label>
               <Textarea
-                id="purpose"
-                placeholder="Describe el propósito del préstamo..."
-                {...register('purpose')}
+                id="notes"
+                placeholder="Describe el propósito o notas del préstamo..."
+                {...register('notes')}
               />
             </div>
           </CardContent>

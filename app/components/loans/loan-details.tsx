@@ -27,9 +27,11 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { LoanStatementModal } from './loan-statement-modal';
+import { PageSkeleton } from '@/components/ui/page-skeleton';
+import { AmortizationSchedule } from './amortization-schedule';
 
 interface LoanDetail {
   id: string;
@@ -104,6 +106,9 @@ const paymentStatusConfig = {
 export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
   const router = useRouter();
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'details';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [loan, setLoan] = useState<LoanDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
@@ -112,18 +117,47 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
     fetchLoanDetails();
   }, [loanId]);
 
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['details', 'payments', 'schedule', 'client'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', value);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  const [errorInfo, setErrorInfo] = useState<{ code?: string; message?: string; status?: number } | null>(null);
+
   const fetchLoanDetails = async () => {
     try {
       setLoading(true);
+      setErrorInfo(null);
       const response = await fetch(`/api/loans/${loanId}`);
-      if (!response.ok) throw new Error('Error al cargar el préstamo');
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setErrorInfo({
+          code: errorData.code || 'UNKNOWN',
+          message: errorData.message || errorData.error || 'Error al cargar el préstamo',
+          status: response.status
+        });
+        return;
+      }
 
       const data = await response.json();
       setLoan(data.loan || data);
     } catch (error) {
       console.error('Error fetching loan details:', error);
-      toast.error('Error al cargar los detalles del préstamo');
-      router.push('/admin/loans');
+      setErrorInfo({
+        code: 'NETWORK_ERROR',
+        message: 'No se pudo conectar con el servidor. Verifica tu conexión a internet e intenta de nuevo.',
+        status: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -187,27 +221,84 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-8 bg-muted animate-pulse rounded" />
-        <div className="h-64 bg-muted animate-pulse rounded" />
-        <div className="h-96 bg-muted animate-pulse rounded" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
-  if (!loan) {
+  if (errorInfo || !loan) {
+    const isCrossTenant = errorInfo?.code === 'CROSS_TENANT_ACCESS';
+    const isNotFound = errorInfo?.code === 'NOT_FOUND' || (!errorInfo && !loan);
+
     return (
-      <div className="text-center py-12">
-        <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Préstamo no encontrado</h2>
-        <p className="text-muted-foreground mb-4">El préstamo solicitado no existe o no tienes permisos para verlo.</p>
-        <Link href="/admin/loans">
-          <Button>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a Préstamos
-          </Button>
-        </Link>
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
+        <div className="max-w-md w-full text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {/* Icono */}
+          <div className={cn(
+            'mx-auto w-20 h-20 rounded-3xl flex items-center justify-center',
+            isCrossTenant 
+              ? 'bg-red-100 dark:bg-red-900/20' 
+              : 'bg-orange-100 dark:bg-orange-900/20'
+          )}>
+            {isCrossTenant ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v.01M12 9v2m0 0a1 1 0 100-2 1 1 0 000 2zm9.364-.636A9 9 0 113.636 3.636a9 9 0 0117.728 17.728z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 003.636 3.636m14.728 14.728L3.636 3.636" />
+              </svg>
+            ) : (
+              <AlertTriangle className="h-10 w-10 text-orange-600" />
+            )}
+          </div>
+
+          {/* Título */}
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-foreground">
+              {isCrossTenant 
+                ? 'Acceso No Autorizado' 
+                : isNotFound
+                  ? 'Préstamo No Encontrado'
+                  : 'Error de Conexión'}
+            </h2>
+            <p className="text-muted-foreground font-medium leading-relaxed">
+              {errorInfo?.message || 'El préstamo solicitado no existe o no tienes permisos para verlo.'}
+            </p>
+          </div>
+
+          {/* Badge de seguridad para cross-tenant */}
+          {isCrossTenant && (
+            <div className="inline-flex items-center gap-2 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-2xl px-4 py-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <span className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-widest">
+                Aislamiento de datos activo
+              </span>
+            </div>
+          )}
+
+          {/* Acciones */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <Link href="/admin/loans">
+              <Button className="rounded-2xl h-12 px-6 font-bold">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Ir a Mis Préstamos
+              </Button>
+            </Link>
+            <Button 
+              variant="outline" 
+              className="rounded-2xl h-12 px-6 font-bold"
+              onClick={() => {
+                setErrorInfo(null);
+                fetchLoanDetails();
+              }}
+            >
+              Reintentar
+            </Button>
+          </div>
+
+          {/* ID técnico */}
+          <p className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-widest">
+            REF: {loanId.substring(0, 12)}… • {errorInfo?.code || 'NO_DATA'}
+          </p>
+        </div>
       </div>
     );
   }
@@ -326,10 +417,11 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
       </div>
 
       {/* Main Content */}
-      <Tabs defaultValue="details" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList>
           <TabsTrigger value="details">Detalles</TabsTrigger>
           <TabsTrigger value="payments">Pagos ({loan.payments.length})</TabsTrigger>
+          <TabsTrigger value="schedule">Plan de Pagos</TabsTrigger>
           <TabsTrigger value="client">Cliente</TabsTrigger>
         </TabsList>
 
@@ -503,6 +595,10 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="schedule" className="space-y-6">
+          <AmortizationSchedule loanId={loan.id} />
         </TabsContent>
 
         <TabsContent value="client" className="space-y-6">

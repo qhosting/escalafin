@@ -71,7 +71,7 @@ export function AmortizationSchedule({ loanId }: AmortizationScheduleProps) {
       if (!response.ok) throw new Error('Error al cargar la tabla de amortización');
 
       const data = await response.json();
-      setSchedule(data.amortizationSchedule);
+      setSchedule(data.amortizationSchedule || []);
       setSummary(data.summary);
     } catch (error) {
       console.error('Error fetching amortization schedule:', error);

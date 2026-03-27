@@ -89,7 +89,26 @@ export async function GET(
     });
 
     if (!client) {
-      return NextResponse.json({ error: 'Cliente no encontrado o no pertenece a su tenant' }, { status: 404 });
+      // Verificar si el cliente existe en otro tenant
+      const globalClient = await prisma.client.findUnique({
+        where: { id: clientId },
+        select: { id: true, tenantId: true }
+      });
+
+      if (globalClient) {
+        console.warn(`🚫 Intento de acceso cross-tenant: usuario del tenant ${tenantId} intentó acceder al cliente ${clientId} del tenant ${globalClient.tenantId}`);
+        return NextResponse.json({
+          error: 'Este recurso pertenece a otra organización y no puede ser consultado desde su cuenta.',
+          code: 'CROSS_TENANT_ACCESS',
+          message: 'El cliente solicitado no pertenece a su organización. Verifique que está usando el enlace correcto o contacte a su administrador.'
+        }, { status: 403 });
+      }
+
+      return NextResponse.json({
+        error: 'Cliente no encontrado',
+        code: 'NOT_FOUND',
+        message: 'El cliente solicitado no existe. Puede haber sido eliminado o el enlace es incorrecto.'
+      }, { status: 404 });
     }
 
     const auditLogs = await (tenantPrisma.auditLog as any).findMany({

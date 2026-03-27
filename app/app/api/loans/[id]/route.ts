@@ -70,7 +70,27 @@ export async function GET(
     });
 
     if (!loan) {
-      return NextResponse.json({ error: 'Préstamo no encontrado o no pertenece a su tenant' }, { status: 404 });
+      // Verificar si el préstamo existe en otro tenant (cross-tenant access attempt)
+      const globalLoan = await prisma.loan.findUnique({
+        where: { id: params.id },
+        select: { id: true, tenantId: true }
+      });
+
+      if (globalLoan) {
+        // El préstamo existe pero pertenece a otra organización
+        console.warn(`🚫 Intento de acceso cross-tenant: usuario del tenant ${tenantId} intentó acceder al préstamo ${params.id} del tenant ${globalLoan.tenantId}`);
+        return NextResponse.json({
+          error: 'Este recurso pertenece a otra organización y no puede ser consultado desde su cuenta.',
+          code: 'CROSS_TENANT_ACCESS',
+          message: 'El préstamo solicitado no pertenece a su organización. Verifique que está usando el enlace correcto o contacte a su administrador.'
+        }, { status: 403 });
+      }
+
+      return NextResponse.json({
+        error: 'Préstamo no encontrado',
+        code: 'NOT_FOUND',
+        message: 'El préstamo solicitado no existe. Puede haber sido eliminado o el enlace es incorrecto.'
+      }, { status: 404 });
     }
 
     // Verificar permisos de rol (si es cliente, que sea SU préstamo)

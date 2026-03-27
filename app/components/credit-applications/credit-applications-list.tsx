@@ -23,6 +23,7 @@ import { es } from 'date-fns/locale';
 import { CreditApplicationForm } from './credit-application-form';
 import { CreditApplicationReview } from './credit-application-review';
 import { CreditApplicationDetails } from './credit-application-details';
+import { PageSkeleton } from '@/components/ui/page-skeleton';
 
 export function CreditApplicationsList() {
   const { data: session } = useSession() || {};
@@ -153,12 +154,7 @@ export function CreditApplicationsList() {
 
         {/* Applications List */}
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p>Cargando solicitudes...</p>
-            </div>
-          </div>
+          <PageSkeleton showStats={false} />
         ) : filteredApplications.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
