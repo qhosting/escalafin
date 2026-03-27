@@ -47,7 +47,31 @@ export class WahaService {
 
   private async initializeConfig(): Promise<void> {
     try {
-      // Usar el prisma del tenant si hay tenantId, sino usar el prisma global
+      // Prioridad 1: Variables de entorno (Configuración Directa solicitada por el usuario)
+      const envBaseUrl = process.env.WAHA_BASE_URL;
+      const envApiKey = process.env.WAHA_API_KEY;
+
+      if (envBaseUrl) {
+        // Obtener el slug del tenant para usarlo como sessionId
+        let sessionId = 'default';
+        if (this.tenantId) {
+          const tenant = await prisma.tenant.findUnique({
+            where: { id: this.tenantId },
+            select: { slug: true }
+          });
+          if (tenant) sessionId = tenant.slug;
+        }
+
+        this.config = {
+          sessionId: sessionId,
+          apiKey: envApiKey || null,
+          baseUrl: envBaseUrl,
+          n8nWebhookUrl: process.env.WAHA_N8N_WEBHOOK_URL || null
+        };
+        return;
+      }
+
+      // Prioridad 2: Base de Datos (Legacy/Custom)
       const db = this.tenantId ? getTenantPrisma(this.tenantId) : prisma;
       const config = await (db as any).wahaConfig.findFirst({
         where: { isActive: true }
@@ -72,7 +96,12 @@ export class WahaService {
     }
 
     if (!this.config) {
-      throw new Error(`Waha API no está configurado${this.tenantId ? ' para este tenant' : ''}. Configure la instancia desde el panel de administración.`);
+      // Fallback mínimo si no hay nada configurado pero intentamos usar el service
+      if (process.env.WAHA_BASE_URL) {
+         await this.initializeConfig();
+         if (this.config) return this.config;
+      }
+      throw new Error(`Waha API no está configurado. Verifica las variables de entorno WAHA_BASE_URL.`);
     }
 
     return this.config;
@@ -342,15 +371,40 @@ export class WahaService {
     try {
       const config = await this.ensureConfig();
 
-      // Get all sessions or specific one
+      // Consultar la sesión específica
       const response = await axios.get(
-        `${config.baseUrl}/api/sessions?all=true`,
+        `${config.baseUrl}/api/sessions/${config.sessionId}`,
         { headers: this.getHeaders(config.apiKey) }
-      );
+      ).catch(() => ({ data: null }));
 
-      // Filter for our session
-      const session = response.data.find((s: any) => s.name === config.sessionId);
-      return session || { status: 'DISCONNECTED', details: 'Session not found in Waha response' };
+      if (!response.data) {
+        return { status: 'STOPPED', details: 'Sesión no iniciada' };
+      }
+
+      const session = response.data;
+
+      // Si el estado es SCAN_QR o similar, intentar obtener el QR
+      if (session.status === 'SCAN_QR' || session.status === 'UNPAIRED' || !session.me) {
+        try {
+          // Intentar obtener el QR como imagen (base64)
+          const qrResponse = await axios.get(
+            `${config.baseUrl}/api/${config.sessionId}/auth/qr`,
+            { 
+              headers: this.getHeaders(config.apiKey),
+              params: { format: 'image' },
+              responseType: 'arraybuffer'
+            }
+          );
+          
+          if (qrResponse.data) {
+            session.qrCode = `data:image/png;base64,${Buffer.from(qrResponse.data).toString('base64')}`;
+          }
+        } catch (qrError) {
+          console.warn('No se pudo obtener el QR de WAHA:', (qrError as any).message);
+        }
+      }
+
+      return session;
     } catch (error) {
       console.error('Error getting Waha session status:', error);
       throw error;
@@ -361,15 +415,21 @@ export class WahaService {
     try {
       const config = await this.ensureConfig();
 
-      // En WAHA, cerrar sesión suele requerir eliminar el directorio de la sesión o usar el endpoint logout
-      // Dependiendo de la versión de WAHA. Para WAHA >= 2024.x:
-      const response = await axios.post(
+      // Primero intentamos logout (desvincular)
+      await axios.post(
         `${config.baseUrl}/api/sessions/logout`,
         { name: config.sessionId },
         { headers: this.getHeaders(config.apiKey) }
-      );
+      ).catch(() => null);
 
-      return response.data;
+      // Luego intentamos stop (detener proceso)
+      const response = await axios.post(
+        `${config.baseUrl}/api/sessions/stop`,
+        { name: config.sessionId },
+        { headers: this.getHeaders(config.apiKey) }
+      ).catch(() => null);
+
+      return response?.data || { success: true };
     } catch (error) {
       console.error('Error logging out Waha session:', error);
       throw error;
@@ -380,9 +440,22 @@ export class WahaService {
     try {
       const config = await this.ensureConfig();
 
+      // Iniciar la sesión con el motor configurado por defecto
       const response = await axios.post(
         `${config.baseUrl}/api/sessions/start`,
-        { name: config.sessionId },
+        { 
+          name: config.sessionId,
+          config: {
+            proxy: null,
+            noweb: {
+              store: {
+                enabled: true,
+                fullSync: false
+              }
+            },
+            engine: process.env.WHATSAPP_DEFAULT_ENGINE || 'WEBJS'
+          }
+        },
         { headers: this.getHeaders(config.apiKey) }
       );
 

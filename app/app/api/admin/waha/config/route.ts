@@ -13,7 +13,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
       return NextResponse.json(
         { error: 'Acceso no autorizado. Solo administradores pueden acceder.' },
         { status: 401 }
@@ -22,6 +22,12 @@ export async function GET() {
 
     const tenantId = session.user.tenantId;
 
+    // Obtener el slug del tenant (para el sessionId por defecto)
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId || '' },
+      select: { slug: true }
+    });
+
     const config = await prisma.wahaConfig.findFirst({
       where: { 
         isActive: true,
@@ -29,23 +35,23 @@ export async function GET() {
       }
     });
 
-    // No retornar información sensible como API key completa
-    const sanitizedConfig = config ? {
-      id: config.id,
-      sessionId: config.sessionId,
-      baseUrl: config.baseUrl,
-      webhookUrl: config.webhookUrl,
-      isActive: config.isActive,
-      apiKeyPreview: config.apiKey ? config.apiKey.substring(0, 8) + '...' : null,
-      paymentReceivedTemplate: config.paymentReceivedTemplate,
-      paymentReminderTemplate: config.paymentReminderTemplate,
-      loanApprovedTemplate: config.loanApprovedTemplate,
-      loanUpdateTemplate: config.loanUpdateTemplate,
-      marketingTemplate: config.marketingTemplate,
-      n8nWebhookUrl: config.n8nWebhookUrl,
-      createdAt: config.createdAt,
-      updatedAt: config.updatedAt
-    } : null;
+    // Combinar con variables de entorno (Prioridad Global)
+    const sanitizedConfig = {
+      id: config?.id,
+      sessionId: config?.sessionId || tenant?.slug || 'default',
+      baseUrl: process.env.WAHA_BASE_URL || config?.baseUrl || 'https://waha.qhosting.net',
+      webhookUrl: config?.webhookUrl,
+      isActive: config?.isActive ?? true,
+      apiKeyPreview: (process.env.WAHA_API_KEY || config?.apiKey)?.substring(0, 8) + '...',
+      paymentReceivedTemplate: config?.paymentReceivedTemplate,
+      paymentReminderTemplate: config?.paymentReminderTemplate,
+      loanApprovedTemplate: config?.loanApprovedTemplate,
+      loanUpdateTemplate: config?.loanUpdateTemplate,
+      marketingTemplate: config?.marketingTemplate,
+      n8nWebhookUrl: config?.n8nWebhookUrl,
+      createdAt: config?.createdAt,
+      updatedAt: config?.updatedAt
+    };
 
     return NextResponse.json({ config: sanitizedConfig });
   } catch (error) {
@@ -69,8 +75,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const tenantId = session.user.tenantId;
+
+    // Obtener slug del tenant para el sessionId por defecto
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId || '' },
+      select: { slug: true }
+    });
+
     const {
-      instanceName, // Legacy
+      instanceName,
       sessionId,
       apiKey,
       baseUrl,
@@ -83,18 +97,10 @@ export async function POST(request: NextRequest) {
       n8nWebhookUrl
     } = body;
 
-    // Use sessionId or fallback to instanceName (legacy) or default
-    const finalSessionId = sessionId || instanceName || 'default';
-
-    // Validaciones básicas
-    if (!baseUrl) {
-      return NextResponse.json(
-        { error: 'baseUrl es obligatorio' },
-        { status: 400 }
-      );
-    }
-
-    const tenantId = session.user.tenantId;
+    // Valores por defecto desde ENV
+    const finalBaseUrl = baseUrl || process.env.WAHA_BASE_URL || 'https://waha.qhosting.net';
+    const finalSessionId = sessionId || instanceName || tenant?.slug || 'default';
+    const finalApiKey = apiKey || process.env.WAHA_API_KEY || null;
 
     // Desactivar configuraciones existentes del mismo tenant
     await prisma.wahaConfig.updateMany({
@@ -105,12 +111,12 @@ export async function POST(request: NextRequest) {
       data: { isActive: false }
     });
 
-    // Crear nueva configuración
+    // Crear nueva configuración (principalmente para plantillas)
     const config = await prisma.wahaConfig.create({
       data: {
         sessionId: finalSessionId,
-        apiKey,
-        baseUrl,
+        apiKey: finalApiKey,
+        baseUrl: finalBaseUrl,
         webhookUrl,
         isActive: true,
         paymentReceivedTemplate,
@@ -133,9 +139,7 @@ export async function POST(request: NextRequest) {
       resourceId: config.id,
       details: {
         sessionId: finalSessionId,
-        baseUrl,
-        webhookUrl,
-        hasApiKey: !!apiKey
+        baseUrl: finalBaseUrl
       },
       ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
       userAgent: request.headers.get('user-agent') || 'unknown'
@@ -143,7 +147,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       message: 'Configuración de Waha guardada exitosamente',
-      configId: config.id
+      config: config
     });
   } catch (error) {
     console.error('Error configurando Waha:', error);
