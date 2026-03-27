@@ -27,45 +27,60 @@ export async function GET(
 
     const loan = await (tenantPrisma.loan as any).findFirst({
       where: { id: params.id },
-      include: {
-        client: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-            address: true,
-            city: true,
-            monthlyIncome: true,
-            employmentType: true,
-            employerName: true
-          }
-        },
-        creditApplication: {
-          select: {
-            id: true,
-            loanType: true,
-            requestedAmount: true,
-            purpose: true,
-            status: true,
-            createdAt: true
-          }
-        },
-        amortizationSchedule: {
-          orderBy: { paymentNumber: 'asc' }
-        },
-        payments: {
-          orderBy: { paymentDate: 'desc' },
-          include: {
-            processedByUser: {
-              select: {
-                firstName: true,
-                lastName: true
+      select: {
+          id: true,
+          clientId: true,
+          loanNumber: true,
+          loanType: true,
+          principalAmount: true,
+          interestRate: true,
+          termMonths: true,
+          paymentFrequency: true,
+          monthlyPayment: true,
+          totalAmount: true,
+          balanceRemaining: true,
+          status: true,
+          startDate: true,
+          endDate: true,
+          createdAt: true,
+          client: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              address: true,
+              city: true,
+              monthlyIncome: true,
+              employmentType: true,
+              employerName: true
+            }
+          },
+          creditApplication: {
+            select: {
+              id: true,
+              loanType: true,
+              requestedAmount: true,
+              purpose: true,
+              status: true,
+              createdAt: true
+            }
+          },
+          amortizationSchedule: {
+            orderBy: { paymentNumber: 'asc' }
+          },
+          payments: {
+            orderBy: { paymentDate: 'desc' },
+            include: {
+              processedByUser: {
+                select: {
+                  firstName: true,
+                  lastName: true
+                }
               }
             }
           }
-        }
       }
     });
 
@@ -135,9 +150,8 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { 
-      status, 
-      notes,
+    const {
+      status,
       loanType,
       principalAmount,
       interestRate,
@@ -151,7 +165,7 @@ export async function PUT(
 
     const loan = await (tenantPrisma.loan as any).findFirst({
       where: { id: params.id },
-      include: { client: true }
+      select: { id: true, clientId: true, client: true }
     });
 
     if (!loan) {
@@ -173,7 +187,6 @@ export async function PUT(
     if (startDate) updateData.startDate = new Date(startDate);
     if (endDate) updateData.endDate = new Date(endDate);
     if (clientId) updateData.clientId = clientId;
-    if (notes !== undefined) updateData.notes = notes;
 
     const updatedLoan = await (tenantPrisma.loan as any).update({
       where: { id: params.id },
@@ -222,9 +235,10 @@ export async function DELETE(
 
     const loan = await (tenantPrisma.loan as any).findFirst({
       where: { id: params.id },
-      include: {
-        payments: true,
-        amortizationSchedule: true
+      select: {
+          id: true,
+          payments: { select: { id: true } },
+          amortizationSchedule: { select: { id: true } }
       }
     });
 

@@ -72,7 +72,22 @@ export async function GET(request: NextRequest) {
     const [loans, totalCount] = await Promise.all([
       tenantPrisma.loan.findMany({
         where: whereClause,
-        include: {
+        select: {
+          id: true,
+          clientId: true,
+          loanNumber: true,
+          loanType: true,
+          principalAmount: true,
+          interestRate: true,
+          termMonths: true,
+          paymentFrequency: true,
+          monthlyPayment: true,
+          totalAmount: true,
+          balanceRemaining: true,
+          status: true,
+          startDate: true,
+          endDate: true,
+          createdAt: true,
           client: {
             select: {
               id: true,
@@ -156,7 +171,6 @@ export async function POST(request: NextRequest) {
       paymentFrequency = 'MENSUAL' as PaymentFrequency,
       weeklyInterestAmount,
       initialPayment,
-      notes,
       lateFeeType,
       lateFeeAmount,
       lateFeeMaxWeekly
@@ -220,7 +234,6 @@ export async function POST(request: NextRequest) {
         balanceRemaining: parseFloat(principalAmount),
         startDate: new Date(startDate),
         endDate,
-        notes: notes || '',
         lateFeeType: lateFeeType || 'DAILY_FIXED',
         lateFeeAmount: lateFeeAmount ? parseFloat(lateFeeAmount) : 200,
         lateFeeMaxWeekly: lateFeeMaxWeekly ? parseFloat(lateFeeMaxWeekly) : 800

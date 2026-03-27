@@ -20,7 +20,15 @@ export async function GET(
 
     const loan = await (tenantPrisma.loan as any).findFirst({
       where: { id: params.id },
-      include: { client: true }
+      select: {
+          id: true,
+          clientId: true,
+          loanNumber: true,
+          principalAmount: true,
+          interestRate: true,
+          status: true,
+          client: true,
+      }
     });
 
     if (!loan) {
