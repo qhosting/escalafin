@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
                     slug,
                     domain: domain || null,
                     status: status || 'ACTIVE',
+                    isDemo: body.isDemo || false,
                 }
             });
 
@@ -178,6 +179,7 @@ export async function PATCH(request: NextRequest) {
         if (logo !== undefined) updateData.logo = logo || null;
         if (primaryColor !== undefined) updateData.primaryColor = primaryColor || null;
         if (timezone !== undefined) updateData.timezone = timezone;
+        if (body.isDemo !== undefined) updateData.isDemo = body.isDemo;
 
         const updated = await prisma.tenant.update({
             where: { id },

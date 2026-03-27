@@ -53,9 +53,12 @@ import {
     Edit2,
     Save,
     MessageCircle,
-    Phone
+    Phone,
+    ShieldCheck,
+    Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -116,7 +119,8 @@ export default function TenantsManagementPage() {
                     status: editingTenant.status,
                     logo: editingTenant.logo || null,
                     primaryColor: editingTenant.primaryColor,
-                    timezone: editingTenant.timezone
+                    timezone: editingTenant.timezone,
+                    isDemo: editingTenant.isDemo
                 })
             });
 
@@ -180,7 +184,12 @@ export default function TenantsManagementPage() {
                                         )}
                                         <div className="flex flex-col">
                                             <span className="font-bold text-gray-900">{tenant.name}</span>
-                                            <span className="text-xs text-gray-500 font-mono">/{tenant.slug}</span>
+                                            <div className="flex gap-2 items-center">
+                                                <span className="text-xs text-gray-500 font-mono">/{tenant.slug}</span>
+                                                {tenant.isDemo && (
+                                                    <Badge className="bg-amber-100 text-amber-700 h-4 border-none text-[8px] font-black tracking-widest">DEMO</Badge>
+                                                )}
+                                            </div>
                                             {tenant.domain && <span className="text-[10px] text-indigo-500 font-medium">{tenant.domain}</span>}
                                         </div>
                                     </div>
@@ -355,6 +364,17 @@ export default function TenantsManagementPage() {
                                         onChange={(e) => setEditingTenant({ ...editingTenant, primaryColor: e.target.value })}
                                         className="flex-1"
                                     />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="isDemo" className="text-right">Perfil Demo</Label>
+                                <div className="col-span-3 flex items-center space-x-2">
+                                    <Switch 
+                                        id="isDemo"
+                                        checked={editingTenant.isDemo}
+                                        onCheckedChange={(checked) => setEditingTenant({ ...editingTenant, isDemo: checked })}
+                                    />
+                                    <span className="text-sm text-gray-500">{editingTenant.isDemo ? 'Excluir de ingresos' : 'Cuenta real'}</span>
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">

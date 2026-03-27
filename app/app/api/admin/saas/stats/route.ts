@@ -26,7 +26,12 @@ export async function GET(request: NextRequest) {
             recentActivity
         ] = await Promise.all([
             UsageTracker.getGlobalStats(),
-            prisma.subscription.count({ where: { status: 'ACTIVE' } }),
+            prisma.subscription.count({ 
+                where: { 
+                    status: 'ACTIVE',
+                    tenant: { isDemo: false }
+                } 
+            }),
             // Actividad reciente genuina
             prisma.tenant.findMany({
                 orderBy: { createdAt: 'desc' },
@@ -39,9 +44,12 @@ export async function GET(request: NextRequest) {
             })
         ]);
 
-        // Calcular MRR real uniendo con planes
+        // Calcular MRR real uniendo con planes, excluyendo demos
         const activeSubsWithPlans = await prisma.subscription.findMany({
-            where: { status: 'ACTIVE' },
+            where: { 
+                status: 'ACTIVE',
+                tenant: { isDemo: false }
+            },
             include: { plan: true }
         });
 
