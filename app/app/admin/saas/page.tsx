@@ -33,6 +33,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, ExternalLink, Activity, Layers, Server } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
 
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -58,12 +59,7 @@ export default function SaaSOverviewV2() {
     }, []);
 
     if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
-                <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
-                <p className="text-gray-500 animate-pulse font-medium">Cargando inteligencia de la plataforma...</p>
-            </div>
-        );
+        return <PageLoader message="Cargando inteligencia de la plataforma..." />;
     }
 
     const pieData = Object.entries(stats.plansBreakdown || {}).map(([name, value]) => ({ name, value: value as number }));

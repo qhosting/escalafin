@@ -11,18 +11,9 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { AuthWrapper } from '@/components/auth-wrapper';
 import {
-    User,
-    Mail,
-    Phone,
-    Shield,
-    Building2,
-    Calendar,
-    Save,
-    Lock,
-    Loader2,
-    Camera,
     CheckCircle2
 } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
 
 export default function ProfilePage() {
     return (
@@ -136,11 +127,7 @@ function ProfileContent() {
     };
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
-            </div>
-        );
+        return <PageLoader message="Preparando tu espacio de trabajo..." />;
     }
 
     return (

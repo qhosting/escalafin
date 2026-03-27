@@ -12,21 +12,10 @@ import {
     PlusIcon
 } from '@heroicons/react/24/outline';
 import {
-    CheckCircle2,
-    XCircle,
-    Loader2,
-    TrendingUp,
-    Users,
-    Settings,
-    Edit3,
-    Trash2,
-    Copy,
-    BarChart3,
-    Info,
-    HelpCircle,
     History,
     ClipboardList
 } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -72,9 +61,9 @@ import { es } from 'date-fns/locale';
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function BillingPage() {
-    const { data: plans, mutate: mutatePlans } = useSWR('/api/admin/plans', fetcher);
-    const { data: subsData, mutate: mutateSubs } = useSWR('/api/admin/subscriptions-global', fetcher);
-    const { data: addons, mutate: mutateAddons } = useSWR('/api/admin/addons', fetcher);
+    const { data: plans, isLoading: plansLoading, mutate: mutatePlans } = useSWR('/api/admin/plans', fetcher);
+    const { data: subsData, isLoading: subsLoading, mutate: mutateSubs } = useSWR('/api/admin/subscriptions-global', fetcher);
+    const { data: addons, isLoading: addonsLoading, mutate: mutateAddons } = useSWR('/api/admin/addons', fetcher);
     const { data: auditLogs } = useSWR('/api/admin/audit?resource=PLAN', fetcher);
     const [selectedPlan, setSelectedPlan] = useState<any>(null);
     const [selectedAddon, setSelectedAddon] = useState<any>(null);
@@ -103,6 +92,10 @@ export default function BillingPage() {
         type: 'FEATURE',
         config: '{}'
     });
+
+    if (plansLoading || subsLoading || addonsLoading) {
+        return <PageLoader message="Gestionando infraestructura de cobros..." />;
+    }
 
     const handleUpdatePlan = async (e: React.FormEvent) => {
         e.preventDefault();

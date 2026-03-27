@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import WhatsAppClientSettings from '@/components/admin/whatsapp-client-settings';
-import { Loader2 } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
 
 export default function WhatsAppClientsPage() {
   const sessionResult = useSession();
@@ -27,11 +27,7 @@ export default function WhatsAppClientsPage() {
   }, [session, status, router]);
 
   if (status === 'loading') {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
+    return <PageLoader message="Gestionando contactos automatizados..." />;
   }
 
   if (!session || session.user.role !== 'ADMIN') {

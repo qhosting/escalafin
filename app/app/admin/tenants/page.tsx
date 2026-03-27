@@ -16,20 +16,9 @@ import {
     CreditCardIcon
 } from '@heroicons/react/24/outline';
 import {
-    Users,
-    Receipt,
-    Mail,
-    Loader2,
-    CheckCircle2,
-    XCircle,
-    Clock,
-    ExternalLink,
-    AlertCircle,
-    Activity,
-    Search,
-    Download,
     Upload
 } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -402,11 +391,7 @@ export default function TenantsPageV2() {
 
             {/* Main Content Area */}
             {isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1, 2, 3, 4, 5, 6].map(i => (
-                        <div key={i} className="h-64 bg-gray-50 rounded-3xl animate-pulse border border-gray-100"></div>
-                    ))}
-                </div>
+                <PageLoader message="Consultando registro central de tenants..." />
             ) : filteredTenants.length === 0 ? (
                 <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
                     <BuildingOfficeIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />

@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
+import { PageLoader } from '@/components/ui/page-loader';
 import {
     Table,
     TableBody,
@@ -135,7 +136,7 @@ export default function TenantsManagementPage() {
         }
     };
 
-    if (isLoading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin h-10 w-10 text-indigo-600" /></div>;
+    if (isLoading) return <PageLoader message="Obteniendo organizaciones..." />;
 
     return (
         <div className="space-y-6">

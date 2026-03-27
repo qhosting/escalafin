@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Loader2, Zap, BarChart3 } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
 import { toast } from 'sonner';
 import { UsageOverview } from '@/components/admin/usage-overview';
 
@@ -53,7 +54,7 @@ export default function TenantSubscriptionPage() {
         }
     };
 
-    if (subLoading) return <div className="flex justify-center p-10"><Loader2 className="animate-spin h-8 w-8" /></div>;
+    if (subLoading) return <PageLoader message="Gestionando facturación..." />;
 
     const currentPlanId = subscription?.plan?.id;
     const isPro = subscription?.isPro;

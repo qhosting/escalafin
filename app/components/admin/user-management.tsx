@@ -32,7 +32,7 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { PageSkeleton } from '@/components/ui/page-skeleton';
+import { PageLoader } from '@/components/ui/page-loader';
 
 interface UserData {
   id: string;
@@ -315,7 +315,7 @@ export function UserManagement({
   };
 
   if (loading) {
-    return <PageSkeleton />;
+    return <PageLoader message="Gestionando identidades del sistema..." />;
   }
 
   return (

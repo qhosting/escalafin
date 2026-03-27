@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Save, Plus, Trash2, RotateCcw, Loader2, DollarSign, Percent } from 'lucide-react';
 import { LoanTariffConfig, DEFAULT_LOAN_TARIFFS } from '@/lib/config-service';
 import { toast } from 'sonner';
+import { PageLoader } from '@/components/ui/page-loader';
+import { RefreshCw } from 'lucide-react';
 
 export default function LoanConfigPage() {
     const [loading, setLoading] = useState(true);
@@ -63,11 +64,7 @@ export default function LoanConfigPage() {
     };
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
+        return <PageLoader message="Cargando configuración de tarifas..." />;
     }
 
     return (
