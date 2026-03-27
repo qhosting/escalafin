@@ -50,7 +50,9 @@ import {
     AlertCircle,
     ArrowRight,
     Edit2,
-    Save
+    Save,
+    MessageCircle,
+    Phone
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -161,6 +163,7 @@ export default function TenantsManagementPage() {
                             <TableHead>Organización</TableHead>
                             <TableHead>Estado</TableHead>
                             <TableHead>Plan</TableHead>
+                            <TableHead>WhatsApp</TableHead>
                             <TableHead>Uso (U/C/P)</TableHead>
                             <TableHead>Fecha Registro</TableHead>
                             <TableHead className="text-right">Acciones</TableHead>
@@ -197,6 +200,22 @@ export default function TenantsManagementPage() {
                                         </Badge>
                                         {tenant.subscription?.status === 'TRIALING' && (
                                             <span className="text-[10px] text-amber-600 font-bold uppercase mt-1">Trial</span>
+                                        )}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className={`h-2 w-2 rounded-full ${tenant.whatsappStatus === 'ACTIVE' ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
+                                            <span className={`text-[11px] font-bold ${tenant.whatsappStatus === 'ACTIVE' ? 'text-green-700' : 'text-gray-500'}`}>
+                                                {tenant.whatsappStatus === 'ACTIVE' ? 'VINCULADO' : 'NO VINCULADO'}
+                                            </span>
+                                        </div>
+                                        {tenant.whatsappPhone && (
+                                            <div className="flex items-center text-[10px] text-gray-500 font-mono">
+                                                <Phone className="h-2.5 w-2.5 mr-1" />
+                                                +{tenant.whatsappPhone}
+                                            </div>
                                         )}
                                     </div>
                                 </TableCell>
