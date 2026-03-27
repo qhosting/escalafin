@@ -54,8 +54,6 @@ export async function GET(request: NextRequest) {
     } 
     // Si es ADMIN o SUPER_ADMIN, ven el soporte GLOBAL (del sistema principal / SAAS)
     else {
-      // Configuraciones globales que el Super Admin asigna al SAAS general (tenantId: null o tenant por defecto)
-      // Buscamos a nivel global usando prisma normal buscando si el super admin dejó settings sin tenant
       const globalContactConfig = await prisma.systemConfig.findFirst({
         where: { key: 'SETTINGS_SUPPORT_CONTACT', tenantId: null }
       });
@@ -78,6 +76,65 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching support config:', error);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    const { contact, spei } = await request.json();
+    const tenantId = session.user.tenantId;
+    const userRole = session.user.role;
+
+    // Guardar Contacto
+    if (contact) {
+      if (userRole === 'SUPER_ADMIN') {
+        const existing = await prisma.systemConfig.findFirst({ where: { key: 'SETTINGS_SUPPORT_CONTACT', tenantId: null } });
+        if (existing) {
+          await prisma.systemConfig.update({ where: { id: existing.id }, data: { value: JSON.stringify(contact), updatedBy: session.user.id } });
+        } else {
+          await prisma.systemConfig.create({ data: { key: 'SETTINGS_SUPPORT_CONTACT', tenantId: null, value: JSON.stringify(contact), category: 'SUPPORT_CONTACT', updatedBy: session.user.id } });
+        }
+      } else if (tenantId) {
+        const tenantPrisma = getTenantPrisma(tenantId);
+        const existing = await tenantPrisma.systemConfig.findFirst({ where: { key: 'SETTINGS_SUPPORT_CONTACT' } });
+        if (existing) {
+          await (tenantPrisma.systemConfig as any).update({ where: { id: existing.id }, data: { value: JSON.stringify(contact), updatedBy: session.user.id } });
+        } else {
+          await (tenantPrisma.systemConfig as any).create({ data: { key: 'SETTINGS_SUPPORT_CONTACT', value: JSON.stringify(contact), category: 'SUPPORT_CONTACT', updatedBy: session.user.id } });
+        }
+      }
+    }
+
+    // Guardar SPEI
+    if (spei) {
+      if (userRole === 'SUPER_ADMIN') {
+        const existing = await prisma.systemConfig.findFirst({ where: { key: 'SETTINGS_SUPPORT_SPEI', tenantId: null } });
+        if (existing) {
+          await prisma.systemConfig.update({ where: { id: existing.id }, data: { value: JSON.stringify(spei), updatedBy: session.user.id } });
+        } else {
+          await prisma.systemConfig.create({ data: { key: 'SETTINGS_SUPPORT_SPEI', tenantId: null, value: JSON.stringify(spei), category: 'SUPPORT_SPEI', updatedBy: session.user.id } });
+        }
+      } else if (tenantId) {
+        const tenantPrisma = getTenantPrisma(tenantId);
+        const existing = await tenantPrisma.systemConfig.findFirst({ where: { key: 'SETTINGS_SUPPORT_SPEI' } });
+        if (existing) {
+          await (tenantPrisma.systemConfig as any).update({ where: { id: existing.id }, data: { value: JSON.stringify(spei), updatedBy: session.user.id } });
+        } else {
+          await (tenantPrisma.systemConfig as any).create({ data: { key: 'SETTINGS_SUPPORT_SPEI', value: JSON.stringify(spei), category: 'SUPPORT_SPEI', updatedBy: session.user.id } });
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error saving support config:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
