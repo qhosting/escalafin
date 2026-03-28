@@ -13,7 +13,16 @@ import {
 } from '@heroicons/react/24/outline';
 import {
     History,
-    ClipboardList
+    ClipboardList,
+    MoreHorizontal,
+    LayoutGrid,
+    Table as TableIcon,
+    TrendingUp,
+    CheckCircle2,
+    XCircle,
+    Copy,
+    Trash2,
+    Edit3
 } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 import { Button } from '@/components/ui/button';
@@ -49,11 +58,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import {
-    MoreHorizontal,
-    LayoutGrid,
-    Table as TableIcon
-} from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';

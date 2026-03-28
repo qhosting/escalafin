@@ -18,7 +18,8 @@ import {
   CheckCircle,
   Star,
   Globe,
-  Smartphone
+  Smartphone,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -101,28 +102,35 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Navigation - Optimized for Mobile/PWA */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50 transition-all duration-300">
+      {/* Navigation - Premium Glassmorphism */}
+      <nav className="bg-white/70 backdrop-blur-xl border-b border-white/40 sticky top-0 z-50 transition-all duration-300 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3 lg:py-4">
-            <div className="flex items-center space-x-2 lg:space-x-3">
-              <div className="bg-primary/10 p-1.5 rounded-xl hidden sm:block">
-                <Building2 className="h-6 lg:h-7 w-6 lg:w-7 text-primary" />
+          <div className="flex justify-between items-center py-4 lg:py-5">
+            <div className="flex items-center space-x-3 group cursor-pointer">
+              <div className="bg-gradient-to-br from-primary to-indigo-600 p-2 rounded-2xl shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
+                <Building2 className="h-6 lg:h-7 w-6 lg:w-7 text-white" />
               </div>
-              <span className="text-xl lg:text-2xl font-black text-gray-900 tracking-tighter">EscalaFin</span>
-              <Badge variant="outline" className="hidden lg:inline-flex text-[10px] font-bold uppercase tracking-widest border-primary/20 bg-primary/5 text-primary">v2.7.2</Badge>
+              <div className="flex flex-col">
+                <span className="text-xl lg:text-2xl font-black text-gray-900 tracking-tighter leading-none">EscalaFin</span>
+                <span className="text-[10px] uppercase font-bold text-primary tracking-[0.2em] mt-0.5">Fintech SaaS</span>
+              </div>
+              <Badge variant="outline" className="hidden lg:inline-flex text-[9px] font-black uppercase tracking-widest border-primary/20 bg-primary/5 text-primary rounded-full px-2 py-0">v2.7.2</Badge>
             </div>
 
-            <div className="flex items-center space-x-2 lg:space-x-4">
+            <div className="flex items-center space-x-3 lg:space-x-6">
               <Link href="/auth/login">
-                <Button variant="ghost" size="sm" className="lg:text-sm font-bold text-gray-600">
-                  Entrar
+                <Button variant="ghost" className="text-sm font-bold text-gray-600 hover:text-primary hover:bg-primary/5 rounded-xl transition-all">
+                  Acceso
                 </Button>
               </Link>
               <Link href="/auth/register-tenant">
-                <Button size="sm" className="bg-primary hover:bg-primary/90 text-[11px] lg:text-sm font-extrabold rounded-xl px-4 lg:px-6 shadow-md shadow-primary/20">
-                  <span className="hidden sm:inline">Empezar Ahora</span>
-                  <span className="sm:hidden">Registrar</span>
+                <Button className="relative group overflow-hidden bg-gradient-to-r from-primary to-indigo-600 hover:from-indigo-600 hover:to-primary text-white font-black rounded-2xl px-6 lg:px-8 h-12 shadow-xl shadow-primary/25 transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]">
+                  <span className="relative z-10 flex items-center gap-2">
+                    <span className="hidden sm:inline">Empezar Ahora</span>
+                    <span className="sm:hidden">Unirse</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 </Button>
               </Link>
             </div>
@@ -130,8 +138,14 @@ export default function HomePage() {
         </div>
       </nav>
       {/* Hero Section */}
-      <section className="relative py-12 lg:py-20 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-12 lg:py-24 overflow-hidden">
+        {/* Background Decorative Elements */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-indigo-200/20 rounded-full blur-[100px] animate-bounce-subtle" />
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
             <div className="space-y-6 lg:space-y-8 text-center lg:text-left">
               <div className="space-y-4">
@@ -153,30 +167,20 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-4 pt-4">
                 <Link href="/auth/login" className="w-full sm:w-auto">
-                  <Button size="xl" className="w-full sm:px-8 shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all">
-                    Comenzar Ahora
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                  <Button size="xl" className="group w-full sm:px-10 h-16 bg-gray-900 hover:bg-gray-800 text-white font-black rounded-2xl shadow-2xl shadow-gray-200 transition-all hover:-translate-y-1 active:translate-y-0">
+                    Comenzar Gratis
+                    <ArrowRight className="ml-2 h-6 w-6 group-hover:translate-x-2 transition-transform" />
                   </Button>
                 </Link>
                 <div className="flex gap-4 w-full sm:w-auto">
-                  <Button size="xl" variant="outline" className="flex-1 sm:px-8 bg-white/50 backdrop-blur-sm border-gray-200 hover:bg-white active:scale-[0.98] transition-all" onClick={() => {
+                  <Button size="xl" variant="outline" className="flex-1 sm:px-10 h-16 bg-white/70 backdrop-blur-sm border-gray-200 hover:border-primary/30 hover:bg-white text-gray-900 font-bold rounded-2xl shadow-lg shadow-gray-100 transition-all hover:-translate-y-1 active:translate-y-0" onClick={() => {
                     document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth' });
                   }}>
-                    <Play className="mr-2 h-4 w-4 fill-primary text-primary" />
-                    Ver Demo
+                    <Play className="mr-3 h-5 w-5 fill-primary text-primary" />
+                    Demo Interactiva
                   </Button>
-                  <a 
-                    href="https://wa.me/524424000742?text=Hola,%20busco%20información%20sobre%20EscalaFin"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 sm:hidden lg:hidden"
-                  >
-                    <Button size="xl" className="w-full bg-[#25D366] hover:bg-[#128C7E] border-none">
-                       <Smartphone className="w-5 h-5" />
-                    </Button>
-                  </a>
                 </div>
               </div>
 
@@ -291,9 +295,9 @@ export default function HomePage() {
                 description: "Acceso desde cualquier dispositivo con nuestra aplicación web progresiva"
               },
               {
-                icon: Globe,
-                title: "Multi-moneda",
-                description: "Soporte para múltiples monedas y tasas de cambio automáticas"
+                icon: MessageSquare,
+                title: "Conecta tu WhatsApp",
+                description: "Automatiza notificaciones de cobro y recordatorios directamente a tus clientes"
               }
             ].map((feature, index) => (
               <Card key={index} className="border-2 hover:border-primary/50 transition-colors group">
@@ -315,27 +319,39 @@ export default function HomePage() {
 
       {/* CTA Section */}
 
-      <section className="py-20 bg-primary text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-indigo-600"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
-          <h2 className="text-3xl lg:text-4xl font-bold">
-            ¿Listo para transformar tu negocio?
-          </h2>
-          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-            Únete a cientos de empresas que ya están optimizando sus operaciones financieras con EscalaFin
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/auth/register-tenant">
-              <Button size="lg" variant="secondary" className="px-8 font-bold">
-                Empezar Prueba Gratuita
-                <ArrowRight className="ml-2 h-4 w-4" />
+      <section className="py-24 relative overflow-hidden">
+        {/* Modern dark gradient background */}
+        <div className="absolute inset-0 bg-slate-950 -z-20"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/30 via-slate-950 to-slate-950 -z-10 animate-pulse-slow"></div>
+        
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-10">
+          <div className="space-y-4">
+            <h2 className="text-4xl lg:text-5xl font-black text-white leading-tight tracking-tighter">
+              ¿Listo para transformar tu negocio?
+            </h2>
+            <p className="text-xl text-slate-400 font-medium max-w-2xl mx-auto">
+              Únete a cientos de empresas que ya están optimizando sus operaciones financieras con EscalaFin.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
+            <Link href="/auth/register-tenant" className="w-full sm:w-auto">
+              <Button size="xl" className="w-full sm:px-10 h-16 bg-white hover:bg-white/90 text-slate-950 font-black rounded-2xl shadow-xl shadow-white/5 transition-transform hover:-translate-y-1">
+                Iniciar Prueba Gratuita
+                <ArrowRight className="ml-2 h-6 w-6" />
               </Button>
             </Link>
-            <Link href="/auth/login">
-              <Button size="lg" variant="outline" className="px-8 border-white text-white bg-transparent hover:bg-white hover:text-blue-600">
+            <Link href="/auth/login" className="w-full sm:w-auto">
+              <Button size="xl" variant="outline" className="w-full sm:px-10 h-16 border-white/20 text-white hover:bg-white/5 font-bold rounded-2xl transition-all">
                 Iniciar Sesión
               </Button>
             </Link>
+          </div>
+          
+          <div className="pt-8 flex items-center justify-center gap-8 grayscale opacity-40">
+            <Shield className="h-8 w-8 text-white" />
+            <TrendingUp className="h-8 w-8 text-white" />
+            <Globe className="h-8 w-8 text-white" />
           </div>
         </div>
       </section>
@@ -344,10 +360,22 @@ export default function HomePage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
-            <div className="flex items-center space-x-3">
-              <Building2 className="h-6 w-6" />
-              <span className="text-lg font-bold">EscalaFin</span>
-              <Badge variant="outline" className="border-gray-700 text-gray-300 bg-gray-800">v2.7.1</Badge>
+            <div className="flex flex-col md:flex-row items-center gap-4">
+              <div className="flex items-center space-x-3">
+                <Building2 className="h-6 w-6 text-primary" />
+                <span className="text-xl font-black tracking-tighter">EscalaFin</span>
+                <Badge variant="outline" className="border-gray-700 text-gray-400 bg-gray-800/50">v2.7.2</Badge>
+              </div>
+              <Separator orientation="vertical" className="h-4 bg-gray-800 hidden md:block" />
+              <a 
+                href="https://aurumcapital.mx" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group flex items-center gap-2 px-3 py-1 bg-gray-800/30 rounded-full border border-gray-800 hover:border-primary/50 transition-all"
+              >
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Powered by</span>
+                <span className="text-xs font-black text-gray-300 group-hover:text-primary transition-colors">AurumCapital.mx</span>
+              </a>
             </div>
 
             <div className="flex items-center space-x-6">

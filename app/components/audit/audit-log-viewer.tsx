@@ -40,6 +40,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 import { useSearchParams } from 'next/navigation';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface AuditLog {
   id: string;
@@ -288,8 +289,8 @@ const AuditLogViewer: React.FC = () => {
 
               {/* Tabla de logs */}
               {loading ? (
-                <div className="flex items-center justify-center h-64">
-                  <RefreshCw className="h-8 w-8 animate-spin" />
+                <div className="flex items-center justify-center h-64 w-full">
+                  <LoadingSpinner size="md" />
                 </div>
               ) : (
                 <div className="border rounded-lg">

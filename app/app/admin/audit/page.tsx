@@ -3,8 +3,7 @@
 
 import { Suspense } from 'react';
 import AuditLogViewer from '@/components/audit/audit-log-viewer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RefreshCw } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
 
 export default function AuditPage() {
   return (
@@ -19,16 +18,7 @@ export default function AuditPage() {
       </div>
 
       <Suspense
-        fallback={
-          <Card>
-            <CardHeader>
-              <CardTitle>Cargando Sistema de Auditoría...</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center justify-center h-64">
-              <RefreshCw className="h-8 w-8 animate-spin" />
-            </CardContent>
-          </Card>
-        }
+        fallback={<PageLoader message="Preparando Sistema de Auditoría..." />}
       >
         <AuditLogViewer />
       </Suspense>

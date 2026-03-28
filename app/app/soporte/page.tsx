@@ -27,6 +27,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
+import { PageLoader } from '@/components/ui/page-loader';
+
 export default function SoportePage() {
   const sessionResult = useSession();
   const { data: session, status } = sessionResult || {};
@@ -103,12 +105,7 @@ export default function SoportePage() {
   };
 
   if (status === 'loading' || loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="text-muted-foreground animate-pulse">Cargando centro de soporte...</p>
-      </div>
-    );
+    return <PageLoader message="Cargando centro de soporte..." />;
   }
 
   if (!session) return null;
