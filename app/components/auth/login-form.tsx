@@ -91,47 +91,48 @@ export function LoginForm() {
 
   if (!mounted) return null;
 
-  const accentColor = tenantInfo?.primaryColor || '#7c3aed';
+  // Blue theme colors
+  const accentColor = tenantInfo?.primaryColor || '#2563eb'; // blue-600
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#0a0a0c]">
-      {/* ── Space Background Effects ── */}
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#0a0c10]">
+      {/* ── Blue/Gray/Black Background Effects ── */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-[40%] left-[30%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-slate-700/15 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-[40%] left-[30%] w-[40%] h-[40%] bg-sky-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
       <div className="relative z-10 w-full max-w-[440px]">
         {/* ── Glassmorphism Card ── */}
-        <div className="backdrop-blur-2xl bg-white/5 border border-white/10 rounded-[40px] shadow-2xl p-8 lg:p-12 space-y-8 overflow-hidden relative group transition-all duration-500 hover:border-white/20">
+        <div className="backdrop-blur-3xl bg-white/[0.03] border border-white/5 rounded-[40px] shadow-2xl p-8 lg:p-12 space-y-8 overflow-hidden relative group transition-all duration-500 hover:border-white/10">
           
           {/* subtle inside glow */}
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none group-hover:bg-white/10 transition-all duration-500" />
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/10 transition-all duration-500" />
 
           {/* ── Brand ── */}
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-black text-white tracking-[0.2em] mb-1 italic">
               {tenantInfo?.name?.toUpperCase() || 'ESCALAFIN'}
             </h1>
-            <p className="text-lg font-medium text-white/70 tracking-tight">
-              Welcome Back
+            <p className="text-lg font-medium text-white/50 tracking-tight">
+              Bienvenido de nuevo
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-white/50 uppercase tracking-widest px-1">
-                Email Address
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">
+                Correo Electrónico
               </label>
               <div className="relative group">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@gmail.com"
-                  className="w-full h-14 px-6 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-300"
+                  placeholder="ejemplo@correo.com"
+                  className="w-full h-14 px-6 bg-slate-900/40 border border-slate-800 rounded-2xl text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all duration-300"
                   required
                 />
               </div>
@@ -139,8 +140,8 @@ export function LoginForm() {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-white/50 uppercase tracking-widest px-1">
-                Password
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">
+                Contraseña
               </label>
               <div className="relative group">
                 <input
@@ -148,13 +149,13 @@ export function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full h-14 px-6 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-300"
+                  className="w-full h-14 px-6 bg-slate-900/40 border border-slate-800 rounded-2xl text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all duration-300"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/60 transition-colors p-2"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors p-2"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -162,14 +163,14 @@ export function LoginForm() {
             </div>
 
             <div className="flex justify-start px-1">
-              <button type="button" className="text-xs font-bold text-white/40 hover:text-white/80 transition-colors tracking-tight">
-                Forget Password ?
+              <button type="button" className="text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors tracking-tight">
+                ¿Olvidaste tu contraseña?
               </button>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-200 text-xs px-4 py-3 rounded-xl animate-shake">
+              <div className="bg-red-500/10 border border-red-500/20 text-red-300 text-xs px-4 py-3 rounded-xl animate-shake">
                 {error}
               </div>
             )}
@@ -178,14 +179,14 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-14 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-purple-600/20 transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group"
+              className="w-full h-14 bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-600 hover:to-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-blue-950/40 transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               <div className="flex items-center justify-center gap-3">
                 {loading ? (
                   <Loader2 className="animate-spin h-5 w-5" />
                 ) : (
                   <>
-                    <span className="text-lg">Login</span>
+                    <span className="text-lg">Iniciar Sesión</span>
                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
@@ -194,11 +195,11 @@ export function LoginForm() {
           </form>
 
           {/* ── Footer ── */}
-          <div className="text-center pt-4">
-            <p className="text-sm text-white/40 font-medium">
-              Are You New Member?{' '}
-              <Link href="/auth/register" className="text-white font-bold hover:underline underline-offset-4 decoration-purple-500 decoration-2 transition-all">
-                Sign UP
+          <div className="text-center pt-2">
+            <p className="text-sm text-slate-500 font-medium">
+              ¿Aún no eres miembro?{' '}
+              <Link href="/auth/register" className="text-white font-black hover:text-blue-400 decoration-blue-500/30 hover:underline underline-offset-4 transition-all">
+                Regístrate
               </Link>
             </p>
           </div>
@@ -206,8 +207,8 @@ export function LoginForm() {
 
         {/* ── Back Link ── */}
         <div className="text-center mt-8">
-          <Link href="/" className="text-xs font-black text-white/20 hover:text-white/60 uppercase tracking-[0.3em] transition-all">
-            Back to portal
+          <Link href="/" className="text-[10px] font-black text-slate-700 hover:text-slate-500 uppercase tracking-[0.4em] transition-all">
+            Volver al Portal
           </Link>
         </div>
       </div>
