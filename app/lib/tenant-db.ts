@@ -118,7 +118,7 @@ export const getTenantPrisma = (tenantId: string | null | undefined) => {
             chatbotRule: handlers,
             apiKey: handlers,
             webhookEndpoint: handlers,
-            collectionVisit: handlers,
+            collectionVisit: {}, // No tiene tenantId en el esquema aún
             collectionRoute: handlers,
             // Agregado para SaaS
             subscription: {

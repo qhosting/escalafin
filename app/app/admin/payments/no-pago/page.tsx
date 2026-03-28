@@ -23,6 +23,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PageLoader } from '@/components/ui/page-loader';
+import { Separator } from '@/components/ui/separator';
 
 export default function NoPagoPage() {
   const [loans, setLoans] = useState<any[]>([]);
@@ -83,6 +85,10 @@ export default function NoPagoPage() {
     return labels[outcome] || outcome;
   };
 
+  if (loading && loans.length === 0) {
+    return <PageLoader message="Sincronizando cartera activa..." />;
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2">
@@ -126,12 +132,7 @@ export default function NoPagoPage() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-gray-50">
-                {loading ? (
-                   <div className="p-24 text-center flex flex-col items-center gap-6">
-                     <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-red-600"></div>
-                     <p className="text-gray-400 font-black uppercase tracking-widest text-[10px]">Consultando cartera activa...</p>
-                   </div>
-                ) : filteredLoans.length > 0 ? (
+                {filteredLoans.length > 0 ? (
                   filteredLoans.map((loan) => (
                     <div 
                       key={loan.id}
@@ -238,7 +239,7 @@ export default function NoPagoPage() {
                                  <div className="flex items-center gap-4 pt-2">
                                     <div className="flex items-center gap-1.5 text-gray-400 font-bold text-[10px] uppercase tracking-widest">
                                        <User className="h-3 w-3" />
-                                       Asesor: {visit.advisor.firstName}
+                                       Asesor: {visit.advisor?.firstName || 'Sistema'}
                                     </div>
                                     <div className="flex items-center gap-1.5 text-gray-400 font-bold text-[10px] uppercase tracking-widest">
                                        <Calendar className="h-3 w-3" />
