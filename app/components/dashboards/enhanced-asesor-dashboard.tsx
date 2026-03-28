@@ -31,6 +31,8 @@ import {
   Wallet,
   FilePlus,
   BarChart3,
+  Activity,
+  Receipt,
   Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -226,6 +228,15 @@ export function EnhancedAsesorDashboard() {
       moduleKey: 'payment_history',
       color: 'text-green-600',
       bgColor: 'bg-green-50'
+    },
+    {
+      title: 'Módulo No Pago',
+      description: 'Incidencias y ausencias',
+      icon: Activity,
+      route: '/admin/payments/no-pago',
+      moduleKey: 'loan_list',
+      color: 'text-red-600',
+      bgColor: 'bg-red-50'
     }
   ];
 

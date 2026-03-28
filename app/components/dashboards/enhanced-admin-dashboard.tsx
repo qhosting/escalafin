@@ -185,6 +185,15 @@ export function EnhancedAdminDashboard() {
       moduleKey: 'payment_history',
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50'
+    },
+    {
+      title: 'Módulo No Pago',
+      description: 'Reportar incidencias y ausencias',
+      icon: Activity,
+      route: '/admin/payments/no-pago',
+      moduleKey: 'loan_list',
+      color: 'text-red-600',
+      bgColor: 'bg-red-50'
     }
   ];
 

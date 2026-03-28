@@ -104,7 +104,7 @@ const INTEREST_RATES = {
   EDUCATION: 0.14
 };
 
-export function NewLoanForm() {
+export function NewLoanForm({ loanId }: { loanId?: string }) {
   const router = useRouter();
   const { data: session } = useSession();
   
@@ -230,6 +230,74 @@ export function NewLoanForm() {
         setTenantData({ name: 'EscalaFin', logo: null, primaryColor: null });
       });
   }, []);
+
+  // Fetch loan data if editing
+  useEffect(() => {
+    const loadLoan = async () => {
+      if (!loanId) return;
+      
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/loans/${loanId}`);
+        if (!response.ok) throw new Error('Error al cargar loan');
+        
+        const { loan } = await response.json();
+        if (loan) {
+          setSelectedClient(loan.client);
+          setFormData({
+            clientId: loan.clientId,
+            loanType: loan.loanType,
+            loanCalculationType: loan.loanCalculationType,
+            principalAmount: loan.principalAmount.toString(),
+            termMonths: loan.termMonths.toString(),
+            paymentFrequency: loan.paymentFrequency,
+            interestRate: (parseFloat(loan.interestRate.toString()) * 100).toString(),
+            weeklyInterestAmount: loan.weeklyInterestAmount?.toString() || '',
+            expectedWeeklyPayment: '', // No guardado, se recalcula si es necesario
+            monthlyPayment: loan.monthlyPayment.toString(),
+            initialPayment: loan.initialPayment?.toString() || '',
+            startDate: format(new Date(loan.startDate), 'yyyy-MM-dd'),
+            endDate: format(new Date(loan.endDate), 'yyyy-MM-dd'),
+            notes: loan.notes || '',
+            lateFeeType: loan.lateFeeType || 'DAILY_FIXED',
+            lateFeeAmount: loan.lateFeeAmount?.toString() || '200',
+            lateFeeMaxWeekly: loan.lateFeeMaxWeekly?.toString() || '800'
+          });
+          
+          // Calcular automáticamente para mostrar el resumen
+          // Nota: El cálculo se activará al cambiar el estado pero 
+          // queremos asegurar que se vea el resumen de inmediato
+          setCalculation({
+             monthlyPayment: parseFloat(loan.monthlyPayment.toString()),
+             totalInterest: parseFloat(loan.totalAmount.toString()) - parseFloat(loan.principalAmount.toString()),
+             totalAmount: parseFloat(loan.totalAmount.toString()),
+             interestRate: parseFloat(loan.interestRate.toString()) * 100
+          });
+          
+          // Generar tabla
+          const newSchedule = generateAmortizationSchedule({
+            principalAmount: parseFloat(loan.principalAmount.toString()),
+            numberOfPayments: loan.termMonths,
+            paymentFrequency: loan.paymentFrequency,
+            loanCalculationType: loan.loanCalculationType,
+            annualInterestRate: parseFloat(loan.interestRate.toString()),
+            weeklyInterestAmount: parseFloat(loan.weeklyInterestAmount?.toString() || '0'),
+            startDate: new Date(loan.startDate),
+            paymentAmount: parseFloat(loan.monthlyPayment.toString())
+          });
+          setSchedule(newSchedule);
+          setShowCalculation(true);
+        }
+      } catch (error) {
+        console.error('Error loading loan:', error);
+        toast.error('No se pudieron cargar los datos del préstamo');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLoan();
+  }, [loanId]);
 
   // Filter clients based on search
   const filteredClients = clients.filter(client => 
@@ -488,8 +556,8 @@ export function NewLoanForm() {
         lateFeeMaxWeekly: parseSafeFloat(formData.lateFeeMaxWeekly, 800)
       };
 
-      const response = await fetch('/api/loans', {
-        method: 'POST',
+      const response = await fetch(loanId ? `/api/loans/${loanId}` : '/api/loans', {
+        method: loanId ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -503,8 +571,8 @@ export function NewLoanForm() {
 
       const result = await response.json();
       
-      toast.success('¡Préstamo creado exitosamente!');
-      router.push(`/admin/loans/${result.loan.id}`);
+      toast.success(loanId ? '¡Préstamo actualizado exitosamente!' : '¡Préstamo creado exitosamente!');
+      router.push(`/admin/loans/${loanId || result.loan.id}`);
       
     } catch (error) {
       console.error('Error creating loan:', error);
@@ -547,59 +615,75 @@ export function NewLoanForm() {
 
     const doc = new jsPDF();
     const margin = 14;
-    let currentY = 22;
+    let currentY = 15;
     
     // Header con logo si existe
     if (tenantData?.logo) {
       try {
         const base64Logo = await imageUrlToBase64(tenantData.logo);
-        doc.addImage(base64Logo, 'PNG', margin, 15, 30, 15); // logo de 30x15mm aprox
-        currentY = 35;
+        doc.addImage(base64Logo, 'PNG', margin, 12, 35, 18); // logo 
+        
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(37, 99, 235); // Primary Blue
+        doc.text(tenantData?.name || 'EscalaFin', 52, 25);
+        currentY = 38;
       } catch (err) {
         console.warn('Could not load logo for PDF:', err);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(37, 99, 235);
+        doc.text(tenantData?.name || 'EscalaFin', margin, 25);
+        currentY = 38;
       }
+    } else {
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(37, 99, 235);
+      doc.text(tenantData?.name || 'EscalaFin', margin, 25);
+      currentY = 38;
     }
 
-    // Tenant info
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(37, 99, 235); // Primary Blue
-    doc.text(tenantData?.name || 'EscalaFin', tenantData?.logo ? 50 : margin, 25);
-    
+    // Subtitle & Folio (Movido hacia abajo para evitar choque)
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
     doc.text(`Proyección de Crédito - Folio: APP-${format(new Date(), 'yyyyMMdd')}`, margin, currentY);
-    currentY += 10;
+    currentY += 6;
     
     doc.setFontSize(8);
     doc.text(`Generado el: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, margin, currentY);
-    currentY += 15;
+    currentY += 10;
     
     // Horizontal Line
-    doc.setDrawColor(230, 230, 230);
+    doc.setDrawColor(240, 240, 240);
     doc.line(margin, currentY, 196, currentY);
-    currentY += 10;
+    currentY += 12;
     
     doc.setTextColor(0, 0, 0);
 
-    // Client Info
-    doc.setFontSize(12);
+    // Client Info Section
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, currentY, 182, 30, 3, 3, 'F');
+    
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('Información del Cliente', margin, currentY);
-    currentY += 8;
+    doc.setTextColor(30, 41, 59);
+    doc.text('INFORMACIÓN DEL CLIENTE', margin + 5, currentY + 8);
+    
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    doc.text(`Nombre: ${selectedClient.firstName} ${selectedClient.lastName}`, margin, currentY);
-    currentY += 5;
-    doc.text(`Teléfono: ${selectedClient.phone}`, margin, currentY);
-    currentY += 15;
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Nombre: ${selectedClient.firstName} ${selectedClient.lastName}`, margin + 5, currentY + 16);
+    doc.text(`Teléfono: ${selectedClient.phone}`, margin + 5, currentY + 23);
+    currentY += 40;
     
-    // Loan Summary
-    doc.setFontSize(12);
+    // Loan Summary Section
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('Resumen del Préstamo', margin, currentY);
-    currentY += 8;
+    doc.setTextColor(30, 41, 59);
+    doc.text('RESUMEN DEL CRÉDITO', margin, currentY);
+    currentY += 5;
     
     // Grid de resumen
     doc.setFont('helvetica', 'normal');
@@ -620,17 +704,27 @@ export function NewLoanForm() {
       startY: currentY,
       body: summaryData,
       theme: 'plain',
-      styles: { fontSize: 9, cellPadding: 1 },
-      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 } }
+      styles: { 
+        fontSize: 9, 
+        cellPadding: 3, 
+        textColor: [30, 41, 59],
+        lineColor: [241, 245, 249],
+        lineWidth: 0.1
+      },
+      columnStyles: { 
+        0: { fontStyle: 'bold', cellWidth: 50, textColor: [100, 116, 139] },
+        1: { fontStyle: 'bold', halign: 'left', textColor: [15, 23, 42] }
+      }
     });
     
     currentY = (doc as any).lastAutoTable.finalY + 15;
 
-    // Amortization Table
-    doc.setFontSize(12);
+    // Titles
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('Cronograma Proyectado de Pagos', margin, currentY);
-    currentY += 5;
+    doc.setTextColor(30, 41, 59);
+    doc.text('TABLA DE AMORTIZACIÓN PROYECTADA', margin, currentY);
+    currentY += 6;
     
     const tableData = schedule.map(row => [
       row.paymentNumber.toString(),
@@ -646,14 +740,29 @@ export function NewLoanForm() {
       head: [['#', 'Vencimiento', 'Capital', 'Interés', 'Cuota Total', 'Saldo Restante']],
       body: tableData,
       theme: 'striped',
-      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontSize: 8, fontStyle: 'bold' },
-      styles: { fontSize: 8 },
+      headStyles: { 
+        fillColor: [37, 99, 235], 
+        textColor: 255, 
+        fontSize: 9, 
+        fontStyle: 'bold',
+        halign: 'center',
+        padding: 3
+      },
+      styles: { 
+        fontSize: 8,
+        cellPadding: 2,
+        valign: 'middle'
+      },
       columnStyles: { 
-        0: { halign: 'center' },
+        0: { halign: 'center', cellWidth: 10 },
+        1: { halign: 'center', cellWidth: 30 },
         2: { halign: 'right' },
         3: { halign: 'right' },
-        4: { halign: 'right', fontStyle: 'bold' },
+        4: { halign: 'right', fontStyle: 'bold', textColor: [37, 99, 235] },
         5: { halign: 'right' }
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252]
       }
     });
 
@@ -702,10 +811,10 @@ export function NewLoanForm() {
             <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-200">
               <Plus className="h-6 w-6 text-white" />
             </div>
-            Nuevo Préstamo
+            {loanId ? 'Editar Préstamo' : 'Nuevo Préstamo'}
           </h1>
           <p className="text-muted-foreground mt-1 font-medium">
-            Configura y activa una nueva línea de crédito para un cliente.
+            {loanId ? 'Edita los parámetros de la línea de crédito activa.' : 'Configura y activa una nueva línea de crédito para un cliente.'}
           </p>
         </div>
         <Button 
@@ -1072,7 +1181,7 @@ export function NewLoanForm() {
                     ) : (
                       <>
                         <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
-                        Activar Préstamo
+                        {loanId ? 'Actualizar Préstamo' : 'Activar Préstamo'}
                       </>
                     )}
                   </Button>

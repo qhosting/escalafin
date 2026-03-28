@@ -180,6 +180,19 @@ const modules = [
     route: '/cash-collection',
     sortOrder: 33,
   },
+  {
+    moduleKey: 'no_pago',
+    name: 'Gestión de No Pago',
+    description: 'Registro de visitas sin cobro realizado',
+    category: 'PAYMENTS',
+    status: 'ENABLED',
+    isCore: false,
+    requiredFor: ['ADMIN', 'ASESOR'],
+    availableFor: ['ADMIN', 'ASESOR'],
+    icon: 'Activity',
+    route: '/admin/payments/no-pago',
+    sortOrder: 34,
+  },
 
   // Report Modules
   {

@@ -71,9 +71,33 @@ export async function GET(
         }
 
         // Crear PDF
-        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+        const doc = new PDFDocument({ 
+            margin: 50, 
+            size: 'A4',
+            autoFirstPage: false 
+        });
+
         const chunks: Buffer[] = [];
         doc.on('data', (chunk) => chunks.push(chunk));
+
+        // Función para dibujar footer en cada página
+        const drawFooter = () => {
+            const bottom = 822;
+            doc.rect(0, bottom, doc.page.width, 20).fill('#2563eb');
+            doc.fontSize(7).fillColor('#ffffff').text(
+                'EscalaFin - Tu gestión financiera inteligente. Documento generado digitalmente.',
+                0, bottom + 7, { align: 'center', width: doc.page.width }
+            );
+        };
+
+        // Escuchar adición de páginas para poner footer
+        doc.on('pageAdded', () => {
+            drawFooter();
+        });
+
+        // Primera página
+        doc.addPage();
+        drawFooter(); // El evento pageAdded no se dispara en addPage manual al inicio aveces
 
         // Header decorativo
         doc.rect(0, 0, doc.page.width, 100).fill('#f8fafc');
@@ -82,9 +106,6 @@ export async function GET(
         let textX = 50;
         if (tenantInfo?.logo) {
             try {
-                // Notar: En un entorno real necesitaríamos descargar la imagen si es URL
-                // pero si es path local o base64 funciona directo. 
-                // Para este caso, seremos precavidos.
                 const logoRes = await fetch(tenantInfo.logo).catch(() => null);
                 if (logoRes && logoRes.ok) {
                     const logoBuffer = Buffer.from(await logoRes.arrayBuffer());
@@ -96,11 +117,11 @@ export async function GET(
             }
         }
 
-        // Texto de cabecera (Izquierda)
+        // Texto de cabecera
         doc.fillColor('#1e293b').fontSize(22).font('Helvetica-Bold').text(tenantInfo?.name || session.user.tenantName || 'EscalaFin', textX, 35);
         doc.fontSize(10).font('Helvetica').fillColor('#64748b').text('Tu Aliado Financiero', textX, 63);
 
-        // Título y Metadatos (Derecha)
+        // Título y Metadatos
         doc.fillColor('#0f172a').fontSize(14).font('Helvetica-Bold').text('ESTADO DE CUENTA', 350, 35, { align: 'right', width: 200 });
         doc.fontSize(8).font('Helvetica').fillColor('#94a3b8').text(`Folio:`, 350, 58, { align: 'right', width: 140 });
         doc.fillColor('#1e293b').font('Helvetica-Bold').text(loan.loanNumber, 495, 58, { align: 'right', width: 50 });
@@ -113,14 +134,14 @@ export async function GET(
         doc.rect(50, sectionTop, 495, 80).fill('#f8fafc');
         doc.rect(50, sectionTop, 495, 80).strokeColor('#e2e8f0').lineWidth(0.5).stroke();
 
-        // DATOS DEL CLIENTE (Columna 1)
+        // DATOS DEL CLIENTE
         doc.fillColor('#64748b').fontSize(8).font('Helvetica-Bold').text('DATOS DEL CLIENTE', 65, sectionTop + 15);
         doc.fillColor('#0f172a').fontSize(11).text(`${loan.client.firstName} ${loan.client.lastName}`, 65, sectionTop + 28);
         doc.fontSize(9).font('Helvetica').fillColor('#475569');
         doc.text(`ID: ${loan.client.id.substring(0, 8).toUpperCase()}`, 65, sectionTop + 42);
         doc.text(`Tel: ${loan.client.phone}`, 65, sectionTop + 54);
 
-        // RESUMEN DE CRÉDITO (Columna 2)
+        // RESUMEN DE CRÉDITO
         doc.fillColor('#64748b').fontSize(8).font('Helvetica-Bold').text('RESUMEN DE CRÉDITO', 350, sectionTop + 15);
         doc.fillColor('#475569').fontSize(9).font('Helvetica');
         doc.text('Monto Original:', 350, sectionTop + 28);
@@ -131,34 +152,19 @@ export async function GET(
         doc.fillColor('#0f172a').text(`$${Number(loan.principalAmount).toLocaleString('es-MX')}`, 450, sectionTop + 28, { align: 'right', width: 85 });
         doc.fillColor('#2563eb').text(`$${Number(loan.balanceRemaining).toLocaleString('es-MX')}`, 450, sectionTop + 42, { align: 'right', width: 85 });
         
-        const statusColors: any = { 
-            'ACTIVE': '#16a34a', 
-            'PAID_OFF': '#2563eb', 
-            'OVERDUE': '#dc2626',
-            'DEFAULTED': '#991b1b'
-        };
-        const statusLabels: any = {
-            'ACTIVE': 'VIGENTE',
-            'PAID_OFF': 'LIQUIDADO',
-            'OVERDUE': 'MOROSO',
-            'DEFAULTED': 'INCUMPLIDO'
-        };
+        const statusColors: any = { 'ACTIVE': '#16a34a', 'PAID_OFF': '#2563eb', 'OVERDUE': '#dc2626', 'DEFAULTED': '#991b1b' };
+        const statusLabels: any = { 'ACTIVE': 'VIGENTE', 'PAID_OFF': 'LIQUIDADO', 'OVERDUE': 'MOROSO', 'DEFAULTED': 'INCUMPLIDO' };
         doc.fillColor(statusColors[loan.status] || '#475569').text(
-            statusLabels[loan.status] || loan.status, 
-            450, sectionTop + 56, { align: 'right', width: 85 }
+            statusLabels[loan.status] || loan.status, 450, sectionTop + 56, { align: 'right', width: 85 }
         );
 
-        // Espacio dinámico antes de movimientos
         doc.y = sectionTop + 105;
-
-        // Título de Movimientos con línea decorativa
         doc.fillColor('#1e293b').fontSize(12).font('Helvetica-Bold').text('HISTORIAL DE MOVIMIENTOS', 50);
         const titleY = doc.y;
         doc.strokeColor('#2563eb').lineWidth(2).moveTo(50, titleY + 2).lineTo(150, titleY + 2).stroke();
-        
         doc.moveDown(1.5);
 
-        // Tabla de Movimientos con diseño Premium
+        // Tabla de Movimientos
         const tableTop = doc.y;
         doc.rect(50, tableTop, 495, 22).fill('#2563eb');
         doc.fillColor('#ffffff').fontSize(8).font('Helvetica-Bold');
@@ -176,10 +182,11 @@ export async function GET(
             currentY += 40;
         } else {
             loan.payments.forEach((p: any, index: number) => {
-                if (currentY > 700) {
+                // Verificar si necesitamos nueva página ANTES de dibujar
+                if (currentY > 750) {
                     doc.addPage();
                     currentY = 50;
-                    // Redibujar cabecera en nueva página
+                    // Redibujar cabecera
                     doc.rect(50, currentY, 495, 22).fill('#2563eb');
                     doc.fillColor('#ffffff').fontSize(8).font('Helvetica-Bold');
                     doc.text('FECHA', 65, currentY + 8);
@@ -187,6 +194,7 @@ export async function GET(
                     doc.text('REFERENCIA', 320, currentY + 8);
                     doc.text('ABONO', 460, currentY + 8, { width: 75, align: 'right' });
                     currentY += 22;
+                    doc.font('Helvetica').fillColor('#334155').fontSize(9);
                 }
 
                 if (index % 2 === 0) {
@@ -205,7 +213,7 @@ export async function GET(
         }
 
         // Fila de Saldo Final Resaltada
-        if (currentY > 720) {
+        if (currentY > 750) {
             doc.addPage();
             currentY = 50;
         }
@@ -215,13 +223,7 @@ export async function GET(
         doc.fontSize(12).text(`$${Number(loan.balanceRemaining).toLocaleString('es-MX')}`, 400, currentY + 9, { width: 135, align: 'right' });
         doc.font('Helvetica');
 
-        // Pie de página detallado
-        doc.rect(0, 822, doc.page.width, 20).fill('#2563eb');
-        doc.fontSize(7).fillColor('#ffffff').text(
-            'EscalaFin - Tu gestión financiera inteligente. Documento generado digitalmente.',
-            50, 829, { align: 'center' }
-        );
-
+        // Nota final siempre una página antes de pie
         doc.fontSize(8).fillColor('#94a3b8').text(
             'Nota: Este documento es informativo. Cualquier discrepancia debe reportarse en las próximas 48 horas.',
             50, 780, { align: 'center', width: 495 }
@@ -251,12 +253,10 @@ export async function GET(
                 resolve(NextResponse.json({ error: 'Falla al generar PDF: ' + err.message }, { status: 500 }));
             });
             
-            // Finalize PDF AFTER listeners are attached
             try {
                 doc.end();
             } catch (err) {
                 console.error('Error in doc.end():', err);
-                resolve(NextResponse.json({ error: 'Error al finalizar el PDF' }, { status: 500 }));
             }
         });
 

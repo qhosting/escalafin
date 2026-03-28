@@ -12,7 +12,8 @@ interface EnhancedSelectProps {
   placeholder?: string;
   hint?: string;
   error?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  items?: Array<{ value: string; label: string; icon?: React.ReactNode }>;
   value?: string;
   onValueChange?: (value: string) => void;
   disabled?: boolean;
@@ -26,6 +27,7 @@ export const EnhancedSelect: React.FC<EnhancedSelectProps> = ({
   hint,
   error,
   children,
+  items,
   value,
   onValueChange,
   disabled,
@@ -66,7 +68,14 @@ export const EnhancedSelect: React.FC<EnhancedSelectProps> = ({
           />
         </SelectTrigger>
         <SelectContent>
-          {children}
+          {items ? items.map((item) => (
+            <SelectItem key={item.value} value={item.value} className="system-text">
+              <div className="flex items-center gap-2">
+                {item.icon}
+                {item.label}
+              </div>
+            </SelectItem>
+          )) : children}
         </SelectContent>
       </Select>
       

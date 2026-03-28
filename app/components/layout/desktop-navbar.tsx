@@ -174,7 +174,8 @@ export function DesktopNavbar() {
             title: 'Pagos',
             items: [
               { title: 'Historial de Pagos', icon: DollarSign, href: '/admin/payments', moduleKey: 'payment_history' },
-              { title: 'Transacciones', icon: Receipt, href: '/admin/payments/transactions', moduleKey: 'payment_history' }
+              { title: 'Transacciones', icon: Receipt, href: '/admin/payments/transactions', moduleKey: 'payment_history' },
+              { title: 'No Pago', icon: Activity, href: '/admin/payments/no-pago', moduleKey: 'loan_list' }
             ]
           }
         ],
@@ -251,7 +252,8 @@ export function DesktopNavbar() {
           {
             title: 'Pagos',
             items: [
-              { title: 'Historial de Pagos', icon: DollarSign, href: '/admin/payments', moduleKey: 'payment_history' }
+              { title: 'Historial de Pagos', icon: DollarSign, href: '/admin/payments', moduleKey: 'payment_history' },
+              { title: 'No Pago', icon: Activity, href: '/admin/payments/no-pago', moduleKey: 'loan_list' }
             ]
           }
         ],
