@@ -14,12 +14,14 @@
     --popover: 0 0% 100%;
     --popover-foreground: 210 100% 15%;
  
-    /* Primary: Navy Blue from logo */
-    --primary: 210 100% 24%; /* #003d7a - Azul navy del logo */
+    /* Primary: Navy Blue from logo (#003d7a) */
+    --primary: 210 100% 24%;
+    --primary-rgb: 0, 61, 122;
     --primary-foreground: 0 0% 100%;
  
-    /* Secondary: Turquoise from logo */
-    --secondary: 185 100% 42%; /* #00b4d8 - Turquesa del logo */
+    /* Secondary: Turquoise from logo (#00b4d8) */
+    --secondary: 185 100% 42%;
+    --secondary-rgb: 0, 180, 216;
     --secondary-foreground: 0 0% 100%;
  
     /* Muted: Silver Grey from logo */
