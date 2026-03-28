@@ -237,6 +237,19 @@ export default function HomePage() {
             </div>
          </div>
       </footer>
+
+      {/* WhatsApp Floating Button */}
+      <a 
+        href="https://wa.me/524424000742" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="fixed bottom-8 right-8 z-[200] bg-[#25D366] text-white p-5 rounded-3xl shadow-2xl shadow-green-500/40 hover:scale-110 active:scale-95 transition-all animate-bounce-subtle group border-4 border-white"
+      >
+        <MessageSquare className="h-8 w-8 fill-white" />
+        <span className="absolute right-full mr-6 top-1/2 -translate-y-1/2 bg-white text-[#003d7a] px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all shadow-2xl border border-slate-100 pointer-events-none whitespace-nowrap translate-x-4 group-hover:translate-x-0">
+           Hablemos por WhatsApp
+        </span>
+      </a>
     </div>
   );
 }

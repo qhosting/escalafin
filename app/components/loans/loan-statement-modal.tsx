@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -18,10 +19,14 @@ import {
     Calendar,
     DollarSign,
     User,
+    Eye,
+    ChevronRight,
+    Search
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 
 interface LoanStatementModalProps {
     isOpen: boolean;
@@ -48,6 +53,7 @@ export function LoanStatementModal({
     loan
 }: LoanStatementModalProps) {
     const [downloadingPDF, setDownloadingPDF] = useState(false);
+    
     if (!loan) return null;
 
     const formatCurrency = (amount: number) => {
@@ -62,10 +68,9 @@ export function LoanStatementModal({
             setDownloadingPDF(true);
             toast.info('Generando PDF, un momento...');
 
-            // Usar fetch para preservar cookies de sesión en Safari / PWA
             const response = await fetch(`/api/loans/${loan.id}/statement`, {
                 method: 'GET',
-                credentials: 'include', // ← clave para enviar cookie de sesión
+                credentials: 'include', 
             });
 
             if (!response.ok) {
@@ -76,7 +81,6 @@ export function LoanStatementModal({
             const blob = await response.blob();
             const url = URL.createObjectURL(blob);
 
-            // Descarga programática — funciona en todos los browsers incluyendo iOS
             const anchor = document.createElement('a');
             anchor.href = url;
             anchor.download = `Estado_Cuenta_${loan.loanNumber}.pdf`;
@@ -92,6 +96,12 @@ export function LoanStatementModal({
         } finally {
             setDownloadingPDF(false);
         }
+    };
+
+    const handleViewPDF = () => {
+        const url = `/api/loans/${loan.id}/statement`;
+        window.open(url, '_blank');
+        toast.success('Abriendo previsualización...');
     };
 
     const handleShareWhatsApp = () => {
@@ -121,84 +131,102 @@ export function LoanStatementModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-2xl font-bold">
-                        <FileText className="h-6 w-6 text-blue-600" />
-                        Estado de Cuenta
-                    </DialogTitle>
-                    <DialogDescription>
-                        Vista rápida y opciones de envío para el préstamo {loan.loanNumber}
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div className="grid gap-6 py-4">
-                    {/* Resumen Card */}
-                    <div className="bg-slate-50 border rounded-xl p-4 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-slate-600">
-                                <User className="h-4 w-4" />
-                                <span className="text-sm font-medium">Cliente</span>
-                            </div>
-                            <span className="font-semibold text-slate-900">
-                                {loan.client.firstName} {loan.client.lastName}
-                            </span>
+            <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] p-0 overflow-hidden border-0 shadow-2xl">
+                <DialogHeader className="p-8 bg-blue-600 text-white relative">
+                    <div className="absolute top-[-20%] right-[-10%] w-60 h-60 bg-white/10 rounded-full blur-3xl" />
+                    <div className="flex items-center gap-4 mb-2 relative z-10">
+                        <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+                           <FileText className="h-7 w-7 text-white" />
                         </div>
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-slate-600">
-                                <DollarSign className="h-4 w-4" />
-                                <span className="text-sm font-medium">Saldo Pendiente</span>
-                            </div>
-                            <span className="text-xl font-bold text-blue-700">
-                                {formatCurrency(loan.balanceRemaining)}
-                            </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-slate-600">
-                                <Calendar className="h-4 w-4" />
-                                <span className="text-sm font-medium">Estatus</span>
-                            </div>
-                            <span className={`text-xs px-2 py-1 rounded-full font-bold ${loan.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700'
-                                }`}>
-                                {loan.status === 'ACTIVE' ? 'ACTIVO' : loan.status}
-                            </span>
+                        <div className="space-y-1">
+                           <DialogTitle className="text-3xl font-black tracking-tight leading-none uppercase italic">Estado de Cuenta</DialogTitle>
+                           <DialogDescription className="text-blue-100 font-bold opacity-80">Gestione la información financiera del préstamo {loan.loanNumber}</DialogDescription>
                         </div>
                     </div>
+                </DialogHeader>
 
-                    <div className="grid grid-cols-2 gap-3">
+                <div className="p-8 space-y-8 bg-white dark:bg-gray-950">
+                    {/* Resumen Premium */}
+                    <Card className="border-none bg-blue-50/50 dark:bg-blue-900/10 rounded-3xl p-6 shadow-sm ring-1 ring-blue-100/50">
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-1">
+                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest block">Cliente</span>
+                                <h4 className="text-lg font-black text-slate-900 leading-tight">
+                                    {loan.client.firstName} {loan.client.lastName}
+                                </h4>
+                            </div>
+                            <div className="space-y-1 text-right">
+                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest block">Saldo Pendiente</span>
+                                <h4 className="text-2xl font-black text-blue-700 tracking-tighter">
+                                    {formatCurrency(loan.balanceRemaining)}
+                                </h4>
+                            </div>
+                        </div>
+                        <Separator className="my-4 opacity-50 bg-blue-200" />
+                        <div className="flex items-center justify-between">
+                           <div className="flex items-center gap-2">
+                               <Calendar className="h-4 w-4 text-blue-500" />
+                               <span className="text-xs font-bold text-slate-500 uppercase tracking-tight">Ult. Actualización: {format(new Date(), 'dd/MMM/yyyy', { locale: es })}</span>
+                           </div>
+                           <Badge className="bg-green-100 text-green-700 font-black text-[9px] uppercase tracking-widest">ACTIVO</Badge>
+                        </div>
+                    </Card>
+
+                    {/* Action Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <Button
                             variant="outline"
-                            className="h-24 flex flex-col gap-2 hover:bg-slate-50 border-2"
-                            onClick={handleDownloadPDF}
-                            disabled={downloadingPDF}
+                            className="h-28 rounded-[2rem] flex flex-col items-center justify-center gap-3 hover:bg-slate-50 border-gray-100 shadow-sm transition-all hover:scale-[1.03] active:scale-[0.97] group bg-white"
+                            onClick={handleViewPDF}
                         >
-                            {downloadingPDF ? (
-                                <Loader2 className="h-6 w-6 text-blue-600 animate-spin" />
-                            ) : (
-                                <Download className="h-6 w-6 text-blue-600" />
-                            )}
-                            <span>{downloadingPDF ? 'Generando...' : 'Descargar PDF'}</span>
+                            <div className="p-3 bg-blue-50 group-hover:bg-blue-600 rounded-2xl group-hover:rotate-6 transition-all">
+                               <Eye className="h-6 w-6 text-blue-600 group-hover:text-white" />
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">Ver PDF</span>
                         </Button>
 
                         <Button
                             variant="outline"
-                            className="h-24 flex flex-col gap-2 hover:bg-green-50 hover:border-green-200 border-2"
+                            className="h-28 rounded-[2rem] flex flex-col items-center justify-center gap-3 hover:bg-slate-50 border-gray-100 shadow-sm transition-all hover:scale-[1.03] active:scale-[0.97] group bg-white"
+                            onClick={handleDownloadPDF}
+                            disabled={downloadingPDF}
+                        >
+                            <div className="p-3 bg-indigo-50 group-hover:bg-indigo-600 rounded-2xl group-hover:rotate-[-6deg] transition-all">
+                               {downloadingPDF ? (
+                                   <Loader2 className="h-6 w-6 text-indigo-600 group-hover:text-white animate-spin" />
+                               ) : (
+                                   <Download className="h-6 w-6 text-indigo-600 group-hover:text-white" />
+                               )}
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">Bajar PDF</span>
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            className="h-28 rounded-[2rem] flex flex-col items-center justify-center gap-3 hover:bg-green-50 border-gray-100 shadow-sm transition-all hover:scale-[1.03] active:scale-[0.97] group bg-white hover:border-green-100"
                             onClick={handleShareWhatsApp}
                         >
-                            <MessageCircle className="h-6 w-6 text-green-600" />
-                            <span>Compartir WhatsApp</span>
+                            <div className="p-3 bg-green-50 group-hover:bg-green-600 rounded-2xl group-hover:rotate-6 transition-all">
+                               <MessageCircle className="h-6 w-6 text-green-600 group-hover:text-white" />
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">WhatsApp</span>
                         </Button>
                     </div>
                 </div>
 
-                <DialogFooter className="flex sm:justify-between items-center sm:flex-row gap-4 border-t pt-4">
-                    <p className="text-[10px] text-slate-500 italic max-w-[250px]">
-                        El estado de cuenta PDF incluye el historial completo de pagos y tabla de amortización.
-                    </p>
-                    <Button variant="ghost" onClick={() => onOpenChange(false)}>
-                        Cerrar
+                <DialogFooter className="p-8 border-t bg-gray-50/50 flex flex-col sm:flex-row items-center gap-6 justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest max-w-[200px]">
+                           Reporte certificado por EscalaFin v2.71
+                        </p>
+                    </div>
+                    <Button 
+                       variant="ghost" 
+                       className="font-black text-xs uppercase tracking-widest hover:bg-white rounded-xl h-12"
+                       onClick={() => onOpenChange(false)}
+                    >
+                        Cerrar Ventana
                     </Button>
                 </DialogFooter>
             </DialogContent>
