@@ -2,7 +2,7 @@
 import { PrismaClient } from '@prisma/client';
 
 export type AuditAction =
-  | 'LOGIN' | 'LOGOUT' | 'SIGNUP'
+  | 'LOGIN' | 'LOGOUT' | 'SIGNUP' | 'SECURITY_BLOCK'
   | 'LOAN_CREATE' | 'LOAN_UPDATE' | 'LOAN_DELETE' | 'LOAN_APPROVE' | 'LOAN_REJECT'
   | 'PAYMENT_CREATE' | 'PAYMENT_UPDATE' | 'PAYMENT_PROCESS'
   | 'USER_CREATE' | 'USER_UPDATE' | 'USER_DELETE'

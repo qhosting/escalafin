@@ -10,7 +10,8 @@ import {
     ShieldCheckIcon,
     GlobeAltIcon,
     ArrowTrendingUpIcon,
-    ServerIcon
+    ServerIcon,
+    ShieldExclamationIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import {
@@ -89,7 +90,7 @@ export default function SaaSOverviewV2() {
             </div>
 
             {/* KPI Reimagined */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 <ModernStatCard
                     title="Ingresos (MRR)"
                     value={`$${stats.totalMRR.toLocaleString()}`}
@@ -122,6 +123,16 @@ export default function SaaSOverviewV2() {
                     color="rose"
                     trend="Base de datos única"
                 />
+                <Link href="/admin/saas/security" className="block">
+                    <ModernStatCard
+                        title="Seguridad WAF"
+                        value="ACTIVO"
+                        unit="Firewall"
+                        icon={<ShieldExclamationIcon className="h-6 w-6" />}
+                        color="indigo"
+                        trend="Monitoreo de Amenazas"
+                    />
+                </Link>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
