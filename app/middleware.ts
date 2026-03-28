@@ -4,6 +4,27 @@ import { NextResponse } from 'next/server';
 
 export default withAuth(
   function middleware(req) {
+    const { pathname } = req.nextUrl;
+
+    // 🛡️ SEGURIDAD: Bloqueo de escaneos y URLs maliciosas
+    const maliciousPatterns = [
+      '/wp-admin', '/wp-login', '.env', '/config', '/admin.php', 
+      '/.git', '/composer.json', '/package.json', '/id_rsa',
+      '/setup.php', '/phpmyadmin', '/xmlrpc.php', '/shell',
+      '/backup', '/storage', '/sql', '/dump', '/db'
+    ];
+
+    if (maliciousPatterns.some(pattern => pathname.toLowerCase().includes(pattern))) {
+      console.warn(`🛡️ BLOQUEO DE SEGURIDAD: Intento de acceso a ruta prohibida [${pathname}] desde IP: ${req.ip || 'desconocida'}`);
+      return new NextResponse(
+        JSON.stringify({ 
+          error: 'Acceso Denegado por Seguridad - IP Registrada', 
+          code: 'SECURITY_BLOCK' 
+        }), 
+        { status: 403, headers: { 'content-type': 'application/json' } }
+      );
+    }
+
     // Lógica de Multi-tenancy
     const hostname = req.headers.get('host') || '';
 

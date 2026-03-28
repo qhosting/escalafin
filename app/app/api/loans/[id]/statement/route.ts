@@ -31,7 +31,16 @@ export async function GET(
                 balanceRemaining: true,
                 status: true,
                 clientId: true,
-                client: true,
+                client: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        phone: true,
+                        email: true,
+                        address: true
+                    }
+                },
                 payments: {
                     where: { status: 'COMPLETED' },
                     orderBy: { paymentDate: 'desc' }

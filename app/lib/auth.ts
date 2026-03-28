@@ -139,9 +139,7 @@ export const authOptions: NextAuthOptions = {
 
       // Si es una URL relativa, usar baseUrl
       if (url.startsWith('/')) {
-        const finalUrl = `${baseUrl}${url}`;
-        console.log('✅ Usando URL relativa:', finalUrl);
-        return finalUrl;
+        return `${baseUrl}${url}`;
       }
 
       // Si la URL es del mismo dominio, permitir
@@ -150,7 +148,6 @@ export const authOptions: NextAuthOptions = {
         const baseOrigin = new URL(baseUrl).origin;
 
         if (urlOrigin === baseOrigin) {
-          console.log('✅ URL del mismo dominio:', url);
           return url;
         }
       } catch (error) {
