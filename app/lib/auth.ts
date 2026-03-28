@@ -127,7 +127,7 @@ export const authOptions: NextAuthOptions = {
       return !!user;
     },
     async redirect({ url, baseUrl }) {
-      console.log('🔄 Redirect callback:', { url, baseUrl });
+      // Logic for redirects
 
       // Si la URL es explícitamente la de login, redirigir según rol
       // (esto evita el loop login → login)
@@ -165,6 +165,6 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/login',
   },
-  debug: true,
+  debug: false,
   secret: process.env.NEXTAUTH_SECRET,
 };
