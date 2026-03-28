@@ -118,20 +118,19 @@ export default function HomePage() {
               <Badge variant="outline" className="hidden lg:inline-flex text-[9px] font-black uppercase tracking-widest border-primary/20 bg-primary/5 text-primary rounded-full px-2 py-0">v2.7.2</Badge>
             </div>
 
-            <div className="flex items-center space-x-3 lg:space-x-6">
+            <div className="flex items-center space-x-3 lg:space-x-5">
               <Link href="/auth/login">
-                <Button variant="ghost" className="text-sm font-bold text-gray-600 hover:text-primary hover:bg-primary/5 rounded-xl transition-all">
-                  Acceso
+                <Button variant="ghost" className="text-sm font-bold text-slate-600 hover:text-primary hover:bg-primary/5 rounded-xl transition-all h-10 px-4">
+                  Iniciar Sesión
                 </Button>
               </Link>
               <Link href="/auth/register-tenant">
-                <Button className="relative group overflow-hidden bg-gradient-to-r from-primary to-indigo-600 hover:from-indigo-600 hover:to-primary text-white font-black rounded-2xl px-6 lg:px-8 h-12 shadow-xl shadow-primary/25 transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]">
+                <Button className="relative group overflow-hidden bg-primary hover:bg-primary/95 text-white font-bold rounded-xl px-6 lg:px-8 h-11 shadow-[0_8px_20px_-6px_rgba(var(--primary-rgb),0.3)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
                   <span className="relative z-10 flex items-center gap-2">
-                    <span className="hidden sm:inline">Empezar Ahora</span>
-                    <span className="sm:hidden">Unirse</span>
+                    <span className="hidden sm:inline">Comenzar Ahora</span>
+                    <span className="sm:hidden">Empezar</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </span>
-                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 </Button>
               </Link>
             </div>

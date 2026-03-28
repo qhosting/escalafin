@@ -8,7 +8,8 @@ import Link from 'next/link';
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function PricingSection() {
-    const { data: plans, isLoading } = useSWR('/api/public/plans', fetcher);
+    const { data: plansData, isLoading } = useSWR('/api/billing/plans', fetcher);
+    const plans = plansData?.plans || [];
 
     if (isLoading) {
         return (
@@ -19,7 +20,7 @@ export function PricingSection() {
     }
 
     // Filter active plans and sort by price
-    const activePlans = plans?.filter((p: any) => p.isActive && p.name !== 'legacy').sort((a: any, b: any) => Number(a.priceMonthly) - Number(b.priceMonthly)) || [];
+    const activePlans = plans.sort((a: any, b: any) => Number(a.priceMonthly) - Number(b.priceMonthly));
 
     return (
         <section id="pricing-section" className="py-20 bg-gray-50">
@@ -56,10 +57,10 @@ export function PricingSection() {
                             </div>
 
                             <ul className="space-y-4 mb-8 flex-1">
-                                {JSON.parse(plan.features || '[]').map((feature: string, idx: number) => (
+                                {(plan.features || []).map((feature: string, idx: number) => (
                                     <li key={idx} className="flex items-start">
                                         <CheckCircle2 className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-                                        <span className="text-gray-600">{feature}</span>
+                                        <span className="text-gray-600 font-medium">{feature}</span>
                                     </li>
                                 ))}
                             </ul>
