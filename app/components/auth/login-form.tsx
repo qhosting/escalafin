@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { LogIn, Eye, EyeOff, Building2, TrendingUp, Shield, Users, CreditCard, ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 export function LoginForm() {
   const [email, setEmail]               = useState('');
@@ -121,17 +122,17 @@ export function LoginForm() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
+            {/* Email/Phone Field */}
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">
-                Correo Electrónico
+                Correo o Celular
               </label>
               <div className="relative group">
                 <input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ejemplo@correo.com"
+                  placeholder="ejemplo@correo.com o celular"
                   className="w-full h-14 px-6 bg-slate-900/40 border border-slate-800 rounded-2xl text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 transition-all duration-300"
                   required
                 />
@@ -140,9 +141,39 @@ export function LoginForm() {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">
-                Contraseña
-              </label>
+              <div className="flex justify-between items-center px-1">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  Contraseña o Código
+                </label>
+                <button
+                  type="button"
+                  disabled={loading || !email}
+                  onClick={async () => {
+                    if (!email) {
+                      toast.error('Ingresa tu correo o celular primero');
+                      return;
+                    }
+                    setLoading(true);
+                    try {
+                      const res = await fetch('/api/auth/otp/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ identifier: email })
+                      });
+                      const data = await res.json();
+                      if (res.ok) toast.success('Código enviado a tu WhatsApp/Email');
+                      else toast.error(data.error || 'Error al enviar código');
+                    } catch {
+                      toast.error('Error al conectar con el servidor');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="text-[10px] font-bold text-blue-500 hover:text-blue-400 disabled:opacity-50"
+                >
+                  Solicitar código de acceso
+                </button>
+              </div>
               <div className="relative group">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -163,9 +194,12 @@ export function LoginForm() {
             </div>
 
             <div className="flex justify-start px-1">
-              <button type="button" className="text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors tracking-tight">
+              <Link 
+                href="/auth/forgot-password"
+                className="text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors tracking-tight"
+              >
                 ¿Olvidaste tu contraseña?
-              </button>
+              </Link>
             </div>
 
             {/* Error Message */}

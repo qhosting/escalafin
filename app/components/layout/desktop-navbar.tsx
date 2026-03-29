@@ -132,6 +132,12 @@ export function DesktopNavbar() {
               { title: 'Planes & Billing', icon: CreditCard, href: '/admin/billing' },
               { title: 'Audit Global', icon: ClipboardList, href: '/admin/audit' }
             ]
+          },
+          {
+            title: 'Seguridad',
+            items: [
+              { title: 'WAF Firewall', icon: ShieldCheck, href: '/admin/saas/security' }
+            ]
           }
         ],
         'Operaciones': [

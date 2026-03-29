@@ -48,6 +48,13 @@ export async function sendEmail({
 }
 
 export class MailService {
+  /**
+   * Helper para enviar correos directamente sin plantillas específicas iniciales.
+   */
+  static async sendEmailDirect(data: { to: string; subject: string; html: string; fromName?: string }) {
+    return sendEmail(data);
+  }
+
   static async sendWelcomeEmail(to: string, userName: string, companyName: string) {
     const template = emailTemplates.welcomeTenant(userName, companyName);
     return sendEmail({ to, ...template });

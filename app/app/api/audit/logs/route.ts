@@ -95,6 +95,16 @@ export async function GET(request: NextRequest) {
       dbClient.auditLog.count({ where: filters }),
     ]);
 
+    // Helper para parseo seguro
+    const safeParse = (str: string | null) => {
+      if (!str) return null;
+      try {
+        return JSON.parse(str);
+      } catch (e) {
+        return { raw: str }; // Retornar como string plano si no es JSON válido
+      }
+    };
+
     // Formatear logs para el frontend
     const formattedLogs = logs.map((log: any) => ({
       ...log,
@@ -102,8 +112,8 @@ export async function GET(request: NextRequest) {
         ...log.user,
         name: `${log.user.firstName} ${log.user.lastName}`,
       } : null,
-      details: log.details ? JSON.parse(log.details) : null,
-      metadata: log.metadata ? JSON.parse(log.metadata) : null,
+      details: safeParse(log.details),
+      metadata: safeParse(log.metadata),
       tenantName: log.tenant?.name || 'Sistema Global',
     }));
 

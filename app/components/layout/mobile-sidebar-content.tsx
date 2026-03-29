@@ -30,7 +30,9 @@ import {
     Building2,
     ChevronRight,
     ChevronDown,
-    Mail
+    Mail,
+    Activity,
+    ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -147,9 +149,47 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
     };
 
     const getMenusForRole = (): MenuCategory[] => {
-        const dashboardHref = userRole === 'ADMIN' ? '/admin/dashboard' :
-            userRole === 'ASESOR' ? '/asesor/dashboard' :
-                '/cliente/dashboard';
+        const dashboardHref = userRole === 'SUPER_ADMIN' ? '/admin/saas' :
+            userRole === 'ADMIN' ? '/admin/dashboard' :
+                userRole === 'ASESOR' ? '/asesor/dashboard' :
+                    '/cliente/dashboard';
+
+        if (userRole === 'SUPER_ADMIN') {
+            return [
+                {
+                    category: 'SaaS Platform',
+                    icon: Building2,
+                    groups: [
+                        {
+                            title: 'Ecosistema',
+                            items: [
+                                { title: 'Command Center', icon: Activity, href: '/admin/saas' },
+                                { title: 'Organizaciones', icon: Building2, href: '/admin/saas/tenants' }
+                            ]
+                        },
+                        {
+                            title: 'Escalabilidad',
+                            items: [
+                                { title: 'Audit Global', icon: ClipboardList, href: '/admin/audit' },
+                                { title: 'WAF Firewall', icon: ShieldCheck, href: '/admin/saas/security', roles: ['SUPER_ADMIN'] }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    category: 'Operaciones',
+                    icon: ShieldCheck,
+                    groups: [
+                        {
+                            title: 'Usuarios Globales',
+                            items: [
+                                { title: 'Super Admins', icon: User, href: '/admin/super-users' }
+                            ]
+                        }
+                    ]
+                }
+            ];
+        }
 
         if (userRole === 'ADMIN') {
             return [

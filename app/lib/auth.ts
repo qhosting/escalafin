@@ -27,9 +27,12 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const user = await prisma.user.findUnique({
+          const user = await prisma.user.findFirst({
             where: {
-              email: credentials.email,
+              OR: [
+                { email: credentials.email },
+                { phone: credentials.email }
+              ]
             },
             include: {
               tenant: true
@@ -56,10 +59,31 @@ export const authOptions: NextAuthOptions = {
             }
           }
 
-          const passwordMatch = await bcrypt.compare(credentials.password, user.password);
+          let passwordMatch = await bcrypt.compare(credentials.password, user.password);
+
+          // Si el password no coincide, verificar si es un código OTP válido
+          if (!passwordMatch && credentials.password.length === 6) {
+            const otpToken = await prisma.verificationToken.findFirst({
+              where: {
+                identifier: user.id,
+                token: credentials.password,
+              }
+            });
+
+            if (otpToken && new Date() < otpToken.expires) {
+              passwordMatch = true;
+              // Opcional: Eliminar el token usado
+              await prisma.verificationToken.deleteMany({ 
+                where: { 
+                  identifier: user.id,
+                  token: credentials.password 
+                } 
+              }).catch(() => {});
+            }
+          }
 
           if (!passwordMatch) {
-            console.log('❌ Password no coincide');
+            console.log('❌ Password/OTP no coincide');
             return null;
           }
 
