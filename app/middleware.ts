@@ -16,22 +16,32 @@ export default withAuth(
 
     if (maliciousPatterns.some(pattern => pathname.toLowerCase().includes(pattern))) {
       const detectedPattern = maliciousPatterns.find(p => pathname.toLowerCase().includes(p));
-      console.warn(`🛡️ BLOQUEO DE SEGURIDAD: Intento de acceso a ruta prohibida [${pathname}] desde IP: ${req.ip || 'desconocida'}`);
+      const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || req.ip || 'desconocida';
+      
+      console.warn(`🛡️ BLOQUEO DE SEGURIDAD: Intento de acceso a ruta prohibida [${pathname}] desde IP: ${clientIp}`);
       
       // Registrar el evento asincrónicamente
-      fetch(`${req.nextUrl.origin}/api/internal/security-log`, {
+      // Usamos el host directamente para evitar problemas de SSL local si la app está tras un proxy
+      const protocol = isLocalhost ? 'http' : (req.headers.get('x-forwarded-proto') || 'http');
+      const host = req.headers.get('host');
+      const internalUrl = `${protocol}://${host}/api/internal/security-log`;
+
+      fetch(internalUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-internal-secret': process.env.NEXTAUTH_SECRET || ''
         },
         body: JSON.stringify({
-          ip: req.ip || req.headers.get('x-forwarded-for') || 'unknown',
+          ip: clientIp,
           userAgent: req.headers.get('user-agent') || 'unknown',
           path: pathname,
           pattern: detectedPattern
         })
-      }).catch(e => console.error('Error triggering security log:', e));
+      }).catch(e => {
+        // Silenciamos errores de red internos para no afectar la respuesta al usuario malicioso
+        console.error('Error triggering security log:', e.message);
+      });
 
       return new NextResponse(
         JSON.stringify({ 

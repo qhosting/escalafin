@@ -9,6 +9,8 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_SERVER_PASSWORD,
   },
   secure: process.env.EMAIL_SERVER_PORT === '465',
+  connectionTimeout: 20000, // 20 segundos
+  greetingTimeout: 20000,
 });
 
 export async function sendEmail({
