@@ -25,15 +25,13 @@ import { es } from 'date-fns/locale';
 
 interface Loan {
   id: string;
-  amount: number;
-  interestRate: number;
-  termMonths: number;
+  loanNumber: string;
+  principalAmount: number;
+  balanceRemaining: number;
   status: string;
   startDate: string;
-  nextPaymentDate: string;
-  nextPaymentAmount: number;
-  totalPaid: number;
-  remainingBalance: number;
+  amortizationSchedule?: any[];
+  totalPaid?: number;
 }
 
 interface Payment {
@@ -117,8 +115,14 @@ export default function ClientPWAPage() {
   }
 
   const activeLoan = loans.find(loan => loan.status === 'ACTIVE');
-  const totalDebt = loans.reduce((sum, loan) => sum + loan.remainingBalance, 0);
-  const totalPaid = loans.reduce((sum, loan) => sum + loan.totalPaid, 0);
+  const totalDebt = loans.reduce((sum, loan) => sum + Number(loan.balanceRemaining || 0), 0);
+  
+  // Calculate next payment info from schedule
+  const nextPayment = activeLoan?.amortizationSchedule?.find(s => !s.isPaid);
+  const nextPaymentDate = nextPayment?.paymentDate;
+  const nextPaymentAmount = nextPayment ? 
+    Number(nextPayment.principalPayment) + Number(nextPayment.interestPayment) : 0;
+  const totalPaid = loans.reduce((sum, loan) => sum + (loan.totalPaid || 0), 0);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -189,12 +193,12 @@ export default function ClientPWAPage() {
                     Próximo Pago
                   </p>
                   <p className="text-sm text-orange-700">
-                    ${activeLoan.nextPaymentAmount.toLocaleString()} • {' '}
-                    {format(new Date(activeLoan.nextPaymentDate), 'dd MMM yyyy', { locale: es })}
+                    ${nextPaymentAmount.toLocaleString()} • {' '}
+                    {nextPaymentDate ? format(new Date(nextPaymentDate), 'dd MMM yyyy', { locale: es }) : 'Ver detalles'}
                   </p>
                   <Button
                     size="sm"
-                    className="mt-2 bg-orange-600 hover:bg-orange-700"
+                    className="mt-2 bg-orange-600 hover:bg-orange-700 font-bold"
                     onClick={() => makePayment(activeLoan.id)}
                   >
                     Pagar Ahora
@@ -238,12 +242,12 @@ export default function ClientPWAPage() {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-600">Monto Original</p>
-                        <p className="font-semibold">${loan.amount.toLocaleString()}</p>
+                        <p className="font-semibold">${Number(loan.principalAmount || 0).toLocaleString()}</p>
                       </div>
                       <div>
                         <p className="text-gray-600">Saldo Restante</p>
                         <p className="font-semibold text-red-600">
-                          ${loan.remainingBalance.toLocaleString()}
+                          ${Number(loan.balanceRemaining || 0).toLocaleString()}
                         </p>
                       </div>
                       <div>

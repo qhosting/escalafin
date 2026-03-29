@@ -30,8 +30,8 @@ export function OfflineBanner() {
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           className={`${
-            isOnline ? 'bg-green-500' : 'bg-amber-500'
-          } text-white px-4 py-2 flex items-center justify-between text-sm font-medium overflow-hidden shadow-lg z-[60]`}
+            isOnline ? 'bg-[var(--primary)]' : 'bg-amber-600'
+          } text-white px-4 py-2 flex items-center justify-between text-sm font-medium overflow-hidden shadow-lg z-[60] fixed top-0 left-0 right-0`}
         >
           <div className="flex items-center space-x-2">
             {isOnline ? (

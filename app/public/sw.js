@@ -1,13 +1,14 @@
-
-const CACHE_NAME = 'escalafin-v1';
+const CACHE_NAME = 'escalafin-v2';
 const urlsToCache = [
   '/',
   '/pwa/client',
   '/pwa/asesor',
   '/pwa/reports',
+  '/mobile/cobranza',
   '/api/clients',
   '/api/loans',
-  '/api/payments/transactions'
+  '/api/payments/transactions',
+  '/offline'
 ];
 
 // Instalar Service Worker

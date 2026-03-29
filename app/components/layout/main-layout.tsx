@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { DesktopNavbar } from './desktop-navbar';
 import { MobileSidebar } from './mobile-sidebar';
 import { BottomNavbar } from './bottom-navbar';
+import { OfflineBanner } from '@/components/pwa/offline-banner';
 
 const NO_LAYOUT_PATHS = ['/auth/login', '/auth/register', '/auth/register-tenant'];
 
@@ -73,6 +74,8 @@ export function MainLayout({ children }: MainLayoutProps) {
   // Layout autenticado con navegación
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <OfflineBanner />
+      
       {/* Navegación Desktop */}
       <DesktopNavbar />
 

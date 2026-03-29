@@ -94,7 +94,11 @@ export async function GET(request: NextRequest) {
               firstName: true,
               lastName: true,
               email: true,
-              phone: true
+              phone: true,
+              latitude: true,
+              longitude: true,
+              address: true,
+              city: true
             }
           },
           creditApplication: {
@@ -114,6 +118,15 @@ export async function GET(request: NextRequest) {
             },
             orderBy: { paymentDate: 'desc' },
             take: 3
+          },
+          amortizationSchedule: {
+            select: {
+              paymentDate: true,
+              principalPayment: true,
+              interestPayment: true,
+              isPaid: true
+            },
+            orderBy: { paymentNumber: 'asc' }
           }
         },
         orderBy: { createdAt: 'desc' },

@@ -26,7 +26,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import CashPaymentForm from '@/components/payments/cash-payment-form';
-import { MobileStorage, STORES } from '@/lib/mobile-storage';
+import { PWAStorage, STORES } from '@/lib/pwa-storage';
+import { useOnlineStatus } from '@/hooks/use-online-status';
 
 interface Loan {
   id: string;
@@ -71,26 +72,22 @@ export default function CobranzaMovilPage() {
     totalAmount: 0,
     loansVisited: 0
   });
-  const [isOffline, setIsOffline] = useState(false);
+  const isOnline = useOnlineStatus();
   const [offlinePendingCount, setOfflinePendingCount] = useState(0);
+  const [storage, setStorage] = useState<PWAStorage | null>(null);
 
   useEffect(() => {
-    // Check network status
-    const handleStatusChange = () => {
-      setIsOffline(!navigator.onLine);
-    };
+    if (session?.user?.tenantId) {
+      const pwaStorage = new PWAStorage(session.user.tenantId);
+      setStorage(pwaStorage);
+    }
+  }, [session]);
 
-    window.addEventListener('online', handleStatusChange);
-    window.addEventListener('offline', handleStatusChange);
-    handleStatusChange();
-
-    loadInitialData();
-
-    return () => {
-      window.removeEventListener('online', handleStatusChange);
-      window.removeEventListener('offline', handleStatusChange);
-    };
-  }, []);
+  useEffect(() => {
+    if (storage) {
+      loadInitialData();
+    }
+  }, [storage]);
 
   const loadInitialData = async () => {
     await fetchTodayCollections();
@@ -99,26 +96,34 @@ export default function CobranzaMovilPage() {
   };
 
   const checkOfflinePending = async () => {
-    const pending = await MobileStorage.getAll(STORES.PENDING_PAYMENTS);
+    if (!storage) return;
+    const pending = await storage.getPendingFromQueue();
     setOfflinePendingCount(pending.length);
   };
 
   const loadCachedRoute = async () => {
-    const cached = await MobileStorage.getAll<Loan>(STORES.TODAY_ROUTE);
+    if (!storage) return;
+    const cached = await storage.getAll(STORES.LOANS);
     if (cached.length > 0 && loans.length === 0) {
       setLoans(cached);
     }
   };
 
   const downloadTodayRoute = async () => {
+    if (!storage) return;
     setLoading(true);
     try {
-      // For now, we fetch all active loans for the collector
       const response = await fetch(`/api/loans/search?q=&includeClient=true`);
       if (response.ok) {
         const data = await response.json();
-        await MobileStorage.saveTodayRoute(data.loans || []);
-        setLoans(data.loans || []);
+        const loansToSave = data.loans || [];
+        
+        // Save to LOANS store
+        for (const loan of loansToSave) {
+          await storage.put(STORES.LOANS, loan);
+        }
+        
+        setLoans(loansToSave);
         toast.success('Ruta descargada para uso offline');
       }
     } catch (error) {
@@ -129,32 +134,33 @@ export default function CobranzaMovilPage() {
   };
 
   const syncOfflineData = async () => {
-    if (isOffline) {
+    if (!storage) return;
+    if (!isOnline) {
       toast.error('Debes estar en línea para sincronizar');
       return;
     }
 
     setLoading(true);
     try {
-      const pending = await MobileStorage.getPendingPayments();
+      const pending = await storage.getPendingFromQueue();
       if (pending.length === 0) {
         toast.info('No hay cobros pendientes por sincronizar');
         return;
       }
 
       let successCount = 0;
-      for (const payment of pending) {
-        // Here we would call the actual API
-        // For simplicity in this step, we assume the API exists at /api/payments/sync
-        const response = await fetch('/api/payments/cash', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payment)
-        });
+      for (const item of pending) {
+        if (item.type === 'PAGO_EFECTIVO') {
+          const response = await fetch('/api/payments/cash', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item.data)
+          });
 
-        if (response.ok) {
-          await MobileStorage.delete(STORES.PENDING_PAYMENTS, payment.id);
-          successCount++;
+          if (response.ok) {
+            await storage.delete(STORES.OFFLINE_QUEUE, item.id);
+            successCount++;
+          }
         }
       }
 
@@ -215,14 +221,12 @@ export default function CobranzaMovilPage() {
     toast.success('¡Pago registrado exitosamente!');
     setSelectedLoan(null);
 
-    if (!isOffline) {
-      fetchTodayCollections();
-    } else {
-      // If offline, we need to save it locally for later sync
-      // Note: CashPaymentForm already handles the API call, so we might need
-      // to wrap its submit logic to check for offline first.
-      // For now, let's assume the success event happens after local save if offline.
+    if (!isOnline && storage) {
+      await storage.addToQueue('PAGO_EFECTIVO', payment);
       await checkOfflinePending();
+      toast.info('Pago guardado localmente (sin conexión)');
+    } else {
+      fetchTodayCollections();
     }
 
     // Update loan balance in the list
@@ -281,18 +285,18 @@ export default function CobranzaMovilPage() {
             Cobranza Móvil
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Gestión de cobros en campo {isOffline && <Badge variant="destructive" className="ml-2">OFFLINE</Badge>}
+            Gestión de cobros en campo {!isOnline && <Badge variant="destructive" className="ml-2">OFFLINE</Badge>}
           </p>
         </div>
         <div className="flex gap-2">
-          {!isOffline && (
+          {isOnline && (
             <Button variant="outline" size="sm" onClick={downloadTodayRoute} disabled={loading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Bajar Ruta
             </Button>
           )}
           {offlinePendingCount > 0 && (
-            <Button variant="default" size="sm" onClick={syncOfflineData} disabled={loading || isOffline} className="bg-orange-600 hover:bg-orange-700">
+            <Button variant="default" size="sm" onClick={syncOfflineData} disabled={loading || !isOnline} className="bg-orange-600 hover:bg-orange-700">
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Sincronizar ({offlinePendingCount})
             </Button>

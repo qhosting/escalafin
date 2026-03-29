@@ -15,13 +15,21 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'EscalaFin - Sistema de Gestión de Créditos',
   description: 'Plataforma completa para la gestión de préstamos y créditos',
-  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'EscalaFin',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 }
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
   themeColor: '#2563eb',
 }
 

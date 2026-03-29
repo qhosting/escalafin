@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { PWAStorage, STORES } from '@/lib/pwa-storage';
+import { useOnlineStatus } from '@/hooks/use-online-status';
 
 interface Client {
   id: string;
@@ -68,25 +70,51 @@ export default function AsesorPWAPage() {
     }
   }, [session, status, router]);
 
+  const isOnline = useOnlineStatus();
+  const [storage, setStorage] = useState<PWAStorage | null>(null);
+
   useEffect(() => {
-    if (session?.user) {
-      loadAsesorData();
-      getCurrentLocation();
+    if (session?.user?.tenantId) {
+      setStorage(new PWAStorage(session.user.tenantId));
     }
   }, [session]);
+
+  useEffect(() => {
+    if (storage) {
+      if (isOnline) {
+        loadAsesorData();
+      } else {
+        loadFromCache();
+      }
+      getCurrentLocation();
+    }
+  }, [session, isOnline, storage]);
+
+  const loadFromCache = async () => {
+    if (!storage) return;
+    try {
+      setLoading(true);
+      const cachedClients = await storage.getAll(STORES.CLIENTS);
+      if (cachedClients.length > 0) {
+        setClients(cachedClients);
+      }
+    } catch (error) {
+      console.error('Error loading from cache:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadAsesorData = async () => {
     try {
       setLoading(true);
       
-      // Load loans with payment information
       const loansResponse = await fetch('/api/loans');
       if (loansResponse.ok) {
         const loansData = await loansResponse.json();
         const loans = Array.isArray(loansData) ? loansData : loansData.loans || [];
         
-        // Calculate collection info for each client based on their loans
-        const clientsMap = new Map<string, any>();
+        const clientsMap = new Map<string, Client>();
         const tasksArray: CollectionTask[] = [];
         
         loans.forEach((loan: any) => {
@@ -94,8 +122,6 @@ export default function AsesorPWAPage() {
           
           const clientId = loan.client.id;
           const clientKey = `${loan.client.firstName} ${loan.client.lastName}`;
-          
-          // Calculate overdue info from payments
           const overduePayments = (loan.payments || []).filter((p: any) => 
             p.status === 'PENDING' || p.status === 'OVERDUE'
           );
@@ -104,36 +130,21 @@ export default function AsesorPWAPage() {
             sum + Number(p.amount || 0), 0
           );
           
-          // Calculate days overdue (oldest unpaid payment)
           let maxOverdueDays = 0;
           overduePayments.forEach((payment: any) => {
             const dueDate = new Date(payment.dueDate);
             const today = new Date();
             const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-            if (daysOverdue > maxOverdueDays) {
-              maxOverdueDays = daysOverdue;
-            }
+            if (daysOverdue > maxOverdueDays) maxOverdueDays = daysOverdue;
           });
           
-          // Find last payment date
           const paidPayments = (loan.payments || []).filter((p: any) => p.status === 'PAID');
-          const lastPayment = paidPayments.length > 0 
-            ? paidPayments.sort((a: any, b: any) => 
-                new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()
-              )[0]
-            : null;
+          const lastPayment = paidPayments.sort((a: any, b: any) => 
+            new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()
+          )[0];
           
-          // Determine status
-          let status: 'current' | 'overdue' | 'critical';
-          if (maxOverdueDays === 0) {
-            status = 'current';
-          } else if (maxOverdueDays > 30) {
-            status = 'critical';
-          } else {
-            status = 'overdue';
-          }
+          let status: 'current' | 'overdue' | 'critical' = maxOverdueDays === 0 ? 'current' : (maxOverdueDays > 30 ? 'critical' : 'overdue');
           
-          // Update or create client entry
           if (!clientsMap.has(clientId)) {
             clientsMap.set(clientId, {
               id: clientId,
@@ -143,40 +154,30 @@ export default function AsesorPWAPage() {
               overdueDays: maxOverdueDays,
               overdueAmount: overdueAmount,
               lastPaymentDate: lastPayment ? lastPayment.paymentDate : new Date().toISOString(),
-              status: status,
-              coordinates: {
+              status,
+              coordinates: loan.client.latitude && loan.client.longitude ? {
+                lat: loan.client.latitude,
+                lng: loan.client.longitude
+              } : {
                 lat: 19.4326 + (Math.random() - 0.5) * 0.1,
                 lng: -99.1332 + (Math.random() - 0.5) * 0.1
               }
             });
           } else {
-            // Accumulate amounts if client has multiple loans
-            const existingClient = clientsMap.get(clientId);
-            existingClient.overdueAmount += overdueAmount;
-            existingClient.overdueDays = Math.max(existingClient.overdueDays, maxOverdueDays);
-            
-            // Update status to worst case
-            if (status === 'critical' || existingClient.status === 'critical') {
-              existingClient.status = 'critical';
-            } else if (status === 'overdue' || existingClient.status === 'overdue') {
-              existingClient.status = 'overdue';
-            }
+            const existing = clientsMap.get(clientId)!;
+            existing.overdueAmount += overdueAmount;
+            existing.overdueDays = Math.max(existing.overdueDays, maxOverdueDays);
+            if (status === 'critical') existing.status = 'critical';
+            else if (status === 'overdue' && existing.status === 'current') existing.status = 'overdue';
           }
-          
+
           // Create collection tasks for overdue payments
           if (overdueAmount > 0) {
-            overduePayments.forEach((payment: any, index: number) => {
+            overduePayments.forEach((payment: any) => {
               const dueDate = new Date(payment.dueDate);
               const daysOverdue = Math.floor((new Date().getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
               
-              let priority: 'high' | 'medium' | 'low';
-              if (daysOverdue > 30) {
-                priority = 'high';
-              } else if (daysOverdue > 15) {
-                priority = 'medium';
-              } else {
-                priority = 'low';
-              }
+              let priority: 'high' | 'medium' | 'low' = daysOverdue > 30 ? 'high' : (daysOverdue > 15 ? 'medium' : 'low');
               
               tasksArray.push({
                 id: payment.id,
@@ -190,8 +191,16 @@ export default function AsesorPWAPage() {
           }
         });
         
-        setClients(Array.from(clientsMap.values()));
+        const finalClients = Array.from(clientsMap.values());
+        setClients(finalClients);
         setTasks(tasksArray);
+        
+        // Cache for offline
+        if (storage) {
+          for (const client of finalClients) {
+            await storage.put(STORES.CLIENTS, client);
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading asesor data:', error);
