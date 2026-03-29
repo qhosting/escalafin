@@ -1,72 +1,39 @@
-'use client';
-
-import React from 'react';
-import { motion } from 'framer-motion';
 
 export default function Loading() {
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white dark:bg-gray-950 overflow-hidden">
-      {/* Background Ambient Glow - Sophisticated and subtle */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[140px] pointer-events-none animate-pulse opacity-50" />
-      
-      <div className="relative flex flex-col items-center justify-center">
-        {/* Orbital Loading Core */}
-        <div className="relative h-32 w-32 md:h-48 md:w-48">
-          {/* External Orbital Ring */}
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 border-[1.5px] border-primary/20 rounded-full border-dashed"
-          />
-          
-          {/* Middle Kinetic Ring */}
-          <motion.div
-            animate={{ rotate: -360 }}
-            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-4 border-[2px] border-primary/30 rounded-full border-t-primary"
-          />
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#080a0f]">
+      {/* Top progress bar */}
+      <div className="fixed top-0 left-0 right-0 h-[2px] z-[10000] overflow-hidden">
+        <div className="h-full bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600 animate-shimmer-x" />
+      </div>
 
-          {/* Inner Glowing Core */}
-          <motion.div
-            animate={{ 
-              scale: [1, 1.15, 1],
-              opacity: [0.5, 1, 0.5]
-            }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-10 rounded-full bg-gradient-to-br from-primary via-blue-600 to-indigo-700 shadow-[0_0_50px_rgba(var(--primary-rgb),0.5)] flex items-center justify-center overflow-hidden"
-          >
-             {/* Reflection Layer */}
-             <div className="absolute top-0 left-0 w-full h-1/2 bg-white/20 -skew-y-12 blur-sm" />
-          </motion.div>
+      {/* Ambient glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-blue-700/10 rounded-full blur-[100px] pointer-events-none" />
 
-          {/* Micro Particles / Orbital Dots */}
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0"
-          >
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-primary shadow-glow shadow-primary/80" />
-          </motion.div>
-
-           <motion.div
-            animate={{ rotate: -360 }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0"
-          >
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-blue-400 shadow-glow shadow-blue-400/80" />
-          </motion.div>
+      {/* Logo + Spinner */}
+      <div className="relative flex flex-col items-center gap-6">
+        {/* Ring */}
+        <div className="relative w-16 h-16">
+          <div className="absolute inset-0 rounded-full border-2 border-white/5" />
+          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-500 border-r-blue-500/30 animate-spin" style={{ animationDuration: '0.7s' }} />
+          <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 shadow-lg flex items-center justify-center">
+            <div className="w-3 h-3 rounded-full bg-white/80" />
+          </div>
         </div>
+        <p className="text-[10px] font-black text-slate-700 uppercase tracking-[0.4em] animate-pulse">
+          Cargando
+        </p>
       </div>
 
-      {/* Extreme Top Progress Line - For consistent browser experience */}
-      <div className="fixed top-0 left-0 right-0 h-1 z-[10000]">
-        <motion.div 
-          initial={{ width: "0%" }}
-          animate={{ x: ["-100%", "100%"] }}
-          transition={{ duration: 2.5, ease: "easeInOut", repeat: Infinity }}
-          className="w-full h-full bg-gradient-to-r from-transparent via-primary to-transparent opacity-60"
-        />
-      </div>
+      <style jsx>{`
+        @keyframes shimmer-x {
+          0%   { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+        .animate-shimmer-x {
+          animation: shimmer-x 1.4s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }
