@@ -48,6 +48,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { CierrePenalizaciones } from '@/components/admin/operations/cierre-penalizaciones';
 
 interface DashboardStats {
   activeLoans: number;
@@ -357,6 +358,17 @@ export function EnhancedAdminDashboard() {
             <p className="text-sm font-medium text-gray-900 dark:text-white capitalize">
               {new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
+          </div>
+        </div>
+
+        {/* Acciones del Día (Multas) */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 bg-orange-50/50 dark:bg-orange-950/10 p-6 rounded-[2rem] border border-orange-100 dark:border-orange-900/50">
+          <div className="flex-1 space-y-1">
+            <h3 className="text-lg font-black text-orange-900 dark:text-orange-400 uppercase italic leading-none">Operaciones del Día</h3>
+            <p className="text-xs font-bold text-orange-700/60 tracking-tight">Ejecución masiva de cargos y cierres operativos del sistema.</p>
+          </div>
+          <div className="flex items-center gap-3">
+             <CierrePenalizaciones />
           </div>
         </div>
 

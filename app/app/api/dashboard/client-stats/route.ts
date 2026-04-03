@@ -98,8 +98,23 @@ export async function GET() {
       take: 5
     });
 
+    // Obtener penalizaciones pendientes
+    const pendingPenalties = await tenantPrisma.lateFeePenalty.findMany({
+      where: {
+        loan: { clientId: client.id },
+        status: 'PENDING'
+      },
+      select: {
+        id: true,
+        amount: true,
+        loanId: true
+      }
+    });
+
+    const totalPenalties = pendingPenalties.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+
     // Calcular totales (convertir Decimal a número)
-    const totalDebt = activeLoans.reduce((sum, loan) => sum + Number(loan.balanceRemaining || 0), 0);
+    const totalDebt = activeLoans.reduce((sum, loan) => sum + Number(loan.balanceRemaining || 0), 0) + totalPenalties;
     const totalMonthlyPayment = activeLoans.reduce((sum, loan) => sum + Number(loan.monthlyPayment || 0), 0);
 
     // Calcular próximo pago (basado en el inicio del préstamo y la fecha actual)
@@ -112,23 +127,37 @@ export async function GET() {
       const nextPaymentDate = new Date(startDate);
       nextPaymentDate.setMonth(nextPaymentDate.getMonth() + monthsSinceStart + 1);
 
+      // Sumar penalizaciones de este préstamo específico al pago sugerido si se desea, 
+      // pero por ahora lo mantendremos separado o informativo.
+      const loanPenalties = pendingPenalties
+        .filter((p: any) => p.loanId === loanWithNextPayment.id)
+        .reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+
       return {
-        amount: Number(loanWithNextPayment.monthlyPayment || 0),
+        amount: Number(loanWithNextPayment.monthlyPayment || 0) + loanPenalties,
         date: nextPaymentDate.toISOString(),
-        loanNumber: loanWithNextPayment.loanNumber
+        loanNumber: loanWithNextPayment.loanNumber,
+        penaltyAmount: loanPenalties
       };
     })() : null;
 
     return NextResponse.json({
-      activeLoans: activeLoans.map(loan => ({
-        id: loan.loanNumber,
-        type: 'Préstamo Personal',
-        originalAmount: Number(loan.principalAmount),
-        remainingBalance: Number(loan.balanceRemaining || 0),
-        monthlyPayment: Number(loan.monthlyPayment || 0),
-        nextPaymentDate: nextPayment?.date,
-        status: loan.status.toLowerCase()
-      })),
+      activeLoans: activeLoans.map(loan => {
+        const loanPenalties = pendingPenalties
+          .filter((p: any) => p.loanId === loan.id)
+          .reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+          
+        return {
+          id: loan.loanNumber,
+          type: 'Préstamo Personal',
+          originalAmount: Number(loan.principalAmount),
+          remainingBalance: Number(loan.balanceRemaining || 0),
+          monthlyPayment: Number(loan.monthlyPayment || 0),
+          penaltyBalance: loanPenalties,
+          nextPaymentDate: nextPayment?.date,
+          status: loan.status.toLowerCase()
+        };
+      }),
       recentPayments: recentPayments.map(payment => ({
         date: payment.paymentDate.toISOString(),
         amount: Number(payment.amount),
@@ -144,6 +173,7 @@ export async function GET() {
       summary: {
         totalDebt,
         totalMonthlyPayment,
+        totalPenalties,
         activeLoansCount: activeLoans.length,
         nextPayment
       },

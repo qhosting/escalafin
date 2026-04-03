@@ -70,6 +70,17 @@ export async function GET(
           amortizationSchedule: {
             orderBy: { paymentNumber: 'asc' }
           },
+          lateFeePenalties: {
+            include: {
+              installment: {
+                select: {
+                  paymentNumber: true,
+                  paymentDate: true
+                }
+              }
+            },
+            orderBy: { createdAt: 'desc' }
+          },
           payments: {
             orderBy: { paymentDate: 'desc' },
             include: {

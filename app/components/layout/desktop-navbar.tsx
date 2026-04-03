@@ -181,7 +181,8 @@ export function DesktopNavbar() {
             items: [
               { title: 'Historial de Pagos', icon: DollarSign, href: '/admin/payments', moduleKey: 'payment_history' },
               { title: 'Transacciones', icon: Receipt, href: '/admin/payments/transactions', moduleKey: 'payment_history' },
-              { title: 'No Pago', icon: Activity, href: '/admin/payments/no-pago', moduleKey: 'loan_list' }
+              { title: 'No Pago', icon: Activity, href: '/admin/payments/no-pago', moduleKey: 'loan_list' },
+              { title: 'Penalizaciones', icon: ShieldCheck, href: '/admin/penalties', moduleKey: 'payment_history' }
             ]
           }
         ],

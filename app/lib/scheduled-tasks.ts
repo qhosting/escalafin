@@ -260,6 +260,36 @@ export class ScheduledTasksService {
       console.error('Error procesando notificaciones push programadas:', error);
     }
   }
+
+  // Generar penalizaciones automáticas por mora (Cierre de día automático)
+  async processAutomaticPenalties(): Promise<void> {
+    try {
+      console.log('--- Iniciando procesamiento de penalizaciones automáticas ---');
+      const { PenaltyService } = await import('./penalty-service');
+
+      // 1. Obtener todos los tenants activos
+      const tenants = await prisma.tenant.findMany({
+        where: { status: 'ACTIVE' }
+      });
+
+      console.log(`Procesando penalizaciones para ${tenants.length} organizaciones.`);
+
+      for (const tenant of tenants) {
+        try {
+          console.log(`> Org: ${tenant.name} (${tenant.id})`);
+          const penaltyService = new PenaltyService(tenant.id);
+          const created = await (penaltyService as any).applyPenalties();
+          console.log(`  - Aplicadas ${created.length} penalizaciones.`);
+        } catch (tenantError) {
+          console.error(`  - Error procesando tenant ${tenant.id}:`, tenantError);
+        }
+      }
+
+      console.log('--- Fin del procesamiento de penalizaciones automáticas ---');
+    } catch (error) {
+      console.error('Error crítico en procesamiento de penalizaciones:', error);
+    }
+  }
 }
 
 export default ScheduledTasksService;

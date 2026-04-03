@@ -17,13 +17,14 @@ model Tenant {
   logo               String?
   primaryColor       String?
   timezone           String                 @default("America/Mexico_City")
-  isDemo             Boolean                @default(false)
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
+  isDemo             Boolean                @default(false)
   apiKeys            ApiKey[]
   auditLogs          AuditLog[]
   clients            Client[]
   collaterals        Collateral[]
+  collectionVisits   CollectionVisit[]
   collectionRoutes   CollectionRoute[]
   commissionRecords  CommissionRecord[]
   commissionSchemas  CommissionSchema[]
@@ -189,6 +190,7 @@ model Client {
   promises                     PromiseToPay[]         @relation("ClientPromises")
   whatsappMessages             WhatsAppMessage[]      @relation("ClientMessages")
 
+  @@index([tenantId])
   @@map("clients")
 }
 
@@ -208,15 +210,18 @@ model CollectionVisit {
   updatedAt   DateTime         @updatedAt
   routeId     String?
   loanId      String?
+  tenantId    String?
   advisor     User             @relation("AdvisorVisits", fields: [advisorId], references: [id])
   client      Client           @relation("ClientVisits", fields: [clientId], references: [id], onDelete: Cascade)
   loan        Loan?            @relation("LoanVisits", fields: [loanId], references: [id])
   route       CollectionRoute? @relation(fields: [routeId], references: [id])
+  tenant      Tenant?          @relation(fields: [tenantId], references: [id])
   promises    PromiseToPay[]
 
   @@index([clientId])
   @@index([advisorId])
   @@index([routeId])
+  @@index([tenantId])
   @@map("collection_visits")
 }
 
@@ -297,6 +302,7 @@ model CreditApplication {
   creditScores    CreditScore[]     @relation("ApplicationScoring")
   loan            Loan?
 
+  @@index([tenantId])
   @@map("credit_applications")
 }
 
@@ -335,6 +341,7 @@ model Loan {
   payments             Payment[]
   promises             PromiseToPay[]
 
+  @@index([tenantId])
   @@map("loans")
 }
 
@@ -390,6 +397,7 @@ model Payment {
   processedByUser        User?                 @relation("ProcessedBy", fields: [processedBy], references: [id])
   tenant                 Tenant?               @relation(fields: [tenantId], references: [id])
 
+  @@index([tenantId])
   @@map("payments")
 }
 
@@ -617,6 +625,7 @@ model MessageTemplate {
   @@unique([name, tenantId])
   @@index([category])
   @@index([channel])
+  @@index([tenantId])
   @@map("message_templates")
 }
 
@@ -639,6 +648,7 @@ model WahaConfig {
   tenant                  Tenant?  @relation(fields: [tenantId], references: [id])
 
   @@unique([sessionId, tenantId])
+  @@index([tenantId])
   @@map("waha_config")
 }
 
@@ -749,6 +759,7 @@ model CollectionRoute {
 
   @@index([advisorId])
   @@index([date])
+  @@index([tenantId])
   @@map("collection_routes")
 }
 
@@ -772,6 +783,7 @@ model PromiseToPay {
   @@index([loanId])
   @@index([clientId])
   @@index([status])
+  @@index([tenantId])
   @@map("promise_to_pay")
 }
 
@@ -788,6 +800,7 @@ model CommissionSchema {
   records     CommissionRecord[]
   tenant      Tenant?            @relation(fields: [tenantId], references: [id])
 
+  @@index([tenantId])
   @@map("commission_schemas")
 }
 
@@ -808,6 +821,7 @@ model CommissionRecord {
 
   @@index([advisorId])
   @@index([status])
+  @@index([tenantId])
   @@map("commission_records")
 }
 
@@ -834,6 +848,7 @@ model IdentityVerification {
 
   @@index([clientId])
   @@index([status])
+  @@index([tenantId])
   @@map("identity_verifications")
 }
 

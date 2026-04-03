@@ -32,7 +32,8 @@ import {
     ChevronDown,
     Mail,
     Activity,
-    ShieldCheck
+    ShieldCheck,
+    ShieldAlert
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -239,7 +240,8 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
                             title: 'Pagos',
                             items: [
                                 { title: 'Historial de Pagos', icon: DollarSign, href: '/admin/payments', moduleKey: 'payment_history' },
-                                { title: 'No Pago', icon: Receipt, href: '/admin/payments/no-pago', moduleKey: 'loan_list' }
+                                { title: 'No Pago', icon: Receipt, href: '/admin/payments/no-pago', moduleKey: 'loan_list' },
+                                { title: 'Penalizaciones', icon: ShieldAlert, href: '/admin/penalties', moduleKey: 'payment_history' }
                             ]
                         }
                     ]

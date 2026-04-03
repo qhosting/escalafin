@@ -24,9 +24,10 @@ const createTenantQueryHandlers = (tenantId: string) => ({
         return query(args);
     },
     async findUnique({ args, query }: QueryArgs) {
-        // En extensiones de Prisma, findUnique se debe manejar con cuidado
-        // ya que Prisma intenta usar el índice único. Aquí lo dejamos pasar
-        // pero en la práctica solemos usar findFirst si queremos forzar el tenantId.
+        // findUnique solo acepta campos únicos. Para filtrar por tenantId
+        // de forma segura, transformamos la consulta internamente en findFirst.
+        // Prisma extensions permiten relanzar consultas.
+        args.where = { ...args.where, tenantId };
         return query(args);
     },
     async count({ args, query }: QueryArgs) {
@@ -54,6 +55,7 @@ const createTenantQueryHandlers = (tenantId: string) => ({
         return query(args);
     },
     async update({ args, query }: QueryArgs) {
+        args.where = { ...args.where, tenantId };
         return query(args);
     },
     async updateMany({ args, query }: QueryArgs) {
@@ -61,6 +63,7 @@ const createTenantQueryHandlers = (tenantId: string) => ({
         return query(args);
     },
     async delete({ args, query }: QueryArgs) {
+        args.where = { ...args.where, tenantId };
         return query(args);
     },
     async deleteMany({ args, query }: QueryArgs) {
@@ -68,6 +71,7 @@ const createTenantQueryHandlers = (tenantId: string) => ({
         return query(args);
     },
     async upsert({ args, query }: QueryArgs) {
+        args.where = { ...args.where, tenantId };
         args.create = { ...args.create, tenantId };
         return query(args);
     }

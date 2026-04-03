@@ -22,8 +22,12 @@ import {
   Camera,
   Save,
   DollarSign,
-  RefreshCw
+  RefreshCw,
+  Clock,
+  ShieldCheck,
+  ShieldAlert
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 import { PaymentSuccessView } from './payment-success-view';
@@ -43,6 +47,7 @@ interface CashPaymentData {
   collectionMethod: 'home' | 'office' | 'field';
   photoEvidence?: File;
   lateFeePaid: number;
+  penaltyIds: string[];
 }
 
 interface CashPaymentFormProps {
@@ -82,9 +87,12 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
     receiptNumber: '',
     collectionMethod: 'field',
     photoEvidence: undefined,
-    lateFeePaid: 0
+    lateFeePaid: 0,
+    penaltyIds: []
   });
   
+  const [pendingPenalties, setPendingPenalties] = useState<any[]>([]);
+  const [loadingPenalties, setLoadingPenalties] = useState(false);
   const [accumulatedLateFee, setAccumulatedLateFee] = useState(0);
   const [processing, setProcessing] = useState(false);
   const [successData, setSuccessData] = useState<any | null>(null);
@@ -110,6 +118,29 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
   useEffect(() => {
     getCurrentLocation();
   }, [getCurrentLocation, loan?.id]);
+
+  // 🔍 Fetch Pending Penalties
+  useEffect(() => {
+    if (loan?.id) {
+      fetchPenalties();
+    }
+  }, [loan?.id]);
+
+  const fetchPenalties = async () => {
+    if (!loan?.id) return;
+    try {
+      setLoadingPenalties(true);
+      const response = await fetch(`/api/loans/${loan.id}/penalties`);
+      const data = await response.json();
+      if (data.penalties) {
+        setPendingPenalties(data.penalties);
+      }
+    } catch (e) {
+      console.error('Error fetching penalties:', e);
+    } finally {
+      setLoadingPenalties(false);
+    }
+  };
 
   // 💰 Auto-calculate next payment and late fees
   const [calcDoneForLoan, setCalcDoneForLoan] = useState<string | null>(null);
@@ -152,11 +183,33 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
         loanId: loan.id,
         clientId: loan.client.id,
         amount: nextPaymentAmount + totalMora,
-        lateFeePaid: totalMora 
+        lateFeePaid: totalMora,
+        penaltyIds: [] // No seleccionamos ninguna por defecto, el usuario debe elegir
       }));
       setCalcDoneForLoan(loan.id);
     }
   }, [loan, calcDoneForLoan]);
+
+  const togglePenalty = (penalty: any) => {
+    const isSelected = formData.penaltyIds.includes(penalty.id);
+    const penaltyAmount = Number(penalty.amount);
+
+    if (isSelected) {
+      setFormData(prev => ({
+        ...prev,
+        penaltyIds: prev.penaltyIds.filter(id => id !== penalty.id),
+        lateFeePaid: prev.lateFeePaid - penaltyAmount,
+        amount: prev.amount - penaltyAmount
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        penaltyIds: [...prev.penaltyIds, penalty.id],
+        lateFeePaid: prev.lateFeePaid + penaltyAmount,
+        amount: prev.amount + penaltyAmount
+      }));
+    }
+  };
 
   const handleInputChange = (field: keyof CashPaymentData, value: string | number | File | null) => {
     setFormData(prev => ({
@@ -193,6 +246,7 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
       formDataToSend.append('collectionMethod', formData.collectionMethod);
       formDataToSend.append('collectorId', session.user.id);
       formDataToSend.append('lateFeePaid', formData.lateFeePaid.toString());
+      formDataToSend.append('penaltyIds', JSON.stringify(formData.penaltyIds));
 
       const response = await fetch('/api/payments/cash', {
         method: 'POST',
@@ -383,6 +437,69 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
               Ubicación GPS: {formData.collectorLocation}
             </span>
           </div>
+
+          {/* Penalizaciones por Cobrar - Mostrar solo si hay */}
+          {pendingPenalties.length > 0 && (
+            <div className="pt-6 border-t border-gray-100 dark:border-gray-800 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="bg-orange-100 dark:bg-orange-900/30 p-2 rounded-xl">
+                    <ShieldAlert className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black uppercase text-slate-800 dark:text-white">Multas por Incumplimiento</h4>
+                    <p className="text-[10px] font-bold text-slate-400">Seleccione las multas de $200 que desea cobrar ahora</p>
+                  </div>
+                </div>
+                <Badge className="bg-orange-100 text-orange-700 font-black border-0 rounded-full h-6 px-3">
+                  {pendingPenalties.length} pendientes
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {pendingPenalties.map((penalty) => (
+                  <div 
+                    key={penalty.id}
+                    className={cn(
+                      "group flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer active:scale-95",
+                      formData.penaltyIds.includes(penalty.id) 
+                        ? "bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800" 
+                        : "bg-white border-gray-50 hover:border-gray-200 dark:bg-gray-900 dark:border-gray-800"
+                    )}
+                    onClick={() => togglePenalty(penalty)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all",
+                        formData.penaltyIds.includes(penalty.id) ? "bg-orange-600 border-orange-600" : "border-gray-200"
+                      )}>
+                        {formData.penaltyIds.includes(penalty.id) && <CheckCircle2 className="h-4 w-4 text-white" />}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className={cn(
+                          "text-[10px] font-black uppercase tracking-tighter",
+                          formData.penaltyIds.includes(penalty.id) ? "text-orange-700" : "text-gray-400"
+                        )}>
+                          Pag.# {penalty.installment?.paymentNumber || 'N/A'} • {penalty.createdAt ? new Date(penalty.createdAt).toLocaleDateString() : ''}
+                        </p>
+                        <p className="text-sm font-black text-slate-700 dark:text-gray-200">${penalty.amount}</p>
+                      </div>
+                    </div>
+                    {formData.penaltyIds.includes(penalty.id) && (
+                      <Badge className="bg-orange-600 text-white border-0 font-black text-[9px] uppercase tracking-widest">Cobrar</Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 p-4 bg-orange-100/30 rounded-2xl border border-dashed border-orange-200">
+                <ShieldCheck className="h-4 w-4 text-orange-600" />
+                <span className="text-[10px] font-black text-orange-700 uppercase tracking-widest">
+                  Total seleccionado en multas: {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(formData.penaltyIds.length * 200)}
+                </span>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

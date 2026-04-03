@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
 import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
 import { prisma } from '@/lib/prisma';
+import { PenaltyService } from '@/lib/penalty-service';
 
 export async function POST(request: NextRequest) {
     try {
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
         const collectionMethod = formData.get('collectionMethod') as string | null; 
         const collectorLocation = formData.get('collectorLocation') as string | null;
         const lateFeePaidRaw = formData.get('lateFeePaid');
+        const penaltyIdsRaw = formData.get('penaltyIds') as string | null;
 
         const processedBy = session.user.id;
 
@@ -80,6 +82,19 @@ export async function POST(request: NextRequest) {
                     lateFeePaid: lateFeePaid
                 }
             });
+
+            // 1.1 Mark Penalties as Paid
+            if (penaltyIdsRaw) {
+                try {
+                    const penaltyIds = JSON.parse(penaltyIdsRaw);
+                    if (Array.isArray(penaltyIds) && penaltyIds.length > 0) {
+                        const penaltyService = new PenaltyService(tenantId);
+                        await penaltyService.payPenalties(penaltyIds, payment.id);
+                    }
+                } catch (e) {
+                    console.error('Error parsing or processing penaltyIds:', e);
+                }
+            }
 
             // 2. Reduce Balance on Loan (Solo el monto que no es mora)
             const amortizedAmount = Math.max(0, amount - lateFeePaid);

@@ -1,6 +1,5 @@
-
 import { getTenantPrisma } from './tenant-db';
-
+import { redisCache, CACHE_TTL } from './redis-cache';
 
 export interface LoanTariffConfig {
     fixedFee: {
@@ -68,35 +67,40 @@ export class ConfigService {
     static async getLoanTariffs(tenantId: string): Promise<LoanTariffConfig> {
         if (!tenantId) return DEFAULT_LOAN_TARIFFS;
 
-        try {
-            const db = getTenantPrisma(tenantId);
+        const cacheKey = `config:${tenantId}:${CONFIG_KEY}`;
 
-            // Usamos findFirst porque findUnique requeriría la clave compuesta explícita
-            // y con getTenantPrisma ya filtramos por tenantId en findFirst.
-            const config = await db.systemConfig.findFirst({
-                where: { key: CONFIG_KEY }
-            });
+        return redisCache.remember(
+            cacheKey,
+            CACHE_TTL.HOUR,
+            async () => {
+                try {
+                    const db = getTenantPrisma(tenantId);
 
-            if (config) {
-                return JSON.parse(config.value) as LoanTariffConfig;
-            }
+                    const config = await db.systemConfig.findFirst({
+                        where: { key: CONFIG_KEY }
+                    });
 
-            // Si no existe, crearla para este tenant
-            await db.systemConfig.create({
-                data: {
-                    key: CONFIG_KEY,
-                    value: JSON.stringify(DEFAULT_LOAN_TARIFFS),
-                    description: 'Configuración dinámica de tarifas y tasas de interés',
-                    category: 'LOANS'
-                    // tenantId se inyecta automáticamente por getTenantPrisma en create
+                    if (config) {
+                        return JSON.parse(config.value) as LoanTariffConfig;
+                    }
+
+                    // Si no existe, crearla para este tenant
+                    await db.systemConfig.create({
+                        data: {
+                            key: CONFIG_KEY,
+                            value: JSON.stringify(DEFAULT_LOAN_TARIFFS),
+                            description: 'Configuración dinámica de tarifas y tasas de interés',
+                            category: 'LOANS'
+                        }
+                    });
+
+                    return DEFAULT_LOAN_TARIFFS;
+                } catch (error) {
+                    console.error('Error obteniendo configuración de tarifas:', error);
+                    return DEFAULT_LOAN_TARIFFS;
                 }
-            });
-
-            return DEFAULT_LOAN_TARIFFS;
-        } catch (error) {
-            console.error('Error obteniendo configuración de tarifas:', error);
-            return DEFAULT_LOAN_TARIFFS; // Fallback seguro
-        }
+            }
+        );
     }
 
     /**
@@ -106,9 +110,8 @@ export class ConfigService {
         if (!tenantId) throw new Error('TenantID requerido para actualizar configuración');
 
         const db = getTenantPrisma(tenantId);
+        const cacheKey = `config:${tenantId}:${CONFIG_KEY}`;
 
-        // Upsert es tricky con extensiones y claves compuestas si la extensión no maneja el WHERE exacto del upsert.
-        // Mejor usar lógica explícita find -> update OR create para seguridad.
         const existing = await db.systemConfig.findFirst({
             where: { key: CONFIG_KEY }
         });
@@ -132,5 +135,8 @@ export class ConfigService {
                 }
             });
         }
+
+        // Invalidar cache
+        await redisCache.del(cacheKey);
     }
 }

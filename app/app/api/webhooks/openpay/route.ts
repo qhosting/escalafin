@@ -4,14 +4,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { AuditLogger } from '@/lib/audit';
 import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
+import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   let body: any = {};
+  const rawBody = await request.text();
+  
   try {
-    body = await request.json();
+    body = JSON.parse(rawBody);
 
-    // Validar que el webhook viene de Openpay
-    // En producción, aquí deberías validar la firma del webhook
+    // 🛡️ SEGURIDAD: Validar firma del webhook si está configurada
+    const signature = request.headers.get('x-openpay-signature');
+    const webhookSecret = process.env.OPENPAY_WEBHOOK_SECRET;
+
+    if (webhookSecret) {
+      if (!signature) {
+        console.warn('⚠️ Webhook de Openpay recibido sin firma, pero OPENPAY_WEBHOOK_SECRET está configurado.');
+        return NextResponse.json({ error: 'Firma requerida' }, { status: 401 });
+      }
+
+      const hmac = crypto.createHmac('sha256', webhookSecret);
+      hmac.update(rawBody);
+      const expectedSignature = hmac.digest('hex');
+
+      if (signature !== expectedSignature) {
+        console.error('🚫 Firma de webhook de Openpay inválida.');
+        return NextResponse.json({ error: 'Firma inválida' }, { status: 401 });
+      }
+    }
+
     const { type, transaction } = body;
 
     if (!type || !transaction) {

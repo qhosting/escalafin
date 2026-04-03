@@ -1,13 +1,9 @@
-export const dynamic = 'force-dynamic';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db';
 import { AuditLogger } from '@/lib/audit';
 import { extractRequestInfo } from '@/lib/audit';
-
-const prisma = new PrismaClient();
 
 // GET - Obtener configuraciones del sistema
 export async function GET(request: NextRequest) {
@@ -96,7 +92,7 @@ export async function POST(request: NextRequest) {
       action: 'SYSTEM_CONFIG_CREATE',
       resource: 'SystemConfig',
       resourceId: config.id,
-      details: { key, category },
+      details: { key, category, value },
       ...requestInfo,
     });
 
@@ -132,6 +128,15 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Obtener valor actual para auditoría
+    const currentConfig = await prisma.systemConfig.findUnique({
+      where: { id }
+    });
+
+    if (!currentConfig) {
+      return NextResponse.json({ error: 'Configuración no encontrada' }, { status: 404 });
+    }
+
     const config = await prisma.systemConfig.update({
       where: { id },
       data: {
@@ -143,7 +148,7 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    // Log de auditoría
+    // Log de auditoría enriquecido
     const auditLogger = new AuditLogger(prisma);
     const requestInfo = extractRequestInfo(request);
     await auditLogger.log({
@@ -152,7 +157,12 @@ export async function PUT(request: NextRequest) {
       action: 'SYSTEM_CONFIG_UPDATE',
       resource: 'SystemConfig',
       resourceId: config.id,
-      details: { key: config.key, changes: { value, description, isActive } },
+      details: { 
+        key: config.key, 
+        oldValue: currentConfig.value,
+        newValue: value !== undefined ? value : currentConfig.value,
+        changes: { value, description, isActive } 
+      },
       ...requestInfo,
     });
 

@@ -251,11 +251,18 @@ export function EnhancedClientDashboard() {
               <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Préstamos Activos</p>
               <p className="text-2xl font-extrabold text-gray-900 dark:text-white mt-1">{activeLoans.length}</p>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden">
               <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Saldo Total</p>
               <p className="text-2xl font-extrabold text-blue-600 mt-1">
                 ${dashboardData?.summary?.totalDebt?.toLocaleString('es-MX') || '0'}
               </p>
+              {dashboardData?.summary?.totalPenalties && dashboardData.summary.totalPenalties > 0 && (
+                 <div className="absolute top-0 right-0">
+                    <Badge className="bg-orange-100 text-orange-600 border-0 rounded-none rounded-bl-xl text-[8px] font-black uppercase px-2 py-0.5">
+                       Incl. Multas
+                    </Badge>
+                 </div>
+              )}
             </div>
           </div>
         )}
