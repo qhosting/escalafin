@@ -3,6 +3,22 @@
 
 Todos los cambios notables de este proyecto serán documentados en este archivo.
 
+
+## [2.8.0] - 2026-04-05
+
+### 🚀 Fixed - CRÍTICO
+- **MiddleWare ReferenceError**: Corregido error fatal en `app/middleware.ts` donde `isLocalhost` se usaba antes de ser definido. Este error causaba la **pantalla en blanco** generalizada en toda la aplicación.
+- **Node Engine Compatibility**: Sincronizada configuración de Docker y NPM para evitar errores de motor de Node v18/v20.
+
+### ✨ Added - SaaS & multi-tenancy
+- **Tenant Management**: Implementada interfaz avanzada de administración de inquilinos en `/admin/saas/tenants`.
+- **WAHA Service v3**: Refactorización completa del servicio de WhatsApp para soportar múltiples instancias aisladas por tenant.
+- **Login OTP/Dual Mode**: Refactorización del formulario de login para soportar entrada dual (Contraseña o OTP) con validación asíncrona.
+
+### 🔄 Changed
+- **Versioning Sincronizado**: Actualizadas 123 commits acumulados desde la versión 2.7.1.
+- **Layout Performance**: Optimización de carga de fuentes Inter y manejo de headers de tenant en el RootLayout.
+
 ## [2.7.1] - 2026-02-21
 
 ### 🚀 Fixed - Deployment & Support

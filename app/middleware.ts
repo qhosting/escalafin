@@ -6,6 +6,10 @@ export default withAuth(
   function middleware(req) {
     const { pathname } = req.nextUrl;
 
+    const hostname = req.headers.get('host') || '';
+    const rootDomain = process.env.ROOT_DOMAIN || 'escalafin.com';
+    const isLocalhost = hostname.includes('localhost');
+
     // 🛡️ SEGURIDAD: Bloqueo de escaneos y URLs maliciosas
     const maliciousPatterns = [
       '/wp-admin', '/wp-login', '.env', '/config', '/admin.php', 
@@ -52,14 +56,6 @@ export default withAuth(
       );
     }
 
-    // Lógica de Multi-tenancy
-    const hostname = req.headers.get('host') || '';
-
-    // Configuración de dominios
-    // En producción: app.escalafin.com -> default-tenant
-    // alquileres.escalafin.com -> alquileres
-    const rootDomain = process.env.ROOT_DOMAIN || 'escalafin.com';
-    const isLocalhost = hostname.includes('localhost');
 
     let tenantSlug = 'default-tenant';
 

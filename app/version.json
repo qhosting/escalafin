@@ -1,24 +1,20 @@
 {
-  "version": "1.1.1",
-  "buildNumber": "20251030.003",
-  "releaseDate": "2025-10-30",
-  "releaseName": "Portability & Deploy Fixes",
-  "gitCommit": "95fcb14",
+  "version": "2.8.0",
+  "buildNumber": "20260405.001",
+  "releaseDate": "2026-04-05",
+  "releaseName": "SaaS Evolution & Critical Fixes",
+  "gitCommit": "fbf555d",
   "environment": "production",
   "changelog": [
-    "Eliminadas todas las rutas absolutas hardcodeadas",
-    "Corregida configuración de Prisma para portabilidad",
-    "Eliminado yarn.lock (proyecto usa NPM)",
-    "Implementadas rutas relativas con process.cwd()",
-    "Agregado soporte para variables de entorno LOCAL_UPLOAD_DIR",
-    "Verificaciones pre-deploy automatizadas",
-    "Documentación completa de fixes y deployment",
-    "Eliminado archivo core dump del historial de git",
-    "Limpieza y optimización del repositorio"
+    "Corregido ReferenceError en middleware que causaba pantalla en blanco",
+    "Refactorizada arquitectura de WAHA para multi-tenancy",
+    "Implementada gestión avanzada de Tenants SaaS",
+    "Optimizada carga de fuentes Inter y layouts",
+    "Actualizadas dependencias críticas de seguridad"
   ],
   "compatibility": {
-    "node": "18.x",
-    "npm": "9.x",
+    "node": "20.x",
+    "npm": "10.x",
     "nextjs": "14.2.28",
     "prisma": "6.7.0",
     "docker": ">=20.10"

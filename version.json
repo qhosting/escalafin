@@ -1,21 +1,20 @@
 {
-  "version": "2.7.1",
-  "buildNumber": "20260221.001",
-  "releaseDate": "2026-02-21",
-  "releaseName": "Support & Docker Fixes",
-  "gitCommit": "a22a36d",
+  "version": "2.8.0",
+  "buildNumber": "20260405.001",
+  "releaseDate": "2026-04-05",
+  "releaseName": "SaaS Evolution & Critical Fixes",
+  "gitCommit": "fbf555d",
   "environment": "production",
   "changelog": [
-    "Actualizado número de WhatsApp de soporte a 4424000742",
-    "Corregido error al guardar configuración de transferencia SPEI",
-    "Migrada imagen Docker a Node 20 para mejor compatibilidad",
-    "Cambiado gestor de paquetes a NPM en entorno Docker para mayor estabilidad",
-    "Implementadas rutas relativas con process.cwd()",
-    "Verificaciones pre-deploy automatizadas"
+    "Corregido ReferenceError en middleware que causaba pantalla en blanco",
+    "Refactorizada arquitectura de WAHA para multi-tenancy",
+    "Implementada gestión avanzada de Tenants SaaS",
+    "Optimizada carga de fuentes Inter y layouts",
+    "Actualizadas dependencias críticas de seguridad"
   ],
   "compatibility": {
-    "node": "18.x",
-    "npm": "9.x",
+    "node": "20.x",
+    "npm": "10.x",
     "nextjs": "14.2.28",
     "prisma": "6.7.0",
     "docker": ">=20.10"
