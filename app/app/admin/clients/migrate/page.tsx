@@ -1,14 +1,12 @@
 
 'use client';
 
-import { ClientMigration } from '@/components/clients/client-migration';
+import ClientMigration from '@/components/clients/client-migration';
 import { AuthWrapper } from '@/components/auth-wrapper';
 import { ArrowLeft, Database } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-export const dynamic = 'force-dynamic';
 
 export default function ClientMigrationPage() {
   return (
