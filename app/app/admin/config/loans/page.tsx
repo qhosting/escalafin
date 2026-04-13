@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LoanTariffConfig, DEFAULT_LOAN_TARIFFS } from '@/lib/config-service';
+import { LoanTariffConfig, DEFAULT_LOAN_TARIFFS } from '@/lib/loan-config-shared';
 import { toast } from 'sonner';
 import { PageLoader } from '@/components/ui/page-loader';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, RotateCcw, Save, Loader2, Trash2, Plus, DollarSign } from 'lucide-react';
 
 export default function LoanConfigPage() {
     const [loading, setLoading] = useState(true);
