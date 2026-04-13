@@ -4,14 +4,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  const tenants = await prisma.tenant.findMany({
-    where: {
-      OR: [
-        { slug: 'demo' },
-        { slug: 'escalafin-demo' }
-      ]
-    }
-  });
+  const tenants = await prisma.tenant.findMany();
 
   console.log('--- Tenants Encontrados ---');
   tenants.forEach(t => {

@@ -2,8 +2,8 @@
 
 Este documento es la única fuente de verdad para el estado del sistema, arquitectura, hitos alcanzados y planes futuros.
 
-**Última Actualización**: Febrero 22, 2026  
-**Versión Actual**: `2.7.1`
+**Última Actualización**: Abril 13, 2026  
+**Versión Actual**: `2.8.0`
 
 ---
 
@@ -15,7 +15,7 @@ Este documento es la única fuente de verdad para el estado del sistema, arquite
 - **ORM**: Prisma 6.7.0.
 - **Base de Datos**: PostgreSQL 15.
 - **Caché/Colas**: Redis 7.x (Sesiones, Rate Limiting, BullMQ).
-- **Infraestructura**: Docker (Debian 12 Bookworm Slim), NPM 10.8.2.
+- **Infraestructura**: Docker (Debian 12 Bookworm Slim), Next.js 14.2.28.
 - **Almacenamiento**: AWS S3 / Almacenamiento Local Dual.
 
 ### Estrategia Multi-tenancy
@@ -71,6 +71,7 @@ El Super Admin gestiona el ecosistema global de EscalaFin.
 1.  **Validación de Firma API**: Firma criptográfica para webhooks de Openpay.
 2.  **Analytics Profundo**: Cálculo real de Churn Rate, LTV y CAC.
 3.  **Developer Portal**: Gestión de API Keys para integración externa de tenants.
+4.  **Audit Hub**: Dashboards de auditoría global para trazabilidad de cobros y accesos.
 
 ---
 
@@ -82,8 +83,11 @@ El Super Admin gestiona el ecosistema global de EscalaFin.
 - [ ] **Email Marketing**: Automatización de campañas basadas en comportamiento del cliente.
 
 ### 📱 Prioridad Media
-- [ ] **App Móvil Nativa (Android)**: 🚧 Inicio de desarrollo (Módulo de cobranza offline implementado en PWA/Capacitor core).
+- [ ] **Offline Sync Engine**: Sistema robusto de sincronización bidireccional para zonas con conectividad nula (agentes en campo).
+- [ ] **Predictive AI Collections**: Motor de predicción de horarios óptimos de visita basado en comportamiento histórico.
 - [ ] **Marketplace de Garantías**: Gestión de colaterales y subastas internas.
+- [ ] **White-labeling Dinámico**: Inyección de temas y branding avanzado por tenant vía CSS variables.
+- [ ] **Webhooks v1**: Sistema de notificaciones salientes para integraciones con ERPs/Contabilidad.
 
 ### 🌐 Prioridad Baja
 - [ ] **Multi-tenancy Físico**: Opción de aislar DBs por tenant para clientes enterprise.
