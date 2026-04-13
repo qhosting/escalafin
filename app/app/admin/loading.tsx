@@ -1,3 +1,4 @@
+'use client';
 
 // Admin section skeleton — matches the main-layout sidebar + content structure
 

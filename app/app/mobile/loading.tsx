@@ -1,3 +1,4 @@
+'use client';
 
 function Sk({ className }: { className?: string }) {
   return <div className={`bg-white/[0.05] animate-pulse rounded-xl ${className}`} />;

@@ -1,3 +1,4 @@
+'use client';
 
 function Skeleton({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
