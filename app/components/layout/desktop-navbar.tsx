@@ -164,7 +164,8 @@ export function DesktopNavbar() {
           {
             title: 'Usuarios',
             items: [
-              { title: 'Gestión de Usuarios', icon: UserPlus, href: '/admin/users', moduleKey: 'user_management' }
+              { title: 'Gestión de Usuarios', icon: UserPlus, href: '/admin/users', moduleKey: 'user_management' },
+              { title: 'Verificación KYC', icon: ShieldCheck, href: '/admin/kyc', moduleKey: 'user_management' }
             ]
           }
         ],
@@ -182,7 +183,8 @@ export function DesktopNavbar() {
               { title: 'Historial de Pagos', icon: DollarSign, href: '/admin/payments', moduleKey: 'payment_history' },
               { title: 'Transacciones', icon: Receipt, href: '/admin/payments/transactions', moduleKey: 'payment_history' },
               { title: 'No Pago', icon: Activity, href: '/admin/payments/no-pago', moduleKey: 'loan_list' },
-              { title: 'Penalizaciones', icon: ShieldCheck, href: '/admin/penalties', moduleKey: 'payment_history' }
+              { title: 'Penalizaciones', icon: ShieldCheck, href: '/admin/penalties', moduleKey: 'payment_history' },
+              { title: 'Comisiones', icon: Layers, href: '/admin/commissions', moduleKey: 'payment_history' }
             ]
           }
         ],
@@ -191,13 +193,14 @@ export function DesktopNavbar() {
             title: 'Análisis',
             items: [
               { title: 'Dashboard Analítico', icon: BarChart3, href: '/admin/analytics', moduleKey: 'analytics_dashboard' },
-              { title: 'Portfolio', icon: TrendingUp, href: '/admin/reports', moduleKey: 'report_portfolio' }
+              { title: 'Personalizados', icon: FileText, href: '/admin/reports', moduleKey: 'report_portfolio' },
+              { title: 'Administración IA', icon: RefreshCw, href: '/admin/scoring', moduleKey: 'analytics_dashboard' }
             ]
           },
           {
             title: 'Cobranza',
             items: [
-              { title: 'Reportes de Cobranza', icon: Phone, href: '/admin/reports/collections', moduleKey: 'report_collections' }
+              { title: 'Rutas de Cobranza', icon: Phone, href: '/admin/collections', moduleKey: 'report_collections' }
             ]
           },
           {
@@ -205,6 +208,29 @@ export function DesktopNavbar() {
             items: [
               { title: 'Gestión de Archivos', icon: FileText, href: '/admin/files', moduleKey: 'file_management' },
               { title: 'Google Drive', icon: HardDrive, href: '/admin/storage', moduleKey: 'file_management' }
+            ]
+          }
+        ],
+        ],
+        'Comunicación': [
+          {
+            title: 'WhatsApp',
+            items: [
+              { title: 'Chat Center', icon: MessageSquare, href: '/admin/whatsapp', moduleKey: 'whatsapp_notifications' },
+              { title: 'Recargas', icon: RefreshCw, href: '/admin/message-recharges', moduleKey: 'whatsapp_notifications' }
+            ]
+          },
+          {
+            title: 'SMS',
+            items: [
+              { title: 'LabsMobile', icon: Phone, href: '/admin/sms', moduleKey: 'labsmobile_sms' }
+            ]
+          },
+          {
+            title: 'Notificaciones',
+            items: [
+              { title: 'Centro de Notificaciones', icon: Bell, href: '/notifications', moduleKey: 'notifications_inapp' },
+              { title: 'Plantillas de Mensajes', icon: Mail, href: '/admin/message-templates', moduleKey: 'notifications_templates' }
             ]
           }
         ],

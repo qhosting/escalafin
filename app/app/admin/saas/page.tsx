@@ -97,7 +97,7 @@ export default function SaaSOverviewV2() {
                     unit="MXN"
                     icon={<CreditCardIcon className="h-6 w-6" />}
                     color="emerald"
-                    trend="+12% vs mes ant."
+                    trend={`${stats.trends.mrr} vs mes ant.`}
                 />
                 <ModernStatCard
                     title="Ecosistema Tenants"
@@ -105,7 +105,7 @@ export default function SaaSOverviewV2() {
                     unit={`de ${stats.totalTenants} regs`}
                     icon={<BuildingOfficeIcon className="h-6 w-6" />}
                     color="indigo"
-                    trend={`${stats.activeTenants} activos`}
+                    trend={`${stats.trends.tenants} crecimiento`}
                 />
                 <ModernStatCard
                     title="Volumen Operativo"
@@ -113,7 +113,7 @@ export default function SaaSOverviewV2() {
                     unit="Préstamos"
                     icon={<GlobeAltIcon className="h-6 w-6" />}
                     color="amber"
-                    trend="Carga global activa"
+                    trend={`${stats.trends.loans} actividad`}
                 />
                 <ModernStatCard
                     title="Carga de Datos"
@@ -121,7 +121,7 @@ export default function SaaSOverviewV2() {
                     unit="Clientes"
                     icon={<UsersIcon className="h-6 w-6" />}
                     color="rose"
-                    trend="Base de datos única"
+                    trend={`${stats.trends.clients} registros`}
                 />
                 <Link href="/admin/saas/security" className="block">
                     <ModernStatCard
@@ -267,7 +267,7 @@ export default function SaaSOverviewV2() {
                     </CardContent>
                 </Card>
 
-                {/* Infrastructure Monitor (Mock) */}
+                {/* Infrastructure Monitor */}
                 <Card className="lg:col-span-2 shadow-sm border-gray-100">
                     <CardHeader className="border-b bg-gray-50/30">
                         <CardTitle className="text-md flex items-center justify-between">
@@ -280,17 +280,25 @@ export default function SaaSOverviewV2() {
                             <div className="space-y-6">
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-xs font-bold uppercase text-gray-400 tracking-wider">
-                                        <span>Capacidad Base de Datos</span>
-                                        <span className="text-indigo-600">42%</span>
+                                        <span>Tamaño Base de Datos ({stats.infrastructure.dbSize})</span>
+                                        <span className="text-indigo-600">
+                                            {((stats.infrastructure.dbBytes / (1024 * 1024 * 1024)) * 100).toFixed(1)}% 
+                                            <span className="text-[10px] text-gray-400 ml-1">de 1GB cuota</span>
+                                        </span>
                                     </div>
                                     <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: '42%' }}></div>
+                                        <div 
+                                            className="h-full bg-indigo-500 rounded-full transition-all duration-1000" 
+                                            style={{ width: `${Math.min(100, (stats.infrastructure.dbBytes / (1024 * 1024 * 1024)) * 100)}%` }}
+                                        ></div>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-xs font-bold uppercase text-gray-400 tracking-wider">
-                                        <span>Rendimiento API Global</span>
-                                        <span className="text-emerald-600">Estable</span>
+                                        <span>Rendimiento API (Latencia DB)</span>
+                                        <span className={stats.infrastructure.dbLatency < 100 ? "text-emerald-600" : "text-amber-600"}>
+                                            {stats.infrastructure.dbLatency}ms
+                                        </span>
                                     </div>
                                     <div className="flex items-end gap-1 h-8">
                                         {[40, 60, 30, 80, 50, 90, 45, 70, 60, 85, 40, 55].map((h, i) => (
@@ -303,16 +311,16 @@ export default function SaaSOverviewV2() {
                             </div>
                             <div className="bg-indigo-900 rounded-xl p-6 text-white text-center relative overflow-hidden shadow-xl shadow-indigo-200">
                                 <GlobeAltIcon className="h-32 w-32 absolute -bottom-10 -right-10 opacity-10" />
-                                <h4 className="text-lg font-bold mb-2">Escala Global Lista</h4>
-                                <p className="text-indigo-200 text-xs leading-relaxed mb-4">La infraestructura está optimizada para manejar hasta 5,000 tenants concurrentes en esta región.</p>
+                                <h4 className="text-lg font-bold mb-2">Estado Proceso Node.js</h4>
+                                <p className="text-indigo-200 text-xs leading-relaxed mb-4">Memoria Heap: {stats.infrastructure.memoryUsage.percentUsed}% utilizada ({stats.infrastructure.memoryUsage.heapUsed.toFixed(0)} MB)</p>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-indigo-800/50 p-3 rounded-lg border border-indigo-700">
-                                        <p className="text-[10px] uppercase font-bold text-indigo-300">Latencia Prom.</p>
-                                        <p className="text-xl font-black">24ms</p>
+                                        <p className="text-[10px] uppercase font-bold text-indigo-300">Latencia Redis</p>
+                                        <p className="text-xl font-black">{stats.infrastructure.redisLatency}ms</p>
                                     </div>
                                     <div className="bg-indigo-800/50 p-3 rounded-lg border border-indigo-700">
-                                        <p className="text-[10px] uppercase font-bold text-indigo-300">Uptime 90d</p>
-                                        <p className="text-xl font-black">99.98%</p>
+                                        <p className="text-[10px] uppercase font-bold text-indigo-300">Uptime Total</p>
+                                        <p className="text-xl font-black">{(stats.infrastructure.uptime / 3600).toFixed(1)}h</p>
                                     </div>
                                 </div>
                             </div>

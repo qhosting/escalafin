@@ -9,6 +9,10 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_SERVER_PASSWORD,
   },
   secure: process.env.EMAIL_SERVER_PORT === '465',
+  tls: {
+    // No fallar si el certificado es auto-firmado o tiene discrepancias de nombre
+    rejectUnauthorized: false
+  },
   connectionTimeout: 20000, // 20 segundos
   greetingTimeout: 20000,
 });

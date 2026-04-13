@@ -195,6 +195,15 @@ export function EnhancedAdminDashboard() {
       moduleKey: 'loan_list',
       color: 'text-red-600',
       bgColor: 'bg-red-50'
+    },
+    {
+      title: 'Gestión de Comisiones',
+      description: 'Control de pagos a asesores',
+      icon: Layers,
+      route: '/admin/commissions',
+      moduleKey: 'payment_history',
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50'
     }
   ];
 
@@ -209,8 +218,8 @@ export function EnhancedAdminDashboard() {
       bgColor: 'bg-purple-50'
     },
     {
-      title: 'Scoring Crediticio',
-      description: 'Evaluación de riesgo',
+      title: 'Scoring & IA',
+      description: 'Evaluación y modelos IA',
       icon: Calculator,
       route: '/admin/scoring',
       moduleKey: 'credit_scoring',
@@ -218,8 +227,8 @@ export function EnhancedAdminDashboard() {
       bgColor: 'bg-indigo-50'
     },
     {
-      title: 'Reportes',
-      description: 'Generar reportes detallados',
+      title: 'Reportes Personalizados',
+      description: 'Generar reportes en Excel',
       icon: FileText,
       route: '/admin/reports',
       moduleKey: 'report_portfolio',
@@ -239,9 +248,9 @@ export function EnhancedAdminDashboard() {
 
   const whatsappModules = [
     {
-      title: 'Config. WAHA WhatsApp',
-      description: 'Configurar integración WAHA',
-      icon: Settings,
+      title: 'Centro de Mensajería',
+      description: 'Chat en vivo y Chatbot',
+      icon: MessageSquare,
       route: '/admin/whatsapp',
       moduleKey: 'whatsapp_config',
       color: 'text-green-600',
@@ -255,6 +264,15 @@ export function EnhancedAdminDashboard() {
       moduleKey: 'whatsapp_client_settings',
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
+    },
+    {
+      title: 'Verificación KYC',
+      description: 'Validar documentos INE',
+      icon: ShieldCheck,
+      route: '/admin/kyc',
+      moduleKey: 'user_management',
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50'
     },
     {
       title: 'Dashboard Mensajes',
@@ -324,6 +342,15 @@ export function EnhancedAdminDashboard() {
       moduleKey: 'cash_collection',
       color: 'text-teal-600',
       bgColor: 'bg-teal-50'
+    },
+    {
+      title: 'Rutas de Cobranza',
+      description: 'Seguimiento de visitas',
+      icon: Phone,
+      route: '/admin/collections',
+      moduleKey: 'report_collections',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50'
     }
   ];
 
