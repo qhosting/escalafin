@@ -54,7 +54,7 @@ export default function TenantSubscriptionPage() {
         }
     };
 
-    if (subLoading) return <PageLoader message="Gestionando facturación..." />;
+    if (subLoading) return <PageLoader message="Gestionando facturación..." fullPage={false} />;
 
     const currentPlanId = subscription?.plan?.id;
     const isPro = subscription?.isPro;

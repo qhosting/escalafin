@@ -98,7 +98,7 @@ export default function BillingPage() {
     });
 
     if (plansLoading || subsLoading || addonsLoading) {
-        return <PageLoader message="Gestionando infraestructura de cobros..." />;
+        return <PageLoader message="Gestionando infraestructura de cobros..." fullPage={false} />;
     }
 
     const handleUpdatePlan = async (e: React.FormEvent) => {
