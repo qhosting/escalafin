@@ -18,10 +18,12 @@ export default withAuth(
       '/backup', '/storage', '/sql', '/dump', '/db.sql'
     ];
 
-    // Solo aplicar bloqueo si NO es una ruta de API legítima o si coincide con patrones críticos
+    // Solo aplicar bloqueo si NO es una ruta de API administrativa legítima o si coincide con patrones críticos
     const isApiRequest = pathname.startsWith('/api/');
-    const isMalicious = maliciousPatterns.some(pattern => {
-      // Si es API, solo bloquear si el patrón es ARCHIVO crítico (.env, .git, etc)
+    const isAdminApi = pathname.startsWith('/api/admin/') || pathname.startsWith('/api/saas/');
+    
+    const isMalicious = !isAdminApi && maliciousPatterns.some(pattern => {
+      // Si es API general, solo bloquear si el patrón es ARCHIVO crítico (.env, .git, etc)
       if (isApiRequest) {
         return pathname.toLowerCase().endsWith(pattern) || 
                pathname.toLowerCase().includes('/' + pattern) ||

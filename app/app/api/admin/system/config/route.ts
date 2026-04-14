@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
         if (!Array.isArray(configs)) {
             return NextResponse.json({ error: 'Formato inválido' }, { status: 400 });
         }
+        
+        console.log(`📝 Guardando ${configs.length} configuraciones globales...`);
 
         const results = await prisma.$transaction(
             configs.map((config) => 
@@ -56,19 +58,19 @@ export async function POST(request: NextRequest) {
                     where: { 
                         key_tenantId: {
                             key: config.key,
-                            tenantId: null as any // Type cast because tenantId is nullable but in unique constraint
+                            tenantId: null
                         }
                     },
                     update: {
-                        value: config.value,
+                        value: String(config.value),
                         category: config.category,
                         description: config.description,
                         updatedBy: session.user.id
                     },
                     create: {
                         key: config.key,
-                        value: config.value,
-                        category: config.category,
+                        value: String(config.value),
+                        category: config.category || 'GLOBAL',
                         description: config.description,
                         tenantId: null,
                         updatedBy: session.user.id
@@ -78,8 +80,11 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json({ success: true, count: results.length });
-    } catch (error) {
-        console.error('Error saving global configs:', error);
-        return NextResponse.json({ error: 'Fallo al guardar configuración' }, { status: 500 });
+    } catch (error: any) {
+        console.error('❌ Error saving global configs:', error);
+        return NextResponse.json({ 
+            error: 'Fallo al guardar configuración', 
+            details: error.message 
+        }, { status: 500 });
     }
 }
