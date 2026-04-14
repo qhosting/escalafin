@@ -52,39 +52,41 @@ export async function POST(request: NextRequest) {
         
         console.log(`📝 Guardando ${configs.length} configuraciones globales...`);
 
-        const results = await prisma.$transaction(
-            configs.map(async (config: any) => {
-                const existing = await prisma.systemConfig.findFirst({
-                    where: {
-                        key: config.key,
-                        tenantId: null
-                    }
-                });
-
-                if (existing) {
-                    return prisma.systemConfig.update({
-                        where: { id: existing.id },
-                        data: {
-                            value: String(config.value),
-                            category: config.category,
-                            description: config.description,
-                            updatedBy: session.user.id
-                        }
-                    });
-                } else {
-                    return prisma.systemConfig.create({
-                        data: {
+        const results = await prisma.$transaction(async (tx) => {
+            return Promise.all(
+                configs.map(async (config: any) => {
+                    const existing = await tx.systemConfig.findFirst({
+                        where: {
                             key: config.key,
-                            value: String(config.value),
-                            category: config.category || 'GLOBAL',
-                            description: config.description,
-                            tenantId: null,
-                            updatedBy: session.user.id
+                            tenantId: null
                         }
                     });
-                }
-            })
-        );
+
+                    if (existing) {
+                        return tx.systemConfig.update({
+                            where: { id: existing.id },
+                            data: {
+                                value: String(config.value),
+                                category: config.category,
+                                description: config.description,
+                                updatedBy: session.user.id
+                            }
+                        });
+                    } else {
+                        return tx.systemConfig.create({
+                            data: {
+                                key: config.key,
+                                value: String(config.value),
+                                category: config.category || 'GLOBAL',
+                                description: config.description,
+                                tenantId: null,
+                                updatedBy: session.user.id
+                            }
+                        });
+                    }
+                })
+            );
+        });
 
         return NextResponse.json({ success: true, count: results.length });
     } catch (error: any) {
