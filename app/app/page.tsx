@@ -229,11 +229,20 @@ export default function HomePage() {
                </a>
             </div>
             
-            <div className="flex flex-col md:flex-row gap-12 items-center text-sm font-black uppercase tracking-widest">
-               <a href="https://wa.me/524424000742" target="_blank" className="text-[#003d7a] hover:text-[#00b4d8] transition-all flex items-center gap-3">
-                  <Smartphone className="h-5 w-5" /> WHATSAPP SOPORTE
+            <div className="flex flex-col md:flex-row gap-8 lg:gap-12 items-center text-[10px] md:text-xs font-black uppercase tracking-widest text-[#003d7a]/60">
+               <Link href="/legal/privacy" className="hover:text-[#00b4d8] transition-colors">Aviso de Privacidad</Link>
+               <Link href="/legal/terms" className="hover:text-[#00b4d8] transition-colors">Términos y Condiciones</Link>
+               <a href="https://wa.me/524424000742" target="_blank" className="text-[#003d7a] hover:text-[#00b4d8] transition-all flex items-center gap-2">
+                  <Smartphone className="h-4 w-4" /> WHATSAPP SOPORTE
                </a>
-               <span>© 2025 ESCALAFIN • TODOS LOS DERECHOS RESERVADOS</span>
+               <span className="text-slate-300">© 2025 ESCALAFIN • TODOS LOS DERECHOS RESERVADOS</span>
+            </div>
+
+            {/* Disclaimer General */}
+            <div className="max-w-4xl text-center">
+               <p className="text-[10px] font-bold text-slate-300 leading-relaxed uppercase tracking-tighter">
+                  <strong>DESCARGO DE RESPONSABILIDAD:</strong> EscalaFin y Aurum Capital Holding operan únicamente como proveedores tecnológicos de software (SaaS). No somos una institución financiera ni banco. Cada usuario de EscalaFin (Tenant) es el único responsable legal por sus operaciones crediticias, cumplimiento normativo y fiscal. Aurum Capital Holding queda liberado de cualquier responsabilidad derivada de la relación entre el usuario corporativo y sus acreditados.
+               </p>
             </div>
          </div>
       </footer>
