@@ -255,8 +255,8 @@ export async function DELETE(request: NextRequest) {
             await tx.personalReference.deleteMany({ where: { tenantId: id } });
             await tx.identityVerification.deleteMany({ where: { tenantId: id } });
             await tx.whatsAppMessage.deleteMany({ where: { client: { tenantId: id } } });
-            await tx.conversationMessage.deleteMany({ where: { conversation: { tenantId: id } } });
-            await tx.conversation.deleteMany({ where: { tenantId: id } });
+            await tx.conversationMessage.deleteMany({ where: { conversation: { client: { tenantId: id } } } });
+            await tx.conversation.deleteMany({ where: { client: { tenantId: id } } });
             await tx.client.deleteMany({ where: { tenantId: id } });
             
             // D. System & Config
@@ -270,7 +270,7 @@ export async function DELETE(request: NextRequest) {
             await tx.commissionRecord.deleteMany({ where: { tenantId: id } });
             await tx.commissionSchema.deleteMany({ where: { tenantId: id } });
             await tx.reportTemplate.deleteMany({ where: { tenantId: id } });
-            await tx.tenantInvitation.deleteMany({ where: { tenantId: id } });
+            await tx.tenantInvitation.deleteMany({ where: { inviter: { tenantId: id } } });
             
             // E. Users 
             await tx.notification.deleteMany({ where: { user: { tenantId: id } } });
