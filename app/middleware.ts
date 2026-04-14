@@ -18,7 +18,19 @@ export default withAuth(
       '/backup', '/storage', '/sql', '/dump', '/db.sql'
     ];
 
-    if (maliciousPatterns.some(pattern => pathname.toLowerCase().includes(pattern))) {
+    // Solo aplicar bloqueo si NO es una ruta de API legítima o si coincide con patrones críticos
+    const isApiRequest = pathname.startsWith('/api/');
+    const isMalicious = maliciousPatterns.some(pattern => {
+      // Si es API, solo bloquear si el patrón es ARCHIVO crítico (.env, .git, etc)
+      if (isApiRequest) {
+        return pathname.toLowerCase().endsWith(pattern) || 
+               pathname.toLowerCase().includes('/' + pattern) ||
+               (pattern.startsWith('.') && pathname.toLowerCase().includes(pattern));
+      }
+      return pathname.toLowerCase().includes(pattern);
+    });
+
+    if (isMalicious) {
       const detectedPattern = maliciousPatterns.find(p => pathname.toLowerCase().includes(p));
       const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || req.ip || 'desconocida';
       
