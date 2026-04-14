@@ -33,7 +33,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, ExternalLink, Activity, Layers, Server } from 'lucide-react';
+import { Loader2, ExternalLink, Activity, Layers, Server, Settings } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -78,6 +78,11 @@ export default function SaaSOverviewV2() {
                     <p className="text-gray-500 max-w-2xl mt-1">Visión global de EscalaFin: salud de red, monetización y métricas de escala de todos los tenants.</p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <Link href="/admin/saas/settings">
+                        <Button variant="outline" className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50">
+                            <Settings className="w-4 h-4" /> Configuración Global
+                        </Button>
+                    </Link>
                     <Button variant="outline" className="gap-2">
                         <Activity className="w-4 h-4" /> Estado del Sistema
                     </Button>

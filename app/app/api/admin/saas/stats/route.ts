@@ -62,6 +62,21 @@ export async function GET(request: NextRequest) {
         const totalMRR = activeSubsWithPlans.reduce((sum, sub) => sum + Number(sub.plan.priceMonthly), 0);
 
         // Desglose por plan
+        const plansMap: Record<string, { count: number, mrr: number }> = {};
+        activeSubsWithPlans.forEach(sub => {
+            const planName = sub.plan.displayName;
+            if (!plansMap[planName]) {
+                plansMap[planName] = { count: 0, mrr: 0 };
+            }
+            plansMap[planName].count += 1;
+            plansMap[planName].mrr += Number(sub.plan.priceMonthly);
+        });
+
+        const plansBreakdown = Object.entries(plansMap).map(([name, stats]) => ({
+            name,
+            ...stats
+        }));
+
         // Calcular tendencias (vs mes anterior)
         const currentPeriodData = globalUsage.byPeriod[globalUsage.byPeriod.length - 1];
         const prevPeriodData = globalUsage.byPeriod[globalUsage.byPeriod.length - 2];

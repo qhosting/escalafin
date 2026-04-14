@@ -64,7 +64,8 @@ export async function POST(request: NextRequest) {
     if (isPhone || (identifier === user.phone && user.phone)) {
       // Enviar via WhatsApp
       try {
-        const waha = new WahaService(user.tenantId);
+        // Los usuarios siempre usan la conexión Global de WAHA del SaaS para OTP
+        const waha = new WahaService(user.tenantId, true);
         const message = `*${tenantName}* \n\nTu código de verificación es: *${otp}*\n\nEste código expira en 10 minutos. No lo compartas con nadie.`;
         await waha.sendRawMessage(user.phone || identifier, message);
       } catch (e) {

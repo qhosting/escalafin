@@ -41,6 +41,16 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
     Loader2,
     MoreVertical,
     Search,
@@ -55,7 +65,8 @@ import {
     MessageCircle,
     Phone,
     ShieldCheck,
-    Zap
+    Zap,
+    Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
@@ -68,6 +79,12 @@ export default function TenantsManagementPage() {
     const [editingTenant, setEditingTenant] = useState<any>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    
+    // States for deletion
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [tenantToDelete, setTenantToDelete] = useState<any>(null);
+    const [deleteConfirmSlug, setDeleteConfirmSlug] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const filteredTenants = tenants?.filter((t: any) =>
         t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -137,6 +154,36 @@ export default function TenantsManagementPage() {
             toast.error('Error de red al actualizar');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleDeleteTenant = async () => {
+        if (!tenantToDelete || deleteConfirmSlug !== tenantToDelete.slug) {
+            toast.error('El slug no coincide');
+            return;
+        }
+
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/admin/tenants?id=${tenantToDelete.id}`, {
+                method: 'DELETE'
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                toast.success(data.message || 'Organización eliminada completamente');
+                setIsDeleteDialogOpen(false);
+                setTenantToDelete(null);
+                setDeleteConfirmSlug('');
+                mutate();
+            } else {
+                toast.error(data.error || 'Error al eliminar');
+            }
+        } catch (error) {
+            toast.error('Error de red al eliminar');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -265,6 +312,18 @@ export default function TenantsManagementPage() {
                                             onClick={() => updateStatus(tenant.id, tenant.status)}
                                         >
                                             {tenant.status === 'ACTIVE' ? 'Suspender' : 'Activar'}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-8 py-1 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                            onClick={() => {
+                                                setTenantToDelete(tenant);
+                                                setIsDeleteDialogOpen(true);
+                                                setDeleteConfirmSlug('');
+                                            }}
+                                        >
+                                            <Trash2 className="h-3 w-3 mr-1" /> Eliminar
                                         </Button>
                                     </div>
                                 </TableCell>
@@ -406,6 +465,66 @@ export default function TenantsManagementPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent className="border-red-100 bg-white">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+                            <AlertCircle className="h-5 w-5" />
+                            ¿Eliminar organización permanentemente?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="space-y-4 pt-2">
+                            <div className="bg-red-50 p-4 rounded-lg border border-red-100 text-red-700 text-sm">
+                                <strong>ADVERTENCIA CRÍTICA:</strong> Esta acción eliminará permanentemente la organización 
+                                <span className="font-bold underline ml-1">{tenantToDelete?.name}</span> y 
+                                <strong> TODA</strong> la información relacionada:
+                                <ul className="list-disc ml-6 mt-2 space-y-1">
+                                    <li>Usuarios y cuentas (con sus sesiones)</li>
+                                    <li>Catálogo de clientes y avales</li>
+                                    <li>Todos los préstamos e historial de pagos</li>
+                                    <li>Configuraciones de WhatsApp y WAHA</li>
+                                    <li>Logs de auditoría y reportes generados</li>
+                                </ul>
+                                <p className="mt-3 font-bold">Esta acción NO se puede deshacer.</p>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <Label htmlFor="confirm-slug" className="text-gray-700">
+                                    Para confirmar, escribe el slug de la organización: <span className="font-mono font-bold text-gray-900">{tenantToDelete?.slug}</span>
+                                </Label>
+                                <Input
+                                    id="confirm-slug"
+                                    placeholder="Escribe el slug aquí..."
+                                    value={deleteConfirmSlug}
+                                    onChange={(e) => setDeleteConfirmSlug(e.target.value)}
+                                    className="border-red-200 focus:ring-red-500"
+                                />
+                            </div>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => {
+                            setTenantToDelete(null);
+                            setDeleteConfirmSlug('');
+                        }}>
+                            Cancelar
+                        </AlertDialogCancel>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDeleteTenant}
+                            disabled={isDeleting || deleteConfirmSlug !== tenantToDelete?.slug}
+                            className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                        >
+                            {isDeleting ? (
+                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Eliminando...</>
+                            ) : (
+                                "Sí, eliminar todo definitivamente"
+                            )}
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

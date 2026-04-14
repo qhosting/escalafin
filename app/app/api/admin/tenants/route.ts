@@ -192,3 +192,114 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: 'Error al actualizar organización' }, { status: 500 });
     }
 }
+
+/**
+ * Super Admin: Delete tenant and ALL related data
+ */
+export async function DELETE(request: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session || session.user.role !== 'SUPER_ADMIN') {
+            return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'ID es requerido' }, { status: 400 });
+        }
+
+        // 1. Verify tenant exists
+        const tenant = await prisma.tenant.findUnique({
+            where: { id },
+            include: {
+                _count: {
+                    select: {
+                        users: true,
+                        loans: true,
+                        clients: true
+                    }
+                }
+            }
+        });
+
+        if (!tenant) {
+            return NextResponse.json({ error: 'Organización no encontrada' }, { status: 404 });
+        }
+
+        console.log(`🗑️ Deleting tenant ${tenant.name} (${id}) and all its data...`);
+
+        // 2. Perform Cascading Deletes in Transaction
+        // To avoid FK issues, we follow a strict order (children before parents)
+        await prisma.$transaction(async (tx) => {
+            // A. Payments related (Transaction logs first)
+            // Note: Many of these cascade if the schema is set up, but we're being explicit
+            await tx.paymentTransaction.deleteMany({ where: { payment: { tenantId: id } } });
+            await tx.cashCollection.deleteMany({ where: { payment: { tenantId: id } } });
+            await tx.payment.deleteMany({ where: { tenantId: id } });
+            
+            // B. Loan related
+            await tx.amortizationSchedule.deleteMany({ where: { loan: { tenantId: id } } });
+            await tx.collectionVisit.deleteMany({ where: { tenantId: id } });
+            await tx.collectionRoute.deleteMany({ where: { tenantId: id } });
+            await tx.promiseToPay.deleteMany({ where: { tenantId: id } });
+            await tx.creditScore.deleteMany({ where: { tenantId: id } });
+            await tx.loan.deleteMany({ where: { tenantId: id } });
+            await tx.creditApplication.deleteMany({ where: { tenantId: id } });
+            
+            // C. Client related
+            await tx.guarantor.deleteMany({ where: { tenantId: id } });
+            await tx.collateral.deleteMany({ where: { tenantId: id } });
+            await tx.personalReference.deleteMany({ where: { tenantId: id } });
+            await tx.identityVerification.deleteMany({ where: { tenantId: id } });
+            await tx.whatsAppMessage.deleteMany({ where: { client: { tenantId: id } } });
+            await tx.conversationMessage.deleteMany({ where: { conversation: { tenantId: id } } });
+            await tx.conversation.deleteMany({ where: { tenantId: id } });
+            await tx.client.deleteMany({ where: { tenantId: id } });
+            
+            // D. System & Config
+            await tx.auditLog.deleteMany({ where: { tenantId: id } });
+            await tx.tenantUsage.deleteMany({ where: { tenantId: id } });
+            await tx.systemConfig.deleteMany({ where: { tenantId: id } });
+            await tx.wahaConfig.deleteMany({ where: { tenantId: id } });
+            await tx.apiKey.deleteMany({ where: { tenantId: id } });
+            await tx.webhookEndpoint.deleteMany({ where: { tenantId: id } });
+            await tx.messageTemplate.deleteMany({ where: { tenantId: id } });
+            await tx.commissionRecord.deleteMany({ where: { tenantId: id } });
+            await tx.commissionSchema.deleteMany({ where: { tenantId: id } });
+            await tx.reportTemplate.deleteMany({ where: { tenantId: id } });
+            await tx.tenantInvitation.deleteMany({ where: { tenantId: id } });
+            
+            // E. Users 
+            await tx.notification.deleteMany({ where: { user: { tenantId: id } } });
+            await tx.pushSubscription.deleteMany({ where: { user: { tenantId: id } } });
+            await tx.userNotificationSetting.deleteMany({ where: { user: { tenantId: id } } });
+            await tx.reportGeneration.deleteMany({ where: { user: { tenantId: id } } });
+            await tx.customReportGeneration.deleteMany({ where: { user: { tenantId: id } } });
+            await tx.fileUpload.deleteMany({ where: { user: { tenantId: id } } });
+            
+            // Accounts and Sessions cascade from User if onDelete: Cascade is in DB
+            // But we'll try to be thorough
+            const userIds = (await tx.user.findMany({ where: { tenantId: id }, select: { id: true } })).map(u => u.id);
+            await tx.account.deleteMany({ where: { userId: { in: userIds } } });
+            await tx.session.deleteMany({ where: { userId: { in: userIds } } });
+            await tx.user.deleteMany({ where: { tenantId: id } });
+            
+            // F. Tenant structures
+            await tx.subscription.deleteMany({ where: { tenantId: id } });
+            await tx.tenant.delete({ where: { id } });
+        });
+
+        console.log(`✅ Tenant ${tenant.slug} deleted successfully`);
+        return NextResponse.json({ 
+            success: true, 
+            message: `La organización ${tenant.name} y todos sus registros (${tenant._count.clients} clientes, ${tenant._count.loans} préstamos, ${tenant._count.users} usuarios) han sido eliminados de forma permanente.` 
+        });
+
+    } catch (error: any) {
+        console.error('❌ Error deleting tenant:', error);
+        return NextResponse.json({ error: 'Fallo al eliminar organización: ' + error.message }, { status: 500 });
+    }
+}

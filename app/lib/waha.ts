@@ -40,19 +40,26 @@ interface WahaResponse {
 export class WahaService {
   private config: WahaSession | null = null;
   private tenantId: string | null = null;
+  private useGlobalOnly: boolean = false;
 
-  constructor(tenantId?: string | null) {
+  constructor(tenantId?: string | null, useGlobalOnly: boolean = false) {
     if (tenantId) this.tenantId = tenantId;
+    this.useGlobalOnly = useGlobalOnly;
   }
 
   private async initializeConfig(): Promise<void> {
     try {
-      // Prioridad 1: Variables de entorno (Configuración Directa solicitada por el usuario)
+      // Si se solicita explícitamente Global, saltar las prioridades de Tenant
+      if (this.useGlobalOnly) {
+        await this.initializeGlobalConfig();
+        return;
+      }
+
+      // Prioridad 1: Variables de entorno (Configuración Directa)
       const envBaseUrl = process.env.WAHA_BASE_URL;
       const envApiKey = process.env.WAHA_API_KEY;
 
       if (envBaseUrl) {
-        // Obtener el slug del tenant para usarlo como sessionId
         let sessionId = 'default';
         if (this.tenantId) {
           const tenant = await prisma.tenant.findUnique({
@@ -71,7 +78,7 @@ export class WahaService {
         return;
       }
 
-      // Prioridad 2: Base de Datos (Legacy/Custom)
+      // Prioridad 2: Base de Datos del Tenant
       const db = this.tenantId ? getTenantPrisma(this.tenantId) : prisma;
       const config = await (db as any).wahaConfig.findFirst({
         where: { isActive: true }
@@ -84,8 +91,36 @@ export class WahaService {
           baseUrl: config.baseUrl,
           n8nWebhookUrl: config.n8nWebhookUrl
         };
+        return;
       }
+
+      // Prioridad 3: Configuración Global del Sistema
+      await this.initializeGlobalConfig();
     } catch (error) {
+      console.error('Error initializing Waha config:', error);
+    }
+  }
+
+  private async initializeGlobalConfig(): Promise<void> {
+    const globalConfigs = await prisma.systemConfig.findMany({
+      where: { 
+        category: 'GLOBAL_WAHA',
+        tenantId: null 
+      }
+    });
+
+    if (globalConfigs.length > 0) {
+      const baseUrl = globalConfigs.find(c => c.key === 'global_waha_url')?.value;
+      if (baseUrl) {
+        this.config = {
+          sessionId: globalConfigs.find(c => c.key === 'global_waha_session')?.value || 'default',
+          apiKey: globalConfigs.find(c => c.key === 'global_waha_api_key')?.value || null,
+          baseUrl: baseUrl,
+          n8nWebhookUrl: null
+        };
+      }
+    }
+  }
       console.error('Error initializing Waha config:', error);
     }
   }
