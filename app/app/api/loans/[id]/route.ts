@@ -39,6 +39,9 @@ export async function GET(
           monthlyPayment: true,
           totalAmount: true,
           balanceRemaining: true,
+          insuranceAmount: true,
+          disbursementFee: true,
+          disbursedAmount: true,
           status: true,
           startDate: true,
           endDate: true,
@@ -171,7 +174,10 @@ export async function PUT(
       endDate,
       monthlyPayment,
       totalAmount,
-      clientId
+      clientId,
+      insuranceAmount,
+      disbursementFee,
+      disbursedAmount
     } = body;
 
     const loan = await (tenantPrisma.loan as any).findFirst({
@@ -198,6 +204,9 @@ export async function PUT(
     if (startDate) updateData.startDate = new Date(startDate);
     if (endDate) updateData.endDate = new Date(endDate);
     if (clientId) updateData.clientId = clientId;
+    if (insuranceAmount !== undefined) updateData.insuranceAmount = parseFloat(insuranceAmount);
+    if (disbursementFee !== undefined) updateData.disbursementFee = parseFloat(disbursementFee);
+    if (disbursedAmount !== undefined) updateData.disbursedAmount = parseFloat(disbursedAmount);
 
     const updatedLoan = await (tenantPrisma.loan as any).update({
       where: { id: params.id },

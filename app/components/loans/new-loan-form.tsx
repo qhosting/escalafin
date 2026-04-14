@@ -28,6 +28,7 @@ import {
   Download,
   Share2,
   RefreshCw,
+  ShieldCheck,
   Table as TableIcon
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -128,6 +129,9 @@ export function NewLoanForm({ loanId }: { loanId?: string }) {
     expectedWeeklyPayment: '', // para POR_MIL_120
     monthlyPayment: '',
     initialPayment: '', // pago inicial (informativo)
+    insuranceAmount: '', // Seguro
+    disbursementFee: '', // Cobro Final / Comisión
+    disbursedAmount: '0', // Monto a entregar
     startDate: format(new Date(), 'yyyy-MM-dd'),
     endDate: '',
     notes: '',
@@ -313,6 +317,15 @@ export function NewLoanForm({ loanId }: { loanId?: string }) {
       setFormData(prev => ({ ...prev, interestRate: (rate * 100).toString() }));
     }
   }, [formData.loanType]);
+
+  // Calculate disbursedAmount when principal, insurance or fee changes
+  useEffect(() => {
+    const principal = parseFloat(formData.principalAmount) || 0;
+    const insurance = parseFloat(formData.insuranceAmount) || 0;
+    const fee = parseFloat(formData.disbursementFee) || 0;
+    const net = principal - insurance - fee;
+    setFormData(prev => ({ ...prev, disbursedAmount: net.toString() }));
+  }, [formData.principalAmount, formData.insuranceAmount, formData.disbursementFee]);
 
   // Calculate end date when start date, termMonths or frequency changes
   useEffect(() => {
@@ -553,7 +566,10 @@ export function NewLoanForm({ loanId }: { loanId?: string }) {
         status: 'ACTIVE',
         lateFeeType: formData.lateFeeType || 'DAILY_FIXED',
         lateFeeAmount: parseSafeFloat(formData.lateFeeAmount, 200),
-        lateFeeMaxWeekly: parseSafeFloat(formData.lateFeeMaxWeekly, 800)
+        lateFeeMaxWeekly: parseSafeFloat(formData.lateFeeMaxWeekly, 800),
+        insuranceAmount: formData.insuranceAmount ? parseSafeFloat(formData.insuranceAmount) : 0,
+        disbursementFee: formData.disbursementFee ? parseSafeFloat(formData.disbursementFee) : 0,
+        disbursedAmount: parseSafeFloat(formData.disbursedAmount)
       };
 
       const response = await fetch(loanId ? `/api/loans/${loanId}` : '/api/loans', {
@@ -1009,6 +1025,49 @@ export function NewLoanForm({ loanId }: { loanId?: string }) {
                   />
                 </div>
               </div>
+
+              {/* Deducciones de Desembolso */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-5 bg-gray-50/50 rounded-2xl border border-gray-100">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Seguro (Deducción)</Label>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400 group-focus-within:text-blue-600">
+                      <ShieldCheck className="h-4 w-4" />
+                    </div>
+                    <Input
+                      type="number"
+                      placeholder="Ej: 150"
+                      value={formData.insuranceAmount}
+                      onChange={(e) => handleInputChange('insuranceAmount', e.target.value)}
+                      className="h-11 pl-10 font-bold bg-white border-gray-200 focus:border-blue-500 rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Cobro Final / Comis.</Label>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400 group-focus-within:text-blue-600">
+                      <DollarSign className="h-4 w-4" />
+                    </div>
+                    <Input
+                      type="number"
+                      placeholder="Ej: 600"
+                      value={formData.disbursementFee}
+                      onChange={(e) => handleInputChange('disbursementFee', e.target.value)}
+                      className="h-11 pl-10 font-bold bg-white border-gray-200 focus:border-blue-500 rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-blue-700 ml-1">Total a Desembolsar</Label>
+                  <div className="h-11 flex items-center px-4 bg-blue-100/50 border border-blue-200 rounded-xl text-lg font-black text-blue-800">
+                    {formatCurrency(parseFloat(formData.disbursedAmount))}
+                  </div>
+                </div>
+              </div>
+
 
               {/* Parámetros específicos según cálculo */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50/30 p-5 rounded-2xl border border-blue-50/50">

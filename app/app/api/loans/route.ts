@@ -84,6 +84,9 @@ export async function GET(request: NextRequest) {
           monthlyPayment: true,
           totalAmount: true,
           balanceRemaining: true,
+          insuranceAmount: true,
+          disbursementFee: true,
+          disbursedAmount: true,
           status: true,
           startDate: true,
           endDate: true,
@@ -186,7 +189,10 @@ export async function POST(request: NextRequest) {
       initialPayment,
       lateFeeType,
       lateFeeAmount,
-      lateFeeMaxWeekly
+      lateFeeMaxWeekly,
+      insuranceAmount,
+      disbursementFee,
+      disbursedAmount
     } = body;
 
     // Validaciones (interestRate puede ser 0 en tarifa fija)
@@ -243,6 +249,9 @@ export async function POST(request: NextRequest) {
         paymentFrequency,
         monthlyPayment,
         initialPayment: initialPayment ? parseFloat(initialPayment) : null,
+        insuranceAmount: insuranceAmount ? parseFloat(insuranceAmount) : 0,
+        disbursementFee: disbursementFee ? parseFloat(disbursementFee) : 0,
+        disbursedAmount: disbursedAmount ? parseFloat(disbursedAmount) : 0,
         totalAmount,
         balanceRemaining: parseFloat(principalAmount),
         startDate: new Date(startDate),

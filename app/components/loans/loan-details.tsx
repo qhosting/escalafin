@@ -40,6 +40,9 @@ interface LoanDetail {
   loanCalculationType?: string;
   principalAmount: number;
   balanceRemaining: number;
+  insuranceAmount?: number;
+  disbursementFee?: number;
+  disbursedAmount?: number;
   termMonths: number;
   interestRate: number;
   weeklyInterestAmount?: number;
@@ -525,6 +528,32 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
                   <p className="text-lg font-semibold">{formatDate(loan.createdAt)}</p>
                 </div>
               </div>
+
+              {/* Sección de Desembolso */}
+              {(loan.insuranceAmount || loan.disbursementFee || loan.disbursedAmount) && (
+                <>
+                  <Separator className="my-6" />
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black uppercase text-blue-600 tracking-wider">Detalle de Desembolso</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-blue-50/40 p-5 rounded-2xl border border-blue-100 flex-wrap">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-bold text-muted-foreground uppercase">Seguro Deducido</Label>
+                        <p className="font-bold text-gray-900 text-lg">{formatCurrency(loan.insuranceAmount || 0)}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-bold text-muted-foreground uppercase">Comisión / Cobro de Apertura</Label>
+                        <p className="font-bold text-gray-900 text-lg">{formatCurrency(loan.disbursementFee || 0)}</p>
+                      </div>
+                      <div className="space-y-1 bg-blue-100/50 p-3 rounded-xl border border-blue-200">
+                        <Label className="text-[10px] font-black text-blue-700 uppercase tracking-tight">Monto Neto Desembolsado</Label>
+                        <p className="text-2xl font-black text-blue-800 leading-none mt-1">
+                          {formatCurrency(loan.disbursedAmount || (loan.principalAmount - (loan.insuranceAmount || 0) - (loan.disbursementFee || 0)))}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
 
             </CardContent>
