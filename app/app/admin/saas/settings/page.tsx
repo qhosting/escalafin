@@ -95,7 +95,8 @@ export default function GlobalSettingsPage() {
                 },
                 body: JSON.stringify({
                     chatId: `${testPhone}@c.us`,
-                    text: 'Prueba de configuración GLOBAL WAHA de EscalaFin. Este mensaje se usa para notificaciones del sistema.'
+                    text: 'Prueba de configuración GLOBAL WAHA de EscalaFin. Este mensaje se usa para notificaciones del sistema.',
+                    session: session
                 })
             });
 
