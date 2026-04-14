@@ -53,30 +53,37 @@ export async function POST(request: NextRequest) {
         console.log(`📝 Guardando ${configs.length} configuraciones globales...`);
 
         const results = await prisma.$transaction(
-            configs.map((config) => 
-                prisma.systemConfig.upsert({
-                    where: { 
-                        key_tenantId: {
-                            key: config.key,
-                            tenantId: null
-                        }
-                    },
-                    update: {
-                        value: String(config.value),
-                        category: config.category,
-                        description: config.description,
-                        updatedBy: session.user.id
-                    },
-                    create: {
+            configs.map(async (config: any) => {
+                const existing = await prisma.systemConfig.findFirst({
+                    where: {
                         key: config.key,
-                        value: String(config.value),
-                        category: config.category || 'GLOBAL',
-                        description: config.description,
-                        tenantId: null,
-                        updatedBy: session.user.id
+                        tenantId: null
                     }
-                })
-            )
+                });
+
+                if (existing) {
+                    return prisma.systemConfig.update({
+                        where: { id: existing.id },
+                        data: {
+                            value: String(config.value),
+                            category: config.category,
+                            description: config.description,
+                            updatedBy: session.user.id
+                        }
+                    });
+                } else {
+                    return prisma.systemConfig.create({
+                        data: {
+                            key: config.key,
+                            value: String(config.value),
+                            category: config.category || 'GLOBAL',
+                            description: config.description,
+                            tenantId: null,
+                            updatedBy: session.user.id
+                        }
+                    });
+                }
+            })
         );
 
         return NextResponse.json({ success: true, count: results.length });
