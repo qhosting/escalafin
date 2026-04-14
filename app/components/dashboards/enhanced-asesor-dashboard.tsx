@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { PageLoader } from '@/components/ui/page-loader';
 
 interface AsesorStats {
   myClients: number;
@@ -325,14 +326,7 @@ export function EnhancedAsesorDashboard() {
   ];
 
   if (status === 'loading' || modulesLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Cargando dashboard...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader message="Cargando dashboard..." />;
   }
 
   return (

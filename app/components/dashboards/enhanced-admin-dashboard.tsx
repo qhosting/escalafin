@@ -52,6 +52,7 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CierrePenalizaciones } from '@/components/admin/operations/cierre-penalizaciones';
+import { PageLoader } from '@/components/ui/page-loader';
 
 interface DashboardStats {
   activeLoans: number;
@@ -360,14 +361,7 @@ export function EnhancedAdminDashboard() {
   const recentActivities = stats?.recentActivities || [];
 
   if (status === 'loading' || modulesLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Cargando dashboard...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader message="Cargando dashboard..." />;
   }
 
   return (
