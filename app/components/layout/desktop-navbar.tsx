@@ -211,7 +211,6 @@ export function DesktopNavbar() {
             ]
           }
         ],
-        ],
         'Comunicación': [
           {
             title: 'WhatsApp',
