@@ -2,8 +2,8 @@
 
 Este documento es la única fuente de verdad para el estado del sistema, arquitectura, hitos alcanzados y planes futuros.
 
-**Última Actualización**: Abril 13, 2026  
-**Versión Actual**: `2.8.0`
+**Última Actualización**: Abril 14, 2026  
+**Versión Actual**: `2.9.0`
 
 ---
 
@@ -62,10 +62,11 @@ El sistema utiliza una arquitectura de **aislamiento por identificador (`tenantI
 El Super Admin gestiona el ecosistema global de EscalaFin.
 
 ### Funcionalidades Operativas:
-- ✅ **Gestión de Tenants**: Crear, suspender y editar organizaciones.
-- ✅ **Facturación SaaS**: Control de planes, MRR y suscripciones activas.
+- ✅ **Gestión de Tenants**: Crear, suspender, editar y **eliminar de forma segura (Full Data Purge)**.
+- ✅ **Facturación SaaS**: Control de planes, MRR y suscripciones activas (Estadísticas Corregidas).
 - ✅ **Monitoreo**: Estado del sistema y uso de recursos por tenant.
 - ✅ **Impersonación**: Capacidad de entrar como administrador de un tenant para soporte.
+- ✅ **Configuración Global**: Conexión maestra de WAHA/WhatsApp para notificaciones de plataforma.
 
 ### 🚧 Pendiente en SaaS:
 1.  **Validación de Firma API**: Firma criptográfica para webhooks de Openpay.
@@ -97,6 +98,7 @@ El Super Admin gestiona el ecosistema global de EscalaFin.
 
 ## 🔧 6. Notas de Despliegue (Build v2.7.1)
 
-- **Login Experience**: Se eliminaron credenciales default. Se añadió **Tooltip** informativo para ambiente demo.
-- **Infraestructura**: Despliegue optimizado en modo `standalone`. Soporte nativo para Prisma en containers Linux corregido.
+- **SaaS Excellence**: Implementación de borrado seguro en cascada para cumplimiento de privacidad de datos.
+- **Infrastructure**: Unificación de canal de notificaciones global para usuarios de plataforma (WAHA Global Fallback).
+- **Dashboard**: Corrección de métricas de planes y desglose de MRR en el Command Center.
 - **Soporte**: Canal de WhatsApp actualizado: `4424000742`.
