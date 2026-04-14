@@ -121,9 +121,6 @@ export class WahaService {
       }
     }
   }
-      console.error('Error initializing Waha config:', error);
-    }
-  }
 
   private async ensureConfig(): Promise<WahaSession> {
     if (!this.config) {
