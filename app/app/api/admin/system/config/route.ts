@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
  * Super Admin: Update or Create global system configurations
  */
 export async function POST(request: NextRequest) {
+    let bodyData: any = null;
     try {
         const session = await getServerSession(authOptions);
 
@@ -43,57 +44,73 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
         }
 
-        const body = await request.json();
-        const { configs } = body; // Array of { key, value, category, description }
+        bodyData = await request.json();
+        const { configs } = bodyData; // Array of { key, value, category, description }
 
         if (!Array.isArray(configs)) {
-            return NextResponse.json({ error: 'Formato inválido' }, { status: 400 });
+            console.error('❌ Formato de configs inválido:', typeof configs);
+            return NextResponse.json({ error: 'Formato inválido: se esperaba un array de configuraciones' }, { status: 400 });
         }
         
         console.log(`📝 Guardando ${configs.length} configuraciones globales...`);
 
         const results = await prisma.$transaction(async (tx) => {
-            return Promise.all(
-                configs.map(async (config: any) => {
-                    const existing = await tx.systemConfig.findFirst({
-                        where: {
-                            key: config.key,
-                            tenantId: null
+            const updatedConfigs = [];
+            
+            for (const config of configs) {
+                if (!config.key) {
+                    console.warn('⚠️ Omitiendo config sin key:', config);
+                    continue;
+                }
+
+                const existing = await tx.systemConfig.findFirst({
+                    where: {
+                        key: config.key,
+                        tenantId: null
+                    }
+                });
+
+                if (existing) {
+                    const updated = await tx.systemConfig.update({
+                        where: { id: existing.id },
+                        data: {
+                            value: config.value !== undefined ? String(config.value) : existing.value,
+                            category: config.category || existing.category,
+                            description: config.description || existing.description,
+                            updatedBy: session.user.id
                         }
                     });
-
-                    if (existing) {
-                        return tx.systemConfig.update({
-                            where: { id: existing.id },
-                            data: {
-                                value: String(config.value),
-                                category: config.category,
-                                description: config.description,
-                                updatedBy: session.user.id
-                            }
-                        });
-                    } else {
-                        return tx.systemConfig.create({
-                            data: {
-                                key: config.key,
-                                value: String(config.value),
-                                category: config.category || 'GLOBAL',
-                                description: config.description,
-                                tenantId: null,
-                                updatedBy: session.user.id
-                            }
-                        });
-                    }
-                })
-            );
+                    updatedConfigs.push(updated);
+                } else {
+                    const created = await tx.systemConfig.create({
+                        data: {
+                            key: config.key,
+                            value: String(config.value || ''),
+                            category: config.category || 'GLOBAL',
+                            description: config.description || '',
+                            tenantId: null,
+                            updatedBy: session.user.id
+                        }
+                    });
+                    updatedConfigs.push(created);
+                }
+            }
+            return updatedConfigs;
+        }, {
+            timeout: 10000 // 10 seconds timeout for safety
         });
+
+        // Log the achievement
+        const { AuditLogger } = await import('@/lib/audit');
+        await AuditLogger.quickLog(request, 'SYSTEM_CONFIG_UPDATE', { count: results.length, keys: results.map(c => c.key) }, 'SystemSettings', 'GLOBAL', session);
 
         return NextResponse.json({ success: true, count: results.length });
     } catch (error: any) {
         console.error('❌ Error saving global configs:', error);
         return NextResponse.json({ 
             error: 'Fallo al guardar configuración', 
-            details: error.message 
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         }, { status: 500 });
     }
 }

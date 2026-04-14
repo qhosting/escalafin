@@ -61,10 +61,11 @@ export default function GlobalSettingsPage() {
             if (res.ok) {
                 toast.success('Configuración global guardada');
             } else {
-                toast.error('Error al guardar');
+                const errorData = await res.json();
+                toast.error(errorData.details || errorData.error || 'Error al guardar');
             }
-        } catch (error) {
-            toast.error('Error de red');
+        } catch (error: any) {
+            toast.error('Error de red: ' + (error.message || 'Error desconocido'));
         } finally {
             setSaving(false);
         }
