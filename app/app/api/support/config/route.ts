@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 
 const DEFAULT_SUPPORT_CONTACT = {
   email: 'soporte@escalafin.com',
@@ -32,40 +32,52 @@ export async function GET(request: NextRequest) {
     let contactSettings = { ...DEFAULT_SUPPORT_CONTACT };
     let speiSettings = { ...DEFAULT_SUPPORT_SPEI };
 
-    // Si es CLIENTE o ASESOR, ven el soporte del TENANT al que pertenecen
-    if (userRole === 'CLIENTE' || userRole === 'ASESOR') {
-      if (tenantId) {
-        const tenantPrisma = getTenantPrisma(tenantId);
-        
-        const contactConfig = await tenantPrisma.systemConfig.findFirst({
+    // Si NO es SUPER_ADMIN, intentamos obtener la configuración del TENANT
+    if (userRole !== 'SUPER_ADMIN' && tenantId) {
+      const tenantPrisma = getTenantPrisma(tenantId);
+      
+      const [contactConfig, speiConfig] = await Promise.all([
+        tenantPrisma.systemConfig.findFirst({
           where: { key: 'SETTINGS_SUPPORT_CONTACT' }
-        });
-        if (contactConfig) {
-          contactSettings = { ...contactSettings, ...JSON.parse(contactConfig.value) };
-        }
-
-        const speiConfig = await tenantPrisma.systemConfig.findFirst({
+        }),
+        tenantPrisma.systemConfig.findFirst({
           where: { key: 'SETTINGS_SUPPORT_SPEI' }
-        });
-        if (speiConfig) {
+        })
+      ]);
+
+      if (contactConfig) {
+        try {
+          contactSettings = { ...contactSettings, ...JSON.parse(contactConfig.value) };
+        } catch (e) { console.error('Error parsing contact config'); }
+      }
+
+      if (speiConfig) {
+        try {
           speiSettings = { ...speiSettings, ...JSON.parse(speiConfig.value) };
-        }
+        } catch (e) { console.error('Error parsing spei config'); }
       }
     } 
-    // Si es ADMIN o SUPER_ADMIN, ven el soporte GLOBAL (del sistema principal / SAAS)
+    // Si es SUPER_ADMIN, obtenemos la configuración GLOBAL (tenantId: null)
     else {
-      const globalContactConfig = await prisma.systemConfig.findFirst({
-        where: { key: 'SETTINGS_SUPPORT_CONTACT', tenantId: null }
-      });
+      const [globalContactConfig, globalSpeiConfig] = await Promise.all([
+        prisma.systemConfig.findFirst({
+          where: { key: 'SETTINGS_SUPPORT_CONTACT', tenantId: null }
+        }),
+        prisma.systemConfig.findFirst({
+          where: { key: 'SETTINGS_SUPPORT_SPEI', tenantId: null }
+        })
+      ]);
+
       if (globalContactConfig) {
-        contactSettings = { ...contactSettings, ...JSON.parse(globalContactConfig.value) };
+        try {
+          contactSettings = { ...contactSettings, ...JSON.parse(globalContactConfig.value) };
+        } catch (e) { console.error('Error parsing global contact config'); }
       }
 
-      const globalSpeiConfig = await prisma.systemConfig.findFirst({
-        where: { key: 'SETTINGS_SUPPORT_SPEI', tenantId: null }
-      });
       if (globalSpeiConfig) {
-        speiSettings = { ...speiSettings, ...JSON.parse(globalSpeiConfig.value) };
+        try {
+          speiSettings = { ...speiSettings, ...JSON.parse(globalSpeiConfig.value) };
+        } catch (e) { console.error('Error parsing global spei config'); }
       }
     }
 
@@ -74,9 +86,9 @@ export async function GET(request: NextRequest) {
       spei: speiSettings
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching support config:', error);
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500 });
   }
 }
 
@@ -92,49 +104,60 @@ export async function POST(request: NextRequest) {
     const tenantId = session.user.tenantId;
     const userRole = session.user.role;
 
-    // Guardar Contacto
-    if (contact) {
-      if (userRole === 'SUPER_ADMIN') {
-        const existing = await prisma.systemConfig.findFirst({ where: { key: 'SETTINGS_SUPPORT_CONTACT', tenantId: null } });
-        if (existing) {
-          await prisma.systemConfig.update({ where: { id: existing.id }, data: { value: JSON.stringify(contact), updatedBy: session.user.id } });
-        } else {
-          await prisma.systemConfig.create({ data: { key: 'SETTINGS_SUPPORT_CONTACT', tenantId: null, value: JSON.stringify(contact), category: 'SUPPORT_CONTACT', updatedBy: session.user.id } });
-        }
-      } else if (tenantId) {
-        const tenantPrisma = getTenantPrisma(tenantId);
-        const existing = await tenantPrisma.systemConfig.findFirst({ where: { key: 'SETTINGS_SUPPORT_CONTACT' } });
-        if (existing) {
-          await (tenantPrisma.systemConfig as any).update({ where: { id: existing.id }, data: { value: JSON.stringify(contact), updatedBy: session.user.id } });
-        } else {
-          await (tenantPrisma.systemConfig as any).create({ data: { key: 'SETTINGS_SUPPORT_CONTACT', value: JSON.stringify(contact), category: 'SUPPORT_CONTACT', updatedBy: session.user.id } });
-        }
-      }
+    // Determinar qué cliente de prisma usar y qué filtros aplicar
+    const isSuperAdmin = userRole === 'SUPER_ADMIN';
+    const targetPrisma = isSuperAdmin ? prisma : (tenantId ? getTenantPrisma(tenantId) : null);
+
+    if (!targetPrisma) {
+      return NextResponse.json({ error: 'No se pudo determinar el contexto del tenant' }, { status: 400 });
     }
 
-    // Guardar SPEI
-    if (spei) {
-      if (userRole === 'SUPER_ADMIN') {
-        const existing = await prisma.systemConfig.findFirst({ where: { key: 'SETTINGS_SUPPORT_SPEI', tenantId: null } });
-        if (existing) {
-          await prisma.systemConfig.update({ where: { id: existing.id }, data: { value: JSON.stringify(spei), updatedBy: session.user.id } });
-        } else {
-          await prisma.systemConfig.create({ data: { key: 'SETTINGS_SUPPORT_SPEI', tenantId: null, value: JSON.stringify(spei), category: 'SUPPORT_SPEI', updatedBy: session.user.id } });
-        }
-      } else if (tenantId) {
-        const tenantPrisma = getTenantPrisma(tenantId);
-        const existing = await tenantPrisma.systemConfig.findFirst({ where: { key: 'SETTINGS_SUPPORT_SPEI' } });
-        if (existing) {
-          await (tenantPrisma.systemConfig as any).update({ where: { id: existing.id }, data: { value: JSON.stringify(spei), updatedBy: session.user.id } });
-        } else {
-          await (tenantPrisma.systemConfig as any).create({ data: { key: 'SETTINGS_SUPPORT_SPEI', value: JSON.stringify(spei), category: 'SUPPORT_SPEI', updatedBy: session.user.id } });
-        }
+    // Función helper para guardar config
+    const saveConfig = async (key: string, value: any, category: string) => {
+      const stringValue = JSON.stringify(value);
+      
+      // Filtro para búsqueda: para SUPER_ADMIN es explicitly null, para otros lo maneja el proxy de tenant
+      const whereFilter = isSuperAdmin ? { key, tenantId: null } : { key };
+      
+      const existing = await (targetPrisma.systemConfig as any).findFirst({ 
+        where: whereFilter 
+      });
+
+      if (existing) {
+        return (targetPrisma.systemConfig as any).update({
+          where: { id: existing.id },
+          data: { 
+            value: stringValue, 
+            updatedBy: session.user.id 
+          }
+        });
+      } else {
+        return (targetPrisma.systemConfig as any).create({
+          data: {
+            key,
+            value: stringValue,
+            category,
+            updatedBy: session.user.id,
+            tenantId: isSuperAdmin ? null : undefined // undefined deja que el proxy lo maneje o prisma default
+          }
+        });
       }
+    };
+
+    if (contact) {
+      await saveConfig('SETTINGS_SUPPORT_CONTACT', contact, 'SUPPORT_CONTACT');
+    }
+
+    if (spei) {
+      await saveConfig('SETTINGS_SUPPORT_SPEI', spei, 'SUPPORT_SPEI');
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error saving support config:', error);
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error al guardar la configuración', 
+      details: error.message 
+    }, { status: 500 });
   }
 }
