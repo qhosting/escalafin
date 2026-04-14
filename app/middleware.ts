@@ -12,10 +12,10 @@ export default withAuth(
 
     // 🛡️ SEGURIDAD: Bloqueo de escaneos y URLs maliciosas
     const maliciousPatterns = [
-      '/wp-admin', '/wp-login', '.env', '/config', '/admin.php', 
+      '/wp-admin', '/wp-login', '.env', 'config.php', '/admin.php', 
       '/.git', '/composer.json', '/package.json', '/id_rsa',
       '/setup.php', '/phpmyadmin', '/xmlrpc.php', '/shell',
-      '/backup', '/storage', '/sql', '/dump', '/db'
+      '/backup', '/storage', '/sql', '/dump', '/db.sql'
     ];
 
     if (maliciousPatterns.some(pattern => pathname.toLowerCase().includes(pattern))) {

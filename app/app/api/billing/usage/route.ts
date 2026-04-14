@@ -17,10 +17,31 @@ export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session?.user?.tenantId) {
+        if (!session?.user) {
             return NextResponse.json(
                 { success: false, error: 'No autenticado' },
                 { status: 401 }
+            );
+        }
+
+        const tenantId = session.user.tenantId;
+
+        // Si es SUPER_ADMIN y no hay tenantId, devolver un estado ilimitado
+        if (!tenantId && session.user.role === 'SUPER_ADMIN') {
+            return NextResponse.json({
+                success: true,
+                plan: { name: 'SAAS_OWNER', displayName: 'Super Administrador', isTrialing: false },
+                usage: {
+                   // Valores neutros para el Super Admin
+                },
+                alerts: { overLimit: [], nearLimit: [] }
+            });
+        }
+
+        if (!tenantId) {
+            return NextResponse.json(
+                { success: false, error: 'ID de organización faltante' },
+                { status: 400 }
             );
         }
 

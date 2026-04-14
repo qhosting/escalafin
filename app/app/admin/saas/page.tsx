@@ -63,7 +63,10 @@ export default function SaaSOverviewV2() {
         return <PageLoader message="Cargando inteligencia de la plataforma..." />;
     }
 
-    const pieData = Object.entries(stats.plansBreakdown || {}).map(([name, value]) => ({ name, value: value as number }));
+    const pieData = (stats.plansBreakdown || []).map((plan: any) => ({ 
+        name: plan.name, 
+        value: typeof plan === 'object' ? plan.count : 0
+    }));
 
     return (
         <div className="space-y-8 p-1">
