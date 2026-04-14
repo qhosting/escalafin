@@ -9,9 +9,15 @@ interface AuthWrapperProps {
   children: React.ReactNode;
   allowedRoles: string[];
   redirectTo?: string;
+  loadingFallback?: React.ReactNode;
 }
 
-export function AuthWrapper({ children, allowedRoles, redirectTo = '/auth/login' }: AuthWrapperProps) {
+export function AuthWrapper({ 
+  children, 
+  allowedRoles, 
+  redirectTo = '/auth/login',
+  loadingFallback = null
+}: AuthWrapperProps) {
   const { data: session, status } = useSession() || {};
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -29,15 +35,9 @@ export function AuthWrapper({ children, allowedRoles, redirectTo = '/auth/login'
   }, [session, status, router, allowedRoles, redirectTo, mounted]);
 
   // No renderizar nada hasta que esté montado y la sesión esté cargada
+  // Devolvemos el fallback (que puede ser un skeleton) para evitar el "blanco"
   if (!mounted || status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Verificando autenticación...</p>
-        </div>
-      </div>
-    );
+    return <>{loadingFallback}</>;
   }
 
   // Si no hay sesión o no tiene permisos, mostrar loading mientras redirige

@@ -360,9 +360,9 @@ export function EnhancedAdminDashboard() {
 
   const recentActivities = stats?.recentActivities || [];
 
-  if (status === 'loading' || modulesLoading) {
-    return <PageLoader message="Cargando dashboard..." />;
-  }
+  // Removemos el PageLoader de pantalla completa para evitar el "doble loading"
+  // Los ModuleWrapper individuales manejarán sus estados de carga localmente
+  // y AuthWrapper ya maneja el estado de la sesión.
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
@@ -402,10 +402,22 @@ export function EnhancedAdminDashboard() {
         <ModuleWrapper moduleKey="dashboard_overview">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {loadingStats ? (
-              <div className="col-span-4 flex justify-center items-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <span className="ml-2 text-gray-600">Cargando estadísticas...</span>
-              </div>
+              <>
+                {[1, 2, 3, 4].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-2">
+                          <div className="h-4 w-24 bg-gray-200 rounded" />
+                          <div className="h-8 w-32 bg-gray-300 rounded" />
+                          <div className="h-4 w-16 bg-gray-100 rounded" />
+                        </div>
+                        <div className="h-12 w-12 bg-gray-200 rounded-full" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </>
             ) : (
               statsCards.map((stat, index) => (
                 <ModuleWrapper key={index} moduleKey={stat.moduleKey}>

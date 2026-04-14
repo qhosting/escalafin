@@ -6,7 +6,7 @@ export function Skeleton({ className, style }: { className?: string; style?: Rea
   return (
     <div
       style={style}
-      className={`rounded-lg bg-white/[0.04] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent ${className}`}
+      className={`rounded-lg bg-gray-200/60 relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/40 before:to-transparent ${className}`}
     />
   );
 }
@@ -17,45 +17,45 @@ export function SkPulse({ className, style }: { className?: string; style?: Reac
 
 export function AdminSkeleton() {
   return (
-    <div className="flex h-screen bg-[#080a0f] overflow-hidden">
-      <div className="hidden md:flex flex-col w-64 border-r border-white/[0.05] p-4 gap-3 shrink-0">
-        <Skeleton className="h-10 w-36 mb-4" />
+    <div className="flex h-screen bg-gray-50 overflow-hidden text-gray-900">
+      <div className="hidden md:flex flex-col w-64 border-r border-gray-200 bg-white p-4 gap-3 shrink-0">
+        <Skeleton className="h-10 w-36 mb-4 bg-gray-100" />
         {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="h-9 w-full" style={{ opacity: 1 - i * 0.08 }} />
+          <Skeleton key={i} className="h-9 w-full bg-gray-50" style={{ opacity: 1 - i * 0.08 }} />
         ))}
       </div>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="h-16 border-b border-white/[0.05] flex items-center px-6 gap-4 shrink-0">
-          <Skeleton className="h-8 w-48" />
+        <div className="h-16 border-b border-gray-200 bg-white flex items-center px-6 gap-4 shrink-0">
+          <Skeleton className="h-8 w-48 bg-gray-100" />
           <div className="ml-auto flex gap-3">
-            <Skeleton className="h-8 w-8 rounded-full" />
-            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-8 w-8 rounded-full bg-gray-100" />
+            <Skeleton className="h-8 w-8 rounded-full bg-gray-100" />
           </div>
         </div>
-        <div className="flex-1 p-6 space-y-6 overflow-hidden">
+        <div className="flex-1 p-6 space-y-6 overflow-hidden bg-gray-50/50">
           <div className="space-y-2">
-            <Skeleton className="h-8 w-56" />
-            <Skeleton className="h-4 w-80" />
+            <Skeleton className="h-8 w-56 bg-gray-200" />
+            <Skeleton className="h-4 w-80 bg-gray-100" />
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-white/[0.05] p-5 space-y-3 bg-white/[0.02]">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-8 w-24" />
-                <Skeleton className="h-3 w-16" />
+              <div key={i} className="rounded-2xl border border-gray-200 p-5 space-y-3 bg-white shadow-sm">
+                <Skeleton className="h-3 w-20 bg-gray-100" />
+                <Skeleton className="h-8 w-24 bg-gray-200" />
+                <Skeleton className="h-3 w-16 bg-gray-100" />
               </div>
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 rounded-2xl border border-white/[0.05] p-5 space-y-3 bg-white/[0.02]">
-              <Skeleton className="h-5 w-32 mb-4" />
+            <div className="lg:col-span-2 rounded-2xl border border-gray-200 p-5 space-y-3 bg-white shadow-sm">
+              <Skeleton className="h-5 w-32 mb-4 bg-gray-200" />
               {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-10 w-full" />
+                <Skeleton key={i} className="h-10 w-full bg-gray-50" />
               ))}
             </div>
-            <div className="rounded-2xl border border-white/[0.05] p-5 space-y-3 bg-white/[0.02]">
-              <Skeleton className="h-5 w-24 mb-4" />
-              <Skeleton className="h-48 w-full rounded-xl" />
+            <div className="rounded-2xl border border-gray-200 p-5 space-y-3 bg-white shadow-sm">
+              <Skeleton className="h-5 w-24 mb-4 bg-gray-200" />
+              <Skeleton className="h-48 w-full rounded-xl bg-gray-50" />
             </div>
           </div>
         </div>
