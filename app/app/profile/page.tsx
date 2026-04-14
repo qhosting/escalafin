@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { AuthWrapper } from '@/components/auth-wrapper';
 import {
-    CheckCircle2
+    CheckCircle2, Camera, Mail, Building2, Calendar, User, Phone, Loader2, Save, Lock, Shield
 } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 
