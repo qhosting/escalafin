@@ -110,6 +110,7 @@ export const getTenantPrisma = (tenantId: string | null | undefined) => {
                 }
             },
             wahaConfig: handlers,
+            lateFeePenalty: handlers,
             personalReference: handlers,
             guarantor: handlers,
             collateral: handlers,

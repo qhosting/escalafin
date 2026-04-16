@@ -44,6 +44,7 @@ model Tenant {
   users              User[]
   wahaConfig         WahaConfig[]
   webhookEndpoints   WebhookEndpoint[]
+  lateFeePenalties   LateFeePenalty[]
 
   @@map("tenants")
 }
@@ -346,6 +347,7 @@ model Loan {
   tenant               Tenant?                @relation(fields: [tenantId], references: [id])
   payments             Payment[]
   promises             PromiseToPay[]
+  penalties            LateFeePenalty[]
 
   @@index([tenantId])
   @@map("loans")
@@ -376,6 +378,7 @@ model AmortizationSchedule {
   isPaid           Boolean  @default(false)
   loan             Loan     @relation(fields: [loanId], references: [id], onDelete: Cascade)
   payment          Payment?
+  penalties        LateFeePenalty[] @relation("InstallmentPenalties")
 
   @@unique([loanId, paymentNumber])
   @@map("amortization_schedule")
@@ -1634,4 +1637,27 @@ enum LateFeeType {
   DAILY_FIXED
   PERCENTAGE
   NONE
+}
+
+model LateFeePenalty {
+  id            String               @id @default(cuid())
+  loanId        String
+  tenantId      String
+  installmentId String
+  amount        Decimal              @db.Decimal(12, 2)
+  status        String               @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  reason        String
+  paymentId     String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  paidAt        DateTime?
+  
+  loan          Loan                 @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  installment   AmortizationSchedule @relation("InstallmentPenalties", fields: [installmentId], references: [id], onDelete: Cascade)
+  tenant        Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([loanId])
+  @@index([tenantId])
+  @@index([installmentId])
+  @@map("late_fee_penalties")
 }
