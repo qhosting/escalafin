@@ -73,7 +73,7 @@ export async function GET(
           amortizationSchedule: {
             orderBy: { paymentNumber: 'asc' }
           },
-          lateFeePenalties: {
+          penalties: {
             include: {
               installment: {
                 select: {
