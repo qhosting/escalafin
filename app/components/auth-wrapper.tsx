@@ -12,6 +12,8 @@ interface AuthWrapperProps {
   loadingFallback?: React.ReactNode;
 }
 
+import { GenericSpinner } from '@/components/layout/loading-variants';
+
 export function AuthWrapper({ 
   children, 
   allowedRoles, 
@@ -42,14 +44,7 @@ export function AuthWrapper({
 
   // Si no hay sesión o no tiene permisos, mostrar loading mientras redirige
   if (!session?.user || (!allowedRoles.includes(session.user.role) && session.user.role !== 'SUPER_ADMIN')) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirigiendo...</p>
-        </div>
-      </div>
-    );
+    return <GenericSpinner />;
   }
 
   return <>{children}</>;

@@ -6,7 +6,7 @@ export function Skeleton({ className, style }: { className?: string; style?: Rea
   return (
     <div
       style={style}
-      className={`rounded-lg bg-gray-200/60 relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/40 before:to-transparent ${className}`}
+      className={`rounded-lg bg-gray-200/60 dark:bg-white/5 relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-shimmer before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent ${className}`}
     />
   );
 }
