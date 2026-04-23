@@ -128,11 +128,20 @@ export function LoanList({ userRole }: LoanListProps) {
     fetchLoans();
   }, [pagination.page, statusFilter]);
 
-  const filteredLoans = loans.filter(loan =>
-    loan.loanNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${loan.client.firstName} ${loan.client.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    loan.client.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredLoans = loans.filter(loan => {
+    const term = searchTerm.toLowerCase();
+    const loanNumber = loan.loanNumber?.toLowerCase() || '';
+    const clientFirstName = loan.client?.firstName || '';
+    const clientLastName = loan.client?.lastName || '';
+    const clientEmail = loan.client?.email || '';
+    const fullName = `${clientFirstName} ${clientLastName}`.toLowerCase();
+
+    return (
+      loanNumber.includes(term) ||
+      fullName.includes(term) ||
+      clientEmail.toLowerCase().includes(term)
+    );
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
