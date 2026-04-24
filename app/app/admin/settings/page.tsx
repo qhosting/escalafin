@@ -86,6 +86,7 @@ interface SystemSettings {
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [planName, setPlanName] = useState<string>('');
   const [settings, setSettings] = useState<SystemSettings>({
     general: {
       siteName: 'EscalaFin',
@@ -133,7 +134,22 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     fetchSettings();
+    fetchPlan();
   }, []);
+
+  const fetchPlan = async () => {
+    try {
+      const response = await fetch('/api/admin/billing/subscription');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.plan?.displayName) {
+          setPlanName(data.plan.displayName);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching plan:', error);
+    }
+  };
 
   const fetchSettings = async () => {
     setLoading(true);
@@ -200,10 +216,17 @@ export default function AdminSettingsPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Settings className="w-8 h-8" />
-              Configuración del Sistema
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Settings className="w-8 h-8" />
+                Configuración del Sistema
+              </h1>
+              {planName && (
+                <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 font-bold px-3 py-1 rounded-full border-none">
+                  Plan {planName}
+                </Badge>
+              )}
+            </div>
             <p className="text-gray-600 dark:text-gray-300 mt-1">
               Administra los ajustes avanzados y parámetros del sistema
             </p>
@@ -224,53 +247,67 @@ export default function AdminSettingsPage() {
           </Button>
         </div>
 
-        <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="general" className="flex items-center gap-2">
-              <Info className="h-4 w-4" />
-              General
-            </TabsTrigger>
-            <TabsTrigger value="branding" className="flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Branding
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              Notificaciones
-            </TabsTrigger>
-            <TabsTrigger value="my-notifications" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Mis Notifs
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Seguridad
-            </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center gap-2">
-              <Server className="h-4 w-4" />
-              Sistema
-            </TabsTrigger>
-            <TabsTrigger value="integrations" className="flex items-center gap-2">
-              <Key className="h-4 w-4" />
-              Integraciones
-            </TabsTrigger>
-            <TabsTrigger value="spei" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Recargas SPEI
-            </TabsTrigger>
-            <TabsTrigger value="soporte" className="flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              Contacto Soporte
-            </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-              WhatsApp API
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Suscripción
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="general" className="flex flex-col md:flex-row gap-8 items-start">
+          {/* Sidebar Navigation */}
+          <aside className="w-full md:w-72 shrink-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-[2rem] p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-xl shadow-indigo-500/5">
+            <TabsList className="flex flex-col h-auto bg-transparent border-none p-0 gap-1.5 items-stretch">
+              
+              <div className="px-4 py-3 mt-2 first:mt-0 text-[10px] font-black text-indigo-500/70 uppercase tracking-[0.2em]">Configuración Base</div>
+              <TabsTrigger value="general" className="flex items-center justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                <Info className="h-4 w-4 group-data-[state=active]:scale-110 transition-transform" />
+                <span className="font-bold text-sm">General</span>
+              </TabsTrigger>
+              <TabsTrigger value="branding" className="flex items-center justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                <Palette className="h-4 w-4 group-data-[state=active]:scale-110 transition-transform" />
+                <span className="font-bold text-sm">Branding</span>
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="flex items-center justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                <CreditCard className="h-4 w-4 group-data-[state=active]:scale-110 transition-transform" />
+                <span className="font-bold text-sm">Suscripción</span>
+              </TabsTrigger>
+
+              <div className="px-4 py-3 mt-4 text-[10px] font-black text-indigo-500/70 uppercase tracking-[0.2em]">Comunicación</div>
+              <TabsTrigger value="notifications" className="flex items-center justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                <Bell className="h-4 w-4 group-data-[state=active]:scale-110 transition-transform" />
+                <span className="font-bold text-sm">Notificaciones</span>
+              </TabsTrigger>
+              <TabsTrigger value="my-notifications" className="flex items-center justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                <User className="h-4 w-4 group-data-[state=active]:scale-110 transition-transform" />
+                <span className="font-bold text-sm">Mis Preferencias</span>
+              </TabsTrigger>
+              <TabsTrigger value="whatsapp" className="flex items-center justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-circle group-data-[state=active]:scale-110 transition-transform"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                <span className="font-bold text-sm">WhatsApp API</span>
+              </TabsTrigger>
+
+              <div className="px-4 py-3 mt-4 text-[10px] font-black text-indigo-500/70 uppercase tracking-[0.2em]">Seguridad & Sistema</div>
+              <TabsTrigger value="security" className="flex items-center justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                <Shield className="h-4 w-4 group-data-[state=active]:scale-110 transition-transform" />
+                <span className="font-bold text-sm">Seguridad</span>
+              </TabsTrigger>
+              <TabsTrigger value="system" className="flex items-center justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                <Server className="h-4 w-4 group-data-[state=active]:scale-110 transition-transform" />
+                <span className="font-bold text-sm">Sistema</span>
+              </TabsTrigger>
+              <TabsTrigger value="integrations" className="flex items-center justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                <Key className="h-4 w-4 group-data-[state=active]:scale-110 transition-transform" />
+                <span className="font-bold text-sm">Integraciones</span>
+              </TabsTrigger>
+
+              <div className="px-4 py-3 mt-4 text-[10px] font-black text-indigo-500/70 uppercase tracking-[0.2em]">Finanzas & Soporte</div>
+              <TabsTrigger value="spei" className="flex items-center justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                <CreditCard className="h-4 w-4 group-data-[state=active]:scale-110 transition-transform" />
+                <span className="font-bold text-sm">Recargas SPEI</span>
+              </TabsTrigger>
+              <TabsTrigger value="soporte" className="flex items-center justify-start gap-3 px-4 py-3 rounded-2xl transition-all duration-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                <Phone className="h-4 w-4 group-data-[state=active]:scale-110 transition-transform" />
+                <span className="font-bold text-sm">Contacto Soporte</span>
+              </TabsTrigger>
+            </TabsList>
+          </aside>
+
+          {/* Main Content Area */}
+          <div className="flex-1 w-full animate-in fade-in slide-in-from-right-4 duration-500">
 
           <TabsContent value="billing">
             <SubscriptionSettings />
@@ -428,6 +465,16 @@ export default function AdminSettingsPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-indigo-600 font-bold">Plan de Suscripción</Label>
+                    <div className="flex items-center gap-2 p-2 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-md">
+                      <CreditCard className="h-4 w-4 text-indigo-500" />
+                      <span className="font-semibold text-indigo-700 dark:text-indigo-300">
+                        {planName || 'Cargando plan...'}
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="siteName">Nombre del Sitio</Label>
                     <Input
@@ -738,6 +785,7 @@ export default function AdminSettingsPage() {
               </CardContent>
             </Card>
           </TabsContent>
+          </div>
         </Tabs>
       </div>
     </AuthWrapper >

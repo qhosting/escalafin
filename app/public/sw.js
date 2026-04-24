@@ -1,4 +1,4 @@
-const CACHE_NAME = 'escalafin-v2';
+const CACHE_NAME = 'escalafin-v2.8.5';
 const urlsToCache = [
   '/',
   '/pwa/client',

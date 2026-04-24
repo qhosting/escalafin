@@ -28,6 +28,7 @@ export function LoginForm() {
   const [tenantInfo, setTenantInfo]     = useState<{
     name: string; slug: string; primaryColor: string | null;
   } | null>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [otpDigits, setOtpDigits]       = useState(['', '', '', '', '', '']);
@@ -59,6 +60,11 @@ export function LoginForm() {
           if (data.name) setTenantInfo({ name: data.name, slug: data.slug, primaryColor: data.primaryColor });
         })
         .catch(() => {});
+    }
+    
+    // Check if standalone (PWA/Native)
+    if (window.matchMedia('(display-mode: standalone)').matches || (window as any).navigator.standalone) {
+      setIsStandalone(true);
     }
   }, []);
 
@@ -172,25 +178,25 @@ export function LoginForm() {
 
       {/* ── Ambient Background ── */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute top-[-15%] left-[-10%] w-[55%] h-[55%] bg-blue-700/8 rounded-full blur-[140px]" />
-        <div className="absolute bottom-[-15%] right-[-10%] w-[55%] h-[55%] bg-indigo-900/10 rounded-full blur-[140px]" />
-        <div className="absolute top-[35%] left-[25%] w-[50%] h-[50%] bg-sky-600/5 rounded-full blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[100%] h-[100%] sm:w-[55%] sm:h-[55%] bg-blue-700/5 sm:bg-blue-700/8 rounded-full blur-[80px] sm:blur-[140px]" />
+        <div className="hidden sm:block absolute bottom-[-15%] right-[-10%] w-[55%] h-[55%] bg-indigo-900/10 rounded-full blur-[140px]" />
+        <div className="hidden sm:block absolute top-[35%] left-[25%] w-[50%] h-[50%] bg-sky-600/5 rounded-full blur-[120px]" />
         {/* Grid overlay */}
-        <div className="absolute inset-0 opacity-[0.015]"
+        <div className="absolute inset-0 opacity-[0.01] sm:opacity-[0.015]"
           style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
       </div>
 
       <div className="relative z-10 w-full max-w-[420px]">
 
         {/* ── Brand Mark ── */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 shadow-lg shadow-blue-900/40 mb-4">
-            <KeyRound className="w-7 h-7 text-white" strokeWidth={2.5} />
+        <div className="text-center mb-6 sm:mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-14 sm:h-14 rounded-[1.5rem] bg-gradient-to-br from-blue-600 to-indigo-700 shadow-xl shadow-blue-900/30 mb-4 sm:mb-4">
+            <KeyRound className="w-8 h-8 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tight">
+          <h1 className="text-3xl sm:text-3xl font-black text-white tracking-tight">
             {tenantInfo?.name?.toUpperCase() || 'ESCALAFIN'}
           </h1>
-          <p className="text-sm text-white/40 mt-1 font-medium">Bienvenido de nuevo</p>
+          <p className="text-sm text-white/40 mt-1 font-medium italic">Acceso Seguro</p>
         </div>
 
         {/* ── Card ── */}
@@ -397,12 +403,14 @@ export function LoginForm() {
         </div>
 
         {/* Back */}
-        <div className="text-center mt-6">
-          <Link href="/"
-            className="text-[10px] font-black text-slate-700 hover:text-slate-400 uppercase tracking-[0.4em] transition-all">
-            ← Volver al Portal
-          </Link>
-        </div>
+        {!isStandalone && (
+          <div className="text-center mt-8">
+            <Link href="/"
+              className="text-[10px] font-black text-slate-700 hover:text-slate-400 uppercase tracking-[0.4em] transition-all">
+              ← Volver al Portal
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -13,10 +13,10 @@ export default function App() {
         renderLoading={() => (
           <View style={styles.loading}>
             <ActivityIndicator size="large" color="#2563eb" />
-          </div>
+          </View>
         )}
       />
-    </SafeAreView>
+    </SafeAreaView>
   );
 }
 

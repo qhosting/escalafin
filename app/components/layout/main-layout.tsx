@@ -7,6 +7,8 @@ import { DesktopNavbar } from './desktop-navbar';
 import { MobileSidebar } from './mobile-sidebar';
 import { BottomNavbar } from './bottom-navbar';
 import { OfflineBanner } from '@/components/pwa/offline-banner';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 const NO_LAYOUT_PATHS = ['/auth/login', '/auth/register', '/auth/register-tenant'];
 
@@ -71,21 +73,33 @@ export function MainLayout({ children }: MainLayoutProps) {
     );
   }
 
+  const isMobile = useIsMobile();
+
   // Layout autenticado con navegación
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       <OfflineBanner />
       
       {/* Navegación Desktop */}
-      <DesktopNavbar />
+      {!isMobile && <DesktopNavbar />}
 
-      {/* Navegación Mobile */}
-      <MobileSidebar />
-      <BottomNavbar />
+      {/* Navegación Mobile / PWA */}
+      {isMobile && (
+        <>
+          <MobileSidebar />
+          <BottomNavbar />
+        </>
+      )}
 
-      {/* Contenido principal con padding para compensar navbar fijo */}
-      <main className="pt-0 md:pt-0 pb-20 md:pb-0">
-        <div className="max-w-7xl mx-auto p-4 md:p-6">
+      {/* Contenido principal */}
+      <main className={cn(
+        "transition-all duration-300",
+        isMobile ? "pb-28 pt-4 px-2" : "pt-4"
+      )}>
+        <div className={cn(
+          "mx-auto transition-all",
+          isMobile ? "w-full" : "max-w-7xl p-4 md:p-6"
+        )}>
           {children}
         </div>
       </main>
