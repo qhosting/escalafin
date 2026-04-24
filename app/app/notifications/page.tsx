@@ -265,7 +265,6 @@ export default function NotificationsPage() {
 
   const unreadCount = notifications.filter(n => !n.read && !n.archived).length;
 
-  return (
   const isMobile = useIsMobile();
 
   return (
