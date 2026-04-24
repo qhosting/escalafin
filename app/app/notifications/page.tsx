@@ -266,6 +266,15 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.read && !n.archived).length;
 
   const isMobile = useIsMobile();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <NotificationSkeleton isMobile={isMobile} />;
+  }
 
   return (
     <AuthWrapper 
