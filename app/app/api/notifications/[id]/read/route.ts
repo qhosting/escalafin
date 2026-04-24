@@ -19,7 +19,7 @@ export async function POST(
                 userId: session.user.id
             },
             data: {
-                read: true
+                readAt: new Date()
             }
         });
 

@@ -13,10 +13,10 @@ export async function POST() {
         await prisma.notification.updateMany({
             where: {
                 userId: session.user.id,
-                read: false
+                readAt: null
             },
             data: {
-                read: true
+                readAt: new Date()
             }
         });
 

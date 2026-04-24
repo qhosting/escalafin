@@ -103,11 +103,17 @@ export default function NotificationsPage() {
       const response = await fetch('/api/notifications?limit=10');
       if (response.ok) {
         const data = await response.json();
-        setNotifications(data.notifications || []);
+        // Mapear readAt a la propiedad read para la UI
+        const mappedNotifications = (data.notifications || []).map((n: any) => ({
+          ...n,
+          read: !!n.readAt,
+          archived: false // No soportado en DB por ahora
+        }));
+        setNotifications(mappedNotifications);
 
         // Marcar automáticamente las notificaciones no leídas como leídas después de 3 segundos
         setTimeout(async () => {
-          const unreadIds = (data.notifications || [])
+          const unreadIds = mappedNotifications
             .filter((n: Notification) => !n.read)
             .map((n: Notification) => n.id);
 
@@ -194,7 +200,7 @@ export default function NotificationsPage() {
     try {
       await fetch(`/api/notifications/${notificationId}/archive`, { method: 'POST' });
       setNotifications(prev =>
-        prev.map(n => n.id === notificationId ? { ...n, archived: true } : n)
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
       );
       toast.success('Notificación archivada');
     } catch (error) {
