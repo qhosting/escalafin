@@ -34,7 +34,8 @@ import {
     Activity,
     ShieldCheck,
     ShieldAlert,
-    Layers
+    Layers,
+    Smartphone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -393,9 +394,19 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-200 dark:shadow-none h-10 gap-2 mb-2 animate-bounce-subtle"
                     >
                         <DownloadCloud className="h-4 w-4" />
-                        Instalar Aplicación
+                        Instalar PWA
                     </Button>
                 )}
+
+                <Link href="/download" onClick={onClose}>
+                    <Button
+                        variant="outline"
+                        className="w-full border-blue-200 dark:border-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl h-10 gap-2 mb-2"
+                    >
+                        <Smartphone className="h-4 w-4" />
+                        Descargar App Nativa
+                    </Button>
+                </Link>
             </div>
 
             {/* Navegación por categorías */}
