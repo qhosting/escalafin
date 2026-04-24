@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { OfflineBanner } from '@/components/pwa/offline-banner';
 import { GlobalSearch } from './global-search';
 
 export function MobileSidebar() {
@@ -23,7 +22,6 @@ export function MobileSidebar() {
 
   return (
     <div className="md:hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
-      <OfflineBanner />
       {/* Header móvil premium */}
       <div className="flex items-center justify-between px-6 h-16">
         <Link href="/" className="flex items-center space-x-3 active:scale-95 transition-transform">
