@@ -9,6 +9,7 @@ import { BottomNavbar } from './bottom-navbar';
 import { OfflineBanner } from '@/components/pwa/offline-banner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { NoSSR } from '@/components/no-ssr';
 
 const NO_LAYOUT_PATHS = ['/auth/login', '/auth/register', '/auth/register-tenant'];
 
@@ -64,9 +65,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   }
 
   // Si no hay sesión para rutas protegidas, mostrar el contenido
-  // (el middleware se encargará de redirigir si es necesario)
   if (!session && pathname !== '/') {
-    // Para rutas que requieren autenticación, mostrar un layout mínimo
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <main className="pt-4">
@@ -80,34 +79,33 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   const isMobile = useIsMobile();
 
-  // Layout autenticado con navegación
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       <OfflineBanner />
       
-      {/* Navegación Desktop */}
-      {!isMobile && <DesktopNavbar />}
+      <NoSSR>
+        {!isMobile && <DesktopNavbar />}
+        {isMobile && (
+          <>
+            <MobileSidebar />
+            <BottomNavbar />
+          </>
+        )}
+      </NoSSR>
 
-      {/* Navegación Mobile / PWA */}
-      {isMobile && (
-        <>
-          <MobileSidebar />
-          <BottomNavbar />
-        </>
-      )}
-
-      {/* Contenido principal */}
-      <main className={cn(
-        "transition-all duration-300",
-        isMobile ? "pb-28 pt-4 px-2" : "pt-4"
-      )}>
-        <div className={cn(
-          "mx-auto transition-all",
-          isMobile ? "w-full" : "max-w-7xl p-4 md:p-6"
+      <NoSSR fallback={<main className="pt-4"><div className="max-w-7xl mx-auto p-4 md:p-6">{children}</div></main>}>
+        <main className={cn(
+          "transition-all duration-300",
+          isMobile ? "pb-28 pt-4 px-2" : "pt-4"
         )}>
-          {children}
-        </div>
-      </main>
+          <div className={cn(
+            "mx-auto transition-all",
+            isMobile ? "w-full" : "max-w-7xl p-4 md:p-6"
+          )}>
+            {children}
+          </div>
+        </main>
+      </NoSSR>
     </div>
   );
 }
