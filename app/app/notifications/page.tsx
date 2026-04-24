@@ -41,6 +41,9 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
+import { NotificationSkeleton } from '@/components/layout/loading-variants';
 
 interface Notification {
   id: string;
@@ -257,84 +260,88 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.read && !n.archived).length;
 
   return (
-    <AuthWrapper allowedRoles={['ADMIN', 'ASESOR']}>
-      <div className="space-y-6">
-        <div className="flex justify-between items-start">
+  const isMobile = useIsMobile();
+
+  return (
+    <AuthWrapper 
+      allowedRoles={['ADMIN', 'ASESOR']} 
+      loadingFallback={<NotificationSkeleton isMobile={isMobile} />}
+    >
+      <div className={cn("space-y-6", isMobile ? "px-2 pb-24" : "")}>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Bell className="w-8 h-8" />
-              Centro de Notificaciones
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2 tracking-tight">
+              <div className="p-2 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-900/20">
+                <Bell className="w-6 h-6 md:w-8 md:h-8" />
+              </div>
+              Centro de Alertas
               {unreadCount > 0 && (
-                <Badge variant="destructive" className="ml-2">
-                  {unreadCount} sin leer
+                <Badge variant="destructive" className="ml-2 animate-pulse rounded-lg font-black text-[10px]">
+                  {unreadCount} NUEVAS
                 </Badge>
               )}
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">
-              Gestiona tus notificaciones y configuraciones de comunicación
+            <p className="text-gray-500 dark:text-gray-400 text-sm font-bold uppercase tracking-widest mt-2">
+              Gestión de comunicaciones y eventos
             </p>
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchNotifications}>
-              <RefreshCw className="h-4 w-4 mr-2" />
+            <Button variant="outline" onClick={fetchNotifications} className="rounded-2xl h-12 font-black text-xs uppercase tracking-widest">
+              <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
               Actualizar
             </Button>
-            {unreadCount > 0 && (
-              <Button onClick={markAllAsRead}>
+            {unreadCount > 0 && !isMobile && (
+              <Button onClick={markAllAsRead} className="bg-blue-600 hover:bg-blue-700 rounded-2xl h-12 font-black text-xs uppercase tracking-widest">
                 <Check className="h-4 w-4 mr-2" />
-                Marcar todas como leídas
+                Marcar todo leido
               </Button>
             )}
           </div>
         </div>
 
         <Tabs defaultValue="notifications" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
+          <TabsList className="bg-white/50 dark:bg-gray-900/50 p-1 rounded-2xl border border-gray-200/50 dark:border-gray-800/50">
+            <TabsTrigger value="notifications" className="rounded-xl flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">
               <BellRing className="h-4 w-4" />
-              Notificaciones
+              Alertas
             </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2">
+            <TabsTrigger value="messages" className="rounded-xl flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">
               <MessagesSquare className="h-4 w-4" />
               Mensajes
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
+            <TabsTrigger value="settings" className="rounded-xl flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">
               <Settings className="h-4 w-4" />
-              Configuración
+              Ajustes
             </TabsTrigger>
           </TabsList>
 
           {/* Notifications List */}
           <TabsContent value="notifications">
-            <Card>
-              <CardHeader>
-                <CardTitle>Lista de Notificaciones</CardTitle>
-                <CardDescription>
-                  Todas tus notificaciones del sistema y comunicaciones
-                </CardDescription>
-
-                {/* Filters */}
-                <div className="flex gap-4 mt-4">
-                  <div className="flex-1 max-w-sm">
-                    <Label htmlFor="search">Buscar</Label>
-                    <div className="relative">
-                      <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+            <Card className="border-none shadow-sm rounded-[2.5rem] bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl">
+              <CardHeader className="pb-2">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-xl font-black">Lista de Notificaciones</CardTitle>
+                    <CardDescription className="text-xs font-bold uppercase tracking-tighter">
+                      Historial completo de alertas del sistema
+                    </CardDescription>
+                  </div>
+                  
+                  {/* Filters */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative group">
+                      <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                       <Input
-                        id="search"
-                        placeholder="Buscar notificaciones..."
+                        placeholder="Buscar..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 h-10 w-full sm:w-64 rounded-xl bg-gray-100/50 dark:bg-gray-800/50 border-none focus-visible:ring-2 focus-visible:ring-blue-500"
                       />
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="filter">Filtrar</Label>
                     <select
-                      id="filter"
-                      className="w-40 p-2 border rounded-md"
+                      className="h-10 px-3 text-xs font-black uppercase tracking-widest bg-gray-100/50 dark:bg-gray-800/50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                       value={filterType}
                       onChange={(e) => setFilterType(e.target.value)}
                     >
@@ -342,18 +349,25 @@ export default function NotificationsPage() {
                       <option value="unread">Sin leer</option>
                       <option value="read">Leídas</option>
                       <option value="success">Éxito</option>
-                      <option value="warning">Advertencia</option>
+                      <option value="warning">Alerta</option>
                       <option value="error">Error</option>
-                      <option value="info">Información</option>
                     </select>
                   </div>
                 </div>
               </CardHeader>
 
-              <CardContent>
-                {loading ? (
-                  <div className="flex items-center justify-center h-32">
-                    <RefreshCw className="h-8 w-8 animate-spin" />
+              <CardContent className="pt-4">
+                {loading && notifications.length === 0 ? (
+                  <div className="space-y-3">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="flex gap-4 p-4 border border-gray-100 dark:border-gray-800 rounded-3xl animate-pulse">
+                         <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-2xl" />
+                         <div className="flex-1 space-y-2">
+                            <div className="h-4 w-1/3 bg-gray-100 dark:bg-gray-800 rounded" />
+                            <div className="h-3 w-full bg-gray-50 dark:bg-gray-800/50 rounded" />
+                         </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="space-y-3">

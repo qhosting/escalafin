@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 export function Skeleton({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
@@ -144,6 +145,35 @@ export function GenericSpinner() {
         <p className="text-[10px] font-black text-slate-700 uppercase tracking-[0.4em] animate-pulse">
           Cargando
         </p>
+      </div>
+    </div>
+  );
+}
+
+
+export function NotificationSkeleton({ isMobile }: { isMobile?: boolean }) {
+  return (
+    <div className={"space-y-6", isMobile ? "px-4 pt-4" : "p-6")}>
+      <div className={"flex justify-between items-start">
+        <div className={"space-y-2">
+          <Skeleton className={"h-8 w-48 bg-gray-200" />
+          <Skeleton className={"h-4 w-64 bg-gray-100" />
+        </div>
+      </div>
+      <div className={"flex gap-2 p-1 rounded-2xl bg-gray-100/50 w-fit">
+        <Skeleton className={"h-9 w-24 rounded-xl" />
+        <Skeleton className={"h-9 w-24 rounded-xl" />
+      </div>
+      <div className={"bg-white rounded-[2.5rem] p-6 border border-gray-100 space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className={"flex gap-4 p-4 border border-gray-50 rounded-3xl">
+            <Skeleton className={"h-12 w-12 rounded-2xl" />
+            <div className={"flex-1 space-y-2">
+              <Skeleton className={"h-4 w-1/4" />
+              <Skeleton className={"h-3 w-full" />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
