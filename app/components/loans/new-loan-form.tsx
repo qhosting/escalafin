@@ -84,10 +84,10 @@ const LOAN_TYPES = {
 };
 
 const PAYMENT_FREQUENCIES = {
-  SEMANAL: 'Semanal (52 pagos/año)',
-  CATORCENAL: 'Catorcenal (26 pagos/año)',
-  QUINCENAL: 'Quincenal (24 pagos/año)',
-  MENSUAL: 'Mensual (12 pagos/año)'
+  SEMANAL: 'Semanal',
+  CATORCENAL: 'Catorcenal',
+  QUINCENAL: 'Quincenal',
+  MENSUAL: 'Mensual'
 };
 
 const CALCULATION_TYPES = {
