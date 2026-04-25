@@ -53,6 +53,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CierrePenalizaciones } from '@/components/admin/operations/cierre-penalizaciones';
 import { PageLoader } from '@/components/ui/page-loader';
+import { CarteraDashboard } from '@/components/dashboards/cartera-dashboard';
 
 interface DashboardStats {
   activeLoans: number;
@@ -440,6 +441,9 @@ export function EnhancedAdminDashboard() {
             )}
           </div>
         </ModuleWrapper>
+
+        {/* ── Dashboard de Cartera ────────────────────────── */}
+        <CarteraDashboard />
 
         {/* MÓDULOS PRINCIPALES (CORE) */}
         <Card>
