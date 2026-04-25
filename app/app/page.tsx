@@ -193,10 +193,10 @@ export default function HomePage() {
                 El Sistema Operativo para Microfinancieras Modernas
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-                Control total de tu cartera de microcréditos, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300">en la palma de tu mano.</span>
+                Escala tu financiera con <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300">tecnología de clase mundial.</span>
               </h1>
               <p className="text-lg md:text-xl text-blue-100 mb-8 opacity-90 leading-relaxed">
-                Gestiona clientes, automatiza cobranzas y escala tu financiera con tecnología SaaS de última generación. Todo en una plataforma robusta, segura y multi-tenant.
+                El sistema operativo integral para administradores y dueños de carteras que buscan digitalizar su cobranza, reducir la morosidad y crecer sin límites.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/auth/register-tenant">
@@ -358,10 +358,10 @@ export default function HomePage() {
                 <Calculator size={16} /> Motor de Cálculo Potente
               </div>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Prueba la potencia de nuestro motor de cálculo en vivo.
+                Un motor de cálculo que se adapta a tus productos.
               </h2>
               <p className="text-slate-400 text-lg mb-8">
-                Escalafin genera tablas de amortización dinámicas al instante. Soporta interés tradicional, tarifas fijas, esquemas semanales y sistemas personalizados.
+                No importa qué tan complejo sea tu esquema de cobro. Nuestro motor genera tablas de amortización precisas para cualquier modelo de negocio: desde interés tradicional hasta sistemas personalizados de mercado.
               </p>
               
               <div className="space-y-4">
@@ -382,13 +382,13 @@ export default function HomePage() {
 
             {/* Simulador Interactivo UI */}
             <div className="glass-card-dark rounded-2xl p-6 md:p-8 shadow-2xl">
-              <h3 className="text-xl font-bold mb-6 border-b border-slate-700 pb-4">Simulador de Préstamo</h3>
+              <h3 className="text-xl font-bold mb-6 border-b border-slate-700 pb-4">Demo del Motor Financiero</h3>
               
               <div className="space-y-6">
                 {/* Monto */}
                 <div>
                   <div className="flex justify-between mb-2">
-                    <label className="text-slate-300 text-sm font-medium">Monto del Crédito</label>
+                    <label className="text-slate-300 text-sm font-medium">Capital del Producto</label>
                     <span className="text-emerald-400 font-bold">${monto.toLocaleString()} MXN</span>
                   </div>
                   <input 
@@ -451,18 +451,18 @@ export default function HomePage() {
                 {/* Resultados */}
                 <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700 mt-8">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-slate-400 text-sm">Cuota {frecuencia}</span>
+                    <span className="text-slate-400 text-sm">Cobro {frecuencia} Estimado</span>
                     <span className="text-3xl font-bold text-white">${cuota.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm border-t border-slate-700 pt-3">
-                    <span className="text-slate-400">Total a Pagar</span>
+                    <span className="text-slate-400">Retorno Total Estimado</span>
                     <span className="font-semibold text-emerald-400">${totalPagar.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                   </div>
                 </div>
                 
                 <Link href="/auth/register-tenant">
                   <button className="w-full bg-[#1e40af] hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors flex justify-center items-center gap-2 mt-4">
-                    Probar ahora gratis <ArrowRight size={18}/>
+                    Digitaliza tu financiera hoy <ArrowRight size={18}/>
                   </button>
                 </Link>
               </div>
