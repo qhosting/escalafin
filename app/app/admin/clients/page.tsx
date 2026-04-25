@@ -94,8 +94,11 @@ export default function ClientsPage() {
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetchClients();
-  }, [currentPage, statusFilter]);
+    const timer = setTimeout(() => {
+      fetchClients();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [currentPage, statusFilter, searchTerm]);
 
   const fetchClients = async () => {
     setLoading(true);
@@ -107,6 +110,10 @@ export default function ClientsPage() {
 
       if (statusFilter && statusFilter !== 'all') {
         params.append('status', statusFilter);
+      }
+
+      if (searchTerm) {
+        params.append('search', searchTerm);
       }
 
       const response = await fetch(`/api/clients?${params}`);
@@ -144,10 +151,10 @@ export default function ClientsPage() {
   const filteredClients = clients.filter(client => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      client.firstName.toLowerCase().includes(searchLower) ||
-      client.lastName.toLowerCase().includes(searchLower) ||
-      client.email.toLowerCase().includes(searchLower) ||
-      client.phone.includes(searchTerm)
+      (client.firstName?.toLowerCase() || '').includes(searchLower) ||
+      (client.lastName?.toLowerCase() || '').includes(searchLower) ||
+      (client.email?.toLowerCase() || '').includes(searchLower) ||
+      (client.phone || '').includes(searchTerm)
     );
   });
 
