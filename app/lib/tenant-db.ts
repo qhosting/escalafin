@@ -16,65 +16,95 @@ type QueryArgs = { args: any; query: (args: any) => Promise<any> };
  */
 const createTenantQueryHandlers = (tenantId: string) => ({
     async findMany({ args, query }: QueryArgs) {
-        args.where = { ...args.where, tenantId };
-        return query(args);
+        return query({
+            ...args,
+            where: { ...args.where, tenantId }
+        });
     },
     async findFirst({ args, query }: QueryArgs) {
-        args.where = { ...args.where, tenantId };
-        return query(args);
+        return query({
+            ...args,
+            where: { ...args.where, tenantId }
+        });
     },
     async findUnique({ args, query }: QueryArgs) {
         // findUnique solo acepta campos únicos. Para filtrar por tenantId
         // de forma segura, transformamos la consulta internamente en findFirst.
-        // Prisma extensions permiten relanzar consultas.
-        args.where = { ...args.where, tenantId };
-        return query(args);
+        return query({
+            ...args,
+            where: { ...args.where, tenantId }
+        });
     },
     async count({ args, query }: QueryArgs) {
-        args.where = { ...args.where, tenantId };
-        return query(args);
+        // En Prisma 6, count puede venir con un select interno (como un aggregate)
+        // que causa error de validación si se vuelve a pasar a query() como count.
+        const { select, ...rest } = args;
+        const baseArgs = (select?._count) ? rest : args;
+        
+        return query({
+            ...baseArgs,
+            where: { ...baseArgs.where, tenantId }
+        });
     },
     async aggregate({ args, query }: QueryArgs) {
-        args.where = { ...args.where, tenantId };
-        return query(args);
+        return query({
+            ...args,
+            where: { ...args.where, tenantId }
+        });
     },
     async groupBy({ args, query }: QueryArgs) {
-        args.where = { ...args.where, tenantId };
-        return query(args);
+        return query({
+            ...args,
+            where: { ...args.where, tenantId }
+        });
     },
     async create({ args, query }: QueryArgs) {
-        args.data = { ...args.data, tenantId };
-        return query(args);
+        return query({
+            ...args,
+            data: { ...args.data, tenantId }
+        });
     },
     async createMany({ args, query }: QueryArgs) {
-        if (Array.isArray(args.data)) {
-            args.data = args.data.map((item: any) => ({ ...item, tenantId }));
-        } else {
-            args.data = { ...args.data, tenantId };
-        }
-        return query(args);
+        const data = Array.isArray(args.data)
+            ? args.data.map((item: any) => ({ ...item, tenantId }))
+            : { ...args.data, tenantId };
+            
+        return query({
+            ...args,
+            data
+        });
     },
     async update({ args, query }: QueryArgs) {
-        args.where = { ...args.where, tenantId };
-        return query(args);
+        return query({
+            ...args,
+            where: { ...args.where, tenantId }
+        });
     },
     async updateMany({ args, query }: QueryArgs) {
-        args.where = { ...args.where, tenantId };
-        return query(args);
+        return query({
+            ...args,
+            where: { ...args.where, tenantId }
+        });
     },
     async delete({ args, query }: QueryArgs) {
-        args.where = { ...args.where, tenantId };
-        return query(args);
+        return query({
+            ...args,
+            where: { ...args.where, tenantId }
+        });
     },
     async deleteMany({ args, query }: QueryArgs) {
-        args.where = { ...args.where, tenantId };
-        return query(args);
+        return query({
+            ...args,
+            where: { ...args.where, tenantId }
+        });
     },
     async upsert({ args, query }: QueryArgs) {
-        args.where = { ...args.where, tenantId };
-        args.create = { ...args.create, tenantId };
-        return query(args);
-    }
+        return query({
+            ...args,
+            where: { ...args.where, tenantId },
+            create: { ...args.create, tenantId }
+        });
+    },
 });
 
 /**

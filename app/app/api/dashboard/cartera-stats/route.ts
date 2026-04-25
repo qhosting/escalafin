@@ -39,7 +39,10 @@ export async function GET() {
       loansCompletados,
     ] = await Promise.all([
       // Préstamos ACTIVE
-      (tenantPrisma.loan as any).count({ where: { status: 'ACTIVE' } }),
+      (tenantPrisma.loan as any).aggregate({ 
+        where: { status: 'ACTIVE' },
+        _count: { _all: true }
+      }).then((res: any) => res._count?._all || 0),
 
       // Capital total colocado (suma de principalAmount de todos los préstamos)
       (tenantPrisma.loan as any).aggregate({
@@ -129,7 +132,10 @@ export async function GET() {
       }),
 
       // Préstamos completados (PAID)
-      (tenantPrisma.loan as any).count({ where: { status: 'PAID' } }),
+      (tenantPrisma.loan as any).aggregate({ 
+        where: { status: 'PAID' },
+        _count: { _all: true }
+      }).then((res: any) => res._count?._all || 0),
     ]);
 
     // ────────────────────────────────────────────────────────────
