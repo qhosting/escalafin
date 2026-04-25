@@ -1,38 +1,93 @@
 
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import {
-  Building2,
-  Shield,
+import { 
+  Smartphone, 
+  Calculator, 
+  Bot, 
+  ShieldCheck, 
+  BarChart3, 
+  CheckCircle2, 
+  XCircle, 
+  ArrowRight, 
+  Play, 
+  Users, 
+  Briefcase, 
+  Menu,
+  X,
+  ChevronRight,
   TrendingUp,
-  Users,
   CreditCard,
-  BarChart3,
-  ArrowRight,
-  Play,
-  CheckCircle,
-  Star,
-  Globe,
-  Smartphone,
-  MessageSquare,
-  ChevronRight
+  Building,
+  DollarSign,
+  Calendar
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { PricingSection } from '@/components/landing/pricing-section';
-import { motion } from 'framer-motion';
+
+// Inyectamos la fuente Outfit
+const FontStyles = () => (
+  <style>
+    {`
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+      body {
+        font-family: 'Outfit', sans-serif;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .glass-card-dark {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      input[type=range] {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+      }
+      input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #10b981; /* Emerald 500 */
+        cursor: pointer;
+        margin-top: -8px;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+      }
+      input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        cursor: pointer;
+        background: #e2e8f0;
+        border-radius: 9999px;
+      }
+      .dark-track::-webkit-slider-runnable-track {
+        background: #334155;
+      }
+    `}
+  </style>
+);
 
 export default function HomePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Estado del Simulador
+  const [monto, setMonto] = useState(5000);
+  const [tasa, setTasa] = useState(15);
+  const [plazo, setPlazo] = useState(12);
+  const [frecuencia, setFrecuencia] = useState('Semanal');
 
   useEffect(() => {
     setMounted(true);
@@ -44,235 +99,550 @@ export default function HomePage() {
     }
   }, [session, status, router]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   if (!mounted) return null;
 
-  return (
-    <div className="min-h-screen bg-white">
-      {/* ── Fixed Navigation bar ── */}
-      <nav className="fixed top-0 left-0 right-0 z-[100] bg-white/80 backdrop-blur-md border-b border-gray-100 h-16 flex items-center shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="flex justify-between items-center">
-            {/* Logo Group */}
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="bg-[#003d7a] p-2 rounded-xl shadow-lg shadow-blue-900/10 transition-transform group-hover:scale-105">
-                <Building2 className="h-5 w-5 text-white" />
-              </div>
-              <div className="flex flex-col -space-y-1">
-                <span className="text-lg font-black text-[#003d7a] tracking-tighter">EscalaFin</span>
-                <span className="text-[10px] font-bold text-[#00b4d8] uppercase tracking-widest pl-0.5">Fintech SaaS</span>
-              </div>
-            </Link>
+  // Lógica del simulador (Simplificada para demostración)
+  const interesTotal = monto * (tasa / 100);
+  const totalPagar = monto + interesTotal;
+  const cuota = totalPagar / plazo;
 
-            {/* Navigation items */}
-            <div className="flex items-center gap-4 sm:gap-8">
-              <Link href="/auth/login" className="text-sm font-black text-slate-500 hover:text-[#003d7a] transition-colors uppercase tracking-widest px-2">
-                Entrar
-              </Link>
-              <Link href="/auth/register-tenant">
-                <Button className="bg-[#003d7a] hover:bg-[#002d5a] text-white font-black rounded-lg px-6 h-10 text-xs shadow-lg shadow-blue-900/20 transition-all hover:translate-y-[-1px] active:translate-y-0">
-                  CREAR CUENTA
-                </Button>
-              </Link>
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 overflow-x-hidden">
+      <FontStyles />
+
+      {/* NAVBAR */}
+      <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-[#1e40af] flex items-center justify-center text-white font-bold text-xl">
+                E
+              </div>
+              <span className={`font-bold text-2xl tracking-tight ${isScrolled ? 'text-[#1e40af]' : 'text-white'}`}>
+                Escalafin
+              </span>
+            </Link>
+            
+            {/* Desktop Nav */}
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#caracteristicas" className={`font-medium hover:text-emerald-500 transition-colors ${isScrolled ? 'text-slate-600' : 'text-slate-200'}`}>Características</a>
+              <a href="#simulador" className={`font-medium hover:text-emerald-500 transition-colors ${isScrolled ? 'text-slate-600' : 'text-slate-200'}`}>Simulador</a>
+              <a href="#beneficios" className={`font-medium hover:text-emerald-500 transition-colors ${isScrolled ? 'text-slate-600' : 'text-slate-200'}`}>Beneficios</a>
+              <div className="flex items-center gap-4 ml-4">
+                <Link href="/auth/login">
+                  <button className={`font-medium ${isScrolled ? 'text-[#1e40af]' : 'text-white'} hover:text-emerald-400`}>
+                    Acceso Personal
+                  </button>
+                </Link>
+                <Link href="/auth/register-tenant">
+                  <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2 rounded-full font-medium transition-all shadow-lg shadow-emerald-500/30">
+                    Crear Cuenta
+                  </button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center">
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className={`${isScrolled ? 'text-slate-800' : 'text-white'}`}>
+                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Nav */}
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-xl py-4 px-4 flex flex-col gap-4 animate-in slide-in-from-top-4">
+            <a href="#caracteristicas" className="text-slate-600 font-medium" onClick={() => setMobileMenuOpen(false)}>Características</a>
+            <a href="#simulador" className="text-slate-600 font-medium" onClick={() => setMobileMenuOpen(false)}>Simulador</a>
+            <a href="#beneficios" className="text-slate-600 font-medium" onClick={() => setMobileMenuOpen(false)}>Beneficios</a>
+            <hr className="border-slate-100" />
+            <Link href="/auth/login">
+              <button className="text-[#1e40af] font-medium text-left w-full">Acceso Personal</button>
+            </Link>
+            <Link href="/auth/register-tenant">
+              <button className="bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium text-center w-full">Crear Cuenta</button>
+            </Link>
+          </div>
+        )}
       </nav>
 
-      {/* ── Hero section ── */}
-      <section className="relative pt-28 lg:pt-40 pb-20 overflow-hidden bg-slate-50/10">
-        {/* Background blobs for depth */}
-        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[700px] h-[700px] bg-blue-100/40 rounded-full blur-[140px] pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Hero Left Content */}
-            <div className="space-y-10 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-100 rounded-full text-[#003d7a] text-[10px] font-black uppercase tracking-[0.2em] shadow-sm">
-                 <Star className="w-4 h-4 fill-[#003d7a]/20" />
-                 PLATAFORMA PROFESIONAL DE CRÉDITO
+      {/* HERO SECTION */}
+      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-[#1e40af]">
+        {/* Background elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-emerald-500/20 blur-[100px]"></div>
+          <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-400/20 blur-[120px]"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Text Content */}
+            <div className="text-white max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card text-emerald-300 text-sm font-medium mb-6">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                El Sistema Operativo para Microfinancieras Modernas
               </div>
-              
-              <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black text-slate-900 leading-[0.95] tracking-[ -0.05em]">
-                Créditos <br />
-                <span className="text-[#003d7a]">Inteligentes</span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+                Control total de tu cartera de microcréditos, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300">en la palma de tu mano.</span>
               </h1>
-
-              <p className="text-lg lg:text-2xl text-slate-500 font-medium leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                La suite más potente para la gestión financiera. <br className="hidden lg:block" /> 
-                Escala tu negocio con tecnología de vanguardia.
+              <p className="text-lg md:text-xl text-blue-100 mb-8 opacity-90 leading-relaxed">
+                Gestiona clientes, automatiza cobranzas y escala tu financiera con tecnología SaaS de última generación. Todo en una plataforma robusta, segura y multi-tenant.
               </p>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6 pt-4">
-                 <Link href="/auth/register-tenant" className="w-full sm:w-auto">
-                    <Button className="w-full sm:px-14 h-18 py-8 bg-[#003d7a] hover:bg-[#002d5a] text-white font-black text-xl rounded-2xl shadow-2xl shadow-blue-900/60 transition-all hover:scale-[1.05] active:scale-[0.98] group">
-                       EMPEZAR GRATIS
-                       <ArrowRight className="ml-4 h-6 w-6 group-hover:translate-x-2 transition-all" />
-                    </Button>
-                 </Link>
-                 <Link href="#demo" className="w-full sm:w-auto">
-                    <Button variant="outline" className="w-full sm:px-10 h-18 py-8 border-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-900 font-black text-xl rounded-2xl transition-all shadow-xl shadow-slate-100/50">
-                       VER DEMO
-                    </Button>
-                 </Link>
-              </div>
-
-              {/* Stats badges */}
-              <div className="flex items-center justify-center lg:justify-start gap-16 pt-12 border-t border-slate-200/60 mt-12">
-                <div>
-                   <div className="text-3xl font-black text-slate-900">+500</div>
-                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">FINANCIERAS</div>
-                </div>
-                <div>
-                   <div className="text-3xl font-black text-slate-900">99.9%</div>
-                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">UPTIME</div>
-                </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/auth/register-tenant">
+                  <button className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all shadow-lg shadow-emerald-500/40 flex items-center justify-center gap-2 group">
+                    Comenzar Ahora
+                    <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </Link>
+                <button className="glass-card hover:bg-white/10 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all flex items-center justify-center gap-2">
+                  <Play size={20} className="fill-current" />
+                  Ver Video Demo
+                </button>
               </div>
             </div>
 
-            {/* Hero Right Visuals */}
-            <div className="relative pt-12 lg:pt-0">
-               <div className="absolute -inset-10 bg-[#003d7a]/10 rounded-full blur-[90px] pointer-events-none" />
-               <div className="relative bg-white border border-slate-100 p-8 rounded-[48px] shadow-2xl overflow-hidden shadow-blue-900/5 transition-transform hover:scale-[1.02] duration-700">
-                  <div className="aspect-[4/3] rounded-[40px] bg-slate-50 flex flex-col items-center justify-center text-center p-10 border border-slate-100">
-                     <motion.div 
-                        animate={{ y: [0, -15, 0] }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                        className="p-8 bg-white rounded-3xl shadow-xl w-fit mb-8 border border-slate-50"
-                     >
-                        <Building2 size={64} className="text-[#003d7a]" />
-                     </motion.div>
-                     <h3 className="text-3xl font-black text-slate-900 mb-2">ESCÁLAFIN</h3>
-                     <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Control Total Garantizado</p>
+            {/* Dashboard Mockup (Glassmorphism) */}
+            <div className="relative mx-auto w-full max-w-md lg:max-w-full">
+              <div className="glass-card rounded-2xl p-4 md:p-6 shadow-2xl relative z-10 border-t border-l border-white/20">
+                {/* Mockup Header */}
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="text-white font-semibold">Dashboard General</h3>
+                    <p className="text-blue-200 text-sm">Resumen en tiempo real</p>
                   </div>
+                  <div className="bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-lg text-sm font-medium border border-emerald-500/30">
+                    +12.5% vs Semanal
+                  </div>
+                </div>
+                
+                {/* Mockup KPI Cards */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-white/10 rounded-xl p-4 border border-white/5">
+                    <p className="text-blue-200 text-xs mb-1">Cartera Activa</p>
+                    <p className="text-white font-bold text-xl">$1.2M MXN</p>
+                  </div>
+                  <div className="bg-white/10 rounded-xl p-4 border border-white/5">
+                    <p className="text-blue-200 text-xs mb-1">Tasa de Morosidad</p>
+                    <p className="text-emerald-400 font-bold text-xl">4.2%</p>
+                  </div>
+                </div>
 
-                  {/* Badges */}
-                  <div className="absolute top-12 -left-4 sm:-left-8 backdrop-blur-xl bg-[#003d7a] text-white p-4 rounded-2xl shadow-2xl flex items-center gap-4 transition-transform hover:scale-105">
-                     <div className="bg-white/20 p-2 rounded-xl"><CheckCircle className="h-6 w-6" /></div>
-                     <span className="font-black text-sm uppercase tracking-widest">Cobros Listos</span>
+                {/* Mockup Chart Area */}
+                <div className="bg-white/5 rounded-xl p-4 h-32 border border-white/5 flex items-end gap-2 justify-between">
+                   {[40, 60, 45, 80, 55, 90, 75].map((h, i) => (
+                     <div key={i} className="w-full bg-gradient-to-t from-emerald-500 to-cyan-400 rounded-t-sm opacity-80 hover:opacity-100 transition-opacity" style={{ height: `${h}%` }}></div>
+                   ))}
+                </div>
+
+                {/* Floating Elements */}
+                <div className="absolute -right-4 -bottom-4 md:-right-8 md:-bottom-8 bg-white rounded-xl p-4 shadow-xl animate-bounce" style={{ animationDuration: '3s' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="bg-green-100 p-2 rounded-full">
+                      <Bot className="text-green-600" size={20} />
+                    </div>
+                    <div>
+                      <p className="text-slate-800 font-semibold text-sm">Notificación enviada</p>
+                      <p className="text-slate-500 text-xs">WhatsApp • Hace 2 min</p>
+                    </div>
                   </div>
-                  <div className="absolute bottom-12 -right-4 sm:-right-8 backdrop-blur-xl bg-[#00b4d8] text-white p-4 rounded-2xl shadow-2xl flex items-center gap-4 transition-transform hover:scale-105">
-                     <div className="bg-white/20 p-2 rounded-xl"><TrendingUp className="h-6 w-6" /></div>
-                     <span className="font-black text-sm uppercase tracking-widest">Morosidad ↓</span>
-                  </div>
-               </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Features ── */}
-      <section id="features-section" className="py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-16">
-          <div className="space-y-4 max-w-4xl mx-auto">
-             <Badge variant="outline" className="px-6 py-1.5 text-[#003d7a] bg-blue-50 border-blue-100 font-black text-[10px] tracking-widest uppercase mb-4">Módulos del Sistema</Badge>
-             <h2 className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tight leading-tighter">Tecnología de Alto Impacto</h2>
-             <p className="text-xl lg:text-3xl text-slate-400 font-bold">Todo bajo el mismo techo, sin fricciones.</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12 text-left">
-            {[
-              { icon: Users, title: "Gestión de Clientes", desc: "Perfiles 360° con scoring predictivo y almacenamiento de documentos seguro." },
-              { icon: CreditCard, title: "Ciclo de Crédito", desc: "Desde la originación hasta la cobranza judicial, el control es tuyo." },
-              { icon: BarChart3, title: "Inteligencia de Negocios", desc: "Dashboards en tiempo real preparados para detectar cualquier anomalía." },
-              { icon: Shield, title: "Seguridad Militar", desc: "Arquitectura redundante con encriptado de punta a punta (End-To-End)." },
-              { icon: Smartphone, title: "Experiencia Mobile", desc: "Tu financiera en el bolsillo. App optimizada para cobradores de campo." },
-              { icon: MessageSquare, title: "WhatsApp CRM", desc: "Envío masivo de recordatorios y gestión de cobranza preventiva automática." }
-            ].map((f, i) => (
-              <div key={i} className="group p-10 border border-slate-100 rounded-[40px] hover:bg-[#003d7a] transition-all duration-500 hover:shadow-2xl shadow-blue-900/20">
-                <div className="p-5 bg-blue-50 rounded-2xl w-fit mb-8 text-[#003d7a] group-hover:bg-white/10 group-hover:text-white transition-all duration-300">
-                  <f.icon size={32} />
-                </div>
-                <h3 className="text-2xl font-black text-slate-900 group-hover:text-white mb-4 transition-colors">{f.title}</h3>
-                <p className="text-slate-500 font-bold group-hover:text-blue-100/60 leading-relaxed transition-colors">{f.desc}</p>
-              </div>
-            ))}
+      {/* SOCIAL PROOF */}
+      <section className="py-10 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-6">
+            Confían en nosotros financieras de México y LATAM
+          </p>
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+            <div className="flex items-center gap-2 text-xl font-bold font-serif"><Building size={24}/> CrediMax</div>
+            <div className="flex items-center gap-2 text-xl font-black italic"><TrendingUp size={24}/> PrestaRapido</div>
+            <div className="flex items-center gap-2 text-xl font-bold tracking-tighter"><CreditCard size={24}/> FinanzaPro</div>
+            <div className="flex items-center gap-2 text-xl font-medium"><ShieldCheck size={24}/> SeguroCash</div>
           </div>
         </div>
       </section>
 
-      {/* ── Pricing Section ── */}
-      <PricingSection />
+      {/* PROBLEMA VS SOLUCIÓN */}
+      <section className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">¿Harto de Excel y falta de control?</h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              El crecimiento de tu financiera no debería estar limitado por herramientas obsoletas o procesos manuales propensos a errores.
+            </p>
+          </div>
 
-      {/* ── Final Call to Action ── */}
-      <section className="py-40 relative bg-slate-950 overflow-hidden text-center">
-         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#003d7a]/40 via-transparent to-transparent opacity-50" />
-         <div className="relative max-w-5xl mx-auto px-6 z-10 space-y-16">
-            <h2 className="text-6xl lg:text-9xl font-black text-white leading-none tracking-tighter uppercase italic">
-               DALE PODER A <br /> 
-               <span className="text-[#00b4d8]">TU FINANCIERA</span>
-            </h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
-                <Link href="/auth/register-tenant" className="w-full sm:w-auto">
-                    <Button className="w-full sm:px-16 h-20 bg-white hover:bg-slate-100 text-[#003d7a] font-black text-2xl rounded-3xl transition-all shadow-2xl shadow-white/10">
-                       PROBAR AHORA
-                    </Button>
-                </Link>
-                <Link href="/auth/login" className="text-white/60 font-black hover:text-white transition-colors text-xl uppercase tracking-widest border-b-2 border-transparent hover:border-white pb-1">
-                   ENTRAR AL PORTAL
-                </Link>
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Problema */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+              <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <span className="bg-red-100 text-red-600 p-2 rounded-lg"><XCircle size={24} /></span>
+                La forma tradicional
+              </h3>
+              <ul className="space-y-4">
+                {[
+                  "Cálculos manuales en Excel propensos a errores.",
+                  "Cobradores con recibos de papel y sin seguimiento GPS.",
+                  "Falta de visibilidad de la morosidad en tiempo real.",
+                  "Horas gastadas llamando a clientes para cobrar.",
+                  "Riesgo de fraude por falta de validación de identidad."
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3 text-slate-600">
+                    <X className="text-red-400 mt-1 shrink-0" size={18} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-         </div>
+
+            {/* Solución */}
+            <div className="bg-[#1e40af] rounded-2xl p-8 shadow-xl text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500 rounded-bl-full opacity-20"></div>
+              <h3 className="text-xl font-bold mb-6 flex items-center gap-2 relative z-10">
+                <span className="bg-emerald-500 text-white p-2 rounded-lg"><CheckCircle2 size={24} /></span>
+                Con Escalafin
+              </h3>
+              <ul className="space-y-4 relative z-10">
+                {[
+                  "Cálculos automáticos (Interés fijo, semanal, personalizado).",
+                  "App Móvil con modo Offline y GPS para cobradores.",
+                  "Dashboard en vivo con KPIs de tu cartera y asesores.",
+                  "Recordatorios automatizados por WhatsApp.",
+                  "Validación OCR de INE y Scoring Crediticio integrado."
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3 text-blue-100">
+                    <CheckCircle2 className="text-emerald-400 mt-1 shrink-0" size={18} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="bg-white text-slate-400 py-24 border-t border-slate-100">
-         <div className="max-w-7xl mx-auto px-4 flex flex-col items-center gap-16">
-            <div className="flex flex-col md:flex-row items-center gap-10">
-               <Link href="/" className="flex items-center gap-4">
-                  <div className="bg-[#003d7a] p-2 rounded-xl"><Building2 size={24} className="text-white" /></div>
-                  <span className="text-3xl font-black text-slate-900 tracking-tighter">EscalaFin</span>
-               </Link>
-               <Separator orientation="vertical" className="h-6 bg-slate-200 hidden md:block" />
-               <a href="https://aurumcapital.mx" target="_blank" className="flex flex-col items-start gap-0 group">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#003d7a]">Socio Tecnológico</span>
-                  <span className="text-lg font-black text-slate-900 group-hover:text-[#00b4d8] transition-colors leading-none tracking-tight">AurumCapital.mx</span>
-               </a>
+      {/* INTERACTIVE CALCULATOR (EL GANCHO) */}
+      <section id="simulador" className="py-20 bg-slate-900 text-white relative overflow-hidden">
+        {/* Decoración */}
+        <div className="absolute inset-0 opacity-10">
+           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-sm font-medium mb-6">
+                <Calculator size={16} /> Motor de Cálculo Potente
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                Prueba la potencia de nuestro motor de cálculo en vivo.
+              </h2>
+              <p className="text-slate-400 text-lg mb-8">
+                Escalafin genera tablas de amortización dinámicas al instante. Soporta interés tradicional, tarifas fijas, esquemas semanales y sistemas personalizados.
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 text-slate-300">
+                  <CheckCircle2 className="text-emerald-500" size={20} />
+                  <span>Amortización dinámica en tiempo real.</span>
+                </div>
+                <div className="flex items-center gap-3 text-slate-300">
+                  <CheckCircle2 className="text-emerald-500" size={20} />
+                  <span>Refinanciamiento con un clic integrado.</span>
+                </div>
+                <div className="flex items-center gap-3 text-slate-300">
+                  <CheckCircle2 className="text-emerald-500" size={20} />
+                  <span>Generación de PDF automático para el cliente.</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Simulador Interactivo UI */}
+            <div className="glass-card-dark rounded-2xl p-6 md:p-8 shadow-2xl">
+              <h3 className="text-xl font-bold mb-6 border-b border-slate-700 pb-4">Simulador de Préstamo</h3>
+              
+              <div className="space-y-6">
+                {/* Monto */}
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="text-slate-300 text-sm font-medium">Monto del Crédito</label>
+                    <span className="text-emerald-400 font-bold">${monto.toLocaleString()} MXN</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    className="dark-track"
+                    min="1000" max="50000" step="500"
+                    value={monto} 
+                    onChange={(e) => setMonto(Number(e.target.value))}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Tasa */}
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <label className="text-slate-300 text-sm font-medium">Tasa (%)</label>
+                      <span className="text-emerald-400 font-bold">{tasa}%</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      className="dark-track"
+                      min="5" max="30" step="1"
+                      value={tasa} 
+                      onChange={(e) => setTasa(Number(e.target.value))}
+                    />
+                  </div>
+                  
+                  {/* Plazo */}
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <label className="text-slate-300 text-sm font-medium">Plazo</label>
+                      <span className="text-emerald-400 font-bold">{plazo} {frecuencia.toLowerCase()}s</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      className="dark-track"
+                      min="4" max="52" step="1"
+                      value={plazo} 
+                      onChange={(e) => setPlazo(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+
+                {/* Frecuencia */}
+                <div>
+                  <label className="text-slate-300 text-sm font-medium block mb-3">Frecuencia de Pago</label>
+                  <div className="flex bg-slate-800 rounded-lg p-1">
+                    {['Semanal', 'Quincenal', 'Mensual'].map((f) => (
+                      <button
+                        key={f}
+                        className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${frecuencia === f ? 'bg-[#1e40af] text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
+                        onClick={() => setFrecuencia(f)}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Resultados */}
+                <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700 mt-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-slate-400 text-sm">Cuota {frecuencia}</span>
+                    <span className="text-3xl font-bold text-white">${cuota.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm border-t border-slate-700 pt-3">
+                    <span className="text-slate-400">Total a Pagar</span>
+                    <span className="font-semibold text-emerald-400">${totalPagar.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  </div>
+                </div>
+                
+                <Link href="/auth/register-tenant">
+                  <button className="w-full bg-[#1e40af] hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors flex justify-center items-center gap-2 mt-4">
+                    Probar ahora gratis <ArrowRight size={18}/>
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* LOS PILARES (FEATURES) */}
+      <section id="caracteristicas" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Los 5 Pilares de Escalafin</h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              Todo lo que necesitas para operar, agrupado en una sola plataforma robusta.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-xl transition-all hover:-translate-y-1 group">
+              <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-[#1e40af] mb-6 group-hover:bg-[#1e40af] group-hover:text-white transition-colors">
+                <Calculator size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Gestión Integral de Cartera</h3>
+              <p className="text-slate-600 mb-4 text-sm leading-relaxed">
+                Soporte para interés tradicional, tarifa fija y sistemas personalizados. Genera tablas de pago al instante y absorbe saldos en refinanciamientos con un clic.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-xl transition-all hover:-translate-y-1 group">
+              <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 mb-6 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                <Smartphone size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Movilidad para Cobradores</h3>
+              <p className="text-slate-600 mb-4 text-sm leading-relaxed">
+                App nativa diseñada para campo. Los asesores registran cobros, ven rutas y capturan firmas en tiempo real, incluso con modo offline.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-xl transition-all hover:-translate-y-1 group">
+              <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 mb-6 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                <Bot size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Automatización WhatsApp</h3>
+              <p className="text-slate-600 mb-4 text-sm leading-relaxed">
+                Reduce la morosidad enviando automáticamente recordatorios a clientes próximos a vencer o con atrasos. Incluye WhatsApp Center integrado.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-xl transition-all hover:-translate-y-1 group">
+              <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 mb-6 group-hover:bg-red-500 group-hover:text-white transition-colors">
+                <ShieldCheck size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Seguridad y KYC</h3>
+              <p className="text-slate-600 mb-4 text-sm leading-relaxed">
+                Extracción automática de datos de INE mediante IA (Google Vision) para prevenir fraudes. Scoring crediticio basado en historial.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-xl transition-all hover:-translate-y-1 group md:col-span-2 lg:col-span-1">
+              <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 mb-6 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                <BarChart3 size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Inteligencia de Negocio</h3>
+              <p className="text-slate-600 mb-4 text-sm leading-relaxed">
+                KPIs en tiempo real: capital colocado, cartera vigente, tasa de morosidad y top deudores. Toma decisiones basadas en datos precisos.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* BENEFICIOS POR ROL */}
+      <section id="beneficios" className="py-20 bg-slate-50 border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Una solución para todo el equipo</h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center">
+              <div className="w-16 h-16 mx-auto bg-blue-50 rounded-full flex items-center justify-center text-[#1e40af] mb-4">
+                <Briefcase size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Administrador</h3>
+              <p className="text-slate-600 text-sm">
+                Control absoluto del flujo de caja, reportes en tiempo real y asignación inteligente de carteras. Elimina las fugas de capital.
+              </p>
             </div>
             
-            <div className="flex flex-col md:flex-row gap-8 lg:gap-12 items-center text-[10px] md:text-xs font-black uppercase tracking-widest text-[#003d7a]/60">
-               <Link href="/legal/privacy" className="hover:text-[#00b4d8] transition-colors">Aviso de Privacidad</Link>
-               <Link href="/legal/terms" className="hover:text-[#00b4d8] transition-colors">Términos y Condiciones</Link>
-               <a href="https://wa.me/524424000742" target="_blank" className="text-[#003d7a] hover:text-[#00b4d8] transition-all flex items-center gap-2">
-                  <Smartphone className="h-4 w-4" /> WHATSAPP SOPORTE
-               </a>
-               <span className="text-slate-300">© 2025 ESCALAFIN • TODOS LOS DERECHOS RESERVADOS</span>
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center relative md:-translate-y-4 shadow-lg border-[#1e40af]/20">
+              <div className="w-16 h-16 mx-auto bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-4">
+                <Smartphone size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Asesor / Cobrador</h3>
+              <p className="text-slate-600 text-sm">
+                Rutas optimizadas, app móvil intuitiva, menos errores manuales y comprobantes digitales instantáneos.
+              </p>
             </div>
 
-            {/* Disclaimer General */}
-            <div className="max-w-4xl text-center">
-               <p className="text-[10px] font-bold text-slate-300 leading-relaxed uppercase tracking-tighter">
-                  <strong>DESCARGO DE RESPONSABILIDAD:</strong> EscalaFin y Aurum Capital Holding operan únicamente como proveedores tecnológicos de software (SaaS). No somos una institución financiera ni banco. Cada usuario de EscalaFin (Tenant) es el único responsable legal por sus operaciones crediticias, cumplimiento normativo y fiscal. Aurum Capital Holding queda liberado de cualquier responsabilidad derivada de la relación entre el usuario corporativo y sus acreditados.
-               </p>
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center">
+              <div className="w-16 h-16 mx-auto bg-purple-50 rounded-full flex items-center justify-center text-purple-600 mb-4">
+                <Users size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Cliente Final</h3>
+              <p className="text-slate-600 text-sm">
+                Transparencia total. Claridad en sus pagos, recibos inmediatos vía WhatsApp y recordatorios oportunos para cuidar su historial.
+              </p>
             </div>
-         </div>
-      </footer>
+          </div>
+        </div>
+      </section>
 
-      {/* WhatsApp Floating Button */}
-      <div className="fixed bottom-8 right-8 z-[200] group flex items-center">
-        {/* Tooltip con efecto premium */}
-        <span className="mr-4 bg-white dark:bg-slate-900 text-[#003d7a] dark:text-blue-400 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all duration-500 shadow-2xl border border-slate-100 dark:border-slate-800 pointer-events-none whitespace-nowrap translate-x-12 group-hover:translate-x-0">
-           ¿Tienes dudas? ¡Escríbenos!
-        </span>
+      {/* SAAS READY BANNER */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[#1e40af]"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1e40af] to-emerald-800 opacity-90"></div>
         
-        <a 
-          href="https://wa.me/524424000742" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="relative flex items-center justify-center w-16 h-16 bg-[#25D366] text-white rounded-full shadow-2xl shadow-green-500/50 hover:scale-110 active:scale-95 transition-all duration-500 border-4 border-white dark:border-slate-900"
-        >
-          {/* Pinging effect for attention */}
-          <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-25" />
+        <div className="max-w-4xl mx-auto px-4 text-center relative z-10 text-white">
+          <div className="inline-block bg-white/20 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wider mb-6 backdrop-blur-sm border border-white/30 uppercase">
+            Arquitectura Multi-Tenant SaaS
+          </div>
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">Lista para escalar contigo</h2>
+          <p className="text-xl text-blue-100 mb-10 opacity-90">
+            Crea tu organización y sucursales en segundos. Nuestra infraestructura en la nube garantiza que tu información esté siempre disponible, segura y respaldada.
+          </p>
+          <Link href="/auth/register-tenant">
+            <button className="bg-white text-[#1e40af] hover:bg-slate-100 px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-xl flex items-center justify-center gap-2 mx-auto">
+              Crear mi cuenta gratis <ArrowRight size={20} />
+            </button>
+          </Link>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div className="col-span-1 md:col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-[#1e40af] flex items-center justify-center text-white font-bold text-xl">
+                  E
+                </div>
+                <span className="font-bold text-2xl text-white tracking-tight">
+                  Escalafin
+                </span>
+              </div>
+              <p className="text-sm max-w-sm mb-6">
+                El sistema operativo completo para microfinancieras modernas que buscan escalabilidad, control total y automatización.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="text-white font-semibold mb-4">Producto</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#caracteristicas" className="hover:text-emerald-400 transition-colors">Características</a></li>
+                <li><a href="#simulador" className="hover:text-emerald-400 transition-colors">Simulador</a></li>
+                <li><a href="#" className="hover:text-emerald-400 transition-colors">Precios</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-white font-semibold mb-4">Compañía</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/auth/login" className="hover:text-emerald-400 transition-colors">Acceso Personal</Link></li>
+                <li><Link href="/auth/register-tenant" className="hover:text-emerald-400 transition-colors">Registro</Link></li>
+              </ul>
+            </div>
+          </div>
           
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            viewBox="0 0 24 24" 
-            fill="currentColor" 
-            className="w-8 h-8 relative z-10"
-          >
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 0 5.414 0 12.05c0 2.123.552 4.197 1.602 6.02L0 24l6.149-1.613a11.815 11.815 0 005.901 1.564c6.63 0 12.05-5.414 12.05-12.05a11.83 11.83 0 00-3.54-8.509z"/>
-          </svg>
-        </a>
-      </div>
+          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+            <p>&copy; {new Date().getFullYear()} Escalafin. Todos los derechos reservados.</p>
+            <div className="flex space-x-6">
+              <a href="#" className="hover:text-white transition-colors">Twitter</a>
+              <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
+              <a href="#" className="hover:text-white transition-colors">Facebook</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
