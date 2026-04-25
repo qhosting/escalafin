@@ -348,6 +348,13 @@ model Loan {
   payments             Payment[]
   promises             PromiseToPay[]
   penalties            LateFeePenalty[]
+  
+  // Renovación y Refinanciamiento
+  isRenewal            Boolean                @default(false)
+  isRefinancing        Boolean                @default(false)
+  refinancedFromId     String?                @unique
+  refinancedFrom       Loan?                  @relation("RefinanceLineage", fields: [refinancedFromId], references: [id])
+  refinancedTo         Loan?                  @relation("RefinanceLineage")
 
   @@index([tenantId])
   @@map("loans")
@@ -1375,6 +1382,8 @@ enum LoanStatus {
   PAID_OFF
   DEFAULTED
   CANCELLED
+  REFINANCED
+  RENEWED
 }
 
 enum PaymentFrequency {
@@ -1408,6 +1417,8 @@ enum PaymentMethod {
   CREDIT_CARD
   ONLINE
   MIGRATION
+  REFINANCE
+  RENEWAL
 }
 
 enum RiskLevel {
@@ -1470,6 +1481,8 @@ enum PaymentProviderType {
   PAYPAL
   BANK_TRANSFER
   MANUAL
+  REFINANCE
+  INTERNAL
 }
 
 enum PaymentTransactionStatus {

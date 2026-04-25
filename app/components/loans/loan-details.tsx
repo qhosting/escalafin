@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils';
 import { LoanStatementModal } from './loan-statement-modal';
 import { PageSkeleton } from '@/components/ui/page-skeleton';
 import { AmortizationSchedule } from './amortization-schedule';
+import { RefinanceModal } from './refinance-modal';
 
 interface LoanDetail {
   id: string;
@@ -115,6 +116,7 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
   const [loan, setLoan] = useState<LoanDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
+  const [isRefinanceModalOpen, setIsRefinanceModalOpen] = useState(false);
 
   useEffect(() => {
     fetchLoanDetails();
@@ -345,16 +347,27 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
               <span className="sm:inline">Estado de Cuenta</span>
             </Button>
             {userRole !== 'CLIENTE' && (
-              <Link href={`/admin/loans/${loan.id}/edit`} className="flex-1 sm:flex-none">
+              <>
                 <Button 
-                  variant="secondary" 
+                  variant="outline" 
                   size="sm" 
-                  className="w-full h-11 rounded-xl font-bold bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white dark:bg-amber-900/40 dark:text-amber-400 dark:hover:bg-amber-700 transition-all shadow-sm"
+                  className="flex-1 sm:flex-none h-11 rounded-xl font-bold bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                  onClick={() => setIsRefinanceModalOpen(true)}
                 >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Renovar / Refinanciar
                 </Button>
-              </Link>
+                <Link href={`/admin/loans/${loan.id}/edit`} className="flex-1 sm:flex-none">
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    className="w-full h-11 rounded-xl font-bold bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white dark:bg-amber-900/40 dark:text-amber-400 dark:hover:bg-amber-700 transition-all shadow-sm"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                </Link>
+              </>
             )}
           </div>
         </div>
@@ -682,6 +695,13 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
         isOpen={isStatementModalOpen}
         onOpenChange={setIsStatementModalOpen}
         loan={loan}
+      />
+      
+      <RefinanceModal
+        isOpen={isRefinanceModalOpen}
+        onOpenChange={setIsRefinanceModalOpen}
+        loan={loan as any}
+        onSuccess={fetchLoanDetails}
       />
     </div>
   );
