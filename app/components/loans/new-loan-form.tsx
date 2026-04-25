@@ -265,7 +265,10 @@ export function NewLoanForm({ loanId }: { loanId?: string }) {
             notes: loan.notes || '',
             lateFeeType: loan.lateFeeType || 'DAILY_FIXED',
             lateFeeAmount: loan.lateFeeAmount?.toString() || '200',
-            lateFeeMaxWeekly: loan.lateFeeMaxWeekly?.toString() || '800'
+            lateFeeMaxWeekly: loan.lateFeeMaxWeekly?.toString() || '800',
+            insuranceAmount: loan.insuranceAmount?.toString() || '0',
+            disbursementFee: loan.disbursementFee?.toString() || '0',
+            disbursedAmount: loan.disbursedAmount?.toString() || '0'
           });
           
           // Calcular automáticamente para mostrar el resumen
@@ -762,7 +765,7 @@ export function NewLoanForm({ loanId }: { loanId?: string }) {
         fontSize: 9, 
         fontStyle: 'bold',
         halign: 'center',
-        padding: 3
+        cellPadding: 3
       },
       styles: { 
         fontSize: 8,
