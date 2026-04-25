@@ -49,12 +49,15 @@ export async function GET(
     }
 
     // Verificar permisos
-    const userRole = session.user.role
+    const userRole = session.user.role as string
     const isOwner = fileRecord.uploadedById === session.user.id
     const isClientFile = fileRecord.clientId === session.user.id
     const isAssignedAdvisor = fileRecord.client?.asesorId === session.user.id
     
-    if (!['admin'].includes(userRole) && !isOwner && !isClientFile && !isAssignedAdvisor) {
+    // Roles permitidos: ADMIN, SUPER_ADMIN, Propietario del archivo, Cliente dueño del archivo o Asesor asignado
+    const hasPrivilegedRole = ['ADMIN', 'SUPER_ADMIN'].includes(userRole.toUpperCase())
+    
+    if (!hasPrivilegedRole && !isOwner && !isClientFile && !isAssignedAdvisor) {
       return NextResponse.json({ error: 'Sin permisos para ver este archivo' }, { status: 403 })
     }
 
@@ -78,7 +81,7 @@ export async function GET(
     const disposition = isImage ? 'inline' : 'attachment'
     headers.set('Content-Disposition', `${disposition}; filename="${fileRecord.originalName}"`)
 
-    return new NextResponse(fileBuffer, { headers })
+    return new NextResponse(new Uint8Array(fileBuffer), { headers })
 
   } catch (error) {
     console.error('Error al servir archivo:', error)

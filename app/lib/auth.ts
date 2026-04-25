@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db';
 import { UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { AuditLogger } from './audit';
+import { RateLimiter } from './rate-limit';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -15,7 +16,16 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
         tenantSlug: { label: 'Tenant Slug', type: 'text' }
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
+        // 🛡️ Rate Limiting por IP (Máximo 5 intentos por minuto)
+        const clientIp = (req as any)?.headers?.['x-forwarded-for']?.split(',')[0] || 'unknown';
+        const rateLimit = await RateLimiter.checkByIp(clientIp, 'login', 5, 60);
+        
+        if (!rateLimit.success) {
+          console.warn(`🛡️ RATE LIMIT: Bloqueado intento de login desde IP ${clientIp}. Reintentar en ${rateLimit.reset}s`);
+          throw new Error(`Demasiados intentos fallidos. Por favor, espere ${rateLimit.reset} segundos.`);
+        }
+
         console.log('🔍 NextAuth authorize llamado con:', {
           email: credentials?.email,
           tenantSlug: credentials?.tenantSlug

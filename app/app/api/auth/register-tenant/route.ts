@@ -5,9 +5,20 @@ import bcrypt from 'bcryptjs';
 import { sendEmail, emailTemplates } from '@/lib/mail';
 import { seedTenantData } from '@/lib/infrastructure-seeding';
 import { AurumSyncService } from '@/lib/aurum-sync-service';
+import { RateLimiter } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
     try {
+        // 🛡️ Rate Limiting por IP (Máximo 3 registros por hora para evitar spam)
+        const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || req.ip || 'unknown';
+        const rateLimit = await RateLimiter.checkByIp(clientIp, 'register-tenant', 3, 3600);
+        
+        if (!rateLimit.success) {
+            return NextResponse.json({ 
+                error: `Límite de registros excedido. Por favor, intente nuevamente en una hora.` 
+            }, { status: 429 });
+        }
+
         const body = await req.json();
         const { companyName, email, password, firstName, lastName, phone } = body;
 
