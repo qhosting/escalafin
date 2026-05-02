@@ -131,9 +131,9 @@ export async function GET() {
         take: 10
       }),
 
-      // Préstamos completados (PAID)
+      // Préstamos completados (PAID_OFF)
       (tenantPrisma.loan as any).aggregate({ 
-        where: { status: 'PAID' },
+        where: { status: 'PAID_OFF' },
         _count: { _all: true }
       }).then((res: any) => res._count?._all || 0),
     ]);
