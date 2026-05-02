@@ -35,71 +35,72 @@ export async function GET(request: NextRequest) {
         const advisorId = searchParams.get('advisorId');
         const search = searchParams.get('search');
 
-        let whereClause: any = { tenantId };
+        const conditions: any[] = [{ tenantId }];
 
         // Filtro de búsqueda (por cliente o préstamo)
         if (search) {
-            whereClause.OR = [
-                { reference: { contains: search, mode: 'insensitive' } },
-                {
-                    loan: {
-                        OR: [
-                            { loanNumber: { contains: search, mode: 'insensitive' } },
-                            {
-                                client: {
-                                    OR: [
-                                        { firstName: { contains: search, mode: 'insensitive' } },
-                                        { lastName: { contains: search, mode: 'insensitive' } }
-                                    ]
+            conditions.push({
+                OR: [
+                    { reference: { contains: search, mode: 'insensitive' } },
+                    {
+                        loan: {
+                            OR: [
+                                { loanNumber: { contains: search, mode: 'insensitive' } },
+                                {
+                                    client: {
+                                        OR: [
+                                            { firstName: { contains: search, mode: 'insensitive' } },
+                                            { lastName: { contains: search, mode: 'insensitive' } }
+                                        ]
+                                    }
                                 }
-                            }
-                        ]
+                            ]
+                        }
                     }
-                }
-            ];
+                ]
+            });
         }
 
         // Filtro por Fecha
         if (startDate || endDate) {
-            whereClause.paymentDate = {};
+            const dateFilter: any = {};
             if (startDate) {
                 const start = new Date(startDate);
                 if (!isNaN(start.getTime())) {
                     start.setHours(0, 0, 0, 0);
-                    whereClause.paymentDate.gte = start;
+                    dateFilter.gte = start;
                 }
             }
             if (endDate) {
                 const end = new Date(endDate);
                 if (!isNaN(end.getTime())) {
                     end.setHours(23, 59, 59, 999);
-                    whereClause.paymentDate.lte = end;
+                    dateFilter.lte = end;
                 }
             }
-            // Limpiar si no se agregaron filtros válidos
-            if (Object.keys(whereClause.paymentDate).length === 0) {
-                delete whereClause.paymentDate;
+            if (Object.keys(dateFilter).length > 0) {
+                conditions.push({ paymentDate: dateFilter });
             }
         }
 
         if (session.user.role === 'CLIENTE') {
-            // Solo pagos del cliente logueado
             const clientProfile = await tenantPrisma.client.findFirst({
                 where: { userId: session.user.id }
             });
             if (!clientProfile) {
                 return NextResponse.json({ payments: [], total: 0 });
             }
-            whereClause = {
-                loan: { clientId: clientProfile.id, tenantId }
-            };
+            conditions.push({
+                loan: { clientId: clientProfile.id }
+            });
         } else if (session.user.role === 'ASESOR' || advisorId) {
             const filterAsesorId = advisorId || session.user.id;
-            // Solo pagos de clientes del asesor especificado
-            whereClause.loan = {
-                client: { asesorId: filterAsesorId }
-            };
+            conditions.push({
+                loan: { client: { asesorId: filterAsesorId } }
+            });
         }
+
+        const whereClause = { AND: conditions };
 
         const [payments, total] = await Promise.all([
             tenantPrisma.payment.findMany({
@@ -138,7 +139,10 @@ export async function GET(request: NextRequest) {
         // Calcular stats de forma segura (sin groupBy si hay filtros de relación que Prisma no soporta bien en groupBy)
         let statsMap: any = {};
         try {
-            const hasRelationFilter = !!whereClause.loan;
+            const hasRelationFilter = conditions.some(c => 
+                c.loan || 
+                (c.OR && c.OR.some((oc: any) => oc.loan))
+            );
             
             if (!hasRelationFilter) {
                 const stats = await (tenantPrisma.payment as any).groupBy({
