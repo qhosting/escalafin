@@ -45,24 +45,13 @@ export async function POST(request: NextRequest) {
 
     let messageId = 'test-run';
     try {
-        messageId = await wahaService.sendTextMessage(
-          'test-client-id-placeholder', // Esto probablemente fallará si no existe el cliente
+        // Usamos sendRawMessage para la prueba porque no requiere un clientId existente en la DB
+        await wahaService.sendRawMessage(
           testPhone,
-          testMessage,
-          'CUSTOM'
+          testMessage
         );
     } catch (e: any) {
-        console.warn("DB logging failed (expected if no test client), but continuing to check if request was sent if possible", e);
-        // Si falla por Prisma Foreign Key, es normal en test environment si no tenemos un cliente "test".
-        // Pero queremos saber si la API de Waha funciona.
-        if (e.code === 'P2003') { // Prisma Foreign Key constraint failed
-             return NextResponse.json({
-                success: false,
-                message: 'Conexión parece funcionar pero falló el registro en base de datos (Cliente de prueba no existe). Crea un cliente primero.',
-                sessionStatus,
-                details: e.message
-             });
-        }
+        console.error("Waha API connection failed:", e);
         throw e;
     }
 
