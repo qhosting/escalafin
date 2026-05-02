@@ -1,18 +1,16 @@
 {
-  "version": "2.8.6",
-  "buildNumber": "20260502.001",
+  "version": "2.8.8",
+  "buildNumber": "20260502.002",
   "releaseDate": "2026-05-02",
-  "releaseName": "Mobile & PWA Sync",
-  "gitCommit": "36c9f0c",
+  "releaseName": "Mobile Stability & UI Refresh",
+  "gitCommit": "ce5185e",
   "environment": "production",
   "changelog": [
-    "Sincronización de versiones PWA y APK nativa (Capacitor)",
-    "Actualización de Service Worker para forzar refresco de caché",
-    "Implementados skeletons premium con efecto shimmer global",
-    "Mejorado estado de carga inicial en dashboard de préstamos",
-    "Actualizada UI de carga en portal PWA (Asesor/Cliente)",
-    "Corregido ReferenceError en middleware que causaba pantalla en blanco",
-    "Refactorizada arquitectura de WAHA para multi-tenancy"
+    "Corregido crash crítico en página de Nuevo Cliente (Missing Import)",
+    "Actualizado Dashboard móvil: Reemplazado WhatsApp por Nuevo Cliente",
+    "Estandarización de zona horaria (America/Mexico_City) en toda la app",
+    "Corrección de desfase de días en registros de pagos",
+    "Optimización de rejilla de acciones rápidas para Asesores en campo"
   ],
   "compatibility": {
     "node": "20.x",
