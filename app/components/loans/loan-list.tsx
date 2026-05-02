@@ -109,6 +109,7 @@ export function LoanList({ userRole }: LoanListProps) {
       });
 
       if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+      if (searchTerm) params.append('search', searchTerm);
 
       const response = await fetch(`/api/loans?${params}`);
       if (!response.ok) throw new Error('Error al cargar préstamos');
@@ -125,23 +126,13 @@ export function LoanList({ userRole }: LoanListProps) {
   };
 
   useEffect(() => {
-    fetchLoans();
-  }, [pagination.page, statusFilter]);
+    const timer = setTimeout(() => {
+      fetchLoans();
+    }, 400); // Debounce to prevent too many API calls
+    return () => clearTimeout(timer);
+  }, [pagination.page, statusFilter, searchTerm]);
 
-  const filteredLoans = loans.filter(loan => {
-    const term = searchTerm.toLowerCase();
-    const loanNumber = loan.loanNumber?.toLowerCase() || '';
-    const clientFirstName = loan.client?.firstName || '';
-    const clientLastName = loan.client?.lastName || '';
-    const clientEmail = loan.client?.email || '';
-    const fullName = `${clientFirstName} ${clientLastName}`.toLowerCase();
-
-    return (
-      loanNumber.includes(term) ||
-      fullName.includes(term) ||
-      clientEmail.toLowerCase().includes(term)
-    );
-  });
+  const filteredLoans = loans; // Now filtered by the API
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {

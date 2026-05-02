@@ -110,10 +110,11 @@ export default function PaymentsPage() {
   const fetchPayments = useCallback(async () => {
     setLoading(true);
     try {
-      let url = `/api/payments?limit=200`;
+      let url = `/api/payments?limit=100`; // Reducimos limit a 100 por eficiencia con search
       if (startDate) url += `&startDate=${startDate}`;
       if (endDate) url += `&endDate=${endDate}`;
       if (advisorId !== 'all') url += `&advisorId=${advisorId}`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
 
       const response = await fetch(url);
       if (!response.ok) throw new Error('Error al cargar pagos');
@@ -125,14 +126,23 @@ export default function PaymentsPage() {
     } finally {
       setLoading(false);
     }
-  }, [startDate, endDate, advisorId]);
+  }, [startDate, endDate, advisorId, search]); // Incluimos search en las dependencias de fetchPayments
 
   useEffect(() => {
     if (session?.user) {
         fetchAdvisors();
-        fetchPayments();
     }
-  }, [session?.user, fetchAdvisors, fetchPayments]);
+  }, [session?.user, fetchAdvisors]);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    
+    const timer = setTimeout(() => {
+      fetchPayments();
+    }, 400); // Debounce de 400ms para evitar saturar el API mientras se escribe
+
+    return () => clearTimeout(timer);
+  }, [session?.user, fetchPayments, search, startDate, endDate, advisorId]);
 
   useEffect(() => {
     fetch('/api/admin/branding')
@@ -163,14 +173,7 @@ export default function PaymentsPage() {
     return <Building2 className="h-5 w-5 text-blue-600" />;
   };
 
-  const filteredPayments = payments.filter(p => {
-    if (!search) return true;
-    const clientName = p.loan?.client ? `${p.loan.client.firstName} ${p.loan.client.lastName}`.toLowerCase() : '';
-    const loanNum = p.loan?.loanNumber?.toLowerCase() || '';
-    const ref = p.reference?.toLowerCase() || '';
-    const s = search.toLowerCase();
-    return clientName.includes(s) || loanNum.includes(s) || ref.includes(s);
-  });
+  const filteredPayments = payments; // Ya vienen filtrados del servidor
 
   const totalFiltered = filteredPayments.reduce((acc, p) => acc + p.amount, 0);
 

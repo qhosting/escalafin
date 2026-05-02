@@ -33,8 +33,31 @@ export async function GET(request: NextRequest) {
         const startDate = searchParams.get('startDate');
         const endDate = searchParams.get('endDate');
         const advisorId = searchParams.get('advisorId');
+        const search = searchParams.get('search');
 
         let whereClause: any = { tenantId };
+
+        // Filtro de búsqueda (por cliente o préstamo)
+        if (search) {
+            whereClause.OR = [
+                { reference: { contains: search, mode: 'insensitive' } },
+                {
+                    loan: {
+                        OR: [
+                            { loanNumber: { contains: search, mode: 'insensitive' } },
+                            {
+                                client: {
+                                    OR: [
+                                        { firstName: { contains: search, mode: 'insensitive' } },
+                                        { lastName: { contains: search, mode: 'insensitive' } }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            ];
+        }
 
         // Filtro por Fecha
         if (startDate || endDate) {
