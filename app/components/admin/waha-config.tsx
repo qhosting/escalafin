@@ -25,6 +25,7 @@ import {
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { GenericSpinner } from '@/components/layout/loading-variants';
 
 interface WahaSessionStatus {
   status: 'STARTING' | 'SCAN_QR' | 'WORKING' | 'STOPPED' | 'FAILED';
@@ -242,12 +243,7 @@ export default function WahaConfig() {
   };
 
   if (loading && !session) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-        <p className="text-muted-foreground font-medium">Sincronizando con WhatsApp...</p>
-      </div>
-    );
+    return <GenericSpinner />;
   }
 
   return (

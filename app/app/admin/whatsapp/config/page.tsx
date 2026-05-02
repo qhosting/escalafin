@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import WahaConfig from '@/components/admin/waha-config';
-import { PageLoader } from '@/components/ui/page-loader';
+import { GenericSpinner } from '@/components/layout/loading-variants';
 
 export default function WhatsAppConfigPage() {
   const sessionResult = useSession();
@@ -27,7 +27,7 @@ export default function WhatsAppConfigPage() {
   }, [session, status, router]);
 
   if (status === 'loading') {
-    return <PageLoader message="Validando suscripción y planes..." />;
+    return <GenericSpinner />;
   }
 
   if (!session || session.user.role !== 'ADMIN') {
