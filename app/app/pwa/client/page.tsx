@@ -28,6 +28,8 @@ interface Loan {
   loanNumber: string;
   principalAmount: number;
   balanceRemaining: number;
+  interestRate: number;
+  termMonths: number;
   status: string;
   startDate: string;
   amortizationSchedule?: any[];
