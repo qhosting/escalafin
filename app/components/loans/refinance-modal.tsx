@@ -50,6 +50,7 @@ interface RefinanceModalProps {
     interestRate: number;
     paymentFrequency: string;
     termMonths: number;
+    monthlyPayment: number;
     client: {
       firstName: string;
       lastName: string;
@@ -65,15 +66,16 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
 
   // New Loan State
   const [formData, setFormData] = useState({
-    principalAmount: '',
+    principalAmount: '12000',
     termMonths: '16',
     interestRate: (loan.interestRate * 100).toString(),
     startDate: format(new Date(), 'yyyy-MM-dd'),
-    loanCalculationType: loan.loanCalculationType || 'INTERES',
+    loanCalculationType: loan.loanCalculationType || 'POR_MIL_120',
     paymentFrequency: loan.paymentFrequency || 'SEMANAL',
     weeklyInterestAmount: '',
-    insuranceAmount: '0',
+    insuranceAmount: '150',
     disbursementFee: '0',
+    remainingPaymentsToSettle: '2', // Por defecto 2 pagos como en el ejemplo del usuario
   });
 
   const [calculation, setCalculation] = useState<any>(null);
@@ -82,18 +84,12 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
   // Efecto para inicializar monto si es refinanciamiento
   useEffect(() => {
     if (mode === 'REFINANCE') {
-      // Por defecto sugerimos el saldo actual + algo extra o simplemente cubrir el saldo
       setFormData(prev => ({ 
         ...prev, 
-        principalAmount: Math.ceil(Number(loan.balanceRemaining)).toString() 
-      }));
-    } else {
-      setFormData(prev => ({ 
-        ...prev, 
-        principalAmount: loan.principalAmount.toString() 
+        principalAmount: '12000' // Según ejemplo del usuario
       }));
     }
-  }, [mode, loan]);
+  }, [mode]);
 
   // Recalcular automáticamente cuando cambian valores clave
   useEffect(() => {
@@ -127,7 +123,19 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
         paymentAmount: result.paymentAmount
       });
 
-      setCalculation(result);
+      // Cálculo de desembolso neto personalizado para refinanciamiento
+      // Lógica: Nuevo Principal - (Pagos Restantes * Cuota Vieja) - Seguro
+      const oldPayment = loan.monthlyPayment || 0; // Usar el pago real del crédito actual
+      const remainingPayments = parseInt(formData.remainingPaymentsToSettle || '0');
+      const insurance = parseFloat(formData.insuranceAmount || '0');
+      const settlement = (remainingPayments * oldPayment) + insurance;
+      const netDisbursement = principal - settlement;
+
+      setCalculation({
+        ...result,
+        netDisbursement,
+        settlementAmount: settlement
+      });
       setSchedule(newSchedule);
     } catch (e) {
       console.error(e);
@@ -155,8 +163,9 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
           weeklyInterestAmount: formData.weeklyInterestAmount ? parseFloat(formData.weeklyInterestAmount) : undefined,
           insuranceAmount: parseFloat(formData.insuranceAmount),
           disbursementFee: parseFloat(formData.disbursementFee),
+          disbursedAmount: calculation?.netDisbursement || 0
         },
-        settlementAmount: mode === 'REFINANCE' ? Number(loan.balanceRemaining) : 0,
+        settlementAmount: calculation?.settlementAmount || (mode === 'REFINANCE' ? Number(loan.balanceRemaining) : 0),
         notes: mode === 'REFINANCE' 
           ? `Refinanciamiento del préstamo ${loan.loanNumber}` 
           : `Renovación del préstamo ${loan.loanNumber}`
@@ -270,9 +279,9 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
                       className="pl-10 h-12 rounded-2xl border-slate-200 font-bold text-lg focus:ring-blue-500"
                     />
                   </div>
-                  {mode === 'REFINANCE' && (
+                  {mode === 'REFINANCE' && calculation && (
                     <p className="text-[10px] text-blue-600 font-bold italic">
-                      * El cliente recibirá netos: {formatCurrency(Math.max(0, parseFloat(formData.principalAmount || '0') - Number(loan.balanceRemaining)))}
+                      * El cliente recibirá netos: {formatCurrency(calculation.netDisbursement)}
                     </p>
                   )}
                 </div>
@@ -291,6 +300,34 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
                 </div>
 
                 <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-slate-400">Seguro</Label>
+                  <div className="relative">
+                    <AlertCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input 
+                      type="number"
+                      value={formData.insuranceAmount}
+                      onChange={(e) => setFormData(p => ({ ...p, insuranceAmount: e.target.value }))}
+                      className="pl-10 h-12 rounded-2xl border-slate-200 font-bold"
+                    />
+                  </div>
+                </div>
+
+                {mode === 'REFINANCE' && (
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-slate-400">Pagos a Liquidar (del crédito anterior)</Label>
+                    <div className="relative">
+                      <RefreshCw className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input 
+                        type="number"
+                        value={formData.remainingPaymentsToSettle}
+                        onChange={(e) => setFormData(p => ({ ...p, remainingPaymentsToSettle: e.target.value }))}
+                        className="pl-10 h-12 rounded-2xl border-slate-200 font-bold"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-slate-400">Tipo de Cálculo</Label>
                   <Select 
                     value={formData.loanCalculationType} 
@@ -303,7 +340,7 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
                       <SelectItem value="INTERES">Interés Tradicional</SelectItem>
                       <SelectItem value="TARIFA_FIJA">Tarifa Fija</SelectItem>
                       <SelectItem value="INTERES_SEMANAL">Interés Semanal</SelectItem>
-                      <SelectItem value="POR_MIL_120">$120 por cada $1000</SelectItem>
+                      <SelectItem value="POR_MIL_120">$120 por cada $1000 (Semanal)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

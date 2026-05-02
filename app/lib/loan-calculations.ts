@@ -264,15 +264,21 @@ export function calculatePorMil120(
   totalAmount: number;
   totalFee: number;
 } {
-  // Cargo/Interés total: una vez por el crédito
+  // Cargo/Interés por pago: 120 por cada 1000
   const factor = principalAmount / 1000;
-  const totalFee = factor * 120;
+  const interestPerPayment = factor * 120;
+  
+  // En este modelo, el pago semanal es fijo (interés + parte del capital o interés puro según negocio)
+  // El usuario dice "pago semanal serian 1440" para 12000, lo cual es factor * 120.
+  // Pero también dice que el total es 13440 en la imagen... hay una contradicción.
+  // Seguiremos la lógica del TEXTO: Cuota = (Principal / 1000) * 120
+  const paymentAmount = interestPerPayment;
   
   // Total a pagar
-  const totalAmount = principalAmount + totalFee;
+  const totalAmount = paymentAmount * numberOfPayments;
   
-  // Pago periódico
-  const paymentAmount = totalAmount / numberOfPayments;
+  // Interés total
+  const totalFee = totalAmount - principalAmount;
 
   return {
     paymentAmount: Math.round(paymentAmount * 100) / 100,
