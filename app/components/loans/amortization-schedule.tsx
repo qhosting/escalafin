@@ -85,13 +85,14 @@ export function AmortizationSchedule({ loanId }: AmortizationScheduleProps) {
     fetchSchedule();
   }, [loanId]);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: any) => {
+    const value = typeof amount === 'number' ? amount : Number(amount || 0);
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(value);
   };
 
   const formatDate = (dateString: string) => {

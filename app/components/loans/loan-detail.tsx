@@ -130,7 +130,7 @@ export function LoanDetail({ loanId, userRole }: LoanDetailProps) {
       if (!response.ok) throw new Error('Error al cargar el préstamo');
 
       const data = await response.json();
-      setLoan(data);
+      setLoan(data.loan || data); // Handle both wrapped and unwrapped response for safety
     } catch (error) {
       console.error('Error fetching loan:', error);
       toast.error('Error al cargar el préstamo');
@@ -144,13 +144,14 @@ export function LoanDetail({ loanId, userRole }: LoanDetailProps) {
     fetchLoan();
   }, [loanId]);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: any) => {
+    const value = typeof amount === 'number' ? amount : Number(amount || 0);
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(value);
   };
 
   const formatDate = (dateString: string) => {
@@ -163,8 +164,11 @@ export function LoanDetail({ loanId, userRole }: LoanDetailProps) {
 
   const calculateProgress = () => {
     if (!loan) return 0;
-    const paid = loan.principalAmount - loan.balanceRemaining;
-    return Math.round((paid / loan.principalAmount) * 100);
+    const principal = Number(loan.principalAmount);
+    const balance = Number(loan.balanceRemaining);
+    if (principal === 0) return 0;
+    const paid = principal - balance;
+    return Math.round((paid / principal) * 100);
   };
 
   if (loading) {
