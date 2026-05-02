@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Users, CreditCard, Wallet, MapPin, 
   Search, CheckCircle2, AlertCircle, Clock,
-  Navigation, Phone, MessageCircle, ChevronRight
+  Navigation, Phone, MessageCircle, ChevronRight, UserPlus
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -84,24 +84,24 @@ export function MobileAsesorDashboard() {
       </div>
 
       {/* Botones de Acción Rápida */}
-      <div className="grid grid-cols-2 gap-3 px-2">
-        <Link href="/admin/payments" className="bg-white dark:bg-gray-900 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-3 active:scale-95 transition-transform">
-          <div className="bg-blue-100 text-blue-600 p-2.5 rounded-2xl">
-            <Wallet size={20} />
+      <div className="grid grid-cols-3 gap-2 px-2">
+        <Link href="/admin/payments" className="bg-white dark:bg-gray-900 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center gap-2 active:scale-95 transition-transform text-center">
+          <div className="bg-blue-100 text-blue-600 p-2 rounded-xl">
+            <Wallet size={18} />
           </div>
-          <div className="flex flex-col">
-            <span className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tighter">Registrar Pago</span>
-            <span className="text-[9px] text-gray-500 font-bold uppercase">Cobro Directo</span>
-          </div>
+          <span className="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-tighter leading-tight">Cobrar</span>
         </Link>
-        <Link href="/asesor/clients" className="bg-white dark:bg-gray-900 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-3 active:scale-95 transition-transform">
-          <div className="bg-indigo-100 text-indigo-600 p-2.5 rounded-2xl">
-            <Users size={20} />
+        <Link href="/asesor/clients" className="bg-white dark:bg-gray-900 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center gap-2 active:scale-95 transition-transform text-center">
+          <div className="bg-indigo-100 text-indigo-600 p-2 rounded-xl">
+            <Users size={18} />
           </div>
-          <div className="flex flex-col">
-            <span className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tighter">Mis Clientes</span>
-            <span className="text-[9px] text-gray-500 font-bold uppercase">Directorio</span>
+          <span className="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-tighter leading-tight">Clientes</span>
+        </Link>
+        <Link href="/admin/clients/new" className="bg-white dark:bg-gray-900 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center gap-2 active:scale-95 transition-transform text-center">
+          <div className="bg-orange-100 text-orange-600 p-2 rounded-xl">
+            <UserPlus size={18} />
           </div>
+          <span className="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-tighter leading-tight">Nuevo</span>
         </Link>
       </div>
 

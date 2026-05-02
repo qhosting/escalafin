@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   CreditCard, Users, DollarSign, TrendingUp, 
   ArrowRight, Activity, Bell, Plus, 
-  Search, Wallet, MessageSquare
+  Search, Wallet, MessageSquare, UserPlus
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
@@ -40,7 +40,7 @@ export function MobileAdminDashboard() {
     { icon: Plus, label: 'Nuevo Crédito', href: '/admin/loans/new', color: 'bg-blue-600' },
     { icon: Users, label: 'Clientes', href: '/admin/clients', color: 'bg-indigo-600' },
     { icon: Wallet, label: 'Cobrar', href: '/admin/payments', color: 'bg-emerald-600' },
-    { icon: MessageSquare, label: 'WhatsApp', href: '/admin/whatsapp', color: 'bg-green-600' },
+    { icon: UserPlus, label: 'Nuevo Cliente', href: '/admin/clients/new', color: 'bg-orange-500' },
   ];
 
   return (
