@@ -420,7 +420,9 @@ export default function ClientsPage() {
                   </div>
                 ) : (
                   filteredClients.map((client) => {
-                    const initials = `${client.firstName[0]}${client.lastName[0]}`;
+                    const firstName = client.firstName || '';
+                    const lastName = client.lastName || '';
+                    const initials = (firstName[0] || '') + (lastName[0] || '');
                     const hasActiveLoan = client.loans.some(l => l.status === 'ACTIVE');
                     return (
                       <Card key={client.id} className="relative overflow-hidden border-gray-100 dark:border-gray-800 shadow-sm active:scale-[0.98] transition-all">

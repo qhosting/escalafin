@@ -196,12 +196,12 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
         paymentId: payment.id,
         amount: payment.amount,
         date: formatDate(payment.paymentDate),
-        clientName: `${loan!.client.firstName} ${loan!.client.lastName}`,
-        loanNumber: loan!.loanNumber,
+        clientName: loan?.client ? `${loan.client.firstName} ${loan.client.lastName}` : 'Cliente Desconocido',
+        loanNumber: loan?.loanNumber || 'N/A',
         concept: payment.notes || 'Abono a capital / Mensualidad',
         paymentMethod: payment.paymentMethod,
-        balanceAfter: loan!.balanceRemaining,
-        clientAddress: (loan!.client as any).address || null
+        balanceAfter: loan?.balanceRemaining || 0,
+        clientAddress: (loan?.client as any)?.address || null
       };
 
       const pdfUrl = await generatePaymentReceiptPDF(receiptData);
@@ -330,7 +330,7 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
                 </Badge>
               </div>
               <p className="text-xs md:text-sm text-muted-foreground font-medium">
-                {loanTypeConfig[loan.loanType as keyof typeof loanTypeConfig] || loan.loanType} • {loan.client.firstName} {loan.client.lastName}
+                {loan.loanType && (loanTypeConfig[loan.loanType as keyof typeof loanTypeConfig] || loan.loanType)} • {loan.client ? `${loan.client.firstName} ${loan.client.lastName}` : 'Cargando cliente...'}
               </p>
             </div>
           </div>
@@ -655,15 +655,15 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Nombre Completo</Label>
-                  <p className="text-lg font-semibold">{loan.client.firstName} {loan.client.lastName}</p>
+                  <p className="text-lg font-semibold">{loan.client?.firstName || 'N/A'} {loan.client?.lastName || ''}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Email</Label>
-                  <p className="text-lg font-semibold">{loan.client.email}</p>
+                  <p className="text-lg font-semibold">{loan.client?.email || 'N/A'}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Teléfono</Label>
-                  <p className="text-lg font-semibold">{loan.client.phone}</p>
+                  <p className="text-lg font-semibold">{loan.client?.phone || 'N/A'}</p>
                 </div>
                 {loan.client.monthlyIncome && (
                   <div>
@@ -681,7 +681,7 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
 
               <div className="flex justify-end">
                 <Button variant="outline" asChild>
-                  <Link href={`/admin/clients/${loan.client.id}`}>
+                  <Link href={`/admin/clients/${loan.client?.id || ''}`}>
                     Ver Perfil Completo
                   </Link>
                 </Button>

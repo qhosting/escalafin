@@ -93,7 +93,7 @@ export default function ClientDetailPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link href="/admin/clients"><Button variant="outline" size="icon" className="rounded-xl h-10 w-10 shrink-0"><ArrowLeft className="h-5 w-5" /></Button></Link>
-          <ClientProfileImage clientId={client.id} currentImage={client.profileImage} clientName={`${client.firstName}`} size="lg" />
+          <ClientProfileImage clientId={client.id} currentImage={client.profileImage} clientName={`${client.firstName || ''}`} size="lg" />
           <div>
             <h1 className="text-xl md:text-2xl font-black">{client.firstName} {client.lastName}</h1>
             <div className="flex items-center gap-2 mt-1">
