@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
+ 
+export const dynamic = 'force-dynamic';
+
 
 export async function GET() {
   try {
