@@ -2,7 +2,7 @@
   "expo": {
     "name": "escalafin-mobile",
     "slug": "escalafin-mobile",
-    "version": "2.8.2",
+    "version": "2.8.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "escalafinmobile",

@@ -1,8 +1,8 @@
 {
-  "version": "2.8.5",
-  "buildNumber": "20260424.001",
-  "releaseDate": "2026-04-24",
-  "releaseName": "SaaS Evolution & Critical Fixes",
+  "version": "2.8.6",
+  "buildNumber": "20260502.001",
+  "releaseDate": "2026-05-02",
+  "releaseName": "Mobile & PWA Sync",
   "gitCommit": "fbf555d",
   "environment": "production",
   "changelog": [
