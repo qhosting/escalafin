@@ -218,10 +218,20 @@ export default function PaymentsPage() {
     doc.setTextColor(37, 99, 235);
     doc.text(tenantData?.name || 'EscalaFin', tenantData?.logo ? 50 : margin, 25);
     
+    const reportDate = new Intl.DateTimeFormat('es-MX', {
+      timeZone: 'America/Mexico_City',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(new Date()).replace(',', '');
+
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
-    doc.text(`Reporte de Cobranza - ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, margin, currentY);
+    doc.text(`Reporte de Cobranza - ${reportDate}`, margin, currentY);
     currentY += 10;
 
     if (startDate || endDate) {
@@ -485,10 +495,17 @@ export default function PaymentsPage() {
                           <TableCell className="pr-6 text-right">
                             <div className="space-y-1">
                               <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                                {format(new Date(payment.paymentDate), "d 'de' MMM", { locale: es })}
+                                {new Intl.DateTimeFormat('es-MX', { 
+                                  timeZone: 'America/Mexico_City', 
+                                  day: 'numeric', 
+                                  month: 'short' 
+                                }).format(new Date(payment.paymentDate))}
                               </p>
                               <p className="text-xs text-gray-400 uppercase font-bold">
-                                {format(new Date(payment.paymentDate), "yyyy", { locale: es })}
+                                {new Intl.DateTimeFormat('es-MX', { 
+                                  timeZone: 'America/Mexico_City', 
+                                  year: 'numeric' 
+                                }).format(new Date(payment.paymentDate))}
                               </p>
                             </div>
                           </TableCell>

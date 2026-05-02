@@ -96,7 +96,12 @@ export function AmortizationSchedule({ loanId }: AmortizationScheduleProps) {
   };
 
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'dd/MM/yyyy', { locale: es });
+    return new Intl.DateTimeFormat('es-MX', {
+      timeZone: 'America/Mexico_City',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(new Date(dateString));
   };
 
   const exportToPDF = async () => {

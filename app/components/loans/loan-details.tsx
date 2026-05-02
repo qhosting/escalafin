@@ -183,7 +183,16 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
   };
 
   const formatDatetime = (dateString: string) => {
-    return format(new Date(dateString), "dd 'de' MMM, yyyy 'a las' HH:mm", { locale: es });
+    const d = new Date(dateString);
+    return new Intl.DateTimeFormat('es-MX', {
+      timeZone: 'America/Mexico_City',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(d).replace(',', ' a las');
   };
 
   const calculateProgress = () => {
