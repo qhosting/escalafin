@@ -184,7 +184,12 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
   };
 
   const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val);
+    new Intl.NumberFormat('es-MX', { 
+        style: 'currency', 
+        currency: 'MXN',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(val);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
