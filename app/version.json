@@ -1,16 +1,16 @@
 {
-  "version": "2.8.8",
-  "buildNumber": "20260502.002",
+  "version": "2.8.9",
+  "buildNumber": "20260502.003",
   "releaseDate": "2026-05-02",
-  "releaseName": "Mobile Stability & UI Refresh",
+  "releaseName": "Data Integrity & UX Polish",
   "gitCommit": "ce5185e",
   "environment": "production",
   "changelog": [
-    "Corregido crash crítico en página de Nuevo Cliente (Missing Import)",
-    "Actualizado Dashboard móvil: Reemplazado WhatsApp por Nuevo Cliente",
-    "Estandarización de zona horaria (America/Mexico_City) en toda la app",
-    "Corrección de desfase de días en registros de pagos",
-    "Optimización de rejilla de acciones rápidas para Asesores en campo"
+    "Sincronización masiva de pagos desde imágenes de libretas (Tenant: prestamossjr)",
+    "Corrección de saldos históricos mediante scripts de reconciliación",
+    "Implementación de Next.js Loading Skeletons en gestión de clientes",
+    "Eliminación de redundancia en indicadores de carga (UX Polish)",
+    "Optimización de skeletons en detalle de cliente para mayor fluidez"
   ],
   "compatibility": {
     "node": "20.x",

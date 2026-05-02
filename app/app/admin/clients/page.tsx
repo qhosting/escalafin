@@ -184,10 +184,9 @@ export default function ClientsPage() {
     }
   };
 
-  if (loading && clients.length === 0) {
-    return <PageSkeleton />;
-  }
-
+  // Ya no retornamos PageSkeleton aquí porque Next.js lo maneja vía loading.tsx
+  // Esto evita el "doble loading" que reportó el usuario.
+  
   return (
     <div className="pb-20 md:pb-0">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -310,13 +309,19 @@ export default function ClientsPage() {
         <CardContent>
           {loading ? (
             <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-xl gap-4">
-                  <div className="space-y-2 flex-1">
-                    <div className="h-5 w-48 bg-gray-100 animate-pulse rounded" />
-                    <div className="h-4 w-32 bg-gray-50 animate-pulse rounded" />
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-2xl gap-4 bg-gray-50/30 animate-pulse">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-12 h-12 rounded-2xl bg-gray-100 shrink-0" />
+                    <div className="space-y-2 flex-1">
+                      <div className="h-5 w-48 bg-gray-100 rounded-lg" />
+                      <div className="h-4 w-32 bg-gray-100 rounded-lg" />
+                    </div>
                   </div>
-                  <div className="h-10 w-32 bg-gray-100 animate-pulse rounded-xl" />
+                  <div className="flex gap-2">
+                    <div className="h-10 w-28 bg-gray-100 rounded-xl" />
+                    <div className="h-10 w-10 bg-gray-100 rounded-xl" />
+                  </div>
                 </div>
               ))}
             </div>

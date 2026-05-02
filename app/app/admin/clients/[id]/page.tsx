@@ -72,9 +72,24 @@ export default function ClientDetailPage() {
   }, [params?.id]);
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center p-20 gap-4">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      <p className="font-bold text-gray-500 animate-pulse">Cargando cliente...</p>
+    <div className="space-y-6 animate-pulse">
+      <div className="flex items-center gap-4">
+        <div className="h-10 w-10 bg-gray-100 rounded-xl" />
+        <div className="h-16 w-16 bg-gray-100 rounded-2xl" />
+        <div className="space-y-2">
+          <div className="h-6 w-48 bg-gray-100 rounded-lg" />
+          <div className="h-4 w-32 bg-gray-100 rounded-lg" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="h-24 bg-gray-50 rounded-2xl border border-gray-100" />
+        ))}
+      </div>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="h-64 bg-gray-50 rounded-2xl border border-gray-100" />
+        <div className="h-64 bg-gray-50 rounded-2xl border border-gray-100" />
+      </div>
     </div>
   );
   if (!client) return <div className="p-20 text-center">No encontrado</div>;
