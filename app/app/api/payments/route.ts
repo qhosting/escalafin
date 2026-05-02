@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         const advisorId = searchParams.get('advisorId');
         const search = searchParams.get('search');
 
-        const conditions: any[] = [{ tenantId }];
+        const conditions: any[] = [];
 
         // Filtro de búsqueda (por cliente o préstamo)
         if (search) {
@@ -93,14 +93,14 @@ export async function GET(request: NextRequest) {
             conditions.push({
                 loan: { clientId: clientProfile.id }
             });
-        } else if (session.user.role === 'ASESOR' || advisorId) {
+        } else if (session.user.role === 'ASESOR' || (advisorId && advisorId !== 'all')) {
             const filterAsesorId = advisorId || session.user.id;
             conditions.push({
                 loan: { client: { asesorId: filterAsesorId } }
             });
         }
 
-        const whereClause = { AND: conditions };
+        const whereClause = conditions.length > 0 ? { AND: conditions } : {};
 
         const [payments, total] = await Promise.all([
             tenantPrisma.payment.findMany({

@@ -175,7 +175,7 @@ export default function PaymentsPage() {
 
   const filteredPayments = payments; // Ya vienen filtrados del servidor
 
-  const totalFiltered = filteredPayments.reduce((acc, p) => acc + p.amount, 0);
+  const totalFiltered = filteredPayments.reduce((acc, p) => acc + Number(p.amount), 0);
 
   const imageUrlToBase64 = (url: string): Promise<string> => {
     return new Promise((resolve, reject) => {
