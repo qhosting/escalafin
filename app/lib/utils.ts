@@ -27,7 +27,7 @@ export function formatInTimeZone(date: Date | string | number, formatStr: string
   }).format(d).replace(',', '');
 }
 
-export function generateLoanNumber(): Promise<string> {
+export function generateLoanNumber(): string {
   const prefix = 'EF';
   const timestamp = Date.now().toString().slice(-8);
   const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
