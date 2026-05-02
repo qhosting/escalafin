@@ -20,6 +20,7 @@ import { ArrowLeft, Save, User, UserCheck, Package, Plus, X } from 'lucide-react
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { GPSCapture } from '@/components/ui/gps-capture';
+import { ClientImageUpload } from '@/components/clients/client-image-upload';
 
 interface ClientFormData {
   firstName: string;
