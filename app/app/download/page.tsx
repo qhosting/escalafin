@@ -42,8 +42,10 @@ export default function DownloadPage() {
               </div>
               
               <a 
-                href="/app-debug.apk" 
+                href="/escalafin.apk" 
                 download="EscalaFin_v2.8.5.apk"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center justify-center gap-3 w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-2xl font-black text-sm shadow-xl shadow-emerald-900/20 transition-all active:scale-95"
               >
                 <Download size={20} /> DESCARGAR APK DIRECTO
