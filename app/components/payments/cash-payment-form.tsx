@@ -81,7 +81,10 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
     loanId: loan?.id || '',
     clientId: loan?.client?.id || '',
     amount: 0, 
-    paymentDate: new Date().toISOString().split('T')[0],
+    paymentDate: (() => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    })(),
     collectorLocation: 'Capturando GPS...', // Default text while capturing
     notes: '',
     receiptNumber: '',

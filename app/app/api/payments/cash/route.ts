@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
                     tenantId: tenantId,
                     loanId: loanId,
                     amount: amount,
-                    paymentDate: paymentDateStr ? new Date(paymentDateStr) : new Date(),
+                    paymentDate: paymentDateStr ? new Date(`${paymentDateStr}T12:00:00`) : new Date(),
                     paymentMethod: 'CASH',
                     status: 'COMPLETED',
                     reference: receiptNumber || `EXT-${Date.now()}`,
