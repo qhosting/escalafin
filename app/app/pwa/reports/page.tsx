@@ -43,6 +43,15 @@ interface ChartData {
   growth?: number;
 }
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
 export default function ReportsPWAPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -417,7 +426,7 @@ export default function ReportsPWAPage() {
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip 
-                        formatter={(value: any) => [`$${value.toLocaleString()}`, 'Pagos']}
+                        formatter={(value: any) => [formatCurrency(value), 'Pagos']}
                       />
                       <Line 
                         type="monotone" 
@@ -461,7 +470,7 @@ export default function ReportsPWAPage() {
                     <RechartsPieChart>
                       <Tooltip 
                         formatter={(value: any, name: string) => [
-                          `${value}% - $${portfolioData.find(d => d.name === name)?.amount?.toLocaleString()}`,
+                          `${value}% - ${formatCurrency(portfolioData.find(d => d.name === name)?.amount || 0)}`,
                           name
                         ]}
                       />
@@ -526,7 +535,7 @@ export default function ReportsPWAPage() {
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip 
-                        formatter={(value: any) => [`$${value.toLocaleString()}`, 'Cobranza']}
+                        formatter={(value: any) => [formatCurrency(value), 'Cobranza']}
                       />
                       <Bar dataKey="value" fill="#8884d8" />
                     </BarChart>
@@ -543,7 +552,7 @@ export default function ReportsPWAPage() {
                       <div>
                         <p className="font-medium">{month.name}</p>
                         <p className="text-sm text-gray-600">
-                          ${month.value.toLocaleString()}
+                          {formatCurrency(month.value)}
                         </p>
                       </div>
                       <Badge 

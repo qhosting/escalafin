@@ -55,6 +55,15 @@ interface CollectionTask {
 
 import { GenericSpinner } from '@/components/layout/loading-variants';
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
 export default function AsesorPWAPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -366,7 +375,7 @@ export default function AsesorPWAPage() {
                     {client.status !== 'current' && (
                       <div className="mb-3 p-2 bg-white rounded border">
                         <p className="text-sm">
-                          <strong>Vencido:</strong> ${client.overdueAmount.toLocaleString()} 
+                          <strong>Vencido:</strong> {formatCurrency(client.overdueAmount)} 
                           ({Math.round(client.overdueDays)} días)
                         </p>
                       </div>
@@ -427,7 +436,7 @@ export default function AsesorPWAPage() {
                       <div className="flex-1">
                         <h3 className="font-semibold">{task.clientName}</h3>
                         <p className="text-sm text-gray-600">
-                          ${task.amount.toLocaleString()}
+                          {formatCurrency(task.amount)}
                         </p>
                         <p className="text-xs text-gray-500">
                           Vence: {format(new Date(task.dueDate), 'dd MMM', { locale: es })}

@@ -44,6 +44,15 @@ interface Payment {
 
 import { GenericSpinner } from '@/components/layout/loading-variants';
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
 export default function ClientPWAPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -154,7 +163,7 @@ export default function ClientPWAPage() {
                 <div>
                   <p className="text-sm text-gray-600">Deuda Total</p>
                   <p className="text-xl font-bold text-red-600">
-                    ${totalDebt.toLocaleString()}
+                    {formatCurrency(totalDebt)}
                   </p>
                 </div>
                 <DollarSign className="h-6 w-6 text-red-500" />
@@ -168,7 +177,7 @@ export default function ClientPWAPage() {
                 <div>
                   <p className="text-sm text-gray-600">Total Pagado</p>
                   <p className="text-xl font-bold text-green-600">
-                    ${totalPaid.toLocaleString()}
+                    {formatCurrency(totalPaid)}
                   </p>
                 </div>
                 <TrendingUp className="h-6 w-6 text-green-500" />
@@ -188,7 +197,7 @@ export default function ClientPWAPage() {
                     Próximo Pago
                   </p>
                   <p className="text-sm text-orange-700">
-                    ${nextPaymentAmount.toLocaleString()} • {' '}
+                    {formatCurrency(nextPaymentAmount)} • {' '}
                     {nextPaymentDate ? format(new Date(nextPaymentDate), 'dd MMM yyyy', { locale: es }) : 'Ver detalles'}
                   </p>
                   <Button
@@ -237,12 +246,12 @@ export default function ClientPWAPage() {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-600">Monto Original</p>
-                        <p className="font-semibold">${Number(loan.principalAmount || 0).toLocaleString()}</p>
+                        <p className="font-semibold">{formatCurrency(Number(loan.principalAmount || 0))}</p>
                       </div>
                       <div>
                         <p className="text-gray-600">Saldo Restante</p>
                         <p className="font-semibold text-red-600">
-                          ${Number(loan.balanceRemaining || 0).toLocaleString()}
+                          {formatCurrency(Number(loan.balanceRemaining || 0))}
                         </p>
                       </div>
                       <div>
@@ -294,7 +303,7 @@ export default function ClientPWAPage() {
                   <CardContent className="p-4">
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="font-medium">${payment.amount.toLocaleString()}</p>
+                        <p className="font-medium">{formatCurrency(payment.amount)}</p>
                         <p className="text-sm text-gray-600">
                           {format(new Date(payment.date), 'dd MMM yyyy', { locale: es })} • {payment.method}
                         </p>
