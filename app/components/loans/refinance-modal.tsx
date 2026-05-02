@@ -85,7 +85,7 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
       // Por defecto sugerimos el saldo actual + algo extra o simplemente cubrir el saldo
       setFormData(prev => ({ 
         ...prev, 
-        principalAmount: Math.ceil(loan.balanceRemaining).toString() 
+        principalAmount: Math.ceil(Number(loan.balanceRemaining)).toString() 
       }));
     } else {
       setFormData(prev => ({ 
@@ -156,7 +156,7 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
           insuranceAmount: parseFloat(formData.insuranceAmount),
           disbursementFee: parseFloat(formData.disbursementFee),
         },
-        settlementAmount: mode === 'REFINANCE' ? loan.balanceRemaining : 0,
+        settlementAmount: mode === 'REFINANCE' ? Number(loan.balanceRemaining) : 0,
         notes: mode === 'REFINANCE' 
           ? `Refinanciamiento del préstamo ${loan.loanNumber}` 
           : `Renovación del préstamo ${loan.loanNumber}`
@@ -225,7 +225,7 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
                     <RefreshCw className="h-6 w-6" />
                   </div>
                   <h3 className="font-black text-slate-900 uppercase text-xs tracking-wider mb-1">Refinanciar</h3>
-                  <p className="text-[10px] text-slate-500 font-medium leading-tight">Absorbe el saldo pendiente de ${loan.balanceRemaining.toFixed(0)} en un nuevo crédito.</p>
+                  <p className="text-[10px] text-slate-500 font-medium leading-tight">Absorbe el saldo pendiente de {formatCurrency(Number(loan.balanceRemaining))} en un nuevo crédito.</p>
                   {mode === 'REFINANCE' && <div className="absolute top-4 right-4"><CheckCircle2 className="h-5 w-5 text-blue-600" /></div>}
                 </button>
 
@@ -267,7 +267,7 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
                   </div>
                   {mode === 'REFINANCE' && (
                     <p className="text-[10px] text-blue-600 font-bold italic">
-                      * El cliente recibirá netos: {formatCurrency(Math.max(0, parseFloat(formData.principalAmount || '0') - loan.balanceRemaining))}
+                      * El cliente recibirá netos: {formatCurrency(Math.max(0, parseFloat(formData.principalAmount || '0') - Number(loan.balanceRemaining)))}
                     </p>
                   )}
                 </div>
