@@ -237,6 +237,56 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
     }
 
     setProcessing(true);
+
+    // 🌐 BIFURCACIÓN OFFLINE: Si el navegador no tiene conexión a Internet
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      const simulatedRemainingBalance = Math.max(0, Number(loan?.balanceRemaining) - (formData.amount - formData.lateFeePaid));
+      
+      const simulatedResult = {
+        // Objeto de pago con estructura dual para no tronar la UI y sincronizar correctamente
+        loanId: formData.loanId,
+        clientId: formData.clientId,
+        amount: formData.amount,
+        paymentDate: formData.paymentDate,
+        collectorLocation: isLocationCaptured ? formData.collectorLocation : 'Sin GPS - Registro PWA',
+        notes: formData.notes ? `${formData.notes.trim()} (Offline)` : 'Cobro PWA - Registro Rápido (Offline)',
+        receiptNumber: formData.receiptNumber || `EXT-OFF-${Date.now()}`,
+        collectionMethod: formData.collectionMethod,
+        lateFeePaid: formData.lateFeePaid,
+        penaltyIds: formData.penaltyIds,
+        // Campos requeridos para actualizar la UI en mobile/cobranza/page.tsx
+        remainingBalance: simulatedRemainingBalance,
+        loan: {
+          id: formData.loanId,
+          balanceRemaining: Number(loan?.balanceRemaining) || 0
+        }
+      };
+
+      toast.info('Pago registrado localmente (modo offline)');
+      
+      setSuccessData({
+        payment: {
+          id: `local-${Date.now()}`,
+          reference: simulatedResult.receiptNumber,
+          notes: simulatedResult.notes,
+          paymentDate: new Date(formData.paymentDate),
+          amount: formData.amount
+        },
+        updatedLoan: {
+          balanceRemaining: simulatedRemainingBalance
+        },
+        clientName: `${loan?.client.firstName} ${loan?.client.lastName}`,
+        loanNumber: loan?.loanNumber,
+        paymentMethod: 'Efectivo (Offline)',
+        amount: formData.amount,
+        balanceAfter: simulatedRemainingBalance
+      });
+
+      onSuccess?.(simulatedResult);
+      setProcessing(false);
+      return;
+    }
+
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('loanId', formData.loanId);
@@ -244,7 +294,7 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
       formDataToSend.append('amount', formData.amount.toString());
       formDataToSend.append('paymentDate', formData.paymentDate);
       formDataToSend.append('collectorLocation', isLocationCaptured ? formData.collectorLocation : 'Sin GPS - Registro PWA');
-      formDataToSend.append('notes', 'Cobro PWA - Registro Rápido'); // Notas automáticas
+      formDataToSend.append('notes', formData.notes ? formData.notes.trim() : 'Cobro PWA - Registro Rápido'); 
       formDataToSend.append('receiptNumber', formData.receiptNumber || '');
       formDataToSend.append('collectionMethod', formData.collectionMethod);
       formDataToSend.append('collectorId', session.user.id);

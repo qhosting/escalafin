@@ -1,15 +1,27 @@
-
 /**
  * @jest-environment node
  */
 import { getTenantPrisma } from '@/lib/tenant-db';
+import { prisma } from '@/lib/prisma';
 
 // Mock de prisma
 const mockQuery = jest.fn((args) => Promise.resolve(args));
 
 jest.mock('@/lib/prisma', () => {
     const mPrisma = {
-        $extends: jest.fn().mockImplementation((config) => {
+        $extends: jest.fn(),
+    };
+    return { prisma: mPrisma };
+});
+
+describe('Tenant Isolation (getTenantPrisma)', () => {
+    const tenantId = 'test-tenant-123';
+    let tenantPrisma: any;
+
+    beforeEach(() => {
+        // Redefinir la implementación antes de cada test debido a resetMocks
+        const mExtends = prisma.$extends as jest.Mock;
+        mExtends.mockImplementation((config) => {
             const client: any = {
                 client: {
                     findMany: (args: any) => config.query.client.findMany({ args, query: mockQuery }),
@@ -21,16 +33,8 @@ jest.mock('@/lib/prisma', () => {
                 }
             };
             return client;
-        }),
-    };
-    return { prisma: mPrisma };
-});
+        });
 
-describe('Tenant Isolation (getTenantPrisma)', () => {
-    const tenantId = 'test-tenant-123';
-    let tenantPrisma: any;
-
-    beforeEach(() => {
         tenantPrisma = getTenantPrisma(tenantId);
     });
 
@@ -62,7 +66,7 @@ describe('Tenant Isolation (getTenantPrisma)', () => {
     });
 
     it('should return base prisma if no tenantId is provided', () => {
-        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+        const consoleSpy = jest.spyOn(console, 'debug').mockImplementation();
         // @ts-ignore
         const fallbackPrisma = getTenantPrisma(null);
 

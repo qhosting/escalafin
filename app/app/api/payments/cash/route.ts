@@ -6,7 +6,6 @@ import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
 import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
 import { prisma } from '@/lib/prisma';
-import { PenaltyService } from '@/lib/penalty-service';
 
 export async function POST(request: NextRequest) {
     try {
@@ -24,23 +23,50 @@ export async function POST(request: NextRequest) {
         const tenantPrisma = getTenantPrisma(tenantId);
         const whatsappService = new WhatsAppNotificationService(tenantId);
 
-        // Validate FormData vs JSON depending on how it's sent
-        let formData;
-        try {
-            formData = await request.formData();
-        } catch (e) {
-            return NextResponse.json({ error: 'Se requiere multipart/form-data con los detalles del pago' }, { status: 400 });
-        }
+        const contentType = request.headers.get('content-type') || '';
+        let loanId: string;
+        let amountRaw: any;
+        let paymentDateStr: string | null;
+        let notes: string | null;
+        let receiptNumber: string | null;
+        let collectionMethod: string | null;
+        let collectorLocation: string | null;
+        let lateFeePaidRaw: any;
+        let penaltyIdsRaw: string | null;
 
-        const loanId = formData.get('loanId') as string;
-        const amountRaw = formData.get('amount');
-        const paymentDateStr = formData.get('paymentDate') as string;
-        const notes = formData.get('notes') as string | null;
-        const receiptNumber = formData.get('receiptNumber') as string | null;
-        const collectionMethod = formData.get('collectionMethod') as string | null; 
-        const collectorLocation = formData.get('collectorLocation') as string | null;
-        const lateFeePaidRaw = formData.get('lateFeePaid');
-        const penaltyIdsRaw = formData.get('penaltyIds') as string | null;
+        if (contentType.includes('application/json')) {
+            try {
+                const body = await request.json();
+                loanId = body.loanId;
+                amountRaw = body.amount;
+                paymentDateStr = body.paymentDate;
+                notes = body.notes;
+                receiptNumber = body.receiptNumber;
+                collectionMethod = body.collectionMethod;
+                collectorLocation = body.collectorLocation;
+                lateFeePaidRaw = body.lateFeePaid;
+                penaltyIdsRaw = body.penaltyIds ? (typeof body.penaltyIds === 'string' ? body.penaltyIds : JSON.stringify(body.penaltyIds)) : null;
+            } catch (e) {
+                return NextResponse.json({ error: 'Error al parsear el cuerpo JSON' }, { status: 400 });
+            }
+        } else {
+            let formData;
+            try {
+                formData = await request.formData();
+            } catch (e) {
+                return NextResponse.json({ error: 'Se requiere multipart/form-data o application/json con los detalles del pago' }, { status: 400 });
+            }
+
+            loanId = formData.get('loanId') as string;
+            amountRaw = formData.get('amount');
+            paymentDateStr = formData.get('paymentDate') as string | null;
+            notes = formData.get('notes') as string | null;
+            receiptNumber = formData.get('receiptNumber') as string | null;
+            collectionMethod = formData.get('collectionMethod') as string | null; 
+            collectorLocation = formData.get('collectorLocation') as string | null;
+            lateFeePaidRaw = formData.get('lateFeePaid');
+            penaltyIdsRaw = formData.get('penaltyIds') as string | null;
+        }
 
         const processedBy = session.user.id;
 
@@ -66,9 +92,9 @@ export async function POST(request: NextRequest) {
         }
 
         // Begin Transaction
-        const result = await prisma.$transaction(async (prismaTx) => {
+        const result = await tenantPrisma.$transaction(async (tx) => {
             // 1. Create Payment
-            const payment = await prismaTx.payment.create({
+            const payment = await tx.payment.create({
                 data: {
                     tenantId: tenantId,
                     loanId: loanId,
@@ -88,8 +114,17 @@ export async function POST(request: NextRequest) {
                 try {
                     const penaltyIds = JSON.parse(penaltyIdsRaw);
                     if (Array.isArray(penaltyIds) && penaltyIds.length > 0) {
-                        const penaltyService = new PenaltyService(tenantId);
-                        await penaltyService.payPenalties(penaltyIds, payment.id);
+                        await tx.lateFeePenalty.updateMany({
+                            where: {
+                                id: { in: penaltyIds },
+                                tenantId: tenantId
+                            },
+                            data: {
+                                status: 'COMPLETED',
+                                paidAt: new Date(),
+                                paymentId: payment.id
+                            }
+                        });
                     }
                 } catch (e) {
                     console.error('Error parsing or processing penaltyIds:', e);
@@ -99,7 +134,7 @@ export async function POST(request: NextRequest) {
             // 2. Reduce Balance on Loan (Solo el monto que no es mora)
             const amortizedAmount = Math.max(0, amount - lateFeePaid);
             const newBalance = Math.max(0, Number(loan.balanceRemaining) - amortizedAmount);
-            const updatedLoan = await prismaTx.loan.update({
+            const updatedLoan = await tx.loan.update({
                 where: { id: loanId },
                 data: {
                     balanceRemaining: newBalance,
@@ -109,7 +144,7 @@ export async function POST(request: NextRequest) {
 
             // 3. Auto-assign client to advisor if the user is an advisor
             if (session.user.role === 'ASESOR') {
-                await prismaTx.client.update({
+                await tx.client.update({
                     where: { id: loan.clientId },
                     data: { asesorId: processedBy }
                 });

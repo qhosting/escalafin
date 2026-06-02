@@ -26,3 +26,7 @@ out
 *.env.local
 app/.env
 app/.env.local
+
+# Local skills and temporary folders
+my-skills/
+temp2/
