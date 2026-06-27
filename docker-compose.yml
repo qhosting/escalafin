@@ -1,10 +1,16 @@
 # 🚀 Docker Compose para EscalaFin
-# Optimizado con mejores prácticas de CitaPlanner
+# ============================================================
+# SEGURIDAD: Arquitectura de redes segregadas
+# - internal_network: Red interna SOLO entre servicios backend.
+#   PostgreSQL y Redis NO exponen puertos al host.
+#   Cumplimiento: CNBV/CONDUSEF, ISO 27001, NIST CSF.
+# - external_network: Solo el servicio 'app' tiene acceso externo.
+# ============================================================
 version: '3.8'
 
 services:
   app:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
       args:
@@ -13,36 +19,43 @@ services:
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
-      # Database
+      # Database — solo accesible desde la red interna
       - DATABASE_URL=${DATABASE_URL:-postgresql://escalafin:password@postgres:5432/escalafin}
-      
+
       # NextAuth
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-development-secret-key-32-chars}
-      
+
       # App Config
       - NODE_ENV=production
       - PORT=3000
       - NEXT_OUTPUT_MODE=standalone
-      
+
       # AWS S3 (Cloud Storage)
       - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
       - AWS_FOLDER_PREFIX=${AWS_FOLDER_PREFIX}
-      
+
       # Openpay
       - OPENPAY_ID=${OPENPAY_ID}
       - OPENPAY_PRIVATE_KEY=${OPENPAY_PRIVATE_KEY}
       - OPENPAY_PUBLIC_KEY=${OPENPAY_PUBLIC_KEY}
       - OPENPAY_SANDBOX=${OPENPAY_SANDBOX:-true}
-      
-      # Redis (Optional)
+
+      # Redis — solo accesible desde la red interna
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+
+      # PLD/Cumplimiento
+      - PLD_SITI_THRESHOLD_MXN=${PLD_SITI_THRESHOLD_MXN:-7500}
+
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     networks:
-      - escalafin-network
+      - external_network   # Recibe tráfico del mundo exterior
+      - internal_network   # Se comunica con postgres y redis
     volumes:
       - app-cache:/app/.next/cache
     healthcheck:
@@ -51,6 +64,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    # Labels para integración con Sentinel
+    labels:
+      - "sentinel.monitor=true"
+      - "sentinel.service=app"
+      - "sentinel.log_path=/app/logs"
 
   postgres:
     image: postgres:17-alpine
@@ -58,36 +76,50 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-escalafin_db}
       - POSTGRES_USER=${POSTGRES_USER:-escalafin}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
-    ports:
-      - "${DB_PORT:-5432}:5432"
+    # ⚠️  SEGURIDAD: Sin mapeo de puertos al host.
+    # PostgreSQL SOLO es accesible desde la red interna.
+    # Para acceso administrativo local usar: docker compose exec postgres psql
+    # ports: ELIMINADO — Cumplimiento CNBV Art. 77 Bis 1
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - postgres_backups:/backup-escalafin
-      # - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql  # Opcional: script de inicialización
     restart: unless-stopped
     networks:
-      - escalafin-network
+      - internal_network   # Solo red interna — sin acceso externo
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-escalafin}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    labels:
+      - "sentinel.monitor=true"
+      - "sentinel.service=postgres"
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
+    # ⚠️  SEGURIDAD: Sin mapeo de puertos al host.
+    # Redis SOLO es accesible desde la red interna.
+    # ports: ELIMINADO — Cumplimiento CNBV Art. 77 Bis 1
     volumes:
       - redis_data:/data
     restart: unless-stopped
     networks:
-      - escalafin-network
+      - internal_network   # Solo red interna — sin acceso externo
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-    command: redis-server --appendonly yes
+    # AOF + RDB para persistencia máxima
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --requirepass ${REDIS_PASSWORD:-}
+      --loglevel notice
+    labels:
+      - "sentinel.monitor=true"
+      - "sentinel.service=redis"
 
 volumes:
   postgres_data:
@@ -100,5 +132,12 @@ volumes:
     driver: local
 
 networks:
-  escalafin-network:
+  # Red interna: completamente aislada del exterior.
+  # Solo los servicios en esta red pueden comunicarse entre sí.
+  internal_network:
+    driver: bridge
+    internal: true   # ← Clave de seguridad: bloquea todo tráfico externo
+
+  # Red externa: solo 'app' tiene acceso para recibir peticiones web.
+  external_network:
     driver: bridge

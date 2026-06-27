@@ -22,7 +22,22 @@ export type AuditAction =
   | 'WAHA_SESSION_UPDATE'
   | 'PLAN_CREATE' | 'PLAN_UPDATE' | 'PLAN_DELETE'
   | 'CLIENT_CREATE' | 'CLIENT_UPDATE' | 'CLIENT_DELETE'
-  | 'TENANT_EXPORT' | 'TENANT_RESTORE';
+  | 'TENANT_EXPORT' | 'TENANT_RESTORE'
+  // ── Módulo PLD — Prevención de Lavado de Dinero ──────────────────────────
+  | 'PLD_SCREENING_TRIGGERED'   // Se ejecutó screening OFAC/ONU
+  | 'PLD_CLIENT_BLOCKED'        // Cliente bloqueado por coincidencia en lista negra
+  | 'PLD_ALERT_CREATED'         // Nueva alerta de operación inusual creada
+  | 'PLD_ALERT_REVIEWED'        // Alerta revisada por el Oficial de Cumplimiento
+  | 'PLD_SITI_EXPORT'           // Archivo SITI generado y enviado a CNBV
+  | 'PLD_RISK_SCORE_CALCULATED' // Score de riesgo PLD calculado en onboarding
+  // ── KYC — Trazabilidad Inmutable ─────────────────────────────────────────
+  | 'KYC_CREATE'                // Verificación de identidad creada
+  | 'KYC_UPDATE'                // Datos KYC actualizados (dispara DDR)
+  | 'KYC_VIEW'                  // Datos KYC consultados por un usuario
+  | 'KYC_DELETE_ATTEMPT'        // Intento de eliminar datos KYC (siempre denegado)
+  | 'KYC_FILE_UPLOAD'           // Documento de identidad cargado
+  | 'KYC_VERIFIED'              // KYC aprobado por verificador
+  | 'KYC_REJECTED';             // KYC rechazado
 
 export interface AuditLogData {
   userId?: string;

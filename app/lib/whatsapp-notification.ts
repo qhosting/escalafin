@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import WahaService from './waha';
 import { getTenantPrisma } from './tenant-db';
+import { ConductsefTimeGuard } from './condusef-time-guard';
 
 const prisma = new PrismaClient();
 
@@ -175,17 +176,29 @@ export class WhatsAppNotificationService {
         daysOverdue
       );
 
-      // Enviar mensaje
-      await this.wahaService.sendTextMessage(
-        client.id,
-        client.phone,
-        message,
+      // CONDUSEF: Verificar horario y filtro de referencias antes de enviar
+      const tenantId = this.tenantId ?? loan.tenantId ?? undefined;
+      const guardResult = await ConductsefTimeGuard.checkAndExecuteOrQueue(
+        async () => {
+          await this.wahaService.sendTextMessage(
+            client.id,
+            client.phone,
+            message,
+            'PAYMENT_REMINDER',
+            undefined,
+            loan.id
+          );
+          console.log(`Recordatorio de pago enviado a ${client.phone}`);
+        },
         'PAYMENT_REMINDER',
-        undefined,
-        loan.id
+        { clientId: client.id, phone: client.phone, message, loanId: loan.id },
+        client.phone,
+        tenantId
       );
 
-      console.log(`Recordatorio de pago enviado a ${client.phone}`);
+      if (!guardResult.allowed) {
+        console.log(`[CONDUSEF] Recordatorio de ${client.phone}: ${guardResult.reason}`);
+      }
     } catch (error) {
       console.error('Error enviando recordatorio de pago:', error);
       throw error;

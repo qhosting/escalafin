@@ -23,6 +23,8 @@ model Tenant {
   apiKeys            ApiKey[]
   auditLogs          AuditLog[]
   clients            Client[]
+  pldScreenings      PldScreeningResult[]
+  pldAlerts          PldAlert[]
   collaterals        Collateral[]
   collectionVisits   CollectionVisit[]
   collectionRoutes   CollectionRoute[]
@@ -177,6 +179,8 @@ model Client {
   asesor                       User?                  @relation("AsesorClients", fields: [asesorId], references: [id])
   tenant                       Tenant?                @relation(fields: [tenantId], references: [id])
   user                         User?                  @relation("UserClient", fields: [userId], references: [id])
+  pldScreenings                PldScreeningResult[]   @relation("ClientPldScreenings")
+  pldAlerts                    PldAlert[]             @relation("ClientPldAlerts")
   collaterals                  Collateral[]           @relation("ClientCollateral")
   collectionVisits             CollectionVisit[]      @relation("ClientVisits")
   conversations                Conversation[]         @relation("ClientConversations")
@@ -1301,6 +1305,7 @@ enum ClientStatus {
   ACTIVE
   INACTIVE
   BLACKLISTED
+  BLOCKED_PLD
 }
 
 enum EmploymentType {
@@ -1673,4 +1678,110 @@ model LateFeePenalty {
   @@index([tenantId])
   @@index([installmentId])
   @@map("late_fee_penalties")
+}
+
+// ============================================================
+// MÓDULO PLD — Prevención de Lavado de Dinero
+// ============================================================
+
+model PldScreeningResult {
+  id              String          @id @default(cuid())
+  clientId        String
+  tenantId        String?
+  // Nombre consultado en las listas
+  queriedName     String
+  // Fuente consultada: OFAC, ONU, etc.
+  source          PldScreeningSource
+  // true si hubo coincidencia
+  isMatch         Boolean         @default(false)
+  // Puntuación de coincidencia 0-100
+  matchScore      Float?          @default(0)
+  // JSON completo de la respuesta de la API como evidencia
+  rawResponse     String          @db.Text
+  // Estado del proceso
+  status          PldScreeningStatus @default(PENDING)
+  // Usuario/sistema que disparó el screening
+  triggeredBy     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  client          Client          @relation("ClientPldScreenings", fields: [clientId], references: [id], onDelete: Cascade)
+  tenant          Tenant?         @relation(fields: [tenantId], references: [id])
+
+  @@index([clientId])
+  @@index([isMatch])
+  @@index([status])
+  @@index([tenantId])
+  @@map("pld_screening_results")
+}
+
+model PldAlert {
+  id              String        @id @default(cuid())
+  clientId        String
+  tenantId        String
+  // Tipo de alerta
+  alertType       PldAlertType
+  // Estado de la alerta
+  status          PldAlertStatus @default(OPEN)
+  // Referencia al pago o préstamo que originó la alerta
+  sourceType      String        // 'PAYMENT' | 'LOAN'
+  sourceId        String
+  // Monto involucrado
+  amount          Decimal       @db.Decimal(12, 2)
+  // Descripción de la alerta
+  description     String
+  // JSON de evidencia adicional
+  evidence        String?       @db.Text
+  // Incluida en reporte SITI
+  reportedToSiti  Boolean       @default(false)
+  sitiReportDate  DateTime?
+  // Revisada por (oficial de cumplimiento)
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  reviewNotes     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  client          Client        @relation("ClientPldAlerts", fields: [clientId], references: [id], onDelete: Cascade)
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+
+  @@index([clientId])
+  @@index([tenantId])
+  @@index([alertType])
+  @@index([status])
+  @@index([reportedToSiti])
+  @@index([createdAt])
+  @@map("pld_alerts")
+}
+
+enum PldScreeningSource {
+  OFAC_SDN
+  UN_CONSOLIDATED
+  INTERNAL
+}
+
+enum PldScreeningStatus {
+  PENDING
+  CLEAR
+  MATCH_FOUND
+  ERROR
+}
+
+enum PldAlertType {
+  // Pago único que supera el umbral SITI
+  THRESHOLD_PAYMENT
+  // Liquidación anticipada inusual (>20% del saldo en un pago)
+  EARLY_PAYOFF
+  // Múltiples pagos fraccionados en el mismo día (posible estructuración)
+  STRUCTURING_SUSPICION
+  // El cliente quedó bloqueado por PLD
+  CLIENT_BLOCKED
+}
+
+enum PldAlertStatus {
+  OPEN
+  UNDER_REVIEW
+  REPORTED_SITI
+  DISMISSED
+  CLOSED
 }
