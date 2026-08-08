@@ -361,6 +361,9 @@ model Loan {
   refinancedTo         Loan?                  @relation("RefinanceLineage")
 
   @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, status, startDate])
+  @@index([clientId, status])
   @@map("loans")
 }
 
@@ -392,6 +395,8 @@ model AmortizationSchedule {
   penalties        LateFeePenalty[] @relation("InstallmentPenalties")
 
   @@unique([loanId, paymentNumber])
+  @@index([loanId, isPaid])
+  @@index([loanId, paymentDate])
   @@map("amortization_schedule")
 }
 
@@ -418,6 +423,9 @@ model Payment {
   tenant                 Tenant?               @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
+  @@index([loanId, status])
+  @@index([tenantId, paymentDate])
+  @@index([tenantId, status, paymentDate])
   @@map("payments")
 }
 
