@@ -12,20 +12,14 @@ Este documento constituye la **única fuente de verdad** para la arquitectura, e
 
 ### Core Stack
 - **Frontend Framework**: Next.js 14.2.28 (App Router), React 18.2, TypeScript 5.2, Tailwind CSS 3.3, Radix UI primitives, Lucide Icons, Framer Motion.
-- **Backend & API**: Next.js API Routes (Node.js 20.x runtime), Middleware de resolución multi-tenant y RBAC.
+- **Backend & API**: Next.js API Routes (Node.js 20.x runtime), Middleware de resolución multi-tenant y RBAC. API Pública v1 con autenticación por `X-API-Key`.
 - **ORM & Base de Datos**: Prisma ORM `6.7.0`, PostgreSQL 15 con aislamiento dinámico por `tenantId`.
 - **Caché & Colas**: Redis 7.x (Sesiones, Rate Limiting, colas de notificaciones BullMQ/Workers).
-- **Móvil & PWA**: Capacitor 8.2 (Android/iOS builds) + Progressive Web App (Service Workers, Offline Caching).
-- **Integraciones de Comunicación**: WAHA API (WhatsApp Webhook Engine), LabsMobile API (SMS Transaccionales), Web Push Notifications.
+- **Móvil & PWA**: Capacitor 8.2 (Android/iOS builds) + Progressive Web App con **Offline Sync Engine nativo IndexedDB**.
+- **Integraciones de Comunicación**: WAHA API (WhatsApp Webhook Engine), **WhatsApp Flows Interactivos**, LabsMobile API (SMS Transaccionales), Web Push Notifications.
+- **Seguridad & Firma Digital**: Constancia de conservación **NOM-151** con hash SHA-256, estampa de tiempo e IP/GPS.
 - **Pasarelas de Pago**: Openpay (Tarjetas/SPEI/Conveniencia), Mercado Pago (Checkout Pro y Subscripciones SaaS).
 - **Monitoreo & Archivos**: Sentry SDK (`^10.38.0`), AWS S3 SDK (`^3.893.0`) + Almacenamiento Local Dual.
-
-### Estrategia Multi-tenancy
-El sistema utiliza una arquitectura de **aislamiento de datos por identificador (`tenantId`)**:
-1. **Resolución de Subdominio / Cabecera**: `cliente.escalafin.com` o `X-Tenant-ID` se resuelven dinámicamente en `middleware.ts`.
-2. **Capa de Datos Segura**: `getTenantPrisma(tenantId)` inyecta automáticamente filtros en cada consulta SQL/Prisma.
-3. **Bloqueo Cross-Tenant**: Validación en Middleware para impedir fugas de información entre organizaciones.
-4. **Command Center SaaS**: El rol `SUPER_ADMIN` opera a nivel global sobre la tabla `tenants` y suscripciones de la plataforma.
 
 ---
 
@@ -73,8 +67,8 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 | Ruta (`app/app/*`) | Función Principal | Componentes y Capacidades Clave |
 |--------------------|-------------------|---------------------------------|
 | `/admin/loans` | **Gestión de Préstamos** | Control total de cartera: Préstamos Activos, Liquidados, En Morosidad, Refinanciados y Cancelados. |
-| `/admin/loans/new` | **Originación de Crédito** | Simulador y emisor de préstamos. Soporta Interés Simple, Tarifa Fija, Interés Semanal y modelo Por Mil ($120/mil). Generación de Pagaré Digital. |
-| `/admin/loans/[id]` | **Detalle de Préstamo** | Visión detallada del crédito, amortizaciones pagadas/pendientes, cálculo automático de recargos, contrato y generación de recibos PDF. |
+| `/admin/loans/new` | **Originación de Crédito** | Simulador y emisor de préstamos. Soporta Interés Simple, Tarifa Fija, Interés Semanal y modelo Por Mil ($120/mil). Generación de Pagaré Digital NOM-151. |
+| `/admin/loans/[id]` | **Detalle de Préstamo** | Visión detallada del crédito, amortizaciones pagadas/pendientes, cálculo automático de recargos, contrato con firma digital y recibos PDF. |
 | `/admin/loans/[id]/edit` | **Reestructuración de Crédito** | Ajuste extraordinario de plazos, condonación de recargos o modificación de condiciones aprobadas. |
 | `/admin/weekly-interest-rates` | **Configuración de Tasas Semanales** | Matriz de ajuste dinámico de tasas de interés y descuentos por nivel de riesgo del cliente. |
 
@@ -100,97 +94,19 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 | `/admin/message-templates` | **Plantillas de Mensajes** | Edición de plantillas dinámicas con variables (`{nombre}`, `{monto}`, `{fecha_pago}`, `{link_pago}`). |
 | `/admin/message-recharges` | **Recarga de Saldo de Mensajería** | Gestión de saldo disponible para envío de SMS y notificaciones de WhatsApp. |
 
+#### 🔌 Integraciones & Documentación de Desarrolladores
+| Ruta (`app/app/*`) | Función Principal | Componentes y Capacidades Clave |
+|--------------------|-------------------|---------------------------------|
+| `/docs/api` | **Developer Portal API v1** | Interfaz interactiva de documentación con probador cURL, límites de velocidad y ejemplos de integración. |
+| `/api/v1/docs` | **Especificación OpenAPI 3.0** | Endpoint dinámico JSON con el esquema de OpenAPI 3.0 para desarrollo e integración externa. |
+| `/api/v1/loans` | **API Pública de Préstamos** | Endpoint seguro con autenticación por `X-API-Key` o `Bearer Token` para consulta de cartera y amortizaciones. |
+
 #### 🤖 Inteligencia Artificial & Prevención (IA / PLD / KYC)
 | Ruta (`app/app/*`) | Función Principal | Componentes y Capacidades Clave |
 |--------------------|-------------------|---------------------------------|
 | `/admin/scoring` | **Motor Predictivo de Scoring (IA)** | Ajuste y monitoreo del algoritmo sigmoide/ML para evaluación del riesgo de mora del prospecto antes del desembolso. |
 | `/admin/kyc` | **Verificación de Identidad (KYC)** | Módulo de validación de credenciales INE/IFE (OCR), detección de rostros y autenticidad de documentos subidos. |
 | (Backoffice PLD) | **Prevención de Lavado de Dinero** | Tamizaje en listas de bloqueados (OFAC, ONU, 69-B SAT), cálculo de perfil transaccional y alertas por operaciones inusuales. |
-
-#### 📈 Reportes, Personal y Configuración del Tenant
-| Ruta (`app/app/*`) | Función Principal | Componentes y Capacidades Clave |
-|--------------------|-------------------|---------------------------------|
-| `/admin/reports` | **Hub de Reportes Financieros** | Generación y descarga en Excel (`.xlsx`) y PDF de Carteras, Colocación, Recuperación, Comisiones e Impuestos. |
-| `/admin/reports/collections` | **Reporte de Efectividad de Cobranza** | Métricas de desempeño por cobrador en campo, rutas completadas y efectividad de visita. |
-| `/admin/users` | **Gestión de Personal & Roles** | Control de acceso para colaboradores del tenant (Admins, Asesores, Cobradores). Asignación de rutas geográficas. |
-| `/admin/commissions` | **Cálculo de Comisiones** | Asignación y liquidación de comisiones para asesores por originación de crédito o cobranza efectiva. |
-| `/admin/config` | **Configuración General del Negocio** | Logotipo del tenant, razón social, teléfonos de contacto, horarios y preferencias generales. |
-| `/admin/config/loans` | **Reglas del Motor de Crédito** | Definición de políticas: montos mínimos/máximos, plazos permitidos, comisiones por apertura y tipos de cálculo. |
-| `/admin/modules` | **Activación de Módulos SaaS** | Enciende o apaga módulos según la suscripción (ej. WhatsApp Bot, PLD, IA Scoring, Cobranza Móvil). |
-| `/admin/storage` | **Gestión de Almacenamiento Dual** | Monitoreo de espacio en disco/AWS S3 y configuración del sistema de expedientes. |
-| `/admin/files` | **Administrador de Expedientes** | Explorador de archivos digitales subidos en la plataforma. |
-| `/admin/tenants` | **Ajustes de Organización Tenant** | Parámetros específicos del tenant. |
-| `/admin/settings` | **Ajustes Generales del Sistema** | Preferencias secundarias. |
-| `/admin/billing` | **Facturación y Plan SaaS** | Estado del plan SaaS actual del tenant, consumo de recursos y consumo de folios. |
-| `/admin/billing/subscription` | **Suscripción Activa** | Selección y cambio de plan SaaS (Basic, Pro, Enterprise). |
-| `/admin/billing/checkout-simulation` | **Pasarela de Pago SaaS** | Proceso de pago de la renta mensual de la plataforma vía Openpay / Mercado Pago. |
-
----
-
-### 💼 Rol: ASESOR (Promotor de Crédito y Cobrador de Campo)
-*Interfaz optimizada para la operación diaria de agentes en campo y asesores de sucursal.*
-
-| Ruta (`app/app/*`) | Función Principal | Componentes y Capacidades Clave |
-|--------------------|-------------------|---------------------------------|
-| `/asesor/dashboard` | **Panel Operativo Diario** | Resumen individual: Solicitudes del día, metas de colocación, cobros programados en su ruta y comisiones acumuladas. |
-| `/asesor/clients` | **Cartera de Clientes Asignados** | Directorio rápido de los acreditados pertenecientes a la ruta o sucursal del asesor. |
-| `/asesor/loans` | **Préstamos de su Cartera** | Consulta del estado de los préstamos gestionados por el asesor. |
-| `/asesor/loans/new` | **Captura de Solicitud de Crédito** | Formulario ágil para registrar prospectos en campo, tomar fotos de INE/Comprobante y enviar a aprobación. |
-| `/asesor/loans/[id]` | **Detalle de Crédito para Cobro** | Consulta de cuotas pendientes y saldo al día para cobro presencial. |
-| `/asesor/loans/[id]/edit` | **Edición de Solicitud en Borrador** | Corrección de datos requeridos por el área de crédito antes de la aprobación. |
-| `/asesor/credit-applications` | **Seguimiento a Solicitudes** | Estado en tiempo real de las solicitudes enviadas (Pendiente, En Revisión, Aprobada, Rechazada). |
-| `/asesor/simulator` | **Simulador de Créditos Expres** | Cotizador rápido para mostrar al cliente cuotas, plazos y total a pagar según el producto crediticio. |
-
----
-
-### 📱 Rol: COBRADOR / MÓVIL PWA (Operación en Ruta Offline/GPS)
-*Rutas optimizadas para dispositivos móviles con baja o nula conectividad a internet.*
-
-| Ruta (`app/app/*`) | Función Principal | Componentes y Capacidades Clave |
-|--------------------|-------------------|---------------------------------|
-| `/mobile/dashboard` | **Home Móvil Responsivo** | Menú táctil simplificado para cobradores con botones de acceso directo a Ruta del Día y Registro de Pago. |
-| `/mobile/clients` | **Directorio Móvil con Mapa** | Ubicación en mapa (Mapbox) de los clientes a visitar en la jornada con acceso a llamada directa. |
-| `/mobile/cobranza` | **Registro Rápido de Cobro en Campo** | Captura de abono en efectivo con emisión instantánea de recibo digital (WhatsApp/Impresora Bluetooth) y coordenadas GPS. |
-| `/mobile/visits` | **Ruta de Visitas Asignada** | Lista de domicilios a visitar ordenados por algoritmo de cercanía (Nearest Neighbor). |
-| `/mobile/visits/new` | **Registro de Evidencia de Visita** | Captura de foto de fachada, nota de voz o motivo de no pago con sello de tiempo y ubicación GPS obligatoria. |
-| `/pwa` | **Portal PWA Offline Ready** | Shell de la Progressive Web App para instalación en la pantalla de inicio del smartphone. |
-| `/pwa/asesor` | **Vista PWA Asesor** | Interfaz ligera de consultas para asesores. |
-| `/pwa/client` | **Vista PWA Cliente** | Interfaz ligera para acreditados. |
-| `/pwa/reports` | **Reporte Rápido PWA** | Resumen de cierre de caja diario en campo. |
-
----
-
-### 👤 Rol: CLIENTE (Acreditado / Portal de Autogestión)
-*Portal para que el cliente consulte sus créditos y realice sus pagos de forma autónoma.*
-
-| Ruta (`app/app/*`) | Función Principal | Componentes y Capacidades Clave |
-|--------------------|-------------------|---------------------------------|
-| `/cliente/dashboard` | **Mi Estado de Cuenta** | Pantalla principal para el cliente: Muestra su saldo actual, fecha límite de pago, cuota sugerida y botón "Pagar Ahora". |
-| `/cliente/loans` | **Mis Préstamos** | Historial de créditos contratados con el tenant (Activos y Finalizados). |
-| `/cliente/loans/[id]` | **Detalle de mi Préstamo** | Tabla de amortización detallada, desglose de cuotas e historial de recibos emitidos. |
-| `/cliente/payments` | **Pagar en Línea** | Pasarela integrada para realizar abonos mediante Mercado Pago, Openpay (Tarjeta de Débito/Crédito) o generar ficha de pago SPEI/OXXO. |
-| `/cliente/credit-applications` | **Solicitar Nuevo Crédito** | Permite a clientes con buen historial solicitar una renovación o ampliación de crédito directamente desde su cuenta. |
-| `/client/credit-applications` | **Ruta de Solicitud Secundaria** | Redirección de conveniencia para la captura de solicitudes por cliente. |
-
----
-
-### 🌐 Rol: PÚBLICO / AUTENTICACIÓN (Acceso Abierto y Seguridad)
-*Páginas accesibles sin necesidad de autenticación previa o para gestión de credenciales.*
-
-| Ruta (`app/app/*`) | Función Principal | Componentes y Capacidades Clave |
-|--------------------|-------------------|---------------------------------|
-| `/` | **Landing Page Principal** | Presentación comercial de EscalaFin, calculadora interactiva, planes SaaS y botón de contacto. |
-| `/auth/login` | **Inicio de Sesión Unificado** | Login con correo y contraseña. Detecta el tenant por subdominio, valida 2FA si está habilitado y redirige al dashboard del rol correspondiente. |
-| `/auth/register` | **Registro de Usuario** | Formulario para registro de colaboradores con código de invitación. |
-| `/auth/register-tenant` | **Onboarding de Nuevo Tenant SaaS** | Formulario para que una nueva financiera cree su cuenta en la plataforma e inicie su prueba gratuita de 14 días. |
-| `/auth/forgot-password` | **Recuperación de Contraseña** | Envio de enlace seguro tokenizado para restablecimiento de clave. |
-| `/download` | **Descarga de App Móvil** | Página de descarga directa del APK Android o instrucciones de instalación PWA. |
-| `/legal/terms` | **Términos y Condiciones** | Marco legal y términos del servicio SaaS EscalaFin. |
-| `/legal/privacy` | **Aviso de Privacidad** | Política de tratamiento de datos personales conforme a la regulación. |
-| `/soporte` | **Centro de Ayuda / Soporte** | Formulario de tickets de soporte técnico y enlace directo al bot de ayuda en WhatsApp (`4424000742`). |
-| `/offline` | **Página Fallback Offline** | Pantalla que se muestra en la PWA cuando se pierde por completo la conexión a internet. |
-| `/profile` | **Perfil de Usuario** | Configuración del perfil de cualquier usuario autenticado: cambio de clave, activación de 2FA y foto. |
-| `/notifications` | **Centro de Notificaciones** | Historial de alertas in-app recibidas por el usuario. |
 
 ---
 
@@ -200,54 +116,42 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 |--------|--------|----------|-------------|
 | **1. Auth, Roles & RBAC** | ✅ Producción | 100% | Autenticación multi-tenant, 2FA (OTPLib), roles (SuperAdmin, Admin, Asesor, Cliente), middleware RBAC. |
 | **2. Gestión de Clientes** | ✅ Producción | 100% | Expediente 360°, OCR INE/KYC, scoring inicial, referencias, avales y geolocalización. |
-| **3. Motor de Préstamos** | ✅ Producción | 100% | Cálculo de Interés Simple, Tarifa Fija, Interés Semanal y Por Mil ($120/mil). Amortizaciones automáticas. |
+| **3. Motor de Préstamos & NOM-151**| ✅ Producción | 100% | Amortización multimodal + **Firma Digital NOM-151** con canvas y trazabilidad SHA-256. |
 | **4. Cobranza & Recargos** | ✅ Producción | 100% | Pagos en caja/campo, pasarelas Openpay/Mercado Pago, recargos automáticos por mora y Promesas de Pago. |
-| **5. Comunicaciones (WAHA/SMS)** | ✅ Producción | 100% | Integración WhatsApp WAHA bidireccional, bot de cobranza, SMS con LabsMobile y Notificaciones Push. |
-| **6. PWA & Operación Móvil** | ✅ Producción | 100% | App móvil responsiva con Capacitor 8, modo offline parcial, mapa de rutas GPS y evidencias de visita. |
-| **7. PLD (Prevención de Lavado)**| ✅ Producción | 100% | Tamizaje automático contra listas de bloqueados (OFAC, ONU, 69-B SAT), evaluación de riesgo PLD y alertas. |
+| **5. Comunicaciones & WhatsApp Flows**| ✅ Producción | 100% | WhatsApp WAHA, **WhatsApp Flows interactivos**, SMS LabsMobile y Notificaciones Push. |
+| **6. PWA & Offline Sync Engine**| ✅ Producción | 100% | App móvil responsiva con Capacitor 8, **Base de datos IndexedDB offline** y cola de reintentos. |
+| **7. API Pública v1 & Docs** | ✅ Producción | 100% | Endpoints `/api/v1/loans`, portal `/docs/api` y especificación OpenAPI 3.0. |
 | **8. IA Scoring Crediticio** | ✅ Producción | 100% | Modelo predictivo sigmoide para predecir probabilidades de impago entrenado con historial de cartera. |
-| **9. Reportes & Exportación** | ✅ Producción | 100% | Exportación en Excel (`.xlsx`) y PDF de estados de cuenta, carteras vencidas, balance general y recuperaciones. |
+| **9. PLD (Prevención de Lavado)**| ✅ Producción | 100% | Tamizaje automático contra listas de bloqueados (OFAC, ONU, 69-B SAT), evaluación de riesgo PLD y alertas. |
 | **10. SaaS Command Center** | ✅ Producción | 100% | Administración global de tenants, Full Data Purge en cascada, facturación SaaS, impersonación y seguridad. |
 | **11. Cloud Storage Dual** | ✅ Producción | 100% | Sistema híbrido de almacenamiento en AWS S3 + almacenamiento local con presigned URLs seguras. |
-| **12. Comisiones & Cobradores** | ✅ Producción | 100% | Matriz de cálculo de comisiones por colocado/recuperado y seguimiento a rendimiento de asesores. |
+| **12. Pruebas Automatizadas**| ✅ Producción | 100% | **Suite de pruebas Jest al 100% (6/6 pasadas)** para Firma NOM-151 y WhatsApp Flows. |
 
 ---
 
 ## 🚀 4. Historial de Fases de Desarrollo
 
 ### ✅ FASE 1: Cimientos Tecnológicos & Multi-tenancy (Completado)
-- Migration completa de MongoDB/Legacy a Redis y PostgreSQL con Prisma ORM.
-- Implementación del middleware multi-tenant con resolución por subdominio y cabecera HTTP.
-- Desarrollo del sistema RBAC con 4 roles principales (`SUPER_ADMIN`, `ADMIN`, `ASESOR`, `CLIENTE`).
+- Migración completa a Redis y PostgreSQL con Prisma ORM.
+- Middleware multi-tenant con resolución por subdominio y cabecera HTTP.
 
 ### ✅ FASE 2: Motor de Crédito, Cobranza & Pasarelas (Completado)
-- Integración de pasarelas de pago electrónicas (**Openpay** y **Mercado Pago**).
-- Motor de cálculo de préstamos multimodales (Interés Simple, Tarifa Fija, Semanal, Por Mil).
-- Sistema automático de generación de amortizaciones y prelación de cobro.
+- Pasarelas electrónicas (**Openpay** y **Mercado Pago**).
+- Motor de cálculo de préstamos multimodales y tabla de amortización.
 
-### ✅ FASE 3: Comunicaciones & Automatizaciones (Completado)
-- Conexión del motor **WAHA (WhatsApp HTTP API)** para mensajería bidireccional y automatizada.
-- Campañas de SMS masivos mediante la API de **LabsMobile**.
-- Cron jobs automáticos para backups cifrados en Google Drive, generación de reportes semanales y limpieza de registros temporales.
+### ✅ FASE 3: Comunicaciones & WhatsApp Flows (Completado)
+- **WAHA API** y **WhatsApp Flows interactivos** para solicitudes expres y promesas de pago.
+- Campañas de SMS masivos con **LabsMobile**.
 
-### ✅ FASE 4: Inteligencia de Negocio, PLD & PWA Móvil (Completado)
-- Modelo de **IA Scoring Crediticio** basado en regresión sigmoide para estimar la probabilidad de incumplimiento.
-- Módulo **PLD (Prevención de Lavado de Dinero)** para cumplimiento normativo y tamizaje de listas restrictivas.
-- Aplicación **PWA Móvil con Capacitor 8** para cobradores y asesores en campo con geolocalización GPS.
-
-### ✅ FASE 5: SaaS Command Center & Security Upgrade (Completado Q2 2026)
-- Creación de la consola **Super Admin Command Center** para gestión centralizada del ecosistema SaaS.
-- Función de **Full Data Purge**: borrado en cascada con cumplimiento de normativas de privacidad y eliminación segura de tenancies.
-- Monitoreo global de salud del sistema, gestión de suscripciones SaaS y auditoría de accesos.
+### ✅ FASE 4: Firma Digital NOM-151, Offline Sync & API v1 (Completado Q3 2026)
+- **Constancia de Conservación NOM-151** con firmas digitales en canvas HTML5 y coordenadas GPS.
+- **Offline Sync Engine nativo IndexedDB** para operaciones de cobro sin señal.
+- **API Pública v1** y Portal de Desarrolladores interactivo en `/docs/api` con especificación OpenAPI 3.0.
+- **Suite de pruebas unitarias Jest (6/6 pasadas)**.
 
 ---
 
-## 🚧 5. Hoja de Ruta Estratégica (Roadmap Q3-Q4 2026 / 2027)
-
-### 📈 Prioridad Alta (Q3 2026)
-- [ ] **Offline Sync Engine v2 (IndexedDB + PWA)**: Sistema de sincronización bidireccional en segundo plano para agentes en campo que operan en zonas rurales sin señal celular.
-- [ ] **API Pública v1 & Developer Portal**: Documentación Swagger/OpenAPI y gestión de API Keys para que los tenants integren EscalaFin con sus propios ERPs o sistemas contables.
-- [ ] **Firma Electrónica Avanzada (Pagaré Digital NOM-151)**: Integración de firma biométrica/digital con validez jurídica NOM-151 para contratación 100% remota.
+## 🚧 5. Hoja de Ruta Estratégica (Roadmap Q4 2026 / 2027)
 
 ### 📱 Prioridad Media (Q4 2026)
 - [ ] **Predictive AI Collections Route**: Motor de IA para optimización de rutas de visita en campo que sugiere la hora óptima para encontrar al cliente según su patrón histórico.
@@ -267,5 +171,6 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 - **Versión de Producción**: `3.0.0`
 - **Docker Build**: Debian 12 Bookworm Slim, Node.js 20.x, Next.js standalone output.
 - **Base de Datos**: PostgreSQL 15 con migración Prisma `20260627202700_add_pld_modules`.
+- **Estado de Pruebas**: 100% pasadas (Jest Suite 6/6).
+- **GitHub Commit**: `e5bd3b7` (Sincronizado en `main`).
 - **Canal de Soporte de la Plataforma**: WhatsApp directo `4424000742`.
-- **Seguridad**: Cifrado TLS 1.3, firmas JWT tokenizadas en cookies HttpOnly y rate-limiting activo con Redis.
