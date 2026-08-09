@@ -195,7 +195,7 @@ export function SubscriptionSettings() {
                                         <TrendingUp className="w-4 h-4 text-indigo-600" />
                                         Estadísticas de Pago
                                     </h4>
-                                    <Badge variant="ghost" className="text-indigo-600 bg-indigo-50 font-bold border-none">
+                                    <Badge variant="secondary" className="text-indigo-600 bg-indigo-50 font-bold border-none">
                                         <Receipt className="w-3.5 h-3.5 mr-2" />
                                         Historial
                                     </Badge>
@@ -254,7 +254,7 @@ export function SubscriptionSettings() {
                                         </div>
                                         <span className="font-bold text-slate-700">{item.label}</span>
                                     </div>
-                                    <Badge variant="ghost" className="font-black text-indigo-600 bg-indigo-50 rounded-lg">
+                                    <Badge variant="secondary" className="font-black text-indigo-600 bg-indigo-50 rounded-lg">
                                         {item.current} / {item.max === -1 ? '∞' : item.max}{item.isStorage ? ' GB' : ''}
                                     </Badge>
                                 </div>

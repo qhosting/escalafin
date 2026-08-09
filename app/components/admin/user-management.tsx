@@ -33,6 +33,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { PageLoader } from '@/components/ui/page-loader';
+import { ClientListSkeleton } from '@/components/ui/skeletons';
 
 interface UserData {
   id: string;
@@ -314,8 +315,20 @@ export function UserManagement({
     return format(new Date(dateString), "dd 'de' MMM, yyyy 'a las' HH:mm", { locale: es });
   };
 
-  if (loading) {
-    return <PageLoader message="Gestionando identidades del sistema..." />;
+  if (loading && users.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Link href="/admin/dashboard">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver al Dashboard
+            </Button>
+          </Link>
+        </div>
+        <ClientListSkeleton rows={6} />
+      </div>
+    );
   }
 
   return (

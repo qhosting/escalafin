@@ -20,7 +20,7 @@ describe('Tenant Isolation (getTenantPrisma)', () => {
 
     beforeEach(() => {
         // Redefinir la implementación antes de cada test debido a resetMocks
-        const mExtends = prisma.$extends as jest.Mock;
+        const mExtends = (prisma.$extends as unknown) as jest.Mock;
         mExtends.mockImplementation((config) => {
             const client: any = {
                 client: {

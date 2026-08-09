@@ -3,7 +3,7 @@
 
 import { Suspense } from 'react';
 import AuditLogViewer from '@/components/audit/audit-log-viewer';
-import { PageLoader } from '@/components/ui/page-loader';
+import { LoanTableSkeleton } from '@/components/ui/skeletons';
 
 export default function AuditPage() {
   return (
@@ -17,9 +17,7 @@ export default function AuditPage() {
         </p>
       </div>
 
-      <Suspense
-        fallback={<PageLoader message="Preparando Sistema de Auditoría..." />}
-      >
+      <Suspense fallback={<LoanTableSkeleton rows={8} />}>
         <AuditLogViewer />
       </Suspense>
     </div>

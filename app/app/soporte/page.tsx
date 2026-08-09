@@ -27,7 +27,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
-import { PageLoader } from '@/components/ui/page-loader';
+import { PaymentFormSkeleton } from '@/components/ui/skeletons';
 
 export default function SoportePage() {
   const sessionResult = useSession();
@@ -105,7 +105,11 @@ export default function SoportePage() {
   };
 
   if (status === 'loading' || loading) {
-    return <PageLoader message="Cargando centro de soporte..." />;
+    return (
+      <div className="container max-w-5xl mx-auto p-4 md:p-8 space-y-8">
+        <PaymentFormSkeleton />
+      </div>
+    );
   }
 
   if (!session) return null;

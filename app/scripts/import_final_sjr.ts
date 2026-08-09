@@ -209,7 +209,7 @@ async function main() {
                     where: { id: loan.id },
                     data: {
                         balanceRemaining: totalAmount - totalPaid,
-                        status: (totalAmount - totalPaid <= 0) ? LoanStatus.PAID : LoanStatus.ACTIVE
+                        status: (totalAmount - totalPaid <= 0) ? LoanStatus.PAID_OFF : LoanStatus.ACTIVE
                     }
                 });
 

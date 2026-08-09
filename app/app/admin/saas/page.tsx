@@ -34,8 +34,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, ExternalLink, Activity, Layers, Server, Settings } from 'lucide-react';
-import { PageLoader } from '@/components/ui/page-loader';
-
+import { DashboardSkeleton } from '@/components/ui/skeletons';
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function SaaSOverviewV2() {
@@ -59,8 +58,8 @@ export default function SaaSOverviewV2() {
         fetchStats();
     }, []);
 
-    if (loading) {
-        return <PageLoader message="Cargando inteligencia de la plataforma..." />;
+    if (loading || !stats) {
+        return <DashboardSkeleton />;
     }
 
     const pieData = (stats.plansBreakdown || []).map((plan: any) => ({ 
@@ -213,7 +212,7 @@ export default function SaaSOverviewV2() {
                                         paddingAngle={8}
                                         dataKey="value"
                                     >
-                                        {pieData.map((entry, index) => (
+                                        {pieData.map((entry: any, index: number) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
@@ -222,7 +221,7 @@ export default function SaaSOverviewV2() {
                             </ResponsiveContainer>
                         </div>
                         <div className="space-y-3 mt-4">
-                            {pieData.map((entry, index) => (
+                            {pieData.map((entry: any, index: number) => (
                                 <div key={entry.name} className="flex items-center justify-between text-sm">
                                     <div className="flex items-center gap-2">
                                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>

@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 });
         }
 
-        const penaltyService = new PenaltyService(tenantId);
+        const penaltyService = new PenaltyService(tenantId || '');
         const penalty = await penaltyService.createManualPenalty({
             loanId,
             amount: parseFloat(amount),

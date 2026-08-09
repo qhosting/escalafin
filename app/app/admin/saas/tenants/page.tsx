@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
-import { PageLoader } from '@/components/ui/page-loader';
+import { ClientListSkeleton } from '@/components/ui/skeletons';
 import {
     Table,
     TableBody,
@@ -187,7 +187,17 @@ export default function TenantsManagementPage() {
         }
     };
 
-    if (isLoading) return <PageLoader message="Obteniendo organizaciones..." />;
+    if (isLoading) {
+        return (
+            <div className="space-y-6">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Gestión de Tenants</h1>
+                    <p className="text-gray-500">Administra todas las organizaciones registradas y su estado de facturación.</p>
+                </div>
+                <ClientListSkeleton rows={8} />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">

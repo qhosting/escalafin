@@ -6,9 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Save, Send, ShieldCheck, WhatsappIcon, MessageSquare, Key, Globe } from 'lucide-react';
+import { Loader2, Save, Send, ShieldCheck, MessageSquare, Key, Globe } from 'lucide-react';
 import { toast } from 'sonner';
-import { PageLoader } from '@/components/ui/page-loader';
+import { PaymentFormSkeleton } from '@/components/ui/skeletons';
 
 export default function GlobalSettingsPage() {
     const [configs, setConfigs] = useState<any[]>([]);
@@ -114,7 +114,17 @@ export default function GlobalSettingsPage() {
         }
     };
 
-    if (loading) return <PageLoader message="Cargando configuración global..." />;
+    if (loading) {
+        return (
+            <div className="space-y-6 max-w-4xl mx-auto">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Configuración Global</h1>
+                    <p className="text-gray-500">Parámetros del sistema que aplican a nivel plataforma (SaaS).</p>
+                </div>
+                <PaymentFormSkeleton />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">

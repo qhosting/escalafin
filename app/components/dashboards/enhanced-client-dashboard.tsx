@@ -63,6 +63,7 @@ interface ClientDashboardData {
       date?: string;
       loanNumber: string;
     } | null;
+    totalPenalties?: number;
   };
   tenant?: {
     name: string;

@@ -40,7 +40,7 @@ async function check(url: string) {
             console.log('\nMatch tenantId:', user.tenantId === tenant.id);
         }
         return true;
-    } catch (e) {
+    } catch (e: any) {
         console.log('Failed:', e.message);
         return false;
     } finally {

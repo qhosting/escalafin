@@ -57,7 +57,7 @@ export default function PenaltiesAdminPage() {
     const { data: session } = useSession();
     const [penalties, setPenalties] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1 });
+    const [pagination, setPagination] = useState<{ currentPage: number; totalPages: number; totalCount?: number }>({ currentPage: 1, totalPages: 1, totalCount: 0 });
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [searchTerm, setSearchTerm] = useState('');
     

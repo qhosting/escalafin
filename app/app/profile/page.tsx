@@ -13,7 +13,7 @@ import { AuthWrapper } from '@/components/auth-wrapper';
 import {
     CheckCircle2, Camera, Mail, Building2, Calendar, User, Phone, Loader2, Save, Lock, Shield
 } from 'lucide-react';
-import { PageLoader } from '@/components/ui/page-loader';
+import { PaymentFormSkeleton } from '@/components/ui/skeletons';
 
 export default function ProfilePage() {
     return (
@@ -127,7 +127,11 @@ function ProfileContent() {
     };
 
     if (loading) {
-        return <PageLoader message="Preparando tu espacio de trabajo..." />;
+        return (
+            <div className="max-w-6xl mx-auto space-y-8 p-4 sm:p-6 lg:p-8">
+                <PaymentFormSkeleton />
+            </div>
+        );
     }
 
     return (

@@ -23,7 +23,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PageLoader } from '@/components/ui/page-loader';
+import { LoanTableSkeleton } from '@/components/ui/skeletons';
 import { Separator } from '@/components/ui/separator';
 
 export default function NoPagoPage() {
@@ -86,7 +86,21 @@ export default function NoPagoPage() {
   };
 
   if (loading && loans.length === 0) {
-    return <PageLoader message="Sincronizando cartera activa..." />;
+    return (
+      <div className="space-y-6 pb-20">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2">
+          <div>
+            <h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight flex items-center gap-4">
+              <div className="p-4 bg-red-600 rounded-[2rem] shadow-xl shadow-red-100 ring-4 ring-red-50">
+                <Navigation className="h-8 w-8 text-white" />
+              </div>
+              Gestión de no pagos
+            </h1>
+          </div>
+        </div>
+        <LoanTableSkeleton rows={6} />
+      </div>
+    );
   }
 
   return (

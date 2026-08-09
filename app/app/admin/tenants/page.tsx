@@ -16,9 +16,20 @@ import {
     CreditCardIcon
 } from '@heroicons/react/24/outline';
 import {
-    Upload
+    Upload,
+    Search,
+    AlertCircle,
+    Loader2,
+    CheckCircle2,
+    Clock,
+    XCircle,
+    ExternalLink,
+    Activity,
+    Download,
+    Users,
+    Receipt
 } from 'lucide-react';
-import { PageLoader } from '@/components/ui/page-loader';
+import { ClientListSkeleton } from '@/components/ui/skeletons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -391,7 +402,7 @@ export default function TenantsPageV2() {
 
             {/* Main Content Area */}
             {isLoading ? (
-                <PageLoader message="Consultando registro central de tenants..." />
+                <ClientListSkeleton rows={6} />
             ) : filteredTenants.length === 0 ? (
                 <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
                     <BuildingOfficeIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />

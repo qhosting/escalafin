@@ -3,15 +3,14 @@
  * Caché Redis/Memory, fetch deduplicación, helpers financieros
  */
 
-import { Redis } from 'ioredis';
-
 // ─── Redis Client (singleton) ────────────────────────────────────────────────
-let redisClient: Redis | null = null;
+let redisClient: any = null;
 
-function getRedis(): Redis | null {
+function getRedis(): any {
   if (!process.env.REDIS_URL) return null;
   if (redisClient) return redisClient;
   try {
+    const { Redis } = require('ioredis');
     redisClient = new Redis(process.env.REDIS_URL, {
       maxRetriesPerRequest: 2,
       connectTimeout: 3000,

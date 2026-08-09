@@ -10,6 +10,7 @@ import { Building2, Users, Phone, Mail, MapPin, Plus, Search } from 'lucide-reac
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface Client {
   id: string;

@@ -134,22 +134,26 @@ export const deleteClient = async (id: string): Promise<void> => {
 };
 
 // Utility functions
-export const getClientStatusLabel = (status: ClientStatus): string => {
-  const statusLabels = {
+export const getClientStatusLabel = (status: ClientStatus | string): string => {
+  const statusLabels: Record<string, string> = {
     [ClientStatus.ACTIVE]: 'Activo',
     [ClientStatus.INACTIVE]: 'Inactivo',
     [ClientStatus.BLACKLISTED]: 'Lista Negra',
+    'BLOCKED_PLD': 'Bloqueado PLD',
+    'SUSPENDED': 'Suspendido'
   };
-  return statusLabels[status];
+  return statusLabels[status] || status;
 };
 
-export const getClientStatusColor = (status: ClientStatus): string => {
-  const statusColors = {
+export const getClientStatusColor = (status: ClientStatus | string): string => {
+  const statusColors: Record<string, string> = {
     [ClientStatus.ACTIVE]: 'bg-green-100 text-green-800',
     [ClientStatus.INACTIVE]: 'bg-gray-100 text-gray-800',
     [ClientStatus.BLACKLISTED]: 'bg-red-100 text-red-800',
+    'BLOCKED_PLD': 'bg-amber-100 text-amber-800',
+    'SUSPENDED': 'bg-red-100 text-red-800'
   };
-  return statusColors[status];
+  return statusColors[status] || 'bg-gray-100 text-gray-800';
 };
 
 export const getEmploymentTypeLabel = (employmentType: EmploymentType): string => {

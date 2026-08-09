@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { PageLoader } from '@/components/ui/page-loader';
+import { DashboardSkeleton } from '@/components/ui/skeletons';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from 'sonner';
 
@@ -85,7 +85,7 @@ export default function SecurityWAFPage() {
     }
   };
 
-  if (loading && logs.length === 0) return <PageLoader message="Abriendo sesión segura de monitoreo..." />;
+  if (loading && logs.length === 0) return <DashboardSkeleton />;
 
   const stats = {
     totalBlocks: logs.length,

@@ -57,7 +57,7 @@ export const loanDetailSelect = {
       phone: true,
       email: true,
       address: true,
-      curp: true,
+      accountNumber: true,
     },
   },
   payments: {
@@ -76,8 +76,8 @@ export const loanDetailSelect = {
   promises: {
     select: {
       id: true,
-      promisedDate: true,
-      promisedAmount: true,
+      promiseDate: true,
+      amount: true,
       status: true,
       createdAt: true,
     },

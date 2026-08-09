@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
       success: true,
       data: loans.map((loan) => ({
         id: loan.id,
-        amount: Number(loan.amount),
+        amount: Number(loan.principalAmount),
         interestRate: Number(loan.interestRate),
         termMonths: loan.termMonths,
         paymentFrequency: loan.paymentFrequency,
@@ -86,10 +86,9 @@ export async function GET(req: NextRequest) {
           paymentNumber: item.paymentNumber,
           paymentDate: item.paymentDate,
           amount: Number(item.totalPayment),
-          principal: Number(item.principalAmount),
-          interest: Number(item.interestAmount),
+          principal: Number(item.principalPayment),
+          interest: Number(item.interestPayment),
           isPaid: item.isPaid,
-          paidAt: item.paidAt,
         })),
       })),
       pagination: {

@@ -30,10 +30,10 @@ export async function GET() {
     }
 
     // Obtener branding corporativo del Dueño (Tenant)
-    const tenantInfo = await prisma.tenant.findUnique({
+    const tenantInfo = tenantId ? await prisma.tenant.findUnique({
       where: { id: tenantId },
       select: { name: true, logo: true, primaryColor: true }
-    });
+    }) : null;
 
     // Obtener préstamos activos del cliente
     const activeLoans = await tenantPrisma.loan.findMany({

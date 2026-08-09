@@ -40,7 +40,7 @@ import Link from 'next/link';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Download, Share2 } from 'lucide-react';
-import { PageLoader } from '@/components/ui/page-loader';
+import { LoanTableSkeleton } from '@/components/ui/skeletons';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -279,9 +279,7 @@ export default function PaymentsPage() {
     window.open(url, '_blank');
   };
 
-  if (loading && payments.length === 0) {
-    return <PageLoader message="Consultando movimientos financieros..." />;
-  }
+
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 pb-12">

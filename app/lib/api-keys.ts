@@ -283,4 +283,12 @@ export class ApiKeysService {
     }
 }
 
+export async function validateApiKey(key: string) {
+    const validated = await ApiKeysService.validateApiKey(key);
+    return {
+        isValid: !!validated,
+        tenantId: validated?.tenantId
+    };
+}
+
 export default ApiKeysService;

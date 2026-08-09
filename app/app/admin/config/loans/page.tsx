@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoanTariffConfig, DEFAULT_LOAN_TARIFFS } from '@/lib/loan-config-shared';
 import { toast } from 'sonner';
-import { PageLoader } from '@/components/ui/page-loader';
+import { PaymentFormSkeleton } from '@/components/ui/skeletons';
 import { RefreshCw, RotateCcw, Save, Loader2, Trash2, Plus, DollarSign } from 'lucide-react';
 
 export default function LoanConfigPage() {
@@ -64,7 +64,15 @@ export default function LoanConfigPage() {
     };
 
     if (loading) {
-        return <PageLoader message="Cargando configuración de tarifas..." />;
+        return (
+            <div className="container mx-auto py-8 max-w-5xl space-y-6">
+                <div>
+                    <h1 className="text-3xl font-bold">Configuración de Préstamos</h1>
+                    <p className="text-muted-foreground">Adminitra las tarifas fijas y tasas de interés dinámicas</p>
+                </div>
+                <PaymentFormSkeleton />
+            </div>
+        );
     }
 
     return (

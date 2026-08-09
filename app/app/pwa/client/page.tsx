@@ -45,6 +45,7 @@ interface Payment {
 }
 
 import { GenericSpinner } from '@/components/layout/loading-variants';
+import { MobileDashboardSkeleton } from '@/components/ui/skeletons';
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -117,7 +118,7 @@ export default function ClientPWAPage() {
   };
 
   if (status === 'loading' || loading) {
-    return <GenericSpinner />;
+    return <MobileDashboardSkeleton />;
   }
 
   const activeLoan = loans.find(loan => loan.status === 'ACTIVE');

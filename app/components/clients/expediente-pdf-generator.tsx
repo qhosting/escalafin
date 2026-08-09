@@ -83,7 +83,7 @@ export function ExpedientePdfGenerator({
         head: [['Campo', 'Valor']],
         body: personalData,
         theme: 'striped',
-        headStyles: { fillStyle: 'F', fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
         margin: { left: 14, right: photoUrl ? 50 : 14 },
         styles: { fontSize: 9, cellPadding: 2 },
       });

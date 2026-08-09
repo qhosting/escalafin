@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Building2, ArrowLeft, Shield, Lock, Eye, FileText } from 'lucide-react';
+import { Building2, ArrowLeft, Shield, Lock, Eye, FileText, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function PrivacyPolicyPage() {

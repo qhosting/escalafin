@@ -92,7 +92,7 @@ export const whiteLabelService = {
       select: {
         id: true,
         name: true,
-        logoUrl: true,
+        logo: true,
       },
     });
 
@@ -107,7 +107,7 @@ export const whiteLabelService = {
       return {
         tenantId,
         brandName: tenant?.name || 'EscalaFin',
-        logoUrl: tenant?.logoUrl || undefined,
+        logoUrl: tenant?.logo || undefined,
         primaryColorHex: PRESET_THEMES.ROYAL_NAVY.primary,
         secondaryColorHex: PRESET_THEMES.ROYAL_NAVY.secondary,
         presetTheme: 'ROYAL_NAVY',
@@ -118,7 +118,7 @@ export const whiteLabelService = {
     return {
       tenantId,
       brandName: tenant?.name || 'EscalaFin',
-      logoUrl: tenant?.logoUrl || undefined,
+      logoUrl: tenant?.logo || undefined,
       ...parsed,
     };
   },

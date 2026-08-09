@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Begin Transaction
-        const result = await tenantPrisma.$transaction(async (tx) => {
+        const result: any = await (tenantPrisma as any).$transaction(async (tx: any) => {
             // 1. Create Payment
             const payment = await tx.payment.create({
                 data: {

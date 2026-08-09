@@ -22,9 +22,10 @@ import {
     XCircle,
     Copy,
     Trash2,
-    Edit3
+    Edit3,
+    Loader2
 } from 'lucide-react';
-import { PageLoader } from '@/components/ui/page-loader';
+import { DashboardSkeleton } from '@/components/ui/skeletons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -98,7 +99,17 @@ export default function BillingPage() {
     });
 
     if (plansLoading || subsLoading || addonsLoading) {
-        return <PageLoader message="Gestionando infraestructura de cobros..." fullPage={false} />;
+        return (
+            <div className="space-y-8 p-1">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Billing & Monetización</h1>
+                        <p className="text-gray-500 mt-1">Gestión centralizada de precios, planes y suscripciones globales.</p>
+                    </div>
+                </div>
+                <DashboardSkeleton />
+            </div>
+        );
     }
 
     const handleUpdatePlan = async (e: React.FormEvent) => {

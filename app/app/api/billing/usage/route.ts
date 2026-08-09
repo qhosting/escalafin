@@ -50,14 +50,14 @@ export async function GET(request: NextRequest) {
         const historyMonths = parseInt(searchParams.get('months') || '6', 10);
 
         // Obtener estado de límites
-        const limitsStatus = await LimitsService.getAllLimitsStatus(session.user.tenantId);
+        const limitsStatus = await LimitsService.getAllLimitsStatus(tenantId);
 
         // Obtener sugerencia de upgrade si aplica
-        const upgradeSuggestion = await LimitsService.getUpgradeSuggestion(session.user.tenantId);
+        const upgradeSuggestion = await LimitsService.getUpgradeSuggestion(tenantId);
 
         // Obtener uso del periodo actual
         const currentPeriod = getCurrentPeriod();
-        const currentUsage = await UsageTracker.getOrCreateUsage(session.user.tenantId, currentPeriod);
+        const currentUsage = await UsageTracker.getOrCreateUsage(tenantId, currentPeriod);
 
         const response: any = {
             success: true,
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
         // Agregar historial si se solicita
         if (includeHistory) {
             const history = await UsageTracker.getUsageHistory(
-                session.user.tenantId,
+                tenantId,
                 historyMonths
             );
 

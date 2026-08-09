@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
         const whatsappService = new WhatsAppNotificationService(tenantId);
 
-        const result = await tenantPrisma.$transaction(async (tx) => {
+        const result: any = await (tenantPrisma as any).$transaction(async (tx: any) => {
             const payment = await tx.payment.create({
                 data: {
                     tenantId,

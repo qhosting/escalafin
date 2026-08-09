@@ -15,8 +15,8 @@ export async function PATCH(
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
 
-        const { id } = params;
-        const tenantId = session.user.tenantId;
+        const id = params.id;
+        const tenantId = session.user.tenantId || '';
         const body = await request.json();
 
         const penaltyService = new PenaltyService(tenantId);
@@ -41,8 +41,8 @@ export async function DELETE(
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
 
-        const { id } = params;
-        const tenantId = session.user.tenantId;
+        const id = params.id;
+        const tenantId = session.user.tenantId || '';
 
         const penaltyService = new PenaltyService(tenantId);
         await penaltyService.deletePenalty(id);

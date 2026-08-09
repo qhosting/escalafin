@@ -1,6 +1,8 @@
 import { getTenantPrisma } from './tenant-db';
 import { redisCache, CACHE_TTL } from './redis-cache';
-import { LoanTariffConfig, DEFAULT_LOAN_TARIFFS } from './loan-config-shared';
+import { type LoanTariffConfig, DEFAULT_LOAN_TARIFFS } from './loan-config-shared';
+export type { LoanTariffConfig };
+export { DEFAULT_LOAN_TARIFFS };
 
 
 
