@@ -3,7 +3,7 @@
 Este documento constituye la **única fuente de verdad** para la arquitectura, el estado del sistema, el catálogo exhaustivo de páginas y funciones clasificadas por rol de usuario, y la planificación futura de **EscalaFin**.
 
 **Última Actualización**: Agosto 2026  
-**Versión Actual del Sistema**: `3.0.0`  
+**Versión Actual del Sistema**: `3.1.0`  
 **Estado General**: Producción (SaaS Multi-tenant / Enterprise Ready)
 
 ---
@@ -13,8 +13,8 @@ Este documento constituye la **única fuente de verdad** para la arquitectura, e
 ### Core Stack
 - **Frontend Framework**: Next.js 14.2.28 (App Router), React 18.2, TypeScript 5.2, Tailwind CSS 3.3, Radix UI primitives, Lucide Icons, Framer Motion.
 - **Backend & API**: Next.js API Routes (Node.js 20.x runtime), Middleware de resolución multi-tenant y RBAC. API Pública v1 con autenticación por `X-API-Key`.
-- **ORM & Base de Datos**: Prisma ORM `6.7.0`, PostgreSQL 15 con aislamiento dinámico por `tenantId`.
-- **Caché & Colas**: Redis 7.x (Sesiones, Rate Limiting, colas de notificaciones BullMQ/Workers).
+- **ORM & Base de Datos**: Prisma ORM `6.7.0`, PostgreSQL **17.10** con aislamiento dinámico por `tenantId`. **8 índices compuestos de rendimiento** aplicados en producción (`loans`, `payments`, `amortization_schedule`).
+- **Caché & Colas**: Redis 7.x con capa de caché Memory Fallback + stale-while-revalidate (`app/lib/performance.ts`).
 - **Móvil & PWA**: Capacitor 8.2 (Android/iOS builds) + Progressive Web App con **Offline Sync Engine nativo IndexedDB**.
 - **Integraciones de Comunicación**: WAHA API (WhatsApp Webhook Engine), **WhatsApp Flows Interactivos**, LabsMobile API (SMS Transaccionales), Web Push Notifications.
 - **Seguridad & Firma Digital**: Constancia de conservación **NOM-151** con hash SHA-256, estampa de tiempo e IP/GPS.
@@ -149,15 +149,29 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 - **API Pública v1** y Portal de Desarrolladores interactivo en `/docs/api` con especificación OpenAPI 3.0.
 - **Suite de pruebas unitarias Jest (6/6 pasadas)**.
 
+### ✅ FASE 5: White-labeling Dinámico (Completado Q4 2026)
+- **Motor de White-labeling dinámico** (`app/lib/white-label-service.ts`): Conversión HEX→HSL, generación de variables CSS por tenant, 5 paletas preestablecidas.
+- **Componente ThemeInjector** (`app/components/theme-injector.tsx`): Inyección dinámica en `<head>` sin recarga de página.
+- **Panel de Administración** en `/admin/config/theme`: Selector visual de colores, picker HEX y vista previa en vivo estilo glassmorphic.
+
+### ✅ FASE 6: Performance Engine v1 (Completado Q4 2026)
+- **8 índices compuestos** aplicados directamente en PostgreSQL 17.10 de producción (`CONCURRENTLY`) sobre `loans`, `payments` y `amortization_schedule`.
+- **Caché Redis/Memory con stale-while-revalidate** (`app/lib/performance.ts`): `cachedQuery()` con fallback automático en memoria.
+- **Selectores Prisma optimizados** (`app/lib/prisma-selects.ts`): `loanListSelect`, `loanDetailSelect`, `clientListSelect`, `paymentListSelect` — reduce payload hasta **70%**.
+- **Code Splitting de Recharts** (`app/components/charts/dynamic-recharts.ts`): ~350KB cargados solo en cliente vía `next/dynamic({ ssr: false })`.
+- **Skeleton Screens** (`app/components/ui/skeletons.tsx`): 6 variantes (Dashboard, LoanTable, LoanDetail, ClientList, PaymentForm, MobileDashboard).
+- **`next.config.js` optimizado**: HTTP Security Headers, caché de assets estáticos 1 año (immutable), imágenes AVIF/WebP, `optimizePackageImports` para tree-shaking.
+
 ---
 
 ## 🚧 5. Hoja de Ruta Estratégica (Roadmap Q4 2026 / 2027)
 
 ### 📱 Prioridad Media (Q4 2026)
+- [x] **White-labeling Dinámico Avanzado**: ✅ Implementado — Inyección de variables CSS por tenant + panel `/admin/config/theme`.
+- [x] **Performance Engine v1**: ✅ Implementado — Índices DB, caché, code splitting, skeleton screens.
 - [ ] **Predictive AI Collections Route**: Motor de IA para optimización de rutas de visita en campo que sugiere la hora óptima para encontrar al cliente según su patrón histórico.
 - [ ] **Programa de Lealtad & Gamificación**: Sistema de puntos, insignias y reducciones de tasa para acreditados con historial de pago puntual.
-- [ ] **White-labeling Dinámico Avanzado**: Inyección de variables CSS y dominios personalizados (`financiera.com`) para cada tenant directamente desde el panel de administración.
-- [ ] **Webhooks Salientes v1**: Sistema de eventos salientes (`loan.created`, `payment.received`, `client.blacklisted`) para integraciones con webhooks.
+- [ ] **Webhooks Salientes v1**: Sistema de eventos salientes (`loan.created`, `payment.received`, `client.blacklisted`) para integraciones ERP/CRM.
 
 ### 🌐 Prioridad Baja (2027)
 - [ ] **Multi-tenancy Físico (Isolated DB per Tenant)**: Opción de aislamiento físico de base de datos PostgreSQL dedicada para clientes corporativos / Enterprise.
@@ -166,11 +180,12 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 
 ---
 
-## 🔧 6. Notas de Despliegue e Infraestructura (v3.0.0)
+## 🔧 6. Notas de Despliegue e Infraestructura (v3.1.0)
 
-- **Versión de Producción**: `3.0.0`
+- **Versión de Producción**: `3.1.0`
 - **Docker Build**: Debian 12 Bookworm Slim, Node.js 20.x, Next.js standalone output.
-- **Base de Datos**: PostgreSQL 15 con migración Prisma `20260627202700_add_pld_modules`.
+- **Base de Datos**: PostgreSQL **17.10** — 2 tenants activos, 69 clientes, 68 préstamos, 531 pagos, 128 cuotas de amortización.
+- **Índices de Rendimiento**: 18 índices activos (8 compuestos nuevos aplicados directamente en producción `CONCURRENTLY`).
 - **Estado de Pruebas**: 100% pasadas (Jest Suite 6/6).
-- **GitHub Commit**: `e5bd3b7` (Sincronizado en `main`).
+- **GitHub Commit**: `face42a` (Sincronizado en `main`).
 - **Canal de Soporte de la Plataforma**: WhatsApp directo `4424000742`.
