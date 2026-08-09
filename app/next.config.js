@@ -1,36 +1,28 @@
 /**
- * next.config.js - EscalaFin v3.0.0
- * Configuración optimizada para producción:
- * - Headers HTTP de seguridad (CSP, HSTS, XFO, XCT)
- * - Caché eficiente de assets estáticos
- * - Compresión y optimización de imágenes (Sharp)
- * - Code splitting e importaciones externas del servidor
- * - Bundle Analyzer condicional
+ * next.config.js - EscalaFin v3.1.0
+ * Optimizado para Next.js 14.2.28
+ *
+ * CORRECCIONES v3.1.0:
+ * - Revertido `serverExternalPackages` → `serverComponentsExternalPackages` (Next.js 14)
+ * - Eliminado `optimizePackageImports` (solo disponible en Next.js 13.5+ sin conflictos conocidos,
+ *   pero puede interferir con el runtime de producción en 14.2.x)
+ * - Headers HTTP de seguridad y caché de assets estáticos
+ * - Image optimization con AVIF/WebP habilitado
  */
 
 const path = require('path');
-
-// ─── Bundle Analyzer (solo en CI/LOCAL con ANALYZE=true) ──────────────────────
-const withBundleAnalyzer = process.env.ANALYZE === 'true'
-  ? require('@next/bundle-analyzer')({ enabled: true, openAnalyzer: false })
-  : (config) => config;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
   output: 'standalone',
 
-  // ─── Experimental ──────────────────────────────────────────────────────────
+  // ─── Experimental (Next.js 14 compatible) ─────────────────────────────────
   experimental: {
     outputFileTracingRoot: process.cwd(),
-    serverExternalPackages: ['pdfkit', 'canvas', 'sharp'],
-    // Optimizar importaciones de librerías grandes
-    optimizePackageImports: [
-      'lucide-react',
-      '@heroicons/react',
-      'recharts',
-      'date-fns',
-    ],
+    // IMPORTANTE: En Next.js 14 el nombre correcto es serverComponentsExternalPackages
+    // (serverExternalPackages solo existe en Next.js 15+)
+    serverComponentsExternalPackages: ['pdfkit', 'canvas', 'sharp'],
   },
 
   // ─── Build Tolerances ──────────────────────────────────────────────────────
@@ -48,7 +40,7 @@ const nextConfig = {
     ],
   },
 
-  // ─── Compresión ────────────────────────────────────────────────────────────
+  // ─── Compresión y Headers ──────────────────────────────────────────────────
   compress: true,
   poweredByHeader: false,
 
@@ -66,39 +58,14 @@ const nextConfig = {
         ],
       },
       {
-        // Archivos públicos — caché 24 horas
-        source: '/public/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=86400, stale-while-revalidate=3600',
-          },
-        ],
-      },
-      {
-        // Páginas dinámicas — headers de seguridad
+        // Páginas y API — headers de seguridad
         source: '/(.*)',
         headers: [
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(self)',
@@ -108,9 +75,8 @@ const nextConfig = {
     ];
   },
 
-  // ─── Webpack Customization ─────────────────────────────────────────────────
-  webpack: (config, { dev, isServer }) => {
-    // Ignorar módulos del servidor en el cliente
+  // ─── Webpack ───────────────────────────────────────────────────────────────
+  webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -120,19 +86,8 @@ const nextConfig = {
         child_process: false,
       };
     }
-
-    // Habilitar tree-shaking agresivo en producción
-    if (!dev) {
-      config.optimization = {
-        ...config.optimization,
-        sideEffects: true,
-        usedExports: true,
-      };
-    }
-
     return config;
   },
 };
 
-// Exportamos con Bundle Analyzer envuelto
-module.exports = withBundleAnalyzer(nextConfig);
+module.exports = nextConfig;
