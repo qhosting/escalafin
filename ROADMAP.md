@@ -3,7 +3,7 @@
 Este documento constituye la **única fuente de verdad** para la arquitectura, el estado del sistema, el catálogo exhaustivo de páginas y funciones clasificadas por rol de usuario, y la planificación futura de **EscalaFin**.
 
 **Última Actualización**: Agosto 2026  
-**Versión Actual del Sistema**: `3.1.0`  
+**Versión Actual del Sistema**: `3.2.0`  
 **Estado General**: Producción (SaaS Multi-tenant / Enterprise Ready)
 
 ---
@@ -53,14 +53,14 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 | `/admin/analytics` | **Analítica Financiera Avanzada** | Gráficas interactivas con Chart.js/Recharts sobre comportamiento de pago, proyección de flujo de caja y rentabilidad de cartera. |
 | `/admin/audit` | **Logs de Auditoría** | Trazabilidad completa de acciones realizadas por el personal (creación de créditos, cobros, modificaciones de tasa, cancelaciones). |
 
-#### 👥 Clientes y Solicitudes
+#### 👥 Clientes, Bóveda Digital & Solicitudes
 | Ruta (`app/app/*`) | Función Principal | Componentes y Capacidades Clave |
 |--------------------|-------------------|---------------------------------|
 | `/admin/clients` | **Directorio de Clientes** | Lista de acreditados con búsqueda avanzada, filtro por estatus (Activo, Inactivo, Lista Negra, Bloqueado PLD) y scoring. |
-| `/admin/clients/new` | **Alta de Cliente** | Formulario de registro con captura de INE/KYC, comprobantes, avales, referencias personales y geolocalización de domicilio. |
+| `/admin/clients/new` | **Alta de Cliente (Tabs UI)** | Formulario por **5 Pestañas Temáticas**: <br>• **1. General**: Nombre, contacto, fecha nacimiento y fotografía biométrica.<br>• **2. Domicilio & GPS**: Dirección física y coordenadas GPS.<br>• **3. Financiera & Empleo**: Ingresos, score, cuenta bancaria y empleo.<br>• **4. Aval & Garantías**: Datos de aval, GPS de aval y bienes en prenda.<br>• **5. Bóveda Digital & PDF**: Subida de documentos KYC y generador de Expediente PDF. |
 | `/admin/clients/migrate` | **Migración Masiva desde Excel** | Herramienta de importación masiva de cartera histórica desde archivos `.xlsx`/`.csv` con validación de duplicados. |
 | `/admin/clients/[id]` | **Expediente 360° del Cliente** | Expediente digital unificado: Historial crediticio, tabla de amortizaciones activas, documentos digitalizados, scorecard e historial de pagos. |
-| `/admin/clients/[id]/edit` | **Edición de Datos de Cliente** | Modificación de información personal, contacto, domicilio o referencias del cliente. |
+| `/admin/clients/[id]/edit` | **Edición de Cliente (Tabs UI)** | Modificación en **4 Pestañas Temáticas**: <br>• **1. General & Estado**: Datos personales, estado activo/inactivo/suspendido y edición de foto.<br>• **2. Domicilio & GPS**: Dirección y ubicación GPS.<br>• **3. Financiera, Empleo & Moratorios**: Ingresos, banco, empleo y tarifas de multas diarias.<br>• **4. Aval & Garantías**: Datos de aval, GPS y lista de prendas. |
 | `/admin/credit-applications` | **Módulo de Solicitudes de Crédito** | Evaluación de nuevas solicitudes. Permite aprobar, rechazar, solicitar ajustes o enviar a revisión de comisionado. |
 
 #### 💵 Préstamos y Motor de Crédito
@@ -80,7 +80,7 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 | `/admin/payments/no-pago` | **Bitácora de Reportes de No Pago** | Registro de incidencias en visita (cliente ausente, promesa de pago incumplida, no localización) con evidencia de cobrador. |
 | `/admin/payments/transactions` | **Historial de Transacciones Digitales** | Log de transacciones procesadas electrónicamente mediante Openpay o Mercado Pago con estado de webhook. |
 | `/admin/collections` | **Centro de Cobranza & Promesas** | Tablero de cartera vencida, segmentación por días de atraso (1-30, 31-60, 60+ días), asignación de rutas a cobradores y seguimiento a Promesas de Pago. |
-| `/admin/penalties` | **Recargos y Moratorios** | Configuración de reglas de recargos por mora (Monto Fijo Diario, Porcentaje sobre Saldo Vencido) y aplicación masiva. |
+| `/admin/penalties` | **Recargos y Moratorios Únicos** | Control de cobros por mora, multas fijas diarias, cierres de penalización automáticos y carga manual por sanción extrajudicial. |
 | `/admin/non-payments` | **Gestión de Impagos Críticos** | Módulo especializado para casos en litigio o pase a cobranza extrajudicial. |
 
 #### 📱 Comunicaciones (WhatsApp & SMS)
@@ -115,9 +115,9 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 | Módulo | Estado | % Avance | Descripción |
 |--------|--------|----------|-------------|
 | **1. Auth, Roles & RBAC** | ✅ Producción | 100% | Autenticación multi-tenant, 2FA (OTPLib), roles (SuperAdmin, Admin, Asesor, Cliente), middleware RBAC. |
-| **2. Gestión de Clientes** | ✅ Producción | 100% | Expediente 360°, OCR INE/KYC, scoring inicial, referencias, avales y geolocalización. |
+| **2. Gestión de Clientes & Tabs UI**| ✅ Producción | 100% | Expediente 360°, formularios por pestañas en Alta/Edición, OCR INE/KYC, scoring inicial, referencias, avales y geolocalización. |
 | **3. Motor de Préstamos & NOM-151**| ✅ Producción | 100% | Amortización multimodal + **Firma Digital NOM-151** con canvas y trazabilidad SHA-256. |
-| **4. Cobranza & Recargos** | ✅ Producción | 100% | Pagos en caja/campo, pasarelas Openpay/Mercado Pago, recargos automáticos por mora y Promesas de Pago. |
+| **4. Cobranza & Recargos Únicos**| ✅ Producción | 100% | Pagos en caja/campo, pasarelas Openpay/Mercado Pago, recargos automáticos por mora, control `/admin/penalties` y Promesas de Pago. |
 | **5. Comunicaciones & WhatsApp Flows**| ✅ Producción | 100% | WhatsApp WAHA, **WhatsApp Flows interactivos**, SMS LabsMobile y Notificaciones Push. |
 | **6. PWA & Offline Sync Engine**| ✅ Producción | 100% | App móvil responsiva con Capacitor 8, **Base de datos IndexedDB offline** y cola de reintentos. |
 | **7. API Pública v1 & Docs** | ✅ Producción | 100% | Endpoints `/api/v1/loans`, portal `/docs/api` y especificación OpenAPI 3.0. |
@@ -125,7 +125,8 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 | **9. PLD (Prevención de Lavado)**| ✅ Producción | 100% | Tamizaje automático contra listas de bloqueados (OFAC, ONU, 69-B SAT), evaluación de riesgo PLD y alertas. |
 | **10. SaaS Command Center** | ✅ Producción | 100% | Administración global de tenants, Full Data Purge en cascada, facturación SaaS, impersonación y seguridad. |
 | **11. Cloud Storage Dual** | ✅ Producción | 100% | Sistema híbrido de almacenamiento en AWS S3 + almacenamiento local con presigned URLs seguras. |
-| **12. Pruebas Automatizadas**| ✅ Producción | 100% | **Suite de pruebas Jest al 100% (6/6 pasadas)** para Firma NOM-151 y WhatsApp Flows. |
+| **12. Unified Loading Engine** | ✅ Producción | 100% | Sistema unificado de spinners de carga responsivos (`LoadingSpinner` & `PageLoader`) en todos los módulos. |
+| **13. Pruebas Automatizadas**| ✅ Producción | 100% | **Suite de pruebas Jest al 100% (6/6 pasadas)** y compilación limpia `tsc`. |
 
 ---
 
@@ -160,7 +161,17 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 - **Selectores Prisma optimizados** (`app/lib/prisma-selects.ts`): `loanListSelect`, `loanDetailSelect`, `clientListSelect`, `paymentListSelect` — reduce payload hasta **70%**.
 - **Code Splitting de Recharts** (`app/components/charts/dynamic-recharts.ts`): ~350KB cargados solo en cliente vía `next/dynamic({ ssr: false })`.
 - **Skeleton Screens** (`app/components/ui/skeletons.tsx`): 6 variantes (Dashboard, LoanTable, LoanDetail, ClientList, PaymentForm, MobileDashboard).
-- **`next.config.js` optimizado**: HTTP Security Headers, caché de assets estáticos 1 año (immutable), imágenes AVIF/WebP, `optimizePackageImports` para tree-shaking.
+
+### ✅ FASE 7: UI Form Tabs, Bóveda Digital & Unified Loaders (Completado v3.2.0 - Agosto 2026)
+- **Formularios por Pestañas (Tabs UI)**:
+  - Alta de Cliente (`/admin/clients/new`) estructurado en 5 Pestañas (General, Domicilio & GPS, Financiera & Empleo, Aval & Garantías, Bóveda Digital & PDF) con guía paso a paso.
+  - Edición de Cliente (`/admin/clients/[id]/edit`) estructurado en 4 Pestañas (General & Estado, Domicilio & GPS, Financiera & Moratorios, Aval & Garantías).
+- **Bóveda Digital KYC & Expediente PDF**:
+  - `DigitalVault`: Módulo de digitalización KYC con estados de revisión/aprobación.
+  - `ClientPhotoCapture`: Captura biométrica de perfil en vivo mediante cámara web o archivo.
+  - `ExpedientePdfGenerator`: Ficha técnica de cliente en PDF en dos modalidades (Resumen Ejecutivo y Expediente Completo con anexo de imágenes digitalizadas).
+- **Unified Loading Engine**: Consolidación universal de spinners de carga (`LoadingSpinner` & `PageLoader`) en toda la aplicación.
+- **Control de Penalizaciones Únicas**: Consola de cobro de recargos y sanciones extrajudiciales (`/admin/penalties`).
 
 ---
 
@@ -169,6 +180,7 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 ### 📱 Prioridad Media (Q4 2026)
 - [x] **White-labeling Dinámico Avanzado**: ✅ Implementado — Inyección de variables CSS por tenant + panel `/admin/config/theme`.
 - [x] **Performance Engine v1**: ✅ Implementado — Índices DB, caché, code splitting, skeleton screens.
+- [x] **UI Form Tabs & Expediente Digital**: ✅ Implementado — Alta/Edición en Pestañas, Bóveda Digital KYC, Fotografía Biométrica y PDF.
 - [ ] **Predictive AI Collections Route**: Motor de IA para optimización de rutas de visita en campo que sugiere la hora óptima para encontrar al cliente según su patrón histórico.
 - [ ] **Programa de Lealtad & Gamificación**: Sistema de puntos, insignias y reducciones de tasa para acreditados con historial de pago puntual.
 - [ ] **Webhooks Salientes v1**: Sistema de eventos salientes (`loan.created`, `payment.received`, `client.blacklisted`) para integraciones ERP/CRM.
@@ -180,12 +192,12 @@ El sistema cuenta con más de **80 páginas y vistas** organizadas jerárquicame
 
 ---
 
-## 🔧 6. Notas de Despliegue e Infraestructura (v3.1.0)
+## 🔧 6. Notas de Despliegue e Infraestructura (v3.2.0)
 
-- **Versión de Producción**: `3.1.0`
+- **Versión de Producción**: `3.2.0`
 - **Docker Build**: Debian 12 Bookworm Slim, Node.js 20.x, Next.js standalone output.
 - **Base de Datos**: PostgreSQL **17.10** — 2 tenants activos, 69 clientes, 68 préstamos, 531 pagos, 128 cuotas de amortización.
 - **Índices de Rendimiento**: 18 índices activos (8 compuestos nuevos aplicados directamente en producción `CONCURRENTLY`).
-- **Estado de Pruebas**: 100% pasadas (Jest Suite 6/6).
-- **GitHub Commit**: `face42a` (Sincronizado en `main`).
+- **Estado de Pruebas**: 100% pasadas (Jest Suite 6/6), 0 errores TypeScript (`tsc`).
+- **GitHub Commit**: `80aead6` (Sincronizado en `main`).
 - **Canal de Soporte de la Plataforma**: WhatsApp directo `4424000742`.

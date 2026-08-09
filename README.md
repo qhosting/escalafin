@@ -1,23 +1,24 @@
 # 🏥 EscalaFin - Sistema de Gestión de Créditos y Préstamos
-**Versión**: `2.7.1`
-> **Plataforma integral PWA para la gestión completa de préstamos, clientes y cobranza con navegación optimizada y validación exhaustiva**
+**Versión**: `3.2.0`
+> **Plataforma integral SaaS PWA multi-tenant para la gestión completa de préstamos, clientes, cobranza, firma digital NOM-151 y expediente digital con arquitectura por pestañas.**
 
-![Next.js](https://img.shields.io/badge/Next.js-14.0-black?style=for-the-badge&logo=next.js)
+![Next.js](https://img.shields.io/badge/Next.js-14.2.28-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue?style=for-the-badge&logo=typescript)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?style=for-the-badge&logo=postgresql)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17.10-blue?style=for-the-badge&logo=postgresql)
 ![Prisma](https://img.shields.io/badge/Prisma-6.7-2D3748?style=for-the-badge&logo=prisma)
 ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-3.3-38B2AC?style=for-the-badge&logo=tailwind-css)
 
-## 🚀 **Status del Proyecto - COMPLETADO Y VALIDADO**
+## 🚀 **Status del Proyecto - PRODUCCIÓN (v3.2.0)**
 
-### ✅ **v2.7.0 - Estado Actual (12/02/2026)**
-- **Super User Management** - Implementado y validado
-- **Configuración Dinámica** - SPEI y Contacto editables
-- **Sistema 100% funcional** - Todas las funcionalidades probadas y operativas
-- **Build exitoso** - TypeScript compilation sin errores
-- **APIs validadas** - Todos los endpoints funcionando correctamente
-- **Testing completo** - Validación exhaustiva por módulos
-- **Ready para producción** - Deployment ready con documentación completa
+### ✅ **v3.2.0 - Estado Actual (Agosto 2026)**
+- **UI Form Tabs Engine** - Formularios de Alta y Edición de Cliente en Pestañas Temáticas (`/admin/clients/new` y `/admin/clients/[id]/edit`)
+- **Bóveda Digital KYC & Fotografía Biométrica** - Control de documentos, captura en vivo por cámara web y presigned URLs seguras
+- **Expediente PDF Generator** - Emisión de fichas técnicas en PDF en modo Resumen Ejecutivo y Expediente Completo con anexo de imágenes
+- **Unified Loading Engine** - Sistema universal de spinners de carga responsivos (`LoadingSpinner` & `PageLoader`)
+- **Control de Penalizaciones Únicas** - Módulo de recargos y sanciones extrajudiciales (`/admin/penalties`)
+- **Firma Digital NOM-151** - Pagarés con hash SHA-256, estampa de tiempo e IP/GPS
+- **Performance Engine v1** - 8 índices compuestos en DB, caché Redis/Memory stale-while-revalidate y Recharts code splitting
+- **Build exitoso & TypeScript 0 errores** - Verificación de tipos `tsc` al 100% y build de producción probado
 
 ---
 

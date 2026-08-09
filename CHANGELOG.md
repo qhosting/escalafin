@@ -4,6 +4,23 @@
 Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 
+## [3.2.0] - 2026-08-09
+
+### ✨ Added - UX, Form Tabs & Digital Expediente
+- **Formularios en Pestañas (Tabs UI)**:
+  - Reestructuración completa de **Alta de Cliente** (`/admin/clients/new`) en 5 Pestañas Temáticas (1. General, 2. Domicilio & GPS, 3. Financiera & Empleo, 4. Aval & Garantías, 5. Bóveda Digital KYC & PDF) con controles de navegación paso a paso (`Anterior`/`Siguiente`).
+  - Reestructuración de **Edición de Cliente** (`/admin/clients/[id]/edit`) en 4 Pestañas Temáticas (1. General & Estado, 2. Domicilio & GPS, 3. Financiera & Moratorios, 4. Aval & Garantías).
+- **Bóveda Digital KYC & Expediente PDF**:
+  - `DigitalVault`: Bóveda digital de documentos con seguimiento de estatus (Pendiente, Aprobado, Rechazado) e integración con Google Drive API.
+  - `ClientPhotoCapture`: Captura de fotografía biométrica de perfil en vivo mediante cámara web o carga de archivo.
+  - `ExpedientePdfGenerator`: Generación dinámica de fichas técnicas en PDF en dos modalidades (Resumen Ejecutivo y Expediente Completo con anexo de imágenes digitalizadas).
+- **Consolidación de Loaders Globale**:
+  - Removidos spinners locales heterogéneos en favor del estándar `LoadingSpinner` y `PageLoader` responsivos.
+- **Control de Penalizaciones Únicas**:
+  - Módulo de cobro de recargos y sanciones extrajudiciales (`/admin/penalties`), cierres operativos y asignación manual.
+
+---
+
 ## [2.8.0] - 2026-04-05
 
 ### 🚀 Fixed - CRÍTICO
