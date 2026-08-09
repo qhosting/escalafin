@@ -330,8 +330,6 @@ export function UserManagement({
         </Link>
       </div>
 
-      </div>
-
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
