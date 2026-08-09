@@ -369,22 +369,6 @@ export function EnhancedAdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
       <div className="space-y-6">
         <SubscriptionBanner />
-        {/* Executive Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-gray-200 dark:border-gray-800 mb-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Resumen de Operaciones
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Indicadores clave de rendimiento (KPIs) y estado del negocio.
-            </p>
-          </div>
-          <div className="text-left sm:text-right mt-2 sm:mt-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white capitalize">
-              {new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
-          </div>
-        </div>
 
         {/* Acciones del Día (Multas) */}
         {session?.user?.role === 'ADMIN' && (
