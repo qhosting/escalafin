@@ -18,9 +18,10 @@ import {
 } from '@/components/ui/select';
 import { ArrowLeft, Save, User, UserCheck, Package, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
-import Link from 'next/link';
 import { GPSCapture } from '@/components/ui/gps-capture';
-import { ClientImageUpload } from '@/components/clients/client-image-upload';
+import { ClientPhotoCapture } from '@/components/clients/client-photo-capture';
+import { DigitalVault, DocumentSlot } from '@/components/clients/digital-vault';
+import { ExpedientePdfGenerator } from '@/components/clients/expediente-pdf-generator';
 
 interface ClientFormData {
   firstName: string;
@@ -75,6 +76,8 @@ export default function NewClientPage() {
   const [asesores, setAsesores] = useState([]);
   const [collaterals, setCollaterals] = useState<string[]>([]);
   const [newCollateral, setNewCollateral] = useState('');
+  const [clientPhoto, setClientPhoto] = useState<string | null>(null);
+  const [vaultDocs, setVaultDocs] = useState<DocumentSlot[]>([]);
 
   const [formData, setFormData] = useState<ClientFormData>({
     firstName: '',
@@ -265,21 +268,20 @@ export default function NewClientPage() {
           </CardContent>
         </Card>
 
-        {/* Imagen del Cliente */}
+        {/* Imagen del Cliente & Captura Biométrica */}
         <Card>
           <CardHeader>
-            <CardTitle>Imagen del Cliente</CardTitle>
+            <CardTitle>Fotografía del Cliente</CardTitle>
             <CardDescription>
-              Foto de perfil del cliente (opcional)
+              Captura en vivo con cámara web o subida de archivo para la foto de perfil.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ClientImageUpload 
-              clientId="temp-new-client"
-              onUploadComplete={(imageUrl) => {
-                console.log('Imagen subida:', imageUrl);
-                // Aquí puedes manejar la URL de la imagen si necesitas asociarla al cliente
+            <ClientPhotoCapture
+              onPhotoCapture={(dataUrl) => {
+                setClientPhoto(dataUrl);
               }}
+              currentPhoto={clientPhoto}
             />
           </CardContent>
         </Card>
@@ -620,6 +622,28 @@ export default function NewClientPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Bóveda Digital de Documentos KYC */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Bóveda Digital de Documentos (KYC)</CardTitle>
+            <CardDescription>
+              Expediente digital del acreditado: subida, revisión, aprobación de identificaciones y comprobantes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DigitalVault
+              onChange={(docs) => setVaultDocs(docs)}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Generador de Expediente PDF */}
+        <ExpedientePdfGenerator
+          clientData={formData}
+          documents={vaultDocs}
+          photoUrl={clientPhoto}
+        />
 
         {/* Botones de acción */}
         <div className="flex items-center justify-end gap-4">
