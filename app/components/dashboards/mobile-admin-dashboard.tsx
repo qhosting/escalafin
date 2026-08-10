@@ -80,7 +80,7 @@ export function MobileAdminDashboard() {
           />
           <StatCard 
             title="Cobros Hoy" 
-            value={loading ? '...' : `$${(stats?.paymentsThisMonth || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 })}`} 
+            value={loading ? '...' : `$${(stats?.paymentsToday || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 })}`} 
             icon={DollarSign} 
             color="text-emerald-600" 
             bgColor="bg-emerald-50"
@@ -137,7 +137,7 @@ export function MobileAdminDashboard() {
           <div className="relative z-10 space-y-2">
             <h4 className="text-lg font-black tracking-tight">Balance de Cartera</h4>
             <p className="text-white/70 text-xs font-medium leading-relaxed">
-              Tu cartera ha crecido un <span className="text-white font-bold">+12%</span> esta semana. Revisa los reportes detallados.
+              Tu cartera presenta una variación del <span className="text-white font-bold">{stats?.loanGrowth ? `${stats.loanGrowth > 0 ? '+' : ''}${stats.loanGrowth}%` : '0%'}</span> este mes. Revisa los reportes detallados.
             </p>
             <Button className="mt-2 bg-white text-blue-700 hover:bg-white/90 rounded-xl font-black text-xs h-9" asChild>
               <Link href="/admin/reports">Explorar KPIs</Link>

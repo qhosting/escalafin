@@ -1,11 +1,9 @@
-
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getTenantPrisma } from '@/lib/tenant-db';
  
 export const dynamic = 'force-dynamic';
-
 
 export async function GET() {
   try {
@@ -18,15 +16,35 @@ export async function GET() {
     const tenantId = session.user.tenantId;
     const tenantPrisma = getTenantPrisma(tenantId);
 
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const todayStart = new Date(`${todayStr}T00:00:00.000Z`);
+    const todayEnd = new Date(`${todayStr}T23:59:59.999Z`);
+
+    const yesterdayStart = new Date(todayStart);
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+    const yesterdayEnd = new Date(todayEnd);
+    yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
+
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
     // Obtener estadísticas reales de la base de datos (aisladas por tenant)
     const [
       activeLoansCount,
       totalClients,
       paymentsThisMonth,
+      paymentsToday,
+      paymentsYesterday,
       totalPortfolio,
       pendingApplications,
       recentPayments,
-      recentLoans
+      recentLoans,
+      thisMonthClients,
+      lastMonthClients,
+      thisMonthLoans,
+      lastMonthLoans
     ] = await Promise.all([
       // Préstamos activos
       tenantPrisma.loan.count({
@@ -39,9 +57,26 @@ export async function GET() {
       // Pagos este mes
       tenantPrisma.payment.aggregate({
         where: {
-          paymentDate: {
-            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-          }
+          status: 'COMPLETED',
+          paymentDate: { gte: thisMonthStart }
+        },
+        _sum: { amount: true }
+      }),
+
+      // Pagos HOY
+      tenantPrisma.payment.aggregate({
+        where: {
+          status: 'COMPLETED',
+          paymentDate: { gte: todayStart, lte: todayEnd }
+        },
+        _sum: { amount: true }
+      }),
+
+      // Pagos AYER
+      tenantPrisma.payment.aggregate({
+        where: {
+          status: 'COMPLETED',
+          paymentDate: { gte: yesterdayStart, lte: yesterdayEnd }
         },
         _sum: { amount: true }
       }),
@@ -73,33 +108,42 @@ export async function GET() {
         take: 2,
         orderBy: { createdAt: 'desc' },
         include: { client: { select: { firstName: true, lastName: true } } }
+      }),
+
+      // Clientes este mes
+      tenantPrisma.client.count({
+        where: { createdAt: { gte: thisMonthStart } }
+      }),
+
+      // Clientes mes anterior
+      tenantPrisma.client.count({
+        where: { createdAt: { gte: lastMonthStart, lte: lastMonthEnd } }
+      }),
+
+      // Préstamos este mes
+      tenantPrisma.loan.count({
+        where: { createdAt: { gte: thisMonthStart } }
+      }),
+
+      // Préstamos mes anterior
+      tenantPrisma.loan.count({
+        where: { createdAt: { gte: lastMonthStart, lte: lastMonthEnd } }
       })
     ]);
 
-    // Calcular préstamos del mes anterior para comparación
-    const lastMonthStart = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
-    const lastMonthEnd = new Date(new Date().getFullYear(), new Date().getMonth(), 0);
-
-    const lastMonthLoans = await tenantPrisma.loan.count({
-      where: {
-        createdAt: {
-          gte: lastMonthStart,
-          lte: lastMonthEnd
-        }
-      }
-    });
-
-    const thisMonthLoans = await tenantPrisma.loan.count({
-      where: {
-        createdAt: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-        }
-      }
-    });
-
     const loanGrowth = lastMonthLoans > 0
       ? Math.round(((thisMonthLoans - lastMonthLoans) / lastMonthLoans) * 100)
-      : 0;
+      : (thisMonthLoans > 0 ? 100 : 0);
+
+    const clientGrowth = lastMonthClients > 0
+      ? Math.round(((thisMonthClients - lastMonthClients) / lastMonthClients) * 100)
+      : (thisMonthClients > 0 ? 100 : 0);
+
+    const todayAmount = Number(paymentsToday._sum?.amount || 0);
+    const yesterdayAmount = Number(paymentsYesterday._sum?.amount || 0);
+    const paymentGrowth = yesterdayAmount > 0
+      ? Math.round(((todayAmount - yesterdayAmount) / yesterdayAmount) * 100)
+      : (todayAmount > 0 ? 100 : 0);
 
     const recentActivities = [
       ...recentPayments.map(p => ({
@@ -122,9 +166,12 @@ export async function GET() {
       activeLoans: activeLoansCount,
       totalClients,
       paymentsThisMonth: Number(paymentsThisMonth._sum?.amount || 0),
+      paymentsToday: todayAmount,
       totalPortfolio: Number(totalPortfolio._sum?.balanceRemaining || 0),
       pendingApplications,
       loanGrowth,
+      clientGrowth,
+      paymentGrowth,
       recentActivities
     });
 

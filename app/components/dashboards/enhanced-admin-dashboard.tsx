@@ -59,9 +59,12 @@ interface DashboardStats {
   activeLoans: number;
   totalClients: number;
   paymentsThisMonth: number;
+  paymentsToday?: number;
   totalPortfolio: number;
   pendingApplications: number;
   loanGrowth: number;
+  clientGrowth?: number;
+  paymentGrowth?: number;
   recentActivities?: {
     action: string;
     details: string;
@@ -114,12 +117,12 @@ export function EnhancedAdminDashboard() {
     return acc;
   }, {} as Record<string, any[]>);
 
-  // Tarjetas de estadísticas con datos reales
+  // Tarjetas de estadísticas con datos 100% reales de DB
   const statsCards = [
     {
       title: 'Préstamos Activos',
       value: loadingStats ? '...' : stats?.activeLoans.toString() || '0',
-      change: loadingStats ? '...' : (stats?.loanGrowth ? `${stats.loanGrowth > 0 ? '+' : ''}${stats.loanGrowth}%` : '0%'),
+      change: loadingStats ? '...' : (stats?.loanGrowth ? `${stats.loanGrowth > 0 ? '+' : ''}${stats.loanGrowth}% mes` : '0% mes'),
       icon: CreditCard,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
@@ -128,7 +131,7 @@ export function EnhancedAdminDashboard() {
     {
       title: 'Clientes Registrados',
       value: loadingStats ? '...' : stats?.totalClients.toString() || '0',
-      change: '+0%',
+      change: loadingStats ? '...' : (stats?.clientGrowth ? `${stats.clientGrowth > 0 ? '+' : ''}${stats.clientGrowth}% mes` : '0% mes'),
       icon: Users,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
@@ -137,7 +140,7 @@ export function EnhancedAdminDashboard() {
     {
       title: 'Pagos Este Mes',
       value: loadingStats ? '...' : `$${(stats?.paymentsThisMonth || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      change: '+0%',
+      change: loadingStats ? '...' : (stats?.paymentGrowth ? `${stats.paymentGrowth > 0 ? '+' : ''}${stats.paymentGrowth}% hoy` : '0% hoy'),
       icon: DollarSign,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',
@@ -146,7 +149,7 @@ export function EnhancedAdminDashboard() {
     {
       title: 'Cartera Total',
       value: loadingStats ? '...' : `$${(stats?.totalPortfolio || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      change: '+0%',
+      change: loadingStats ? '...' : (stats?.loanGrowth ? `${stats.loanGrowth > 0 ? '+' : ''}${stats.loanGrowth}%` : '0%'),
       icon: TrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
