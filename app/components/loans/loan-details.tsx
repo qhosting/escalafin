@@ -656,47 +656,91 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
         </TabsContent>
 
         <TabsContent value="client" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Información del Cliente
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Nombre Completo</Label>
-                  <p className="text-lg font-semibold">{loan.client?.firstName || 'N/A'} {loan.client?.lastName || ''}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Email</Label>
-                  <p className="text-lg font-semibold">{loan.client?.email || 'N/A'}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Teléfono</Label>
-                  <p className="text-lg font-semibold">{loan.client?.phone || 'N/A'}</p>
-                </div>
-                {loan.client.monthlyIncome && (
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Ingresos Mensuales</Label>
-                    <p className="text-lg font-semibold">{formatCurrency(loan.client.monthlyIncome)}</p>
+          <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <CardHeader className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white font-black text-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    {loan.client?.firstName?.[0] || 'C'}{loan.client?.lastName?.[0] || ''}
                   </div>
-                )}
-                {loan.client.creditScore && (
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Puntaje Crediticio</Label>
-                    <p className="text-lg font-semibold">{loan.client.creditScore}</p>
+                    <CardTitle className="text-xl font-black text-gray-900 dark:text-white">
+                      {loan.client?.firstName || 'Cliente'} {loan.client?.lastName || ''}
+                    </CardTitle>
+                    <p className="text-xs font-semibold text-gray-500">Acreditado Titular del Préstamo #{loan.loanNumber}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    onClick={() => setIsStatementModalOpen(true)}
+                    className="rounded-xl font-bold text-xs h-10 border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Estado de Cuenta PDF
+                  </Button>
+
+                  <Button variant="default" asChild className="rounded-xl font-bold text-xs h-10 bg-slate-900 text-white hover:bg-slate-800">
+                    <Link href={`/admin/clients/${loan.client?.id || ''}`}>
+                      <User className="h-4 w-4 mr-2" />
+                      Expediente 360°
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-1">
+                  <Label className="text-xs font-black uppercase text-slate-400">Teléfono Móvil</Label>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">{loan.client?.phone || 'No registrado'}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-black uppercase text-slate-400">Correo Electrónico</Label>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">{loan.client?.email || 'No registrado'}</p>
+                </div>
+
+                {(loan.client as any)?.address && (
+                  <div className="space-y-1">
+                    <Label className="text-xs font-black uppercase text-slate-400">Domicilio</Label>
+                    <p className="text-base font-bold text-slate-900 dark:text-white">
+                      {(loan.client as any).address} {(loan.client as any).city ? `, ${(loan.client as any).city}` : ''}
+                    </p>
                   </div>
                 )}
               </div>
 
-              <div className="flex justify-end">
-                <Button variant="outline" asChild>
-                  <Link href={`/admin/clients/${loan.client?.id || ''}`}>
-                    Ver Perfil Completo
-                  </Link>
-                </Button>
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {loan.client.monthlyIncome ? (
+                  <div className="space-y-1 bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+                    <Label className="text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-400">Ingresos Mensuales Decl.</Label>
+                    <p className="text-xl font-black text-emerald-800 dark:text-emerald-300 leading-none mt-1">
+                      {formatCurrency(loan.client.monthlyIncome)}
+                    </p>
+                  </div>
+                ) : null}
+
+                {loan.client.creditScore ? (
+                  <div className="space-y-1 bg-blue-50 dark:bg-blue-900/10 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
+                    <Label className="text-[10px] font-black uppercase text-blue-700 dark:text-blue-400">Score Crediticio</Label>
+                    <p className="text-xl font-black text-blue-800 dark:text-blue-300 leading-none mt-1">
+                      {loan.client.creditScore} pts
+                    </p>
+                  </div>
+                ) : null}
+
+                <div className="space-y-1 bg-purple-50 dark:bg-purple-900/10 p-4 rounded-2xl border border-purple-100 dark:border-purple-800">
+                  <Label className="text-[10px] font-black uppercase text-purple-700 dark:text-purple-400">Saldo Pendiente del Crédito</Label>
+                  <p className="text-xl font-black text-purple-800 dark:text-purple-300 leading-none mt-1">
+                    {formatCurrency(loan.balanceRemaining)}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
