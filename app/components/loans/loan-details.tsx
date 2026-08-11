@@ -448,12 +448,41 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="details">Detalles</TabsTrigger>
-          <TabsTrigger value="payments">Pagos ({loan.payments.length})</TabsTrigger>
-          <TabsTrigger value="schedule">Plan de Pagos</TabsTrigger>
-          <TabsTrigger value="client">Cliente</TabsTrigger>
-        </TabsList>
+        <Card className="border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl overflow-hidden p-1.5 bg-slate-100/70 dark:bg-slate-900/60">
+          <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-1.5 bg-transparent h-auto p-0">
+            <TabsTrigger 
+              value="details"
+              className="py-3 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-blue-600 data-[state=active]:text-white dark:data-[state=active]:bg-blue-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/30 data-[state=active]:scale-[1.02]"
+            >
+              <FileText className="h-4 w-4" />
+              <span>Detalles</span>
+            </TabsTrigger>
+
+            <TabsTrigger 
+              value="payments"
+              className="py-3 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-emerald-600 data-[state=active]:text-white dark:data-[state=active]:bg-emerald-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-emerald-500/30 data-[state=active]:scale-[1.02]"
+            >
+              <CreditCard className="h-4 w-4" />
+              <span>Pagos ({loan.payments.length})</span>
+            </TabsTrigger>
+
+            <TabsTrigger 
+              value="schedule"
+              className="py-3 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-indigo-600 data-[state=active]:text-white dark:data-[state=active]:bg-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-indigo-500/30 data-[state=active]:scale-[1.02]"
+            >
+              <Calendar className="h-4 w-4" />
+              <span>Plan de Pagos</span>
+            </TabsTrigger>
+
+            <TabsTrigger 
+              value="client"
+              className="py-3 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-purple-600 data-[state=active]:text-white dark:data-[state=active]:bg-purple-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-purple-500/30 data-[state=active]:scale-[1.02]"
+            >
+              <User className="h-4 w-4" />
+              <span>Cliente</span>
+            </TabsTrigger>
+          </TabsList>
+        </Card>
 
         <TabsContent value="details" className="space-y-6">
           <Card>
