@@ -27,9 +27,42 @@ export function formatInTimeZone(date: Date | string | number, formatStr: string
   }).format(d).replace(',', '');
 }
 
-export function generateLoanNumber(): string {
+export function generateLoanNumber(counter?: number): string {
   const prefix = 'EF';
-  const timestamp = Date.now().toString().slice(-8);
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-  return `${prefix}-${timestamp}-${random}`;
+  if (counter !== undefined && counter > 0) {
+    return `${prefix}-${counter.toString().padStart(3, '0')}`;
+  }
+  const random = Math.floor(100 + Math.random() * 900);
+  return `${prefix}-${random}`;
+}
+
+export function formatShortLoanNumber(loanNumber?: string | null): string {
+  if (!loanNumber) return '';
+  const clean = loanNumber.trim();
+  
+  // Si ya tiene formato corto tipo EF-001, P-001, ESF-2024-001, etc.
+  const shortMatch = clean.match(/^([A-Z]+)-0*(\d+)$/i);
+  if (shortMatch) {
+    const prefix = shortMatch[1].toUpperCase();
+    const num = shortMatch[2];
+    return `${prefix}-${num.padStart(3, '0')}`;
+  }
+
+  // Si tiene formato con guiones tipo EF-84384920-123 o MIG-IMG-SAN-9482
+  const parts = clean.split('-');
+  if (parts.length >= 3) {
+    const lastPart = parts[parts.length - 1];
+    const firstPart = parts[0].toUpperCase();
+    if (/^\d+$/.test(lastPart)) {
+      return `${firstPart}-${lastPart.padStart(3, '0')}`;
+    }
+  }
+
+  // Si termina en dígitos
+  const digitsMatch = clean.match(/\d+$/);
+  if (digitsMatch) {
+    return `EF-${digitsMatch[0].slice(-4).padStart(3, '0')}`;
+  }
+
+  return clean;
 }

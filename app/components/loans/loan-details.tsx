@@ -29,7 +29,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn, formatShortLoanNumber } from '@/lib/utils';
 import { LoanStatementModal } from './loan-statement-modal';
 import { PageSkeleton } from '@/components/ui/page-skeleton';
 import { AmortizationSchedule } from './amortization-schedule';
@@ -334,8 +334,10 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
             </Link>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <h1 className="text-xl md:text-3xl font-extrabold text-primary truncate">
-                  {loan.loanNumber}
+                <h1 className="text-xl md:text-3xl font-extrabold text-primary truncate flex items-center gap-2">
+                  <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-2.5 py-0.5 rounded-xl font-black border border-blue-200/60 dark:border-blue-800/60">
+                    #{formatShortLoanNumber(loan.loanNumber)}
+                  </span>
                 </h1>
                 <Badge className={cn('text-[10px] px-2 h-5 rounded-full border-0 uppercase font-black shrink-0', statusConfig[loan.status]?.color || 'bg-gray-100 text-gray-700')}>
                   {statusConfig[loan.status]?.label || loan.status}
@@ -462,7 +464,7 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Número de Préstamo</Label>
-                  <p className="text-lg font-semibold">{loan.loanNumber}</p>
+                  <p className="text-lg font-semibold font-mono text-blue-700 dark:text-blue-300">#{formatShortLoanNumber(loan.loanNumber)}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Tipo de Préstamo</Label>
@@ -667,7 +669,7 @@ export function LoanDetails({ loanId, userRole }: LoanDetailsProps) {
                     <CardTitle className="text-xl font-black text-gray-900 dark:text-white">
                       {loan.client?.firstName || 'Cliente'} {loan.client?.lastName || ''}
                     </CardTitle>
-                    <p className="text-xs font-semibold text-gray-500">Acreditado Titular del Préstamo #{loan.loanNumber}</p>
+                    <p className="text-xs font-semibold text-gray-500">Acreditado Titular del Préstamo #{formatShortLoanNumber(loan.loanNumber)}</p>
                   </div>
                 </div>
 

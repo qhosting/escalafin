@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { formatShortLoanNumber } from '@/lib/utils';
 
 interface LoanStatementModalProps {
     isOpen: boolean;
@@ -119,7 +120,7 @@ export function LoanStatementModal({
 
         let message = `*ESTADO DE CUENTA - ESCALAFIN*\n\n`;
         message += `Hola ${clientName}, te compartimos el resumen oficial de tu crédito:\n\n`;
-        message += `📌 *Préstamo:* ${loan.loanNumber}\n`;
+        message += `📌 *Préstamo:* ${formatShortLoanNumber(loan.loanNumber)}\n`;
         message += `💵 *Monto Otorgado:* ${formatCurrency(principal)}\n`;
         message += `✅ *Abonado a la fecha:* ${formatCurrency(paidTotal)}\n`;
         message += `📉 *Saldo Pendiente:* ${formatCurrency(balance)}\n`;
@@ -155,7 +156,7 @@ export function LoanStatementModal({
                         <div className="space-y-1">
                            <DialogTitle className="text-2xl font-black tracking-tight leading-none uppercase italic">Estado de Cuenta</DialogTitle>
                            <DialogDescription className="text-blue-200 text-xs font-semibold opacity-90">
-                              Resumen financiero oficial del préstamo <span className="text-white font-bold">{loan.loanNumber}</span>
+                              Resumen financiero oficial del préstamo <span className="text-white font-bold">#{formatShortLoanNumber(loan.loanNumber)}</span>
                            </DialogDescription>
                         </div>
                     </div>

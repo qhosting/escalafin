@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { cn } from '@/lib/utils';
+import { cn, formatShortLoanNumber } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -233,8 +233,10 @@ export function LoanList({ userRole }: LoanListProps) {
                     <div className="flex items-start justify-between">
                       <div>
                         <Link href={`/${userRole?.toLowerCase() || 'admin'}/loans/${loan.id}`}>
-                          <h3 className="font-extrabold text-lg md:text-xl text-primary hover:underline leading-none mb-1">
-                            {loan.loanNumber}
+                          <h3 className="font-extrabold text-lg md:text-xl text-primary hover:underline leading-none mb-1 flex items-center gap-2">
+                            <span className="font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-xl text-sm md:text-base font-black border border-blue-200/60 dark:border-blue-800/60 shadow-xs">
+                              #{formatShortLoanNumber(loan.loanNumber)}
+                            </span>
                           </h3>
                         </Link>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
