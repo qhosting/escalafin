@@ -332,6 +332,17 @@ export async function POST(request: NextRequest) {
         console.error('Error al enviar notificación WhatsApp préstamos:', wsError);
     }
 
+    // 💵 Cálculo automático de comisión por originación (non-blocking)
+    try {
+      const { commissionService } = await import('@/lib/commission-service');
+      const client = await tenantPrisma.client.findUnique({ where: { id: clientId }, select: { asesorId: true } });
+      if (client?.asesorId && tenantId) {
+        await commissionService.calculateOriginationCommission(loan.id, client.asesorId, tenantId);
+      }
+    } catch (commError) {
+      console.error('Error calculando comisión por originación:', commError);
+    }
+
     return NextResponse.json(loan, { status: 201 });
 
   } catch (error) {

@@ -160,6 +160,18 @@ export async function POST(request: NextRequest) {
             console.error('Error al enviar notificación WhatsApp:', wsError);
         }
 
+        // 💵 Cálculo de comisión por cobranza (non-blocking)
+        try {
+            const { commissionService } = await import('@/lib/commission-service');
+            const client = await tenantPrisma.client.findUnique({ where: { id: loan.clientId }, select: { asesorId: true } });
+            const advisorId = client?.asesorId || (session.user.role === 'ASESOR' ? session.user.id : null);
+            if (advisorId) {
+                await commissionService.calculateCollectionCommission(result.payment.id, advisorId, tenantId);
+            }
+        } catch (commError) {
+            console.error('Error calculando comisión por cobranza:', commError);
+        }
+
         return NextResponse.json(result, { status: 201 });
 
     } catch (error) {
