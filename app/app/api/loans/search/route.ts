@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
             take: 20
         });
 
-        return NextResponse.json(loans);
+        return NextResponse.json({ loans, total: loans.length });
 
     } catch (error) {
         console.error('Error in loan search API:', error);

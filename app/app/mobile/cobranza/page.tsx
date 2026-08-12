@@ -116,7 +116,7 @@ export default function CobranzaMovilPage() {
       const response = await fetch(`/api/loans/search?q=&includeClient=true`);
       if (response.ok) {
         const data = await response.json();
-        const loansToSave = data.loans || [];
+        const loansToSave = Array.isArray(data) ? data : data.loans || [];
         
         // Save to LOANS store
         for (const loan of loansToSave) {
@@ -204,9 +204,10 @@ export default function CobranzaMovilPage() {
       if (!response.ok) throw new Error('Error en la búsqueda');
 
       const data = await response.json();
-      setLoans(data.loans || []);
+      const loansList = Array.isArray(data) ? data : data.loans || [];
+      setLoans(loansList);
 
-      if (data.loans?.length === 0) {
+      if (loansList.length === 0) {
         toast.info('No se encontraron préstamos que coincidan');
       }
     } catch (error) {

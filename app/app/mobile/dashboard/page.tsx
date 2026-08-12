@@ -23,16 +23,48 @@ export default function MobileDashboardPage() {
     pendingAmount: 0
   });
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    // Aquí cargaríamos estadísticas reales
-    // Por ahora simulamos
-    setStats({
-      assignedClients: 24,
-      pendingVisits: 5,
-      collectedToday: 1500,
-      pendingAmount: 3200
-    });
-  }, []);
+    if (session?.user) {
+      loadStats();
+    }
+  }, [session]);
+
+  const loadStats = async () => {
+    setLoading(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const [clientsRes, visitsRes, paymentsRes, loansRes] = await Promise.all([
+        fetch('/api/clients?limit=1'),
+        fetch('/api/mobile/visits'),
+        fetch(`/api/payments/cash?collectorId=${session?.user?.id}&dateFrom=${today}&dateTo=${today}`),
+        fetch('/api/loans?status=ACTIVE&limit=100')
+      ]);
+
+      const clientsData = await clientsRes.json();
+      const visitsData = await visitsRes.json();
+      const paymentsData = await paymentsRes.json();
+      const loansData = await loansRes.json();
+
+      const visitsList = visitsData.visits || [];
+      const pendingVisitsCount = visitsList.filter((v: any) => v.outcome === 'visited' || !v.outcome).length;
+
+      const loansList = loansData.loans || [];
+      const pendingSum = loansList.reduce((sum: number, l: any) => sum + Number(l.balanceRemaining || 0), 0);
+
+      setStats({
+        assignedClients: clientsData.pagination?.totalCount || (clientsData.clients || []).length,
+        pendingVisits: pendingVisitsCount,
+        collectedToday: paymentsData.stats?.totalAmount || 0,
+        pendingAmount: Math.round(pendingSum)
+      });
+    } catch (e) {
+      console.error('Error loading mobile stats:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-4">

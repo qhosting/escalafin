@@ -7,6 +7,96 @@ import { getTenantPrisma } from '@/lib/tenant-db';
 import { WhatsAppNotificationService } from '@/lib/whatsapp-notification';
 import { prisma } from '@/lib/prisma';
 
+export async function GET(request: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+        }
+
+        const tenantId = session.user.tenantId;
+        if (!tenantId) {
+            return NextResponse.json({ error: 'Tenant ID is missing' }, { status: 400 });
+        }
+
+        const tenantPrisma = getTenantPrisma(tenantId);
+        const { searchParams } = new URL(request.url);
+
+        const collectorId = searchParams.get('collectorId');
+        const dateFrom = searchParams.get('dateFrom') || searchParams.get('startDate');
+        const dateTo = searchParams.get('dateTo') || searchParams.get('endDate');
+        const limit = parseInt(searchParams.get('limit') || '50');
+
+        const conditions: any[] = [{ paymentMethod: 'CASH' }];
+
+        if (collectorId && collectorId !== 'all') {
+            conditions.push({ processedBy: collectorId });
+        }
+
+        if (dateFrom || dateTo) {
+            const dateFilter: any = {};
+            if (dateFrom) {
+                const start = new Date(dateFrom.includes('T') ? dateFrom : `${dateFrom}T00:00:00`);
+                if (!isNaN(start.getTime())) dateFilter.gte = start;
+            }
+            if (dateTo) {
+                const end = new Date(dateTo.includes('T') ? dateTo : `${dateTo}T23:59:59.999`);
+                if (!isNaN(end.getTime())) dateFilter.lte = end;
+            }
+            if (Object.keys(dateFilter).length > 0) {
+                conditions.push({ paymentDate: dateFilter });
+            }
+        }
+
+        const whereClause = { AND: conditions };
+
+        const [payments, totalCount, aggregate] = await Promise.all([
+            tenantPrisma.payment.findMany({
+                where: whereClause,
+                orderBy: { paymentDate: 'desc' },
+                take: limit,
+                include: {
+                    loan: {
+                        select: {
+                            id: true,
+                            loanNumber: true,
+                            balanceRemaining: true,
+                            client: {
+                                select: {
+                                    id: true,
+                                    firstName: true,
+                                    lastName: true,
+                                    phone: true,
+                                    address: true
+                                }
+                            }
+                        }
+                    }
+                }
+            }),
+            tenantPrisma.payment.count({ where: whereClause }),
+            tenantPrisma.payment.aggregate({
+                where: whereClause,
+                _sum: { amount: true }
+            })
+        ]);
+
+        const totalAmount = Number(aggregate._sum?.amount || 0);
+
+        return NextResponse.json({
+            payments,
+            total: totalCount,
+            stats: {
+                totalPayments: totalCount,
+                totalAmount
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching cash payments:', error);
+        return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+    }
+}
+
 export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);

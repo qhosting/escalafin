@@ -34,7 +34,7 @@ export default function PWAAdminLoansPage() {
       const url = q ? `/api/loans/search?q=${encodeURIComponent(q)}&includeClient=true` : '/api/loans?status=ACTIVE&limit=50';
       const res = await fetch(url);
       const data = await res.json();
-      setLoans(data.loans || []);
+      setLoans(Array.isArray(data) ? data : data.loans || []);
     } catch (e) {
       toast.error('Error cargando préstamos');
     } finally {

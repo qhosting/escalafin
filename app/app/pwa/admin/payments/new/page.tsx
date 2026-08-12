@@ -51,8 +51,9 @@ function PWAPaymentContent() {
     try {
       const res = await fetch(`/api/loans/search?q=${encodeURIComponent(search)}&includeClient=true`);
       const data = await res.json();
-      setLoans(data.loans || []);
-      if (!data.loans?.length) toast.info('No se encontraron préstamos');
+      const list = Array.isArray(data) ? data : data.loans || [];
+      setLoans(list);
+      if (!list.length) toast.info('No se encontraron préstamos');
     } catch (e) {
       toast.error('Error buscando préstamos');
     } finally {

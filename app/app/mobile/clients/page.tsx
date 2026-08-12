@@ -39,29 +39,36 @@ export default function MobileClientsPage() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const searchClients = async () => {
-    if (!searchTerm.trim()) {
-      toast.error('Ingresa un término de búsqueda');
-      return;
-    }
+  useEffect(() => {
+    loadClients('');
+  }, []);
 
+  const loadClients = async (query: string = '') => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/clients/search?q=${encodeURIComponent(searchTerm)}&limit=20`);
-      if (!response.ok) throw new Error('Error en la búsqueda');
+      const url = query.trim()
+        ? `/api/clients?search=${encodeURIComponent(query.trim())}&limit=30`
+        : '/api/clients?limit=30';
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Error en la consulta');
 
       const data = await response.json();
-      setClients(data.clients || []);
-      
-      if (data.clients?.length === 0) {
+      const list = data.clients || (Array.isArray(data) ? data : []);
+      setClients(list);
+
+      if (query.trim() && list.length === 0) {
         toast.info('No se encontraron clientes que coincidan');
       }
     } catch (error) {
-      console.error('Error searching clients:', error);
-      toast.error('Error al buscar clientes');
+      console.error('Error fetching clients:', error);
+      toast.error('Error al cargar clientes');
     } finally {
       setLoading(false);
     }
+  };
+
+  const searchClients = async () => {
+    await loadClients(searchTerm);
   };
 
   const callClient = (phone: string) => {
