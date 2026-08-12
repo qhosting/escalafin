@@ -129,16 +129,30 @@ export default function NewClientPage() {
     guarantorLongitude: null
   });
 
+const UPPERCASE_FIELDS = new Set<keyof ClientFormData>([
+  'firstName',
+  'lastName',
+  'address',
+  'city',
+  'state',
+  'employerName',
+  'workAddress',
+  'bankName',
+  'guarantorFullName',
+  'guarantorAddress',
+]);
+
   const handleInputChange = (field: keyof ClientFormData, value: string) => {
+    const finalValue = UPPERCASE_FIELDS.has(field) ? value.toUpperCase() : value;
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: finalValue
     }));
   };
 
   const handleAddCollateral = () => {
     if (newCollateral.trim()) {
-      setCollaterals(prev => [...prev, newCollateral.trim()]);
+      setCollaterals(prev => [...prev, newCollateral.trim().toUpperCase()]);
       setNewCollateral('');
     }
   };
@@ -316,9 +330,9 @@ export default function NewClientPage() {
                         id="firstName"
                         value={formData.firstName}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        placeholder="Ej. Juan Carlos"
+                        placeholder="Ej. JUAN CARLOS"
                         required
-                        className="rounded-xl"
+                        className="rounded-xl uppercase"
                       />
                     </div>
                     <div className="space-y-2">
@@ -327,9 +341,9 @@ export default function NewClientPage() {
                         id="lastName"
                         value={formData.lastName}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        placeholder="Ej. Pérez García"
+                        placeholder="Ej. PÉREZ GARCÍA"
                         required
-                        className="rounded-xl"
+                        className="rounded-xl uppercase"
                       />
                     </div>
                   </div>
@@ -416,9 +430,9 @@ export default function NewClientPage() {
                         id="address"
                         value={formData.address}
                         onChange={(e) => handleInputChange('address', e.target.value)}
-                        placeholder="Calle, número exterior/interior, colonia..."
+                        placeholder="CALLE, NÚMERO EXTERIOR/INTERIOR, COLONIA..."
                         rows={3}
-                        className="rounded-xl"
+                        className="rounded-xl uppercase"
                       />
                     </div>
                   </div>
@@ -441,8 +455,8 @@ export default function NewClientPage() {
                       id="city"
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
-                      placeholder="Ej. Querétaro"
-                      className="rounded-xl"
+                      placeholder="Ej. QUERÉTARO"
+                      className="rounded-xl uppercase"
                     />
                   </div>
                   <div className="space-y-2">
@@ -451,8 +465,8 @@ export default function NewClientPage() {
                       id="state"
                       value={formData.state}
                       onChange={(e) => handleInputChange('state', e.target.value)}
-                      placeholder="Ej. Querétaro"
-                      className="rounded-xl"
+                      placeholder="Ej. QUERÉTARO"
+                      className="rounded-xl uppercase"
                     />
                   </div>
                   <div className="space-y-2">
@@ -516,8 +530,8 @@ export default function NewClientPage() {
                         id="bankName"
                         value={formData.bankName}
                         onChange={(e) => handleInputChange('bankName', e.target.value)}
-                        placeholder="BBVA, Banorte..."
-                        className="rounded-xl"
+                        placeholder="BBVA, BANORTE..."
+                        className="rounded-xl uppercase"
                       />
                     </div>
                     <div className="space-y-2">
@@ -583,7 +597,7 @@ export default function NewClientPage() {
                       value={formData.employerName}
                       onChange={(e) => handleInputChange('employerName', e.target.value)}
                       placeholder="Empresa o Negocio"
-                      className="rounded-xl"
+                      className="rounded-xl uppercase"
                     />
                   </div>
 
@@ -595,7 +609,7 @@ export default function NewClientPage() {
                       onChange={(e) => handleInputChange('workAddress', e.target.value)}
                       placeholder="Dirección laboral..."
                       rows={2}
-                      className="rounded-xl"
+                      className="rounded-xl uppercase"
                     />
                   </div>
                 </CardContent>
@@ -624,8 +638,8 @@ export default function NewClientPage() {
                       id="guarantorFullName"
                       value={formData.guarantorFullName}
                       onChange={(e) => handleInputChange('guarantorFullName', e.target.value)}
-                      placeholder="Nombre y Apellidos"
-                      className="rounded-xl"
+                      placeholder="NOMBRE Y APELLIDOS"
+                      className="rounded-xl uppercase"
                     />
                   </div>
 
@@ -669,7 +683,7 @@ export default function NewClientPage() {
                       onChange={(e) => handleInputChange('guarantorAddress', e.target.value)}
                       placeholder="Calle, número, colonia, ciudad..."
                       rows={2}
-                      className="rounded-xl"
+                      className="rounded-xl uppercase"
                     />
                   </div>
 

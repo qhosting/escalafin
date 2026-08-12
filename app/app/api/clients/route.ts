@@ -225,30 +225,30 @@ export async function POST(request: NextRequest) {
 
     const client = await tenantPrisma.client.create({
       data: {
-        firstName,
-        lastName,
+        firstName: firstName ? firstName.toUpperCase().trim() : '',
+        lastName: lastName ? lastName.toUpperCase().trim() : '',
         email,
         phone,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-        address,
-        city,
-        state,
+        address: address ? address.toUpperCase().trim() : null,
+        city: city ? city.toUpperCase().trim() : null,
+        state: state ? state.toUpperCase().trim() : null,
         postalCode,
         monthlyIncome: monthlyIncome ? parseFloat(monthlyIncome) : null,
         employmentType: employmentType as any || null,
-        employerName,
-        workAddress,
+        employerName: employerName ? employerName.toUpperCase().trim() : null,
+        workAddress: workAddress ? workAddress.toUpperCase().trim() : null,
         yearsEmployed: yearsEmployed ? parseInt(yearsEmployed) : null,
         creditScore: creditScore ? parseInt(creditScore) : null,
-        bankName,
+        bankName: bankName ? bankName.toUpperCase().trim() : null,
         accountNumber,
         asesorId: finalAsesorId,
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
         guarantor: guarantor ? {
           create: {
-            fullName: guarantor.fullName,
-            address: guarantor.address || '',
+            fullName: guarantor.fullName ? guarantor.fullName.toUpperCase().trim() : '',
+            address: guarantor.address ? guarantor.address.toUpperCase().trim() : '',
             phone: guarantor.phone || '',
             relationship: guarantor.relationship || 'OTHER' as any,
             latitude: guarantor.latitude ? parseFloat(guarantor.latitude) : null,
@@ -258,7 +258,7 @@ export async function POST(request: NextRequest) {
         } : undefined,
         collaterals: collaterals ? {
           create: collaterals.map((description: string) => ({
-            description,
+            description: description.toUpperCase().trim(),
             tenantId: tenantId
           }))
         } : undefined

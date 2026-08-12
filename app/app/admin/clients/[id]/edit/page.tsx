@@ -204,14 +204,32 @@ export default function EditClientPage() {
     }
   };
 
+const UPPERCASE_FIELDS = new Set<keyof ClientFormData>([
+  'firstName',
+  'lastName',
+  'address',
+  'city',
+  'state',
+  'employerName',
+  'workAddress',
+  'bankName',
+]);
+
+const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
+  'fullName',
+  'address',
+]);
+
   const handleInputChange = (field: keyof ClientFormData, value: string) => {
+    const finalValue = UPPERCASE_FIELDS.has(field) ? value.toUpperCase() : value;
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: finalValue
     }));
   };
 
   const handleGuarantorChange = (field: keyof GuarantorData, value: any) => {
+    const finalValue = (typeof value === 'string' && GUARANTOR_UPPERCASE_FIELDS.has(field)) ? value.toUpperCase() : value;
     setFormData(prev => ({
       ...prev,
       guarantor: {
@@ -221,7 +239,7 @@ export default function EditClientPage() {
         relationship: prev.guarantor?.relationship || 'OTHER',
         latitude: prev.guarantor?.latitude || null,
         longitude: prev.guarantor?.longitude || null,
-        [field]: value
+        [field]: finalValue
       }
     }));
   };
