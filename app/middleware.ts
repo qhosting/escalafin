@@ -2,6 +2,11 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
 
+// Detect mobile user agents
+function isMobileUserAgent(userAgent: string): boolean {
+  return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(userAgent);
+}
+
 export default withAuth(
   function middleware(req) {
     const { pathname } = req.nextUrl;
@@ -125,11 +130,63 @@ export default withAuth(
       }
     }
 
-    return NextResponse.next({
+    // 4. Mobile Auto-Redirect to PWA version
+    const userAgent = req.headers.get('user-agent') || '';
+    const modeCookie = req.cookies.get('escalafin-view-mode')?.value;
+    const modeParam = req.nextUrl.searchParams.get('mode');
+
+    // Honor explicit mode override via cookie or query param
+    const forcedMode = modeParam || modeCookie;
+
+    // Only auto-redirect when:
+    // - User is on a mobile device
+    // - Not already on /pwa/* or /mobile/* routes
+    // - Not forcing desktop mode
+    // - Has a valid token (authenticated)
+    if (
+      token &&
+      isMobileUserAgent(userAgent) &&
+      forcedMode !== 'desktop' &&
+      !pathname.startsWith('/pwa/') &&
+      !pathname.startsWith('/mobile/') &&
+      !pathname.startsWith('/api/') &&
+      !pathname.startsWith('/auth/') &&
+      !pathname.startsWith('/_next/') &&
+      !pathname.includes('.') &&
+      pathname !== '/'
+    ) {
+      const role = token.role as string;
+      let pwaPath = '/pwa';
+
+      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+        pwaPath = '/pwa/admin/dashboard';
+      } else if (role === 'ASESOR') {
+        pwaPath = '/pwa/asesor';
+      } else if (role === 'CLIENTE') {
+        pwaPath = '/pwa/client';
+      }
+
+      const redirectUrl = new URL(pwaPath, req.url);
+      const response = NextResponse.redirect(redirectUrl);
+      // If mode param was set, persist it as a cookie
+      if (modeParam) {
+        response.cookies.set('escalafin-view-mode', modeParam, { maxAge: 60 * 60 * 24 * 30 });
+      }
+      return response;
+    }
+
+    const response = NextResponse.next({
       request: {
         headers: requestHeaders,
       },
     });
+
+    // Persist mode cookie if mode param is present
+    if (modeParam) {
+      response.cookies.set('escalafin-view-mode', modeParam, { maxAge: 60 * 60 * 24 * 30 });
+    }
+
+    return response;
   },
   {
     callbacks: {

@@ -3,8 +3,56 @@
 Este documento constituye la **única fuente de verdad** para la arquitectura, el catálogo exhaustivo de páginas y funciones clasificadas por rol de usuario, el estado del sistema y la planificación futura de **EscalaFin**.
 
 **Última Actualización**: Agosto 2026  
-**Versión Actual del Sistema**: `3.3.0`  
-**Estado General**: Producción (SaaS Multi-tenant / Enterprise Ready)
+**Versión Actual del Sistema**: `3.4.0`  
+**Estado General**: Producción (SaaS Multi-tenant · 3 Versiones de Plataforma)
+
+---
+
+## 📱 0. Arquitectura Multi-Versión: Desktop · PWA · App Nativa
+
+EscalaFin se entrega en **3 versiones independientes** que comparten el mismo backend multi-tenant:
+
+```
+┌──────────────────────────────────────────────────┐
+│   BACKEND COMPARTIDO — Next.js API + PostgreSQL   │
+│   Prisma ORM · Redis Cache · getTenantPrisma()    │
+└──────────────┬────────────────────────────────────┘
+               │
+  ┌────────────▼──────┐  ┌─────────────────────┐  ┌──────────────────────┐
+  │  V1: Desktop      │  │  V2: PWA Móvil       │  │  V3: App Nativa      │
+  │  (versión actual) │  │  (auto-detectada)    │  │  (Capacitor 8)       │
+  │                   │  │                      │  │                      │
+  │  /admin/*         │  │  /pwa/admin/*        │  │  /mobile/*           │
+  │  /asesor/*        │  │  /pwa/asesor/*       │  │  /mobile/asesor/*    │
+  │  /cliente/*       │  │  /pwa/client/*       │  │  Biometría · GPS     │
+  │  29 secciones     │  │  BottomNavBar · PWA  │  │  Cámara · FCM Push   │
+  └───────────────────┘  └──────────────────────┘  └──────────────────────┘
+```
+
+### Selección Automática de Versión
+El **middleware** detecta el user agent del dispositivo y redirige automáticamente:
+- **Smartphone / Tablet** → `V2: PWA Móvil` (`/pwa/{role}/dashboard`)
+- **Desktop / Laptop** → `V1: Desktop` (`/admin`, `/asesor`, `/cliente`)
+- **`?mode=desktop`** → Fuerza versión escritorio (cookie de 30 días)
+- **App Nativa compilada** → `V3: Capacitor` con plugins nativos disponibles
+
+### Componentes PWA Clave
+| Componente | Ruta | Función |
+|---|---|---|
+| `ModeToggle` | `components/pwa/mode-toggle.tsx` | Botón flotante Desktop ↔ PWA |
+| `BottomNavBar` | `components/pwa/bottom-nav-bar.tsx` | Barra de navegación inferior por rol |
+| `PWALayout` | `app/pwa/layout.tsx` | Layout raíz con BottomNavBar + safe areas |
+| `OfflineIndicator` | `components/pwa/offline-indicator.tsx` | Banner de estado de conectividad |
+
+### Capacidades Nativas (V3 Capacitor 8)
+| Plugin | Función | Estado |
+|---|---|---|
+| `@capacitor/camera` | Captura nativa de fotos KYC y evidencia de visita | ✅ Configurado |
+| `@capacitor/geolocation` | GPS de alta precisión para rutas de cobranza | ✅ Configurado |
+| `@capacitor/push-notifications` | Alertas FCM/APNS de cobro y vencimientos | ✅ Configurado |
+| `@capacitor/local-notifications` | Alertas locales sin internet | ✅ Configurado |
+| `@aparajita/capacitor-biometric-auth` | Login con huella / FaceID | ✅ Implementado |
+| `@capacitor/filesystem` | Guardar PDFs de recibos en galería | ✅ Configurado |
 
 ---
 
