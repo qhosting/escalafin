@@ -285,6 +285,20 @@ El sistema cuenta con más de **85 páginas y vistas** organizadas jerárquicame
 - **Números Cortos de Préstamo (`#EF-001`)**:
   - Formato simplificado en badges para visualización limpia en listas, detalles y estados de cuenta.
 
+### ✅ FASE 8: Predictive AI Collections Route (Completado v3.5.0 - Agosto 2026)
+- **Motor Predictivo de Contacto y Scoring de Recuperación** (`app/lib/predictive-collection-service.ts`):
+  - Clustering de horas de pago histórico y visitas para predecir la mejor ventana de contacto (`MORNING`, `MIDDAY`, `EVENING`).
+  - Scoring de probabilidad de recuperación (0-100%) ponderando días de mora, cumplimiento de promesas, score crediticio y avance del préstamo.
+  - Algoritmo heurístico TSP con restricciones de ventanas horarias y cálculo de itinerario con tiempos de traslado.
+- **APIs de Cobranza Predictiva & Check-in GPS**:
+  - `/api/collections/predictive-candidates`: Detección y clasificación de clientes morosos con recomendaciones de IA.
+  - `/api/collections/generate-ai-route`: Generación y secuenciación automática de rutas por asesor.
+  - `/api/collections/visits/[visitId]/checkin`: Check-in en campo con validación de geocerca GPS (<200m) y registro de promesas/evidencias.
+- **Command Center & PWA Asesor Móvil**:
+  - Tablero `/admin/collections` con pestañas de Monitoreo, Oportunidades IA y Vista de Campo.
+  - Modal Wizard `AIRouteGeneratorModal` con previsualización del itinerario antes de confirmar.
+  - Página `/asesor/routes` con navegación directa a Google Maps/Waze, botón de aviso por WhatsApp y modal de registro de visitas.
+
 ---
 
 ## 🚧 5. Hoja de Ruta Estratégica (Roadmap Q4 2026 / 2027)
@@ -294,7 +308,7 @@ El sistema cuenta con más de **85 páginas y vistas** organizadas jerárquicame
 - [x] **Performance Engine v1**: ✅ Implementado — Índices DB, caché, code splitting, skeleton screens.
 - [x] **Gestión & Liquidación de Comisiones**: ✅ Implementado — Motor multi-tenant, batch actions y disparadores automáticos.
 - [x] **Centro de Reportes & Exportaciones**: ✅ Implementado — Excel (.xlsx), PDF, plantillas por defecto y filtros en vivo.
-- [ ] **Predictive AI Collections Route**: Motor de IA para optimización de rutas de visita en campo que sugiere la hora óptima para encontrar al cliente según su patrón histórico.
+- [x] **Predictive AI Collections Route**: ✅ Implementado — Motor de IA para optimización de rutas de visita en campo que sugiere la hora óptima para encontrar al cliente según su patrón histórico.
 - [ ] **Programa de Lealtad & Gamificación**: Sistema de puntos, insignias y reducciones de tasa para acreditados con historial de pago puntual.
 - [ ] **Webhooks Salientes v1**: Sistema de eventos salientes (`loan.created`, `payment.received`, `client.blacklisted`) para integraciones ERP/CRM.
 

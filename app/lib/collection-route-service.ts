@@ -7,6 +7,7 @@
  */
 
 import { PrismaClient, RouteStatus } from '@prisma/client';
+import { predictiveCollectionService } from './predictive-collection-service';
 
 const prisma = new PrismaClient();
 
@@ -498,4 +499,5 @@ function toRad(deg: number): number {
     return deg * (Math.PI / 180);
 }
 
+export { predictiveCollectionService };
 export default collectionRouteService;
