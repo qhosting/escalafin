@@ -30,9 +30,9 @@ async function main() {
         {
             name: 'professional',
             displayName: 'Profesional',
-            description: 'Para empresas en crecimiento',
-            priceMonthly: 499,
-            priceYearly: 4990,
+            description: 'Para microfinancieras en rápida expansión',
+            priceMonthly: 520,
+            priceYearly: 5200,
             currency: 'MXN',
             features: JSON.stringify([
                 'Hasta 5 usuarios',
@@ -54,9 +54,9 @@ async function main() {
         {
             name: 'business',
             displayName: 'Empresarial',
-            description: 'Solución completa para grandes operaciones',
-            priceMonthly: 999,
-            priceYearly: 9990,
+            description: 'Solución completa para operaciones masivas y clusters',
+            priceMonthly: 777,
+            priceYearly: 7770,
             currency: 'MXN',
             features: JSON.stringify([
                 'Usuarios ilimitados',

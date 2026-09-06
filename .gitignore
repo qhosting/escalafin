@@ -21,11 +21,17 @@ out
 
 # Environment variables
 .env
-.env.local
-.env*.local
-*.env.local
+.env.*
+*.env
+*.env.*
 app/.env
-app/.env.local
+app/.env.*
+app/*.env
+app/*.env.*
+*.backup
+*.bak
+session_cookies.txt
+cookies.txt
 
 # Local skills and temporary folders
 my-skills/

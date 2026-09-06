@@ -18,14 +18,10 @@ export async function GET() {
     // Verificar conexión a base de datos
     await prisma.$queryRaw`SELECT 1`;
     
-    // Contar usuarios para verificar que la BD tiene datos
-    const userCount = await prisma.user.count();
-    
     return NextResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
       database: 'connected',
-      users: userCount,
       version: process.env.APP_VERSION || '1.0.0',
       environment: process.env.NODE_ENV || 'production'
     });

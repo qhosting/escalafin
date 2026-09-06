@@ -8,6 +8,10 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
+
+    if (!session?.user || session.user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'Acceso no autorizado' }, { status: 403 });
+    }
     
     return NextResponse.json({
       success: true,

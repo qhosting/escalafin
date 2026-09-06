@@ -32,7 +32,12 @@ export const whiteLabelService = {
    * Convierte un código HEX (#RRGGBB) a formato HSL (H S% L%) para CSS variables
    */
   hexToHsl(hex: string): string {
-    let cleaned = hex.replace('#', '');
+    // Sanitización y validación estricta de color hexadecimal (Prevención de inyección CSS)
+    const validHex = typeof hex === 'string' && /^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(hex.trim())
+      ? hex.trim()
+      : '#003d7a';
+
+    let cleaned = validHex.replace('#', '');
     if (cleaned.length === 3) {
       cleaned = cleaned.split('').map(c => c + c).join('');
     }

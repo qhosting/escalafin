@@ -79,22 +79,36 @@ export class ConductsefTimeGuard {
    * Calcula el timestamp del próximo inicio del período permitido (07:00 hrs).
    */
   static getNextAllowedTime(timezone: string = DEFAULT_TIMEZONE): Date {
-    const now       = new Date();
-    const tomorrow  = new Date(now);
-    tomorrow.setDate(now.getDate() + 1);
+    const now = new Date();
+    try {
+      const hourFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        hour: 'numeric',
+        hour12: false,
+      });
+      const currentHour = parseInt(hourFormatter.format(now), 10);
 
-    // Construir 07:00 del día siguiente en la zona horaria correcta
-    const targetStr = tomorrow.toLocaleDateString('es-MX', { timeZone: timezone }) + ' 07:00:00';
-    const target    = new Date(targetStr);
-
-    // Si la conversión falla, usar las próximas 24h como fallback
-    if (isNaN(target.getTime())) {
+      const target = new Date(now);
+      if (currentHour >= ALLOWED_HOUR_END) {
+        // Noche: programar para 07:00 hrs del día siguiente
+        const hoursRemainingToday = 24 - currentHour;
+        target.setHours(target.getHours() + hoursRemainingToday + ALLOWED_HOUR_START);
+        target.setMinutes(0, 0, 0);
+      } else if (currentHour < ALLOWED_HOUR_START) {
+        // Madrugada: programar para 07:00 hrs de hoy
+        const hoursUntil7 = ALLOWED_HOUR_START - currentHour;
+        target.setHours(target.getHours() + hoursUntil7);
+        target.setMinutes(0, 0, 0);
+      } else {
+        return now;
+      }
+      return target;
+    } catch {
       const fallback = new Date(now);
-      fallback.setHours(now.getHours() + 8);
+      fallback.setHours(fallback.getHours() + 10);
+      fallback.setMinutes(0, 0, 0);
       return fallback;
     }
-
-    return target;
   }
 
   /**

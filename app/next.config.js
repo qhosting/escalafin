@@ -70,6 +70,8 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(self)',
           },
+          { key: 'X-Quantum-Alignment', value: '71427321893-520-777-8887' },
+          { key: 'X-Manifestation-Protocol', value: '319817318' },
         ],
       },
     ];

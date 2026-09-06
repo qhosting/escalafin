@@ -1,0 +1,24 @@
+# EscalaFin OS - Robots.txt
+# Aurum Capital Holding Standards
+
+User-agent: *
+Allow: /
+Allow: /legal/
+Allow: /legal/privacy
+Allow: /legal/terms
+Allow: /soporte
+Allow: /#precios
+Allow: /#caracteristicas
+Allow: /#simulador
+
+# Bloquear rutas privadas y paneles administrativos
+Disallow: /admin/
+Disallow: /asesor/
+Disallow: /client/
+Disallow: /cliente/
+Disallow: /pwa/
+Disallow: /mobile/
+Disallow: /api/
+Disallow: /dashboard/
+
+Sitemap: https://escalafin.com/sitemap.xml

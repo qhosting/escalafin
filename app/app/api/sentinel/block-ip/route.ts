@@ -18,13 +18,13 @@ import SentinelLogger               from '@/lib/sentinel-logger';
 const WHITELIST_IPS = (process.env.SENTINEL_IP_WHITELIST ?? '127.0.0.1,::1').split(',');
 
 export async function POST(request: NextRequest) {
-  // Validar token Sentinel
+  // Validar token Sentinel (Prevención de Fail-Open)
   const sentinelSecret = process.env.SENTINEL_SECRET;
   const providedToken  = request.headers.get('x-sentinel-token') ||
                          request.headers.get('authorization')?.replace('Bearer ', '');
 
-  if (sentinelSecret && providedToken !== sentinelSecret) {
-    return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
+  if (!sentinelSecret || providedToken !== sentinelSecret) {
+    return NextResponse.json({ error: 'Acceso no autorizado a Sentinel' }, { status: 401 });
   }
 
   try {

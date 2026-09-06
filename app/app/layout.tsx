@@ -13,18 +13,23 @@ export const dynamic = 'force-dynamic';
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'EscalaFin - Sistema de Gestión de Créditos',
-  description: 'Plataforma completa para la gestión de préstamos y créditos',
+  title: 'EscalaFin OS - Sistema Operativo de Microcréditos y Cobranza en Campo',
+  description: 'Plataforma integral para microfinancieras modernas: cobranza offline PWA, trazabilidad GPS, firewall CONDUSEF, conciliación automática y recuperación de cartera.',
+  keywords: ['microfinanciera', 'cobranza en campo', 'créditos grupales', 'sistema para prestamistas', 'condusef redeco', 'software microcréditos'],
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'EscalaFin',
+    title: 'EscalaFin OS',
   },
   formatDetection: {
     telephone: false,
   },
   other: {
     'mobile-web-app-capable': 'yes',
+    'quantum-frequency': '71427321893',
+    'creator-alignment': '11981',
+    'divine-protection': '8888',
+    'manifestation-code': '520 777 8887',
   }
 }
 
@@ -78,6 +83,11 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     <html lang="es">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `console.log('%c ✨ ESCALAFIN OS | AURUM CAPITAL HOLDING [ 777 | 11981 | 8887 | 520 ] ✨ ', 'background: #020617; color: #38bdf8; font-weight: bold; border: 1px solid #38bdf8; padding: 4px 8px; border-radius: 4px;');`
+          }}
+        />
       </head>
       <body className={inter.className} style={{
         ['--primary' as any]: tenant?.primaryColor || '#2563eb',

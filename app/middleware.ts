@@ -193,10 +193,14 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
 
-        // Permitir acceso a rutas públicas
+        // Permitir acceso a rutas públicas y legales (Cumplimiento INAI / PROFECO)
         if (
           pathname.startsWith('/auth/') ||
           pathname === '/' ||
+          pathname.startsWith('/legal/') ||
+          pathname.startsWith('/privacy') ||
+          pathname.startsWith('/terms') ||
+          pathname.startsWith('/soporte') ||
           pathname.startsWith('/api/auth/') ||
           pathname.startsWith('/api/public/') || // Hooks públicos
           pathname.startsWith('/api/webhooks/') ||

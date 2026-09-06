@@ -26,6 +26,7 @@ import {
   DollarSign,
   Calendar
 } from 'lucide-react';
+import { PricingSection } from '@/components/landing/pricing-section';
 
 // Inyectamos la fuente Outfit
 const FontStyles = () => (
@@ -136,6 +137,7 @@ export default function HomePage() {
               <a href="#caracteristicas" className={`font-medium hover:text-emerald-500 transition-colors ${isScrolled ? 'text-slate-600' : 'text-slate-200'}`}>Características</a>
               <a href="#simulador" className={`font-medium hover:text-emerald-500 transition-colors ${isScrolled ? 'text-slate-600' : 'text-slate-200'}`}>Simulador</a>
               <a href="#beneficios" className={`font-medium hover:text-emerald-500 transition-colors ${isScrolled ? 'text-slate-600' : 'text-slate-200'}`}>Beneficios</a>
+              <a href="#precios" className={`font-medium hover:text-emerald-500 transition-colors ${isScrolled ? 'text-slate-600' : 'text-slate-200'}`}>Precios</a>
               <div className="flex items-center gap-4 ml-4">
                 <Link href="/auth/login">
                   <button className={`font-medium ${isScrolled ? 'text-[#1e40af]' : 'text-white'} hover:text-emerald-400`}>
@@ -165,6 +167,7 @@ export default function HomePage() {
             <a href="#caracteristicas" className="text-slate-600 font-medium" onClick={() => setMobileMenuOpen(false)}>Características</a>
             <a href="#simulador" className="text-slate-600 font-medium" onClick={() => setMobileMenuOpen(false)}>Simulador</a>
             <a href="#beneficios" className="text-slate-600 font-medium" onClick={() => setMobileMenuOpen(false)}>Beneficios</a>
+            <a href="#precios" className="text-slate-600 font-medium" onClick={() => setMobileMenuOpen(false)}>Precios</a>
             <hr className="border-slate-100" />
             <Link href="/auth/login">
               <button className="text-[#1e40af] font-medium text-left w-full">Acceso Personal</button>
@@ -576,6 +579,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* PRICING SECTION */}
+      <PricingSection />
+
       {/* SAAS READY BANNER */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-[#1e40af]"></div>
@@ -611,7 +617,7 @@ export default function HomePage() {
                 </span>
               </div>
               <p className="text-sm max-w-sm mb-6">
-                El sistema operativo completo para microfinancieras modernas que buscan escalabilidad, control total y automatización.
+                El sistema operativo completo para microfinancieras modernas que buscan escalabilidad, control total y cobranza inteligente en campo.
               </p>
             </div>
             
@@ -620,25 +626,28 @@ export default function HomePage() {
               <ul className="space-y-2 text-sm">
                 <li><a href="#caracteristicas" className="hover:text-emerald-400 transition-colors">Características</a></li>
                 <li><a href="#simulador" className="hover:text-emerald-400 transition-colors">Simulador</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Precios</a></li>
+                <li><a href="#beneficios" className="hover:text-emerald-400 transition-colors">Beneficios</a></li>
+                <li><a href="#precios" className="hover:text-emerald-400 transition-colors">Precios</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-white font-semibold mb-4">Compañía</h4>
+              <h4 className="text-white font-semibold mb-4">Legal y Soporte</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/auth/login" className="hover:text-emerald-400 transition-colors">Acceso Personal</Link></li>
-                <li><Link href="/auth/register-tenant" className="hover:text-emerald-400 transition-colors">Registro</Link></li>
+                <li><Link href="/legal/privacy" className="hover:text-emerald-400 transition-colors">Aviso de Privacidad (INAI)</Link></li>
+                <li><Link href="/legal/terms" className="hover:text-emerald-400 transition-colors">Términos de Servicio</Link></li>
+                <li><Link href="/soporte" className="hover:text-emerald-400 transition-colors">Centro de Soporte</Link></li>
+                <li><Link href="/auth/login" className="hover:text-emerald-400 transition-colors">Acceso a Plataforma</Link></li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-            <p>&copy; {new Date().getFullYear()} Escalafin. Todos los derechos reservados.</p>
+            <p>&copy; {new Date().getFullYear()} Escalafin OS. Todos los derechos reservados.</p>
             <div className="flex space-x-6">
-              <a href="#" className="hover:text-white transition-colors">Twitter</a>
-              <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
-              <a href="#" className="hover:text-white transition-colors">Facebook</a>
+              <Link href="/legal/privacy" className="hover:text-white transition-colors">Privacidad</Link>
+              <Link href="/legal/terms" className="hover:text-white transition-colors">Términos</Link>
+              <Link href="/soporte" className="hover:text-white transition-colors">Contacto</Link>
             </div>
           </div>
         </div>
