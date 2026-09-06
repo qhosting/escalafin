@@ -31,7 +31,7 @@ fi
 
 if [ -f "scripts/setup-vapid.js" ]; then
     echo "Setting up VAPID keys..."
-    node scripts/setup-vapid.js
+    node scripts/setup-vapid.js || echo "⚠️ Advertencia: Error o advertencia en setup-vapid.js, continuando..."
 fi
 
 echo "Starting Next.js server..."
