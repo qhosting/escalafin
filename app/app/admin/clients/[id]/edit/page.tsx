@@ -159,43 +159,43 @@ export default function EditClientPage() {
       const client = await response.json();
       
       setFormData({
-        firstName: client.firstName || '',
-        lastName: client.lastName || '',
+        firstName: (client.firstName || '').toUpperCase(),
+        lastName: (client.lastName || '').toUpperCase(),
         email: client.email || '',
         phone: client.phone || '',
         dateOfBirth: client.dateOfBirth ? client.dateOfBirth.split('T')[0] : '',
-        address: client.address || '',
-        city: client.city || '',
-        state: client.state || '',
+        address: (client.address || '').toUpperCase(),
+        city: (client.city || '').toUpperCase(),
+        state: (client.state || '').toUpperCase(),
         postalCode: client.postalCode || '',
         monthlyIncome: client.monthlyIncome?.toString() || '',
         employmentType: client.employmentType || '',
-        employerName: client.employerName || '',
-        workAddress: client.workAddress || '',
+        employerName: (client.employerName || '').toUpperCase(),
+        workAddress: (client.workAddress || '').toUpperCase(),
         yearsEmployed: client.yearsEmployed?.toString() || '',
         creditScore: client.creditScore?.toString() || '',
-        bankName: client.bankName || '',
+        bankName: (client.bankName || '').toUpperCase(),
         accountNumber: client.accountNumber || '',
         status: client.status || 'ACTIVE',
         asesorId: client.asesorId || '',
         latitude: client.latitude || null,
         longitude: client.longitude || null,
         guarantor: client.guarantor ? {
-          fullName: client.guarantor.fullName || '',
-          address: client.guarantor.address || '',
+          fullName: (client.guarantor.fullName || '').toUpperCase(),
+          address: (client.guarantor.address || '').toUpperCase(),
           phone: client.guarantor.phone || '',
           relationship: client.guarantor.relationship || 'OTHER',
           latitude: client.guarantor.latitude || null,
           longitude: client.guarantor.longitude || null
         } : undefined,
-        collaterals: client.collaterals?.map((c: any) => c.description) || [],
+        collaterals: client.collaterals?.map((c: any) => (c.description || '').toUpperCase()) || [],
         lateFeeType: client.lateFeeType || 'DAILY_FIXED',
         lateFeeAmount: client.lateFeeAmount?.toString() || '200',
         lateFeeMaxWeekly: client.lateFeeMaxWeekly?.toString() || '800'
       });
       
       setClientImage(client.profileImage || null);
-      setClientFullName(`${client.firstName} ${client.lastName}`);
+      setClientFullName(`${(client.firstName || '').toUpperCase()} ${(client.lastName || '').toUpperCase()}`);
     } catch (error) {
       console.error('Error fetching client:', error);
       toast.error('Error al cargar los datos del cliente');
@@ -255,7 +255,7 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
     if (newCollateral.trim()) {
       setFormData(prev => ({
         ...prev,
-        collaterals: [...prev.collaterals, newCollateral.trim()]
+        collaterals: [...prev.collaterals, newCollateral.trim().toUpperCase()]
       }));
       setNewCollateral('');
     }
@@ -455,7 +455,7 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
                       onChange={(e) => handleInputChange('firstName', e.target.value)}
                       placeholder="Ingresa el nombre"
                       required
-                      className="rounded-xl"
+                      className="rounded-xl uppercase"
                     />
                   </div>
                   <div className="space-y-2">
@@ -466,7 +466,7 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
                       onChange={(e) => handleInputChange('lastName', e.target.value)}
                       placeholder="Ingresa el apellido"
                       required
-                      className="rounded-xl"
+                      className="rounded-xl uppercase"
                     />
                   </div>
                 </div>
@@ -553,7 +553,7 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
                         onChange={(e) => handleInputChange('address', e.target.value)}
                         placeholder="Calle, número, colonia..."
                         rows={3}
-                        className="rounded-xl"
+                        className="rounded-xl uppercase"
                       />
                     </div>
                   </div>
@@ -577,7 +577,7 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
                       placeholder="Ciudad"
-                      className="rounded-xl"
+                      className="rounded-xl uppercase"
                     />
                   </div>
                   <div className="space-y-2">
@@ -587,7 +587,7 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
                       value={formData.state}
                       onChange={(e) => handleInputChange('state', e.target.value)}
                       placeholder="Estado"
-                      className="rounded-xl"
+                      className="rounded-xl uppercase"
                     />
                   </div>
                   <div className="space-y-2">
@@ -652,7 +652,7 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
                         value={formData.bankName}
                         onChange={(e) => handleInputChange('bankName', e.target.value)}
                         placeholder="BBVA, Santander, etc."
-                        className="rounded-xl"
+                        className="rounded-xl uppercase"
                       />
                     </div>
                     <div className="space-y-2">
@@ -718,7 +718,7 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
                       value={formData.employerName}
                       onChange={(e) => handleInputChange('employerName', e.target.value)}
                       placeholder="Empresa ABC"
-                      className="rounded-xl"
+                      className="rounded-xl uppercase"
                     />
                   </div>
 
@@ -730,7 +730,7 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
                       onChange={(e) => handleInputChange('workAddress', e.target.value)}
                       placeholder="Dirección de la empresa..."
                       rows={2}
-                      className="rounded-xl"
+                      className="rounded-xl uppercase"
                     />
                   </div>
                 </CardContent>
@@ -844,7 +844,7 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
                           value={formData.guarantor?.fullName || ''}
                           onChange={(e) => handleGuarantorChange('fullName', e.target.value)}
                           placeholder="Juan Pérez García"
-                          className="rounded-xl"
+                          className="rounded-xl uppercase"
                         />
                       </div>
                       <div className="space-y-2">
@@ -897,7 +897,7 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
                         value={formData.guarantor?.address || ''}
                         onChange={(e) => handleGuarantorChange('address', e.target.value)}
                         placeholder="Calle 123, Colonia..."
-                        className="rounded-xl"
+                        className="rounded-xl uppercase"
                       />
                     </div>
                   </div>
@@ -951,9 +951,9 @@ const GUARANTOR_UPPERCASE_FIELDS = new Set<keyof GuarantorData>([
                       <Input
                         id="newCollateral"
                         value={newCollateral}
-                        onChange={(e) => setNewCollateral(e.target.value)}
+                        onChange={(e) => setNewCollateral(e.target.value.toUpperCase())}
                         placeholder="Ej: Vehículo Sedán Nissan 2018..."
-                        className="rounded-xl"
+                        className="rounded-xl uppercase"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();

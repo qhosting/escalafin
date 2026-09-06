@@ -716,9 +716,9 @@ const UPPERCASE_FIELDS = new Set<keyof ClientFormData>([
                       <Input
                         id="newCollateral"
                         value={newCollateral}
-                        onChange={(e) => setNewCollateral(e.target.value)}
-                        placeholder="Ej. Televisor LG 55 pulgadas / Moto Italika 2024"
-                        className="rounded-xl"
+                        onChange={(e) => setNewCollateral(e.target.value.toUpperCase())}
+                        placeholder="Ej. TELEVISOR LG 55 PULGADAS / MOTO ITALIKA 2024"
+                        className="rounded-xl uppercase"
                         onKeyPress={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();

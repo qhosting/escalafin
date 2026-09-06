@@ -110,8 +110,13 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
   const [csvData, setCsvData] = useState<MigrationClient[]>([]);
   const [csvErrors, setCsvErrors] = useState<string[]>([]);
 
+  const UPPERCASE_MIGRATION_FIELDS = new Set<keyof MigrationClient>([
+    'firstName', 'lastName', 'address', 'city', 'state', 'employerName', 'workAddress', 'bankName', 'notes', 'originalSystem'
+  ]);
+
   const handleManualInputChange = (field: keyof MigrationClient, value: string | number) => {
-    setManualForm(prev => ({ ...prev, [field]: value }));
+    const finalVal = (typeof value === 'string' && UPPERCASE_MIGRATION_FIELDS.has(field)) ? value.toUpperCase() : value;
+    setManualForm(prev => ({ ...prev, [field]: finalVal }));
   };
 
   const validateClient = (client: MigrationClient): string[] => {
@@ -231,28 +236,28 @@ export function ClientMigration({ onClientsMigrated }: ClientMigrationProps) {
         const values = lines[i].split(',').map(v => v.trim());
         
         const client: MigrationClient = {
-          firstName: values[headers.indexOf('nombre')] || '',
-          lastName: values[headers.indexOf('apellido')] || '',
+          firstName: (values[headers.indexOf('nombre')] || '').toUpperCase().trim(),
+          lastName: (values[headers.indexOf('apellido')] || '').toUpperCase().trim(),
           email: values[headers.indexOf('email')] || '',
           phone: values[headers.indexOf('telefono')] || '',
           dateOfBirth: values[headers.indexOf('fecha_nacimiento')] || '',
-          address: values[headers.indexOf('direccion')] || '',
-          city: values[headers.indexOf('ciudad')] || '',
-          state: values[headers.indexOf('estado')] || '',
+          address: (values[headers.indexOf('direccion')] || '').toUpperCase().trim(),
+          city: (values[headers.indexOf('ciudad')] || '').toUpperCase().trim(),
+          state: (values[headers.indexOf('estado')] || '').toUpperCase().trim(),
           postalCode: values[headers.indexOf('codigo_postal')] || '',
           currentBalance: parseFloat(values[headers.indexOf('saldo_actual')] || '0'),
           lastPaymentDate: values[headers.indexOf('ultimo_pago')] || '',
           monthlyIncome: parseFloat(values[headers.indexOf('ingresos_mensuales')] || '0'),
           employmentType: values[headers.indexOf('tipo_empleo')] || '',
-          employerName: values[headers.indexOf('nombre_empleador')] || '',
-          workAddress: values[headers.indexOf('direccion_trabajo')] || '',
+          employerName: (values[headers.indexOf('nombre_empleador')] || '').toUpperCase().trim(),
+          workAddress: (values[headers.indexOf('direccion_trabajo')] || '').toUpperCase().trim(),
           yearsEmployed: parseInt(values[headers.indexOf('años_empleado')] || '0'),
           creditScore: parseInt(values[headers.indexOf('score_crediticio')] || '0'),
-          bankName: values[headers.indexOf('nombre_banco')] || '',
+          bankName: (values[headers.indexOf('nombre_banco')] || '').toUpperCase().trim(),
           accountNumber: values[headers.indexOf('numero_cuenta')] || '',
           status: values[headers.indexOf('estado_cliente')] || 'ACTIVE',
-          notes: values[headers.indexOf('notas')] || '',
-          originalSystem: values[headers.indexOf('sistema_origen')] || 'CSV Import'
+          notes: (values[headers.indexOf('notas')] || '').toUpperCase().trim(),
+          originalSystem: (values[headers.indexOf('sistema_origen')] || 'CSV Import').toUpperCase().trim()
         };
 
         const clientErrors = validateClient(client);

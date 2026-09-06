@@ -130,10 +130,29 @@ export async function GET(
       take: 10
     });
 
-    return NextResponse.json({
+    const sanitizedClient = {
       ...client,
+      firstName: (client.firstName || '').toUpperCase(),
+      lastName: (client.lastName || '').toUpperCase(),
+      address: client.address ? client.address.toUpperCase() : client.address,
+      city: client.city ? client.city.toUpperCase() : client.city,
+      state: client.state ? client.state.toUpperCase() : client.state,
+      employerName: client.employerName ? client.employerName.toUpperCase() : client.employerName,
+      workAddress: client.workAddress ? client.workAddress.toUpperCase() : client.workAddress,
+      bankName: client.bankName ? client.bankName.toUpperCase() : client.bankName,
+      guarantor: client.guarantor ? {
+        ...client.guarantor,
+        fullName: (client.guarantor.fullName || '').toUpperCase(),
+        address: client.guarantor.address ? client.guarantor.address.toUpperCase() : client.guarantor.address,
+      } : client.guarantor,
+      collaterals: client.collaterals?.map((c: any) => ({
+        ...c,
+        description: (c.description || '').toUpperCase()
+      })) || [],
       auditLogs
-    });
+    };
+
+    return NextResponse.json(sanitizedClient);
 
   } catch (error: any) {
     console.error('Error fetching client:', error);

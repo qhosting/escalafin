@@ -114,8 +114,40 @@ export async function GET(request: NextRequest) {
       })
     ]);
 
+    // Mapear clientes para garantizar que todos los nombres y campos de texto salgan en MAYÚSCULAS
+    const formattedClients = clients.map((client: any) => ({
+      ...client,
+      firstName: (client.firstName || '').toUpperCase(),
+      lastName: (client.lastName || '').toUpperCase(),
+      address: client.address ? client.address.toUpperCase() : client.address,
+      city: client.city ? client.city.toUpperCase() : client.city,
+      state: client.state ? client.state.toUpperCase() : client.state,
+      employerName: client.employerName ? client.employerName.toUpperCase() : client.employerName,
+      workAddress: client.workAddress ? client.workAddress.toUpperCase() : client.workAddress,
+      bankName: client.bankName ? client.bankName.toUpperCase() : client.bankName,
+      asesor: client.asesor ? {
+        ...client.asesor,
+        firstName: (client.asesor.firstName || '').toUpperCase(),
+        lastName: (client.asesor.lastName || '').toUpperCase(),
+      } : client.asesor
+    }));
+
+    // Sincronización silenciosa en base de datos para convertir registros existentes a MAYÚSCULAS
+    (async () => {
+      try {
+        await (tenantPrisma as any).$executeRawUnsafe(`
+          UPDATE clients 
+          SET "firstName" = UPPER("firstName"), 
+              "lastName" = UPPER("lastName") 
+          WHERE "firstName" != UPPER("firstName") OR "lastName" != UPPER("lastName");
+        `);
+      } catch (e) {
+        // Fallback silencioso
+      }
+    })().catch(() => {});
+
     return NextResponse.json({
-      clients,
+      clients: formattedClients,
       pagination: {
         page,
         limit,

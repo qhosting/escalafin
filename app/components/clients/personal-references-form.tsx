@@ -224,9 +224,9 @@ export function PersonalReferencesForm({ clientId, readonly = false }: PersonalR
                     <Input
                       id="fullName"
                       value={formData.fullName || ''}
-                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      placeholder="Nombre completo de la referencia"
-                      className={formErrors.fullName ? 'border-red-500' : ''}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value.toUpperCase() })}
+                      placeholder="NOMBRE COMPLETO DE LA REFERENCIA"
+                      className={`uppercase ${formErrors.fullName ? 'border-red-500' : ''}`}
                     />
                     {formErrors.fullName && (
                       <p className="text-red-500 text-xs mt-1">{formErrors.fullName}</p>
@@ -318,8 +318,9 @@ export function PersonalReferencesForm({ clientId, readonly = false }: PersonalR
                   <Input
                     id="address"
                     value={formData.address || ''}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    placeholder="Dirección completa (opcional)"
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value.toUpperCase() })}
+                    placeholder="CALLE, NÚMERO, COLONIA"
+                    className="uppercase"
                   />
                 </div>
 
@@ -346,7 +347,7 @@ export function PersonalReferencesForm({ clientId, readonly = false }: PersonalR
                   <div className="flex justify-between items-start">
                     <div className="space-y-3 flex-1">
                       <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-lg">{reference.fullName}</h4>
+                        <h4 className="font-semibold text-lg uppercase">{reference.fullName}</h4>
                         <Badge variant="secondary">
                           Referencia #{index + 1}
                         </Badge>
@@ -375,7 +376,7 @@ export function PersonalReferencesForm({ clientId, readonly = false }: PersonalR
                       {reference.address && (
                         <div className="flex items-start gap-2 text-sm">
                           <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
-                          <span>{reference.address}</span>
+                          <span className="uppercase">{reference.address}</span>
                         </div>
                       )}
                     </div>

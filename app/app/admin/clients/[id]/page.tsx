@@ -182,7 +182,7 @@ export default function ClientDetailPage() {
           
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
                 {client.firstName} {client.lastName}
               </h1>
               <Badge className={cn('uppercase text-[10px] font-black rounded-full px-2.5 py-0.5 border-0',
@@ -206,7 +206,7 @@ export default function ClientDetailPage() {
                 </a>
               )}
               {client.asesor && (
-                <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold">
+                <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold uppercase">
                   <UserCheck className="h-3.5 w-3.5" /> Asesor: {client.asesor.firstName} {client.asesor.lastName}
                 </span>
               )}
@@ -330,7 +330,7 @@ export default function ClientDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-1">
                   <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Nombre Completo</p>
-                  <p className="text-lg font-bold text-slate-900 dark:text-white">{client.firstName} {client.lastName}</p>
+                  <p className="text-lg font-bold text-slate-900 dark:text-white uppercase">{client.firstName} {client.lastName}</p>
                 </div>
 
                 <div className="space-y-1">
@@ -378,7 +378,7 @@ export default function ClientDetailPage() {
                 <div className="space-y-1">
                   <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Asesor Comercial Asignado</p>
                   {client.asesor ? (
-                    <p className="text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <p className="text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase">
                       <UserCheck className="h-4 w-4 text-blue-600" />
                       {client.asesor.firstName} {client.asesor.lastName}
                     </p>
@@ -412,7 +412,7 @@ export default function ClientDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2 space-y-1">
                   <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Dirección Completa</p>
-                  <p className="text-base font-bold text-slate-900 dark:text-white">{client.address || 'No registrada'}</p>
+                  <p className="text-base font-bold text-slate-900 dark:text-white uppercase">{client.address || 'No registrada'}</p>
                 </div>
 
                 <div className="space-y-1">
@@ -422,12 +422,12 @@ export default function ClientDetailPage() {
 
                 <div className="space-y-1">
                   <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Ciudad</p>
-                  <p className="text-base font-bold text-slate-800 dark:text-slate-200">{client.city || 'No registrada'}</p>
+                  <p className="text-base font-bold text-slate-800 dark:text-slate-200 uppercase">{client.city || 'No registrada'}</p>
                 </div>
 
                 <div className="space-y-1">
                   <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Estado</p>
-                  <p className="text-base font-bold text-slate-800 dark:text-slate-200">{client.state || 'No registrado'}</p>
+                  <p className="text-base font-bold text-slate-800 dark:text-slate-200 uppercase">{client.state || 'No registrado'}</p>
                 </div>
 
                 <div className="space-y-1">
@@ -531,7 +531,7 @@ export default function ClientDetailPage() {
                     <p className="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
                       <Building2 className="h-3.5 w-3.5 text-blue-500" /> Banco Principal
                     </p>
-                    <p className="text-base font-bold text-slate-900 dark:text-white">{client.bankName || 'No especificado'}</p>
+                    <p className="text-base font-bold text-slate-900 dark:text-white uppercase">{client.bankName || 'No especificado'}</p>
                   </div>
 
                   <div className="space-y-1">
@@ -573,12 +573,12 @@ export default function ClientDetailPage() {
 
                 <div className="space-y-1">
                   <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Empresa / Empleador</p>
-                  <p className="text-base font-bold text-slate-900 dark:text-white">{client.employerName || 'No registrado'}</p>
+                  <p className="text-base font-bold text-slate-900 dark:text-white uppercase">{client.employerName || 'No registrado'}</p>
                 </div>
 
                 <div className="space-y-1">
                   <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Dirección de Trabajo</p>
-                  <p className="text-base font-bold text-slate-800 dark:text-slate-200">{client.workAddress || 'No registrada'}</p>
+                  <p className="text-base font-bold text-slate-800 dark:text-slate-200 uppercase">{client.workAddress || 'No registrada'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -638,7 +638,7 @@ export default function ClientDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="col-span-2 space-y-1">
                         <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Nombre del Aval</p>
-                        <p className="text-lg font-bold text-slate-900 dark:text-white">{client.guarantor.fullName}</p>
+                        <p className="text-lg font-bold text-slate-900 dark:text-white uppercase">{client.guarantor.fullName}</p>
                       </div>
 
                       <div className="space-y-1">
@@ -658,7 +658,7 @@ export default function ClientDetailPage() {
                       {client.guarantor.address && (
                         <div className="col-span-2 space-y-1">
                           <p className="text-xs font-black uppercase text-slate-400 tracking-wider">Domicilio del Aval</p>
-                          <p className="text-base font-semibold text-slate-800 dark:text-slate-200">{client.guarantor.address}</p>
+                          <p className="text-base font-semibold text-slate-800 dark:text-slate-200 uppercase">{client.guarantor.address}</p>
                         </div>
                       )}
                     </div>
@@ -710,7 +710,7 @@ export default function ClientDetailPage() {
                           <span className="text-xs font-black text-orange-600">{idx + 1}</span>
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white leading-snug">{col.description}</p>
+                          <p className="text-sm font-bold text-slate-900 dark:text-white leading-snug uppercase">{col.description}</p>
                           <p className="text-[10px] font-medium text-slate-400 mt-0.5">
                             Registrado el {new Date(col.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
                           </p>

@@ -120,15 +120,27 @@ export default function ClientsPage() {
       if (!response.ok) throw new Error('Error al cargar clientes');
 
       const data = await response.json();
-      setClients(data.clients || []);
+      const rawClients = data.clients || [];
+      const uppercaseClients = rawClients.map((c: Client) => ({
+        ...c,
+        firstName: (c.firstName || '').toUpperCase(),
+        lastName: (c.lastName || '').toUpperCase(),
+        asesor: c.asesor ? {
+          ...c.asesor,
+          firstName: (c.asesor.firstName || '').toUpperCase(),
+          lastName: (c.asesor.lastName || '').toUpperCase(),
+        } : c.asesor
+      }));
+
+      setClients(uppercaseClients);
       setTotalPages(data.pagination?.totalPages || 1);
 
       // Calcular estadísticas
       const totalClients = data.pagination?.totalCount || 0;
-      const activeClients = data.clients?.filter((c: Client) => c.status === 'ACTIVE').length || 0;
-      const totalLoans = data.clients?.reduce((acc: number, c: Client) => acc + c.loans.length, 0) || 0;
-      const totalPortfolio = data.clients?.reduce((acc: number, c: Client) => 
-        acc + c.loans.reduce((loanAcc: number, loan: any) => loanAcc + (loan.balanceRemaining || 0), 0), 0) || 0;
+      const activeClients = uppercaseClients.filter((c: Client) => c.status === 'ACTIVE').length;
+      const totalLoans = uppercaseClients.reduce((acc: number, c: Client) => acc + c.loans.length, 0);
+      const totalPortfolio = uppercaseClients.reduce((acc: number, c: Client) => 
+        acc + c.loans.reduce((loanAcc: number, loan: any) => loanAcc + (loan.balanceRemaining || 0), 0), 0);
       const avgCreditScore = data.clients?.length > 0 ? 
         data.clients.reduce((acc: number, c: Client) => acc + (c.creditScore || 0), 0) / data.clients.length : 0;
 
@@ -278,10 +290,10 @@ export default function ClientsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Buscar por nombre, email o teléfono..."
+            placeholder="BUSCAR POR NOMBRE, EMAIL O TELÉFONO..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-11 bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 rounded-xl"
+            onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
+            className="pl-10 h-11 bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 rounded-xl uppercase"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -358,7 +370,7 @@ export default function ClientsPage() {
                       filteredClients.map((client) => (
                         <TableRow key={client.id}>
                           <TableCell>
-                            <div className="font-medium">
+                            <div className="font-medium uppercase tracking-wide">
                               {client.firstName} {client.lastName}
                             </div>
                           </TableCell>
@@ -376,7 +388,7 @@ export default function ClientsPage() {
                           </TableCell>
                           <TableCell>
                             {client.asesor ? (
-                              <div className="text-sm">
+                              <div className="text-sm uppercase">
                                 {client.asesor.firstName} {client.asesor.lastName}
                               </div>
                             ) : (
@@ -425,9 +437,9 @@ export default function ClientsPage() {
                   </div>
                 ) : (
                   filteredClients.map((client) => {
-                    const firstName = client.firstName || '';
-                    const lastName = client.lastName || '';
-                    const initials = (firstName[0] || '') + (lastName[0] || '');
+                    const firstName = (client.firstName || '').toUpperCase();
+                    const lastName = (client.lastName || '').toUpperCase();
+                    const initials = ((firstName[0] || '') + (lastName[0] || '')).toUpperCase();
                     const hasActiveLoan = client.loans.some(l => l.status === 'ACTIVE');
                     return (
                       <Card key={client.id} className="relative overflow-hidden border-gray-100 dark:border-gray-800 shadow-sm active:scale-[0.98] transition-all">
@@ -445,8 +457,8 @@ export default function ClientsPage() {
                               {initials}
                             </div>
                             <div className="flex-1 min-w-0 pr-6">
-                              <h3 className="font-bold text-gray-900 dark:text-white truncate">
-                                {client.firstName} {client.lastName}
+                              <h3 className="font-bold text-gray-900 dark:text-white truncate uppercase">
+                                {firstName} {lastName}
                               </h3>
                               <div className="flex flex-wrap items-center gap-2 mt-0.5">
                                 <Badge variant={getStatusVariant(client.status) as any} className="text-[9px] h-3.5 px-1 py-0 border-0">
@@ -460,8 +472,8 @@ export default function ClientsPage() {
                           <div className="grid grid-cols-2 gap-3 mb-4">
                             <div className="bg-gray-50 dark:bg-gray-800/50 p-2 rounded-xl border border-gray-100/50 dark:border-gray-700/50">
                               <p className="text-[9px] uppercase font-bold text-gray-400 mb-0.5">Asesor</p>
-                              <p className="text-xs font-bold text-gray-700 dark:text-gray-300 truncate">
-                                {client.asesor ? `${client.asesor.firstName}` : 'Sin Asesor'}
+                              <p className="text-xs font-bold text-gray-700 dark:text-gray-300 truncate uppercase">
+                                {client.asesor ? `${client.asesor.firstName} ${client.asesor.lastName || ''}` : 'Sin Asesor'}
                               </p>
                             </div>
                             <div className="bg-gray-50 dark:bg-gray-800/50 p-2 rounded-xl border border-gray-100/50 dark:border-gray-700/50">
