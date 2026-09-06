@@ -4,15 +4,32 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import webpush from 'web-push';
 
-// Configurar VAPID con las claves del .env
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT!,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+export const dynamic = 'force-dynamic';
+
+function getVapidConfigured(): boolean {
+  const subject = process.env.VAPID_SUBJECT || 'mailto:admin@escalafin.com';
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+
+  if (publicKey && privateKey) {
+    try {
+      webpush.setVapidDetails(subject, publicKey, privateKey);
+      return true;
+    } catch (e) {
+      console.error('Error inicializando VAPID:', e);
+      return false;
+    }
+  }
+  return false;
+}
 
 export async function POST(request: NextRequest) {
   try {
+    if (!getVapidConfigured()) {
+      return NextResponse.json({
+        error: 'Las claves VAPID no están configuradas en el entorno del servidor'
+      }, { status: 503 });
+    }
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
