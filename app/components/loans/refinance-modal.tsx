@@ -202,9 +202,9 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl overflow-hidden p-0 rounded-[2rem] border-none shadow-2xl">
+      <DialogContent className="w-full max-w-2xl sm:max-w-2xl max-h-[92vh] flex flex-col overflow-hidden p-0 sm:p-0 rounded-[2rem] border-none shadow-2xl bg-white dark:bg-slate-950">
         {/* Header con gradiente premium */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white">
+        <div className="shrink-0 bg-gradient-to-r from-blue-600 to-indigo-700 p-6 sm:p-8 text-white">
           <div className="flex items-center gap-3 mb-2">
             <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
               <RefreshCw className="h-6 w-6" />
@@ -218,7 +218,7 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
           </DialogDescription>
         </div>
 
-        <div className="p-8 max-h-[70vh] overflow-y-auto bg-slate-50/50">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-8 bg-slate-50/50 dark:bg-slate-900/50">
           {step === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               {/* Selección de Modo */}
@@ -444,7 +444,7 @@ export function RefinanceModal({ isOpen, onOpenChange, loan, onSuccess }: Refina
         </div>
 
         {/* Footer con controles de navegación */}
-        <div className="p-8 bg-white border-t border-slate-100 flex items-center justify-between">
+        <div className="shrink-0 p-4 sm:p-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <Button 
             variant="ghost" 
             onClick={() => step > 1 ? setStep(step - 1) : onOpenChange(false)}

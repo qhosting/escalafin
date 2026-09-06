@@ -38,10 +38,15 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed left-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] gap-6 border bg-background p-8 shadow-2xl transition-all duration-300',
-        'bottom-0 top-auto translate-y-0 rounded-t-[2.5rem] p-6 pb-env(safe-area-inset-bottom)', // Bottom Sheet for Mobile
-        'sm:bottom-auto sm:top-[50%] sm:translate-y-[-50%] sm:rounded-3xl sm:p-10', // Centered for Desktop
-        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-100 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-bottom-[10%] sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:zoom-in-95',
+        'fixed left-1/2 z-50 grid w-full border bg-background shadow-2xl duration-200',
+        // Mobile layout: Bottom Sheet
+        'bottom-0 top-auto -translate-x-1/2 translate-y-0 rounded-t-[2.5rem] p-6 max-h-[92vh]',
+        // Desktop layout (sm and above): Centered dialog
+        'sm:bottom-auto sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:rounded-3xl sm:p-8 sm:max-h-[90vh]',
+        // Animations
+        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+        'data-[state=closed]:slide-out-to-bottom-[10%] data-[state=open]:slide-in-from-bottom-[10%]',
+        'sm:data-[state=closed]:slide-out-to-bottom-0 sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=closed]:slide-out-to-left-1/2 sm:data-[state=open]:slide-in-from-left-1/2 sm:data-[state=closed]:slide-out-to-top-[48%] sm:data-[state=open]:slide-in-from-top-[48%]',
         className
       )}
       {...props}
@@ -50,8 +55,8 @@ const DialogContent = React.forwardRef<
       <div className="mx-auto h-1.5 w-12 rounded-full bg-muted-foreground/20 sm:hidden -mt-2 mb-2" />
       
       {children}
-      <DialogPrimitive.Close className="absolute right-6 top-6 sm:right-8 sm:top-8 rounded-full bg-muted/50 p-2 text-muted-foreground opacity-70 transition-all hover:bg-muted hover:text-foreground hover:opacity-100 active:scale-90 focus:outline-none">
-        <X className="h-5 w-5 sm:h-4 sm:w-4" />
+      <DialogPrimitive.Close className="absolute right-5 top-5 z-20 rounded-full bg-slate-900/20 hover:bg-slate-900/40 text-white sm:bg-muted/70 sm:text-muted-foreground sm:hover:bg-muted sm:hover:text-foreground p-2 opacity-80 transition-all hover:opacity-100 active:scale-90 focus:outline-none">
+        <X className="h-4 w-4" />
         <span className="sr-only">Cerrar</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>

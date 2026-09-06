@@ -129,8 +129,8 @@ export function NonPaymentModal({ isOpen, onOpenChange, loan, onSuccess }: NonPa
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] rounded-[2rem] gap-0 p-0 overflow-hidden border-0 shadow-2xl">
-        <div className="bg-red-600 p-8 text-white">
+      <DialogContent className="w-full sm:max-w-[520px] max-h-[92vh] flex flex-col rounded-[2rem] gap-0 p-0 sm:p-0 overflow-hidden border-0 shadow-2xl bg-white dark:bg-gray-950">
+        <div className="shrink-0 bg-red-600 p-6 sm:p-8 text-white">
           <div className="flex items-center gap-3 mb-2">
             <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
               <Navigation className="h-6 w-6 text-white" />
@@ -147,7 +147,7 @@ export function NonPaymentModal({ isOpen, onOpenChange, loan, onSuccess }: NonPa
           </DialogDescription>
         </div>
 
-        <div className="p-8 space-y-6 bg-white dark:bg-gray-950">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 bg-white dark:bg-gray-950">
           <div className="space-y-3">
             <Label className="text-[10px] font-black uppercase text-gray-400">Resultado de la Visita</Label>
             <Select 
@@ -202,7 +202,7 @@ export function NonPaymentModal({ isOpen, onOpenChange, loan, onSuccess }: NonPa
             />
           </div>
 
-          <DialogFooter className="pt-4 flex-col sm:flex-row gap-3">
+          <DialogFooter className="shrink-0 pt-4 flex-col sm:flex-row gap-3">
             <Button 
                 variant="outline" 
                 className="h-14 rounded-2xl font-black w-full sm:flex-1"

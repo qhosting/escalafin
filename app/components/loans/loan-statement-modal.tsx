@@ -145,9 +145,9 @@ export function LoanStatementModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[580px] rounded-[2.5rem] p-0 overflow-hidden border-0 shadow-2xl">
+            <DialogContent className="w-full sm:max-w-[620px] max-h-[92vh] flex flex-col rounded-[2.5rem] p-0 sm:p-0 overflow-hidden border-0 shadow-2xl bg-white dark:bg-slate-950">
                 {/* Header Banner */}
-                <DialogHeader className="p-8 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 text-white relative">
+                <DialogHeader className="shrink-0 p-6 sm:p-8 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 text-white relative">
                     <div className="absolute top-[-20%] right-[-10%] w-60 h-60 bg-blue-500/10 rounded-full blur-3xl" />
                     <div className="flex items-center gap-4 mb-2 relative z-10">
                         <div className="bg-blue-600/30 p-3.5 rounded-2xl backdrop-blur-md border border-blue-400/20">
@@ -162,7 +162,7 @@ export function LoanStatementModal({
                     </div>
                 </DialogHeader>
 
-                <div className="p-6 md:p-8 space-y-6 bg-white dark:bg-gray-950">
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-white dark:bg-gray-950">
                     {/* Tarjeta de Resumen Financiero */}
                     <Card className="border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 rounded-3xl p-6 shadow-sm">
                         <div className="grid grid-cols-2 gap-4 mb-4">
@@ -253,7 +253,7 @@ export function LoanStatementModal({
                     </div>
                 </div>
 
-                <DialogFooter className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-row items-center justify-between">
+                <DialogFooter className="shrink-0 p-4 sm:p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-row items-center justify-between">
                     <div className="flex items-center gap-2">
                         <ShieldCheck className="h-4 w-4 text-emerald-600" />
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
