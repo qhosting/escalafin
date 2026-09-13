@@ -41,8 +41,8 @@ export function BottomNavbar() {
 
     return (
         <div className="md:hidden fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 z-[100] animate-in slide-in-from-bottom-5 duration-700">
-            {/* Premium Floating Glass Container */}
-            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border border-white/20 dark:border-gray-800 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] px-2 py-2">
+            {/* Cápsula Flotante FinTech Glass */}
+            <div className="bg-white/95 dark:bg-[#030914]/90 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] px-2 py-1.5">
                 <div className="flex items-center justify-between h-14 relative">
                     {navItems.map((item) => {
                         const Icon = item.icon;
@@ -54,62 +54,62 @@ export function BottomNavbar() {
                                 aria-current={active ? 'page' : undefined}
                                 href={item.href}
                                 className={cn(
-                                    "relative flex flex-col items-center justify-center flex-1 transition-all duration-300",
-                                    active ? "scale-110" : "opacity-80 hover:opacity-100"
+                                    "relative flex flex-col items-center justify-center flex-1 h-full transition-all duration-300",
+                                    active ? "scale-105" : "opacity-75 hover:opacity-100"
                                 )}
                             >
+                                {/* Barra luminosa superior con ping activo */}
+                                {active && (
+                                    <div className="absolute -top-1.5 flex items-center justify-center">
+                                        <div className="w-8 h-1 bg-gradient-to-r from-cyan-400 via-blue-500 to-emerald-400 rounded-b-full shadow-[0_3px_10px_rgba(0,180,216,0.8)]" />
+                                        <div className="absolute w-8 h-1 bg-gradient-to-r from-cyan-400 via-blue-500 to-emerald-400 rounded-b-full animate-ping opacity-35" />
+                                    </div>
+                                )}
+
                                 <div className={cn(
-                                    "p-2.5 rounded-2xl transition-all duration-300 relative group",
-                                    active ? cn(item.color, "shadow-lg shadow-black/10") : "bg-transparent"
+                                    "p-2 rounded-2xl transition-all duration-300 relative ef-sidebar-icon-morph",
+                                    active 
+                                        ? "bg-gradient-to-br from-cyan-500/20 via-blue-600/15 to-emerald-500/20 text-cyan-600 dark:text-cyan-400 shadow-xs" 
+                                        : "bg-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5"
                                 )}>
                                     <Icon className={cn(
                                         "h-5 w-5 transition-transform",
-                                        active ? "text-white scale-110 stroke-[2.5px]" : "text-gray-600 dark:text-gray-400 stroke-2"
+                                        active 
+                                            ? "text-cyan-600 dark:text-cyan-300 scale-110 stroke-[2.5px] drop-shadow-[0_0_6px_rgba(0,180,216,0.5)]" 
+                                            : "stroke-2"
                                     )} />
-                                    
-                                    {/* Active State Glow */}
-                                    {active && (
-                                        <div className={cn(
-                                            "absolute inset-0 rounded-2xl blur-md opacity-40 -z-10",
-                                            item.color
-                                        )} />
-                                    )}
                                 </div>
                                 
-                                 {/* Label Text - Subtle and elegant */}
+                                {/* Etiqueta de texto micro-trackeada */}
                                 <span className={cn(
-                                    "text-[10px] sm:text-[11px] font-black uppercase tracking-widest mt-1.5 transition-all duration-300",
-                                    active ? "text-gray-950 dark:text-white" : "text-gray-500 dark:text-gray-400"
+                                    "text-[9px] font-black uppercase tracking-widest mt-0.5 transition-all duration-300",
+                                    active ? "text-cyan-700 dark:text-cyan-300 font-black" : "text-slate-400 dark:text-slate-500"
                                 )}>
                                     {item.label}
                                 </span>
-
-                                {/* Indicator Dot */}
-                                {active && (
-                                    <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-gray-900 dark:bg-white animate-pulse" />
-                                )}
                             </Link>
                         );
                     })}
 
-                    {/* Menu Button */}
-                    <div className="w-px h-8 bg-gray-200 dark:bg-gray-800 mx-1 opacity-50" />
+                    {/* Divisor vertical */}
+                    <div className="w-px h-7 bg-slate-200 dark:bg-white/10 mx-1 opacity-60" />
 
+                    {/* Botón de Menú Completo */}
                     <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                         <SheetTrigger asChild>
                             <button className="flex flex-col items-center justify-center flex-1 transition-all active:scale-95">
-                                <div className="p-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent hover:border-gray-100 transition-all">
-                                    <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300 stroke-[2.5px]" />
+                                <div className="p-2 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-cyan-500/30 transition-all">
+                                    <Menu className="h-5 w-5 text-slate-700 dark:text-slate-300 stroke-[2.5px]" />
                                 </div>
-                                <span className="text-[10px] font-black uppercase tracking-widest mt-1.5 text-gray-500 dark:text-gray-400">Menú</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest mt-0.5 text-slate-400 dark:text-slate-500">Menú</span>
                             </button>
                         </SheetTrigger>
                         <SheetContent side="bottom" className="h-[90vh] p-0 rounded-t-[3rem] border-t-0 bg-transparent">
                             <SheetTitle className="sr-only">Navegación principal</SheetTitle>
                             <SheetDescription className="sr-only">Secciones disponibles para tu cuenta</SheetDescription>
-                            <div className="h-full bg-white dark:bg-gray-950 rounded-t-[3rem] overflow-hidden shadow-2xl flex flex-col border-t border-white/10">
-                                {/* Visual Puller */}
-                                <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full mx-auto mt-4 mb-2" />
+                            <div className="h-full bg-white dark:bg-[#030914] rounded-t-[3rem] overflow-hidden shadow-2xl flex flex-col border-t border-slate-200 dark:border-white/10">
+                                {/* Barra indicadora táctil */}
+                                <div className="w-12 h-1.5 bg-slate-200 dark:bg-white/20 rounded-full mx-auto mt-3 mb-2" />
                                 <div className="flex-1 overflow-y-auto">
                                     <MobileSidebarContent onClose={() => setIsMenuOpen(false)} />
                                 </div>

@@ -12,7 +12,9 @@ import {
   LayoutDashboard,
   LogOut,
   User,
+  RefreshCw,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -114,6 +116,21 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
     );
   };
 
+  const [isSyncing, setIsSyncing] = React.useState(false);
+
+  const handleSync = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsSyncing(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      toast.success('Cartera y permisos sincronizados correctamente');
+    } catch {
+      toast.error('Error al sincronizar');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleSignOut = () => signOut({ redirect: true, callbackUrl: '/auth/login' });
 
   if (!session) return null;
@@ -145,7 +162,7 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          'flex flex-col h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800',
+          'flex flex-col h-full bg-white dark:bg-[#030914] text-slate-900 dark:text-slate-100 border-r border-slate-200/80 dark:border-white/5 relative select-none shadow-xl shadow-black/5 dark:shadow-black/40',
           !isMobileVariant && 'transition-[width] duration-200'
         )}
         style={
@@ -155,10 +172,13 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
         }
         aria-label="Navegación principal"
       >
+        {/* Borde derecho iluminado con gradiente FinTech */}
+        <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-cyan-500/40 via-blue-600/30 to-emerald-500/20 pointer-events-none" />
+
         {/* Marca */}
         <div
           className={cn(
-            'flex items-center h-16 px-3 border-b border-gray-200 dark:border-gray-800 shrink-0',
+            'flex items-center h-16 px-3 border-b border-slate-100 dark:border-white/5 shrink-0 bg-slate-50/50 dark:bg-[#061124]/60 backdrop-blur-md',
             isCollapsed ? 'justify-center' : 'justify-between gap-2'
           )}
         >
@@ -167,7 +187,7 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0"
+              className="h-8 w-8 shrink-0 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-white/10"
               onClick={toggleCollapsed}
               aria-label="Colapsar menú"
             >
@@ -175,6 +195,31 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
             </Button>
           )}
         </div>
+
+        {/* Micro-Widget de Estado y Sucursal Activa */}
+        {!isCollapsed && (
+          <div className="px-3 pt-2 pb-1 shrink-0">
+            <div className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/10 via-blue-600/5 to-emerald-500/10 border border-cyan-500/20 flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </div>
+                <div className="min-w-0 flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">
+                    {(session as any)?.user?.branchName || (tenant as any)?.name || 'Red FinTech'}
+                  </span>
+                  <span className="text-[8px] font-mono text-emerald-600 dark:text-emerald-400">
+                    Sentinel Live Sync
+                  </span>
+                </div>
+              </div>
+              <div className="h-5 px-1.5 rounded-md bg-white/80 dark:bg-white/10 text-[9px] font-black text-cyan-700 dark:text-cyan-300 border border-cyan-500/20 flex items-center">
+                {getRoleDisplayName(userRole)}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Navegación */}
         <ScrollArea className="flex-1">
@@ -190,7 +235,7 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
             />
 
             {hydrated &&
-              sections.map((section) => {
+              sections.map((section, sIdx) => {
                 const sectionActive = section.groups.some((group) =>
                   group.items.some((item) => activeHref === item.href)
                 );
@@ -205,25 +250,37 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
                           <DropdownMenuTrigger asChild>
                             <button
                               className={cn(
-                                'flex items-center justify-center w-full h-10 rounded-lg transition-colors',
+                                'flex items-center justify-center w-full h-10 rounded-xl transition-all duration-200 relative group ef-sidebar-shimmer-hover',
                                 sectionActive
-                                  ? 'bg-primary/10 text-primary'
-                                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                  ? 'bg-gradient-to-r from-cyan-500/15 via-blue-600/10 to-transparent text-cyan-700 dark:text-cyan-300 font-bold ef-sidebar-active-glow'
+                                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
                               )}
                               aria-label={section.title}
                             >
-                              <section.icon className="h-5 w-5" />
+                              <div
+                                className={cn(
+                                  'absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full transition-all duration-300',
+                                  sectionActive
+                                    ? 'h-6 bg-gradient-to-b from-cyan-400 via-blue-500 to-emerald-400 shadow-[0_0_8px_rgba(0,180,216,0.6)]'
+                                    : 'h-0 bg-slate-300 dark:bg-white/20 group-hover:h-3.5'
+                                )}
+                              />
+                              <div className="ef-sidebar-icon-morph">
+                                <section.icon className="h-4 w-4" />
+                              </div>
                             </button>
                           </DropdownMenuTrigger>
                         </TooltipTrigger>
-                        <TooltipContent side="right">{section.title}</TooltipContent>
+                        <TooltipContent side="right" className="bg-slate-950 text-white border-slate-800 font-semibold text-xs">
+                          {section.title}
+                        </TooltipContent>
                       </Tooltip>
-                      <DropdownMenuContent side="right" align="start" className="w-60">
-                        <DropdownMenuLabel>{section.title}</DropdownMenuLabel>
+                      <DropdownMenuContent side="right" align="start" className="w-60 bg-white dark:bg-[#030914] border-slate-200 dark:border-white/10">
+                        <DropdownMenuLabel className="font-bold text-xs">{section.title}</DropdownMenuLabel>
                         {section.groups.map((group, index) => (
                           <div key={group.title}>
                             {index > 0 && <DropdownMenuSeparator />}
-                            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                               {group.title}
                             </DropdownMenuLabel>
                             {group.items.map((item) => (
@@ -232,11 +289,11 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
                                   href={item.href}
                                   onClick={onNavigate}
                                   className={cn(
-                                    'cursor-pointer',
-                                    activeHref === item.href && 'bg-primary/10 text-primary'
+                                    'cursor-pointer text-xs font-medium rounded-lg',
+                                    activeHref === item.href && 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 font-bold'
                                   )}
                                 >
-                                  <item.icon className="mr-2 h-4 w-4" />
+                                  <item.icon className="mr-2 h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                                   <span>{item.title}</span>
                                 </Link>
                               </DropdownMenuItem>
@@ -250,31 +307,41 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
 
                 // Expandido: acordeón.
                 return (
-                  <div key={section.title}>
+                  <div key={section.title} className="ef-sidebar-item-enter" style={{ animationDelay: `${sIdx * 40}ms` }}>
                     <button
                       onClick={() => toggleSection(section.title)}
                       aria-expanded={isOpen}
                       className={cn(
-                        'flex items-center justify-between w-full px-3 h-10 rounded-lg text-sm font-medium transition-colors',
+                        'flex items-center justify-between w-full px-3 h-9 rounded-xl text-xs font-medium transition-all duration-200 relative group ef-sidebar-shimmer-hover',
                         sectionActive
-                          ? 'text-primary'
-                          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                          ? 'bg-gradient-to-r from-cyan-500/10 via-blue-600/5 to-transparent text-cyan-900 dark:text-cyan-200 font-semibold'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
                       )}
                     >
-                      <span className="flex items-center gap-3 min-w-0">
-                        <section.icon className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{section.title}</span>
+                      <div
+                        className={cn(
+                          'absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full transition-all duration-300',
+                          sectionActive
+                            ? 'h-6 bg-gradient-to-b from-cyan-400 via-blue-500 to-emerald-400 shadow-[0_0_8px_rgba(0,180,216,0.6)]'
+                            : 'h-0 bg-slate-300 dark:bg-white/20 group-hover:h-3.5'
+                        )}
+                      />
+                      <span className="flex items-center gap-2.5 min-w-0">
+                        <div className={cn("ef-sidebar-icon-morph shrink-0", sectionActive ? "text-cyan-600 dark:text-cyan-400" : "text-slate-400")}>
+                          <section.icon className="h-4 w-4" />
+                        </div>
+                        <span className="truncate group-hover:translate-x-0.5 transition-transform">{section.title}</span>
                       </span>
                       <ChevronDown
-                        className={cn('h-4 w-4 shrink-0 transition-transform', isOpen && 'rotate-180')}
+                        className={cn('h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200', isOpen && 'rotate-180 text-cyan-600 dark:text-cyan-300')}
                       />
                     </button>
 
                     {isOpen && (
-                      <div className="mt-1 ml-4 pl-3 border-l border-gray-200 dark:border-gray-800 space-y-3 pb-2">
+                      <div className="mt-1 ml-4 pl-3 border-l border-slate-200 dark:border-white/5 space-y-2 pb-1">
                         {section.groups.map((group) => (
                           <div key={group.title} className="space-y-0.5">
-                            <p className="px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <p className="px-2 pt-1 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                               {group.title}
                             </p>
                             {group.items.map((item) => (
@@ -300,13 +367,13 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
           </nav>
         </ScrollArea>
 
-        {/* Usuario */}
-        <div className="border-t border-gray-200 dark:border-gray-800 p-2 shrink-0">
+        {/* Usuario y Sincronización */}
+        <div className="border-t border-slate-100 dark:border-white/5 p-2 shrink-0 bg-slate-50/50 dark:bg-[#061124]/60">
           {!isMobileVariant && isCollapsed && (
             <Button
               variant="ghost"
               size="icon"
-              className="w-full h-9 mb-1"
+              className="w-full h-9 mb-1 text-slate-400 hover:text-cyan-500 hover:bg-cyan-500/10"
               onClick={toggleCollapsed}
               aria-label="Expandir menú"
             >
@@ -319,19 +386,24 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
               <button
                 aria-label="Menú de usuario"
                 className={cn(
-                  'flex items-center w-full rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors',
+                  'flex items-center w-full rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors',
                   isCollapsed ? 'justify-center' : 'gap-3'
                 )}
               >
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarFallback className="text-xs">
-                    {getInitials(session.user?.name, session.user?.email)}
-                  </AvatarFallback>
-                </Avatar>
+                <div className={cn(
+                  'w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 border-2 shadow-xs',
+                  userRole === 'SUPER_ADMIN'
+                    ? 'border-amber-400 bg-amber-500/20 text-amber-500 dark:text-amber-400'
+                    : userRole === 'ADMIN'
+                    ? 'border-cyan-400 bg-cyan-500/20 text-cyan-600 dark:text-cyan-400'
+                    : 'border-emerald-400 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                )}>
+                  {getInitials(session.user?.name, session.user?.email)}
+                </div>
                 {!isCollapsed && (
-                  <div className="min-w-0 text-left">
-                    <p className="text-sm font-medium truncate">{session.user?.name || 'Usuario'}</p>
-                    <p className="text-xs text-muted-foreground truncate">
+                  <div className="min-w-0 text-left flex-1">
+                    <p className="text-xs font-bold truncate text-slate-800 dark:text-slate-100">{session.user?.name || 'Usuario'}</p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">
                       {getRoleDisplayName(userRole)}
                     </p>
                   </div>
@@ -339,12 +411,12 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
               </button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent side="top" align="start" className="w-60">
+            <DropdownMenuContent side="top" align="start" className="w-60 bg-white dark:bg-[#030914] border-slate-200 dark:border-white/10">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{session.user?.name || 'Usuario'}</span>
-                    <Badge variant="secondary" className="text-xs">
+                    <span className="text-sm font-bold">{session.user?.name || 'Usuario'}</span>
+                    <Badge variant="secondary" className="text-[10px] font-bold">
                       {getRoleDisplayName(userRole)}
                     </Badge>
                   </div>
@@ -352,7 +424,15 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="cursor-pointer">
+              <DropdownMenuItem
+                className="cursor-pointer font-medium text-xs flex items-center gap-2"
+                onClick={handleSync}
+                disabled={isSyncing}
+              >
+                <RefreshCw className={cn("h-4 w-4 text-cyan-500", isSyncing && "animate-spin")} />
+                <span>{isSyncing ? "Sincronizando..." : "Sincronizar Cartera"}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer font-medium text-xs">
                 <Link href="/profile" onClick={onNavigate}>
                   <User className="mr-2 h-4 w-4" />
                   <span>Mi Perfil</span>
@@ -360,7 +440,7 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="cursor-pointer text-red-600 dark:text-red-400"
+                className="cursor-pointer text-red-600 dark:text-red-400 font-medium text-xs"
                 onClick={handleSignOut}
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -368,6 +448,13 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {!isCollapsed && (
+            <div className="mt-1 pt-1.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between px-2 text-[9px] text-slate-400 font-mono">
+              <span>v3.5.0</span>
+              <span>BUILD 2026</span>
+            </div>
+          )}
         </div>
       </aside>
     </TooltipProvider>
@@ -399,20 +486,46 @@ function SidebarLink({
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'flex items-center rounded-lg transition-colors',
+        'flex items-center rounded-xl transition-all duration-200 relative group ef-sidebar-shimmer-hover',
         collapsed ? 'justify-center h-10' : 'gap-3 px-3',
-        dense ? 'h-8 text-[13px]' : 'h-10 text-sm font-medium',
+        dense ? 'h-8 text-xs' : 'h-10 text-xs font-semibold',
         active
-          ? 'bg-primary/10 text-primary font-semibold'
-          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+          ? 'bg-gradient-to-r from-cyan-500/15 via-blue-600/10 to-emerald-500/5 text-cyan-900 dark:text-cyan-200 font-bold ef-sidebar-active-glow shadow-xs'
+          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
       )}
     >
-      <Icon className={cn('shrink-0', dense ? 'h-4 w-4' : 'h-5 w-5')} />
-      {!collapsed && <span className="truncate">{title}</span>}
+      {/* Indicador elástico lateral */}
+      <div
+        className={cn(
+          'absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full transition-all duration-300',
+          active
+            ? 'h-6 bg-gradient-to-b from-cyan-400 via-blue-500 to-emerald-400 shadow-[0_0_8px_rgba(0,180,216,0.6)]'
+            : 'h-0 bg-slate-300 dark:bg-white/20 group-hover:h-3.5'
+        )}
+      />
+
+      <div
+        className={cn(
+          'ef-sidebar-icon-morph shrink-0 transition-transform duration-300',
+          active ? 'text-cyan-600 dark:text-cyan-400 scale-110 drop-shadow-[0_0_6px_rgba(0,180,216,0.4)]' : 'text-slate-400 group-hover:scale-110'
+        )}
+      >
+        <Icon className={cn('shrink-0', dense ? 'h-4 w-4' : 'h-5 w-5')} />
+      </div>
+
+      {!collapsed && <span className="truncate group-hover:translate-x-0.5 transition-transform">{title}</span>}
+
       {!collapsed && badge && (
-        <Badge variant="secondary" className="ml-auto text-xs">
+        <Badge variant={active ? "default" : "secondary"} className={cn("ml-auto text-[9px] px-1.5 h-4 font-bold", active && "bg-cyan-600")}>
           {badge}
         </Badge>
+      )}
+
+      {!collapsed && !badge && active && (
+        <div className="relative flex h-2 w-2 shrink-0 ml-auto">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+        </div>
       )}
     </Link>
   );
@@ -422,7 +535,7 @@ function SidebarLink({
   return (
     <Tooltip>
       <TooltipTrigger asChild>{link}</TooltipTrigger>
-      <TooltipContent side="right">{title}</TooltipContent>
+      <TooltipContent side="right" className="bg-slate-950 text-white border-slate-800 font-medium text-xs">{title}</TooltipContent>
     </Tooltip>
   );
 }

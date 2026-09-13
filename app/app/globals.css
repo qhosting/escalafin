@@ -192,3 +192,102 @@
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 :focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+/* ==========================================================================
+   ESCALAFIN FINTECH NAVIGATION MICRO-INTERACTIONS
+   ========================================================================== */
+
+@keyframes ef-sidebar-item-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ef-sidebar-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 180, 216, 0.2), 0 0 20px rgba(0, 61, 122, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(0, 180, 216, 0.35), 0 0 32px rgba(16, 185, 129, 0.2);
+  }
+}
+
+@keyframes ef-sidebar-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes ef-sidebar-icon-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.15) rotate(-5deg);
+  }
+  65% {
+    transform: scale(1.08) rotate(3deg);
+  }
+}
+
+.ef-sidebar-item-enter {
+  animation: ef-sidebar-item-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ef-sidebar-active-glow {
+  animation: ef-sidebar-glow-pulse 3s ease-in-out infinite;
+}
+
+.ef-sidebar-shimmer-hover {
+  position: relative;
+  overflow: hidden;
+}
+
+.ef-sidebar-shimmer-hover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(0, 180, 216, 0.08) 35%,
+    rgba(255, 255, 255, 0.15) 42%,
+    transparent 55%
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.dark .ef-sidebar-shimmer-hover::after {
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(0, 180, 216, 0.12) 35%,
+    rgba(16, 185, 129, 0.1) 45%,
+    transparent 55%
+  );
+}
+
+.ef-sidebar-shimmer-hover:hover::after {
+  opacity: 1;
+  animation: ef-sidebar-shimmer 1.1s ease-in-out;
+}
+
+.ef-sidebar-icon-morph {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+}
+
+.ef-sidebar-icon-morph:hover {
+  animation: ef-sidebar-icon-bounce 0.45s ease;
+}
+
