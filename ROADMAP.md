@@ -42,6 +42,17 @@ Esta actualización ejecuta la primera fase del plan de auditoría de producto, 
 
 ---
 
+## 🏛️ Arquitectura Downstream y Replicación White-Label (InverPlus)
+
+EscalaFin funge como el repositorio núcleo (Upstream) de la plataforma fintech. Las instancias especializadas o despliegues dedicados (como **InverPlus**) derivan de esta base matriz:
+
+* **InverPlus** (`PROYECTOS/inverplus`): Despliegue dedicado Single-Tenant (`default-tenant`), optimizado para operación fintech interna.
+  * **Herencia técnica**: Adopta el esquema de base de datos Prisma (58 modelos con PLD), servicios de scoring y rutas predictivas de IA, boveda digital, cumplimiento CONDUSEF/NOM-151, utilidades de optimización y shell moderno de navegación.
+  * **Aislamiento de marca**: InverPlus preserva su paleta cromática (`#05244c` Navy y `#f97316` Naranja), logotipos oficiales SVG/PNG, copy comercial e imagen de negocio propia.
+  * **Reglas de sincronización**: Cualquier nueva capacidad desarrollada en EscalaFin se replica en fases estructuradas (Base de datos -> Servicios -> Componentes -> Layouts), respetando siempre los tokens de color y assets de la marca downstream.
+
+---
+
 ## 📱 0. Arquitectura Multi-Versión: Desktop · PWA · App Nativa
 
 EscalaFin se entrega en **3 versiones independientes** que comparten el mismo backend multi-tenant:
