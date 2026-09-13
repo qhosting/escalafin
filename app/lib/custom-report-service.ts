@@ -530,6 +530,95 @@ export class CustomReportService {
       take: 20
     });
   }
+
+  /**
+   * Calcular la próxima ejecución de un horario según su frecuencia.
+   * CUSTOM se trata como diario: sin un campo de expresión cron en el modelo
+   * no hay más información con la que planificar.
+   */
+  private computeNextRun(from: Date, frequency: string, dayOfWeek?: number | null, dayOfMonth?: number | null): Date {
+    const next = new Date(from);
+
+    switch (frequency) {
+      case 'WEEKLY': {
+        const target = dayOfWeek ?? next.getDay();
+        // Avanzar al menos un día y luego hasta el día de la semana objetivo.
+        next.setDate(next.getDate() + 1);
+        while (next.getDay() !== target) {
+          next.setDate(next.getDate() + 1);
+        }
+        break;
+      }
+      case 'MONTHLY': {
+        next.setMonth(next.getMonth() + 1);
+        if (dayOfMonth) {
+          // Recortar al último día real del mes destino (ej. día 31 en febrero).
+          const lastDay = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+          next.setDate(Math.min(dayOfMonth, lastDay));
+        }
+        break;
+      }
+      default:
+        next.setDate(next.getDate() + 1);
+        break;
+    }
+
+    return next;
+  }
+
+  /**
+   * Procesar los reportes programados cuya ejecución ya venció.
+   * Invocado por el cron GET /api/cron/scheduled-reports.
+   *
+   * Cada horario se procesa de forma aislada: un fallo en uno no detiene
+   * al resto, y su nextRunAt se avanza igualmente para no reintentar en bucle.
+   */
+  async runScheduledReports(): Promise<{ processed: number; succeeded: number; failed: number }> {
+    // El planificador es global (cruza tenants), así que se usa el cliente base
+    // y cada generación se delega al cliente del tenant dueño de la plantilla.
+    const { prisma } = await import('@/lib/prisma');
+
+    const due = await prisma.reportSchedule.findMany({
+      where: { isActive: true, nextRunAt: { lte: new Date() } },
+      include: { template: { select: { id: true, tenantId: true, createdBy: true, name: true } } },
+      take: 50
+    });
+
+    let succeeded = 0;
+    let failed = 0;
+
+    for (const schedule of due) {
+      const now = new Date();
+      try {
+        if (!schedule.template?.tenantId) {
+          throw new Error(`La plantilla ${schedule.templateId} no tiene tenant asignado`);
+        }
+
+        await this.generateReport(
+          schedule.template.tenantId,
+          schedule.templateId,
+          schedule.template.createdBy
+        );
+        succeeded++;
+      } catch (error) {
+        failed++;
+        console.error(
+          `[SCHEDULED-REPORTS] Falló el horario ${schedule.id} (${schedule.template?.name ?? 'sin plantilla'}):`,
+          error
+        );
+      }
+
+      await prisma.reportSchedule.update({
+        where: { id: schedule.id },
+        data: {
+          lastRunAt: now,
+          nextRunAt: this.computeNextRun(now, schedule.frequency, schedule.dayOfWeek, schedule.dayOfMonth)
+        }
+      });
+    }
+
+    return { processed: due.length, succeeded, failed };
+  }
 }
 
 export const customReportService = new CustomReportService();

@@ -34,8 +34,21 @@ export async function POST(req: NextRequest) {
     const clientId = formData.get('clientId') as string
     const description = formData.get('description') as string
 
-    if (!file) {
+    if (!file || typeof file === 'string' || typeof file.arrayBuffer !== 'function') {
       return NextResponse.json({ error: 'No se encontró archivo' }, { status: 400 })
+    }
+
+    if (!session.user.tenantId && session.user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'Organización requerida' }, { status: 403 })
+    }
+    if (clientId) {
+      const client = await prisma.client.findFirst({ where: {
+        id: clientId,
+        ...(session.user.role !== 'SUPER_ADMIN' ? { tenantId: session.user.tenantId } : {}),
+        ...(session.user.role === 'ASESOR' ? { asesorId: session.user.id } : {}),
+        ...(session.user.role === 'CLIENTE' ? { userId: session.user.id } : {}),
+      } })
+      if (!client) return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 })
     }
 
     // Validaciones

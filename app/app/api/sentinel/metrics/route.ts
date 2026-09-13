@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const providedToken  = request.headers.get('x-sentinel-token') ||
                          request.headers.get('authorization')?.replace('Bearer ', '');
 
-  if (sentinelSecret && providedToken !== sentinelSecret) {
+  if (!sentinelSecret || providedToken !== sentinelSecret) {
     return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
   }
 

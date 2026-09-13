@@ -38,6 +38,7 @@ export function MobileSidebar() {
             variant="ghost" 
             size="icon" 
             className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 h-10 w-10"
+            aria-label="Buscar"
             onClick={() => setIsSearchOpen(true)}
           >
             <Search className="h-5 w-5 text-gray-500" />
@@ -45,14 +46,14 @@ export function MobileSidebar() {
 
           <GlobalSearch isOpen={isSearchOpen} onOpenChange={setIsSearchOpen} />
 
-          <Link href="/notifications">
+          <Link href="/notifications" aria-label="Notificaciones">
             <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 h-10 w-10 relative">
               <Bell className="h-5 w-5 text-gray-500" />
               <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900" />
             </Button>
           </Link>
 
-          <Link href="/profile" className="ml-1">
+          <Link href="/profile" aria-label="Mi perfil" className="ml-1">
             <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 overflow-hidden shadow-sm active:ring-2 ring-primary/30 transition-all">
               <User className="h-5 w-5 text-primary" />
             </div>

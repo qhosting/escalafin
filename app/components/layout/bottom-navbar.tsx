@@ -14,6 +14,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useModules } from '@/hooks/use-modules';
+import { getPrimaryNavItems } from '@/lib/navigation';
+import { SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { MobileSidebarContent } from './mobile-sidebar-content';
 
 export function BottomNavbar() {
@@ -21,49 +24,23 @@ export function BottomNavbar() {
     const { data: session } = useSession();
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
+    const { isModuleEnabled } = useModules();
     if (!session) return null;
 
     const userRole = (session as any)?.user?.role;
 
-    const getNavItems = () => {
-        switch (userRole) {
-            case 'ADMIN':
-                return [
-                    { icon: LayoutDashboard, label: 'Inicio', href: '/admin/dashboard', color: 'bg-blue-600' },
-                    { icon: Users, label: 'Clientes', href: '/admin/clients', color: 'bg-indigo-600' },
-                    { icon: CreditCard, label: 'Préstamos', href: '/admin/loans', color: 'bg-violet-600' },
-                    { icon: DollarSign, label: 'Pagos', href: '/admin/payments', color: 'bg-emerald-600' },
-                ];
-            case 'ASESOR':
-                return [
-                    { icon: LayoutDashboard, label: 'Inicio', href: '/asesor/dashboard', color: 'bg-blue-600' },
-                    { icon: Users, label: 'Clientes', href: '/asesor/clients', color: 'bg-indigo-600' },
-                    { icon: CreditCard, label: 'Préstamos', href: '/asesor/loans', color: 'bg-violet-600' },
-                    { icon: DollarSign, label: 'Cobros', href: '/admin/payments', color: 'bg-emerald-600' },
-                ];
-            case 'CLIENTE':
-                return [
-                    { icon: LayoutDashboard, label: 'Inicio', href: '/cliente/dashboard', color: 'bg-blue-600' },
-                    { icon: CreditCard, label: 'Créditos', href: '/cliente/loans', color: 'bg-violet-600' },
-                    { icon: DollarSign, label: 'Pagos', href: '/cliente/payments', color: 'bg-emerald-600' },
-                    { icon: ClipboardList, label: 'Solicitud', href: '/cliente/credit-applications', color: 'bg-orange-600' },
-                ];
-            default:
-                return [];
-        }
-    };
-
-    const navItems = getNavItems();
+    const shortLabels: Record<string, string> = { '/admin/clients': 'Clientes', '/admin/loans': 'Préstamos', '/admin/payments': 'Pagos', '/asesor/clients': 'Clientes', '/asesor/loans': 'Préstamos', '/asesor/payments': 'Pagos', '/cliente/loans': 'Créditos', '/cliente/payments': 'Pagos', '/cliente/credit-applications': 'Solicitud', '/admin/saas': 'Inicio', '/admin/saas/tenants': 'Empresas', '/admin/billing': 'Planes', '/admin/super-users': 'Equipo' };
+    const navItems = getPrimaryNavItems(userRole, isModuleEnabled).map(item => ({ ...item, label: shortLabels[item.href] || 'Inicio', color: 'bg-primary' }));
 
     const isActive = (href: string) => {
         if (href === '/' || href.includes('dashboard')) {
             return pathname === href;
         }
-        return pathname.startsWith(href);
+        return pathname === href || pathname.startsWith(href + '/');
     };
 
     return (
-        <div className="md:hidden fixed bottom-4 left-4 right-4 z-[100] animate-in slide-in-from-bottom-5 duration-700">
+        <div className="md:hidden fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 z-[100] animate-in slide-in-from-bottom-5 duration-700">
             {/* Premium Floating Glass Container */}
             <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border border-white/20 dark:border-gray-800 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] px-2 py-2">
                 <div className="flex items-center justify-between h-14 relative">
@@ -74,6 +51,7 @@ export function BottomNavbar() {
                         return (
                             <Link
                                 key={item.href}
+                                aria-current={active ? 'page' : undefined}
                                 href={item.href}
                                 className={cn(
                                     "relative flex flex-col items-center justify-center flex-1 transition-all duration-300",
@@ -127,6 +105,8 @@ export function BottomNavbar() {
                             </button>
                         </SheetTrigger>
                         <SheetContent side="bottom" className="h-[90vh] p-0 rounded-t-[3rem] border-t-0 bg-transparent">
+                            <SheetTitle className="sr-only">Navegación principal</SheetTitle>
+                            <SheetDescription className="sr-only">Secciones disponibles para tu cuenta</SheetDescription>
                             <div className="h-full bg-white dark:bg-gray-950 rounded-t-[3rem] overflow-hidden shadow-2xl flex flex-col border-t border-white/10">
                                 {/* Visual Puller */}
                                 <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full mx-auto mt-4 mb-2" />

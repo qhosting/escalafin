@@ -50,11 +50,16 @@ export interface CommissionSummary {
   bonusAmount: number;
 }
 
+// 'all' es el valor centinela que envían los selectores del panel para "sin filtro".
+// Se acepta explícitamente en el tipo para que los guardas de `list()` sean válidos
+// y para que la ruta /api/commissions no tenga que castear a `any`.
+export type CommissionFilterValue<T extends string> = T | 'all';
+
 export interface CommissionFilters {
   tenantId: string;
   advisorId?: string;
-  status?: CommissionStatus;
-  type?: CommissionType;
+  status?: CommissionFilterValue<CommissionStatus>;
+  type?: CommissionFilterValue<CommissionType>;
   dateFrom?: Date;
   dateTo?: Date;
   page?: number;

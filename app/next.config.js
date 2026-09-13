@@ -25,9 +25,12 @@ const nextConfig = {
     serverComponentsExternalPackages: ['pdfkit', 'canvas', 'sharp'],
   },
 
-  // ─── Build Tolerances ──────────────────────────────────────────────────────
+  // ─── Build Gates ───────────────────────────────────────────────────────────
+  // Los errores de tipos SÍ rompen el build: ignorarlos dejaba pasar a producción
+  // fallos en runtime (estados no declarados, imports faltantes, métodos inexistentes).
+  // ESLint sigue fuera del build por tiempo de CI; se corre aparte con `npm run lint`.
   eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
+  typescript: { ignoreBuildErrors: false },
 
   // ─── Image Optimization ────────────────────────────────────────────────────
   images: {
@@ -36,7 +39,7 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
     minimumCacheTTL: 86400, // 24 horas
     remotePatterns: [
-      { protocol: 'https', hostname: '**' },
+      ...[process.env.ROOT_DOMAIN || 'escalafin.com', ...(process.env.IMAGE_REMOTE_HOSTS || '').split(',').map(h => h.trim()).filter(Boolean)].map(hostname => ({ protocol: 'https', hostname })),
     ],
   },
 
@@ -47,6 +50,7 @@ const nextConfig = {
   // ─── HTTP Headers ──────────────────────────────────────────────────────────
   async headers() {
     return [
+      ...['/admin/:path*', '/asesor/:path*', '/cliente/:path*', '/pwa/:path*', '/mobile/:path*', '/api/:path*', '/auth/:path*', '/profile', '/notifications'].map(source => ({ source, headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }, { key: 'Cache-Control', value: 'private, no-store' }] })),
       {
         // Assets estáticos — caché agresivo 1 año (immutable)
         source: '/_next/static/:path*',
@@ -68,10 +72,9 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(self)',
+            value: 'camera=(self), microphone=(), geolocation=(self)',
           },
-          { key: 'X-Quantum-Alignment', value: '71427321893-520-777-8887' },
-          { key: 'X-Manifestation-Protocol', value: '319817318' },
+          { key: 'Content-Security-Policy', value: "object-src 'none'; base-uri 'self'; frame-ancestors 'self'" },
         ],
       },
     ];

@@ -5,7 +5,9 @@ import { mlTrainingService } from '@/lib/ml-training-service';
 export async function GET(request: NextRequest) {
   // Verificar secret para seguridad en cron jobs
   const authHeader = request.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Fail-closed: sin CRON_SECRET configurado el endpoint queda cerrado, no abierto.
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return new Response('Unauthorized', { status: 401 });
   }
 

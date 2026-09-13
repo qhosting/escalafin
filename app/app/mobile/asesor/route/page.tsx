@@ -26,6 +26,7 @@ export default function AsesorRoutePage() {
   const [loading, setLoading] = useState(true);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [stats, setStats] = useState({ total: 0, overdue: 0, collected: 0, collectedAmount: 0 });
+  const [gettingLocation, setGettingLocation] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/auth/login');
@@ -138,7 +139,11 @@ export default function AsesorRoutePage() {
         <div className="flex items-center gap-2 mt-3">
           <div className={`w-2 h-2 rounded-full ${currentLocation ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse`} />
           <span className="text-xs text-blue-200 font-medium">
-            {currentLocation ? `GPS Activo (${currentLocation.lat.toFixed(4)}, ${currentLocation.lng.toFixed(4)})` : 'Obteniendo ubicación...'}
+            {currentLocation
+              ? `GPS Activo (${currentLocation.lat.toFixed(4)}, ${currentLocation.lng.toFixed(4)})`
+              : gettingLocation
+                ? 'Obteniendo ubicación...'
+                : 'GPS no disponible'}
           </span>
         </div>
       </div>

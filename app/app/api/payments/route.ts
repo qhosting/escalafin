@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import { parsePagination } from '@/lib/pagination';
 import { getTenantPrisma } from '@/lib/tenant-db';
 
 /**
@@ -27,9 +28,7 @@ export async function GET(request: NextRequest) {
 
         const tenantPrisma = getTenantPrisma(tenantId);
         const { searchParams } = new URL(request.url);
-        const page = parseInt(searchParams.get('page') || '1');
-        const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
-        const skip = (page - 1) * limit;
+        const { page, limit, skip } = parsePagination(searchParams, 50);
         const startDate = searchParams.get('startDate');
         const endDate = searchParams.get('endDate');
         const advisorId = searchParams.get('advisorId');
@@ -94,7 +93,7 @@ export async function GET(request: NextRequest) {
                 loan: { clientId: clientProfile.id }
             });
         } else if (session.user.role === 'ASESOR' || (advisorId && advisorId !== 'all')) {
-            const filterAsesorId = advisorId || session.user.id;
+            const filterAsesorId = session.user.role === 'ASESOR' ? session.user.id : advisorId!;
             conditions.push({
                 loan: { client: { asesorId: filterAsesorId } }
             });
@@ -139,35 +138,13 @@ export async function GET(request: NextRequest) {
         // Calcular stats de forma segura (sin groupBy si hay filtros de relación que Prisma no soporta bien en groupBy)
         let statsMap: any = {};
         try {
-            const hasRelationFilter = conditions.some(c => 
-                c.loan || 
-                (c.OR && c.OR.some((oc: any) => oc.loan))
-            );
-            
-            if (!hasRelationFilter) {
-                const stats = await (tenantPrisma.payment as any).groupBy({
-                    where: whereClause,
-                    by: ['status'],
-                    _count: { status: true },
-                    _sum: { amount: true }
-                });
-
-                statsMap = (stats as any[]).reduce((acc: any, s: any) => {
-                    acc[s.status] = { count: s._count.status, amount: Number(s._sum.amount || 0) };
-                    return acc;
-                }, {});
-            } else {
-                // Si hay filtros de relación, calculamos los totales de forma manual o con agregaciones más simples
-                const aggregate = await tenantPrisma.payment.aggregate({
-                    where: whereClause,
-                    _count: { _all: true },
-                    _sum: { amount: true }
-                });
-                
-                // Para el mapa por estado con filtros de relación, tendríamos que hacer queries separadas o aceptar stats limitados
-                // Por ahora, usemos el total global para evitar el error de groupBy balanceando performance
-                statsMap['COMPLETED'] = { count: aggregate._count._all, amount: Number(aggregate._sum.amount || 0) };
-            }
+            const stats = await tenantPrisma.payment.groupBy({
+                where: whereClause, by: ['status'],
+                _count: { status: true }, _sum: { amount: true }
+            });
+            statsMap = Object.fromEntries(stats.map(s => [s.status, {
+                count: s._count.status, amount: Number(s._sum.amount || 0)
+            }]));
         } catch (statsError) {
             console.error('Error calculating payment stats:', statsError);
             // Non-blocking error for stats
@@ -188,6 +165,7 @@ export async function GET(request: NextRequest) {
         });
 
     } catch (error) {
+        if (error instanceof RangeError) return NextResponse.json({ error: error.message }, { status: 400 });
         console.error('Error fetching payments:', error);
         return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
     }

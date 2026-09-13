@@ -52,6 +52,11 @@ export async function POST(request: NextRequest) {
 
     // Si es una transacción de Préstamo
     if (paymentTransaction) {
+      // Openpay may retry a webhook. A completed transaction must be fully
+      // idempotent: never decrement the loan balance twice.
+      if (paymentTransaction.status === 'COMPLETED') {
+        return NextResponse.json({ status: 'success', duplicate: true });
+      }
 
       // Actualizar el estado de la transacción
       let newStatus: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'REFUNDED';
@@ -92,23 +97,19 @@ export async function POST(request: NextRequest) {
 
         if (payment) {
           // Actualizar el balance del préstamo
-          await prisma.loan.update({
-            where: { id: payment.loanId },
-            data: {
-              balanceRemaining: {
-                decrement: payment.amount,
+          await prisma.$transaction([
+            prisma.loan.update({
+              where: { id: payment.loanId },
+              data: { balanceRemaining: { decrement: payment.amount } },
+            }),
+            prisma.payment.update({
+              where: { id: payment.id },
+              data: {
+                status: 'COMPLETED',
+                paymentDate: new Date(transaction.operation_date || Date.now()),
               },
-            },
-          });
-
-          // Actualizar el estado del pago
-          await prisma.payment.update({
-            where: { id: payment.id },
-            data: {
-              status: 'COMPLETED',
-              paymentDate: new Date(transaction.operation_date || Date.now()),
-            },
-          });
+            }),
+          ]);
 
           // Enviar notificación por WhatsApp
           try {

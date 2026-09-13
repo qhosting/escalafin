@@ -1,11 +1,7 @@
 
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
-
-// Detect mobile user agents
-function isMobileUserAgent(userAgent: string): boolean {
-  return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(userAgent);
-}
+import { isPublicPage } from '@/lib/public-pages';
 
 export default withAuth(
   function middleware(req) {
@@ -20,7 +16,7 @@ export default withAuth(
       '/wp-admin', '/wp-login', '.env', 'config.php', '/admin.php', 
       '/.git', '/composer.json', '/package.json', '/id_rsa',
       '/setup.php', '/phpmyadmin', '/xmlrpc.php', '/shell',
-      '/backup', '/storage', '/sql', '/dump', '/db.sql'
+      '/db.sql'
     ];
 
     // Solo aplicar bloqueo si NO es una ruta de API administrativa legítima o si coincide con patrones críticos
@@ -43,29 +39,7 @@ export default withAuth(
       
       console.warn(`🛡️ BLOQUEO DE SEGURIDAD: Intento de acceso a ruta prohibida [${pathname}] desde IP: ${clientIp}`);
       
-      // Registrar el evento asincrónicamente
-      // Usamos el host directamente para evitar problemas de SSL local si la app está tras un proxy
-      const protocol = isLocalhost ? 'http' : (req.headers.get('x-forwarded-proto') || 'http');
-      const host = req.headers.get('host');
-      const internalUrl = `${protocol}://${host}/api/internal/security-log`;
-
-      fetch(internalUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-internal-secret': process.env.NEXTAUTH_SECRET || ''
-        },
-        body: JSON.stringify({
-          ip: clientIp,
-          userAgent: req.headers.get('user-agent') || 'unknown',
-          path: pathname,
-          pattern: detectedPattern
-        })
-      }).catch(e => {
-        // Silenciamos errores de red internos para no afectar la respuesta al usuario malicioso
-        console.error('Error triggering security log:', e.message);
-      });
-
+      // Do not forward secrets to a URL derived from the untrusted Host header.
       return new NextResponse(
         JSON.stringify({ 
           error: 'Acceso Denegado por Seguridad - IP Registrada', 
@@ -108,6 +82,7 @@ export default withAuth(
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set('x-tenant-slug', tenantSlug);
     requestHeaders.set('x-url', req.url);
+    requestHeaders.set('x-pathname', pathname);
 
     // 3. Validación de Acceso Cruzado (Cross-Tenant)
     const token = req.nextauth.token;
@@ -130,61 +105,11 @@ export default withAuth(
       }
     }
 
-    // 4. Mobile Auto-Redirect to PWA version
-    const userAgent = req.headers.get('user-agent') || '';
-    const modeCookie = req.cookies.get('escalafin-view-mode')?.value;
-    const modeParam = req.nextUrl.searchParams.get('mode');
-
-    // Honor explicit mode override via cookie or query param
-    const forcedMode = modeParam || modeCookie;
-
-    // Only auto-redirect when:
-    // - User is on a mobile device
-    // - Not already on /pwa/* or /mobile/* routes
-    // - Not forcing desktop mode
-    // - Has a valid token (authenticated)
-    if (
-      token &&
-      isMobileUserAgent(userAgent) &&
-      forcedMode !== 'desktop' &&
-      !pathname.startsWith('/pwa/') &&
-      !pathname.startsWith('/mobile/') &&
-      !pathname.startsWith('/api/') &&
-      !pathname.startsWith('/auth/') &&
-      !pathname.startsWith('/_next/') &&
-      !pathname.includes('.') &&
-      pathname !== '/'
-    ) {
-      const role = token.role as string;
-      let pwaPath = '/pwa';
-
-      if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
-        pwaPath = '/pwa/admin/dashboard';
-      } else if (role === 'ASESOR') {
-        pwaPath = '/pwa/asesor';
-      } else if (role === 'CLIENTE') {
-        pwaPath = '/pwa/client';
-      }
-
-      const redirectUrl = new URL(pwaPath, req.url);
-      const response = NextResponse.redirect(redirectUrl);
-      // If mode param was set, persist it as a cookie
-      if (modeParam) {
-        response.cookies.set('escalafin-view-mode', modeParam, { maxAge: 60 * 60 * 24 * 30 });
-      }
-      return response;
-    }
-
     const response = NextResponse.next({
       request: {
         headers: requestHeaders,
       },
     });
-
-    // Persist mode cookie if mode param is present
-    if (modeParam) {
-      response.cookies.set('escalafin-view-mode', modeParam, { maxAge: 60 * 60 * 24 * 30 });
-    }
 
     return response;
   },
@@ -196,7 +121,7 @@ export default withAuth(
         // Permitir acceso a rutas públicas y legales (Cumplimiento INAI / PROFECO)
         if (
           pathname.startsWith('/auth/') ||
-          pathname === '/' ||
+          isPublicPage(pathname) ||
           pathname.startsWith('/legal/') ||
           pathname.startsWith('/privacy') ||
           pathname.startsWith('/terms') ||
@@ -205,7 +130,8 @@ export default withAuth(
           pathname.startsWith('/api/public/') || // Hooks públicos
           pathname.startsWith('/api/webhooks/') ||
           pathname.startsWith('/_next/') ||
-          pathname.includes('.') // Archivos estáticos
+          /\.(?:png|jpg|jpeg|webp|gif|svg|ico|woff2?|css|js|webmanifest)$/.test(pathname) ||
+          pathname === '/sitemap.xml' || pathname === '/robots.txt'
         ) {
           return true;
         }
@@ -224,7 +150,7 @@ export default withAuth(
         const userRole = token.role as string;
 
         // 🟢 Rutas Críticas de Super Administrador (SaaS Global)
-        if (pathname.startsWith('/admin/saas')) {
+        if (['/admin/saas', '/admin/super-users'].some(p => pathname === p || pathname.startsWith(p + '/'))) {
           return userRole === 'SUPER_ADMIN';
         }
 

@@ -7,9 +7,6 @@ Allow: /legal/
 Allow: /legal/privacy
 Allow: /legal/terms
 Allow: /soporte
-Allow: /#precios
-Allow: /#caracteristicas
-Allow: /#simulador
 
 # Bloquear rutas privadas y paneles administrativos
 Disallow: /admin/

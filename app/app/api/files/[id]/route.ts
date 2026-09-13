@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { storageService } from '@/lib/storage-service'
 import { prisma } from '@/lib/prisma'
+import { fileAccessWhere } from '@/lib/file-access'
 
 export async function GET(
   req: NextRequest,
@@ -17,22 +18,25 @@ export async function GET(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const fileRecord = await prisma.file.findUnique({
-      where: { id: params.id },
+    const fileRecord = await prisma.file.findFirst({
+      where: { AND: [{ id: params.id }, fileAccessWhere(session.user)] },
       include: {
         uploadedBy: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
-            email: true
+            email: true,
+            tenantId: true
           }
         },
         client: {
           select: {
             id: true,
             firstName: true,
-            lastName: true
+            lastName: true,
+            userId: true,
+            tenantId: true
           }
         }
       }
@@ -40,15 +44,6 @@ export async function GET(
 
     if (!fileRecord) {
       return NextResponse.json({ error: 'Archivo no encontrado' }, { status: 404 })
-    }
-
-    // Verificar permisos (admin, advisor, o dueño del archivo/cliente)
-    const userRole = session.user.role
-    const isOwner = fileRecord.uploadedById === session.user.id
-    const isClientFile = fileRecord.clientId === session.user.id
-    
-    if (!['admin', 'advisor'].includes(userRole) && !isOwner && !isClientFile) {
-      return NextResponse.json({ error: 'Sin permisos para ver este archivo' }, { status: 403 })
     }
 
     // Generar URL de acceso
@@ -65,8 +60,19 @@ export async function GET(
       url: accessUrl,
       uploadedAt: fileRecord.createdAt,
       storageType: fileRecord.storageType,
-      uploadedBy: fileRecord.uploadedBy,
+      uploadedBy: {
+        id: fileRecord.uploadedBy.id,
+        firstName: fileRecord.uploadedBy.firstName,
+        lastName: fileRecord.uploadedBy.lastName,
+        email: fileRecord.uploadedBy.email
+      },
       client: fileRecord.client
+        ? {
+            id: fileRecord.client.id,
+            firstName: fileRecord.client.firstName,
+            lastName: fileRecord.client.lastName
+          }
+        : null
     })
 
   } catch (error) {
@@ -88,20 +94,16 @@ export async function DELETE(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const fileRecord = await prisma.file.findUnique({
-      where: { id: params.id }
+    const fileRecord = await prisma.file.findFirst({
+      where: { AND: [{ id: params.id }, fileAccessWhere(session.user, 'delete')] },
+      include: {
+        uploadedBy: { select: { tenantId: true } },
+        client: { select: { tenantId: true } }
+      }
     })
 
     if (!fileRecord) {
       return NextResponse.json({ error: 'Archivo no encontrado' }, { status: 404 })
-    }
-
-    // Verificar permisos (solo admin, advisor o dueño del archivo)
-    const userRole = session.user.role
-    const isOwner = fileRecord.uploadedById === session.user.id
-    
-    if (!['admin', 'advisor'].includes(userRole) && !isOwner) {
-      return NextResponse.json({ error: 'Sin permisos para eliminar este archivo' }, { status: 403 })
     }
 
     // Eliminar archivo del almacenamiento

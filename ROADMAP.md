@@ -2,9 +2,43 @@
 
 Este documento constituye la **única fuente de verdad** para la arquitectura, el catálogo exhaustivo de páginas y funciones clasificadas por rol de usuario, el estado del sistema y la planificación futura de **EscalaFin**.
 
-**Última Actualización**: Agosto 2026  
+**Última Actualización**: 12 de septiembre de 2026
 **Versión Actual del Sistema**: `3.4.0`  
 **Estado General**: Producción (SaaS Multi-tenant · 3 Versiones de Plataforma)
+
+## ✅ Auditoría integral e implementación — 12 de septiembre de 2026
+
+Esta actualización ejecuta la primera fase del plan de auditoría de producto, diseño, seguridad, implementación, SEO, velocidad y crecimiento.
+
+### Implementado y verificado
+
+- **Seguridad de documentos:** acceso uniforme por rol y organización para listar, consultar, descargar, subir y eliminar archivos; protección contra traversal de rutas; respuestas privadas sin caché; validación del cliente asociado y límites de paginación.
+- **Aislamiento multi-tenant:** `getTenantPrisma()` falla cerrado sin organización y bloquea cambios de `tenantId` en operaciones extendidas; se corrigieron permisos con roles canónicos (`ADMIN`, `ASESOR`, `CLIENTE`, `SUPER_ADMIN`).
+- **Pagos:** webhook Openpay idempotente para eventos completados; actualización de pago y saldo dentro de una transacción; rate limit Redis con incremento atómico.
+- **Crons y reportes:** secretos de cron y Sentinel validan con fail-closed; reportes programados tienen procesamiento aislado por horario, próxima ejecución y resumen de resultados.
+- **Navegación:** sidebar izquierdo colapsable como shell principal; árbol compartido en `lib/navigation.ts`; barra inferior móvil derivada del mismo árbol; se eliminó el redirect automático por User-Agent que impedía llegar a rutas válidas.
+- **Accesibilidad:** se habilitó el zoom del navegador, skip link, `main` enfocable, `aria-current`, labels de controles y reducción de movimiento respetando preferencias del usuario.
+- **SEO técnico:** metadata pública, canonical y Open Graph para la landing; `app/sitemap.ts`; `X-Robots-Tag` para áreas privadas; robots sin directivas de fragmento inválidas; Google Analytics opcional mediante `NEXT_PUBLIC_GA_MEASUREMENT_ID`.
+- **Velocidad y datos:** se eliminó la consulta de tenant en páginas públicas; módulos usan SWR con deduplicación; paginación compartida para endpoints revisados; se conservó optimización de imágenes y se eliminó divergencia de configuración de producción.
+- **Calidad:** build con errores TypeScript bloqueantes; `typecheck` limpio; 6 suites y 21 pruebas pasan; se agregaron pruebas de navegación, paginación y acceso a archivos.
+- **Lint:** el script ahora usa ESLint directamente y es compatible con ESLint 9; la ejecución actual revela deuda heredada (1,649 errores y 47 advertencias), principalmente `no-explicit-any`, imports y archivos de scripts. Se mantiene visible para resolverla por lotes.
+
+### Pendiente de validación externa
+
+- Medición de Core Web Vitals en producción y pruebas Lighthouse con URL pública. Objetivos: LCP ≤ 2.5 s, INP ≤ 200 ms y CLS ≤ 0.1 en p75.
+- Verificación de Search Console, indexación, consultas, conversiones orgánicas y configuración real de dominio.
+- Validación con datos sintéticos de cada rol y tenant: IDOR, permisos de recursos, cargas de archivos, concurrencia de pagos y restauración de backups.
+- Corrección progresiva de los 1,649 errores de lint antes de convertir ESLint en gate obligatorio del build.
+- Definición de segmento comercial, precios, CAC, activación, retención y campañas; el código deja preparada la medición, pero esos datos no existen en el repositorio.
+- Contenido SEO específico para páginas de intención (`software para microfinancieras`, `cobranza en campo`, `migración desde Excel`) antes de publicar campañas y medir conversiones.
+
+### Siguiente ciclo recomendado
+
+1. Ejecutar pruebas E2E en staging con dos tenants y las cuatro clases de usuario.
+2. Configurar Search Console, GA4 y eventos de negocio: demo, registro, activación, primera operación y suscripción.
+3. Medir producción durante siete días y priorizar por p75, errores p95 y abandono de onboarding.
+4. Completar el modelo de aprobación de operaciones sensibles y conciliación bancaria.
+5. Convertir las afirmaciones regulatorias y de firma digital en controles auditables con evidencia documental.
 
 ---
 
@@ -29,12 +63,12 @@ EscalaFin se entrega en **3 versiones independientes** que comparten el mismo ba
   └───────────────────┘  └──────────────────────┘  └──────────────────────┘
 ```
 
-### Selección Automática de Versión
-El **middleware** detecta el user agent del dispositivo y redirige automáticamente:
-- **Smartphone / Tablet** → `V2: PWA Móvil` (`/pwa/{role}/dashboard`)
-- **Desktop / Laptop** → `V1: Desktop` (`/admin`, `/asesor`, `/cliente`)
-- **`?mode=desktop`** → Fuerza versión escritorio (cookie de 30 días)
-- **App Nativa compilada** → `V3: Capacitor` con plugins nativos disponibles
+### Selección de Versión
+La versión se elige mediante las rutas explícitas de cada experiencia, evitando redirecciones automáticas por user agent:
+- **Desktop** → rutas principales (`/admin`, `/asesor`, `/cliente`)
+- **PWA móvil** → rutas bajo `/pwa/*`
+- **App nativa compilada** → rutas bajo `/mobile/*` con plugins nativos disponibles
+- **`?mode=desktop`** → conserva compatibilidad para forzar la experiencia de escritorio
 
 ### Componentes PWA Clave
 | Componente | Ruta | Función |

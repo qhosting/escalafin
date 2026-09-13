@@ -1,0 +1,4 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+export const metadata: Metadata = { title: 'Solicita una demostración', description: 'Conoce cómo EscalaFin puede organizar la operación de tu microfinanciera.', alternates: { canonical: '/demo' } };
+export default function Page() { return <main className="min-h-screen bg-slate-950 px-6 py-24 text-white"><div className="mx-auto max-w-2xl"><p className="text-sm font-semibold uppercase tracking-widest text-emerald-300">Demo</p><h1 className="mt-4 text-4xl font-bold">Conoce EscalaFin con tu flujo de trabajo</h1><p className="mt-5 text-lg leading-8 text-slate-300">Crea una organización de prueba y revisa clientes, créditos, pagos y cobranza desde el mismo entorno.</p><Link data-track="demo_cta" href="/auth/register-tenant" className="mt-8 inline-flex rounded-xl bg-emerald-500 px-6 py-3 font-semibold hover:bg-emerald-400">Crear cuenta de prueba</Link></div></main>; }

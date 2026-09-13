@@ -375,7 +375,7 @@ export function FileManager({
                         <Download className="h-4 w-4 mr-2" />
                         Descargar
                       </DropdownMenuItem>
-                      {(session?.user?.role === 'admin' || 
+                      {(session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN' ||
                         file.uploadedBy.id === session?.user?.id) && (
                         <DropdownMenuItem 
                           onClick={() => handleDelete(file.id)}
@@ -457,7 +457,7 @@ export function FileManager({
                     <Button variant="ghost" size="sm" onClick={() => handleDownload(file)}>
                       <Download className="h-4 w-4" />
                     </Button>
-                    {(session?.user?.role === 'admin' || 
+                    {(session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN' ||
                       file.uploadedBy.id === session?.user?.id) && (
                       <Button 
                         variant="ghost" 

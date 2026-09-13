@@ -114,7 +114,6 @@ export async function POST(req: NextRequest) {
               balanceRemaining: principal,
               startDate: new Date(loanSettings.startDate || new Date()),
               endDate: calculations.endDate,
-              notes: `Migración masiva - ${clientData.originalSystem || 'Manual'}`,
               lateFeeType: loanSettings.lateFeeType || 'DAILY_FIXED',
               lateFeeAmount: loanSettings.lateFeeAmount ? parseFloat(loanSettings.lateFeeAmount.toString()) : 200,
               lateFeeMaxWeekly: loanSettings.lateFeeMaxWeekly ? parseFloat(loanSettings.lateFeeMaxWeekly.toString()) : 800

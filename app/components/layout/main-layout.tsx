@@ -9,6 +9,7 @@ import { MobileSidebar } from './mobile-sidebar';
 import { BottomNavbar } from './bottom-navbar';
 import { OfflineBanner } from '@/components/pwa/offline-banner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { isPublicPage } from '@/lib/public-pages';
 import { cn } from '@/lib/utils';
 
 const NO_LAYOUT_PATHS = ['/auth/login', '/auth/register', '/auth/register-tenant', '/auth/forgot-password'];
@@ -26,18 +27,20 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   React.useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem('escalafin_sidebar_collapsed');
+    let saved: string | null = null;
+    try { saved = localStorage.getItem('escalafin_sidebar_collapsed'); } catch {}
     if (saved !== null) {
       setSidebarCollapsed(saved === 'true');
     }
 
     // Atajo de teclado: Ctrl+B o ⌘+B para colapsar/expandir menú lateral
     const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement)?.closest('input, textarea, select, [contenteditable="true"]')) return;
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
         e.preventDefault();
         setSidebarCollapsed(prev => {
           const next = !prev;
-          localStorage.setItem('escalafin_sidebar_collapsed', String(next));
+          try { localStorage.setItem('escalafin_sidebar_collapsed', String(next)); } catch {}
           return next;
         });
       }
@@ -50,13 +53,13 @@ export function MainLayout({ children }: MainLayoutProps) {
   const toggleSidebar = () => {
     setSidebarCollapsed(prev => {
       const next = !prev;
-      localStorage.setItem('escalafin_sidebar_collapsed', String(next));
+      try { localStorage.setItem('escalafin_sidebar_collapsed', String(next)); } catch {}
       return next;
     });
   };
 
   // No mostrar layout en páginas de autenticación o landing
-  if (NO_LAYOUT_PATHS.includes(pathname) || pathname === '/') {
+  if (NO_LAYOUT_PATHS.includes(pathname) || isPublicPage(pathname) || pathname.startsWith('/pwa') || pathname.startsWith('/mobile')) {
     return <>{children}</>;
   }
 
@@ -84,7 +87,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   // Layout principal
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300 flex flex-col md:flex-row">
       <OfflineBanner />
 
       {/* 1. MODO DESKTOP: Sidebar Lateral Izquierdo */}
@@ -106,7 +109,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       {/* Contenedor Principal (ajusta su margen izquierdo según el estado del sidebar en Desktop) */}
       <div className={cn(
         "flex-1 flex flex-col min-w-0 transition-all duration-300",
-        !isMobile && (sidebarCollapsed ? "md:pl-[68px]" : "md:pl-64")
+        session && !isMobile && (sidebarCollapsed ? "md:pl-[68px]" : "md:pl-64")
       )}>
         {/* Top Header con Breadcrumbs y Utilidades en Desktop */}
         {mounted && session && !isMobile && (
@@ -117,7 +120,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         )}
 
         {/* Contenido de la página */}
-        <main className={cn(
+        <main id="main-content" tabIndex={-1} className={cn(
           "flex-1 transition-all duration-300",
           isMobile ? "pb-28 pt-4 px-2" : "p-4 md:p-6"
         )}>

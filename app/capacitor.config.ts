@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.escalafin.app',
   appName: 'EscalaFin',
   webDir: '.next',
-  bundledWebRuntime: false,
 
   // Server config — points to Next.js in dev/prod
   server: {
@@ -64,8 +63,9 @@ const config: CapacitorConfig = {
 
   // Android-specific config
   android: {
+    // La depuración de WebView se configura al nivel de `android`, no dentro de buildOptions.
+    webContentsDebuggingEnabled: false,
     buildOptions: {
-      debuggingEnabled: false,
       keystorePath: 'escalafin.keystore',
       keystoreAlias: 'escalafin',
     },

@@ -24,18 +24,14 @@ export class RateLimiter {
       // Intentar conectar si no lo está (manejo de resiliencia)
       await redisCache.connect();
 
-      const current = await redisCache.get<number>(redisKey) || 0;
-
-      if (current >= limit) {
-        const ttl = await redisCache.ttl(redisKey);
-        return {
-          success: false,
-          remaining: 0,
-          reset: ttl > 0 ? ttl : windowSeconds
-        };
-      }
-
+      // increment is atomic in Redis; a get-then-increment race allowed
+      // concurrent requests to pass the configured limit.
       const newValue = await redisCache.increment(redisKey);
+
+      if (newValue > limit) {
+        const ttl = await redisCache.ttl(redisKey);
+        return { success: false, remaining: 0, reset: ttl > 0 ? ttl : windowSeconds };
+      }
       
       // Si es la primera vez (valor 1), establecer el TTL
       if (newValue === 1) {

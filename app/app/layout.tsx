@@ -1,21 +1,25 @@
 import React from 'react'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import { headers } from 'next/headers'
 import './globals.css'
 import { Providers } from './providers'
 import { Toaster } from 'sonner'
 import { MainLayout } from '@/components/layout/main-layout'
+import { isPublicPage, SITE_URL } from '@/lib/public-pages'
+import { MarketingAnalytics } from '@/components/marketing/marketing-analytics'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic';
 
-const inter = Inter({ subsets: ['latin'] })
+
 
 export const metadata: Metadata = {
-  title: 'EscalaFin OS - Sistema Operativo de Microcréditos y Cobranza en Campo',
+  metadataBase: new URL(SITE_URL),
+  title: { default: 'EscalaFin — Gestión de créditos y cobranza', template: '%s | EscalaFin' },
+  robots: { index: false, follow: false },
   description: 'Plataforma integral para microfinancieras modernas: cobranza offline PWA, trazabilidad GPS, firewall CONDUSEF, conciliación automática y recuperación de cartera.',
   keywords: ['microfinanciera', 'cobranza en campo', 'créditos grupales', 'sistema para prestamistas', 'condusef redeco', 'software microcréditos'],
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } : undefined,
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -26,18 +30,13 @@ export const metadata: Metadata = {
   },
   other: {
     'mobile-web-app-capable': 'yes',
-    'quantum-frequency': '71427321893',
-    'creator-alignment': '11981',
-    'divine-protection': '8888',
-    'manifestation-code': '520 777 8887',
   }
 }
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+
   themeColor: '#2563eb',
 }
 
@@ -49,11 +48,12 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   // 1. Obtener slug del header inyectado por middleware
   const headersList = headers();
   const tenantSlug = headersList.get('x-tenant-slug') || 'default-tenant';
+  const publicPage = isPublicPage(headersList.get('x-pathname') || '');
 
   // 2. Fetch tenant
   let tenant = null;
   try {
-    tenant = await prisma.tenant.findUnique({
+    if (!publicPage || tenantSlug !== 'default-tenant') tenant = await prisma.tenant.findUnique({
       where: { slug: tenantSlug },
       select: {
         id: true,
@@ -69,7 +69,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     });
 
     // Fallback si no existe (por seguridad)
-    if (!tenant) {
+    if (!tenant && !publicPage && tenantSlug === 'default-tenant') {
       tenant = await prisma.tenant.findUnique({
         where: { slug: 'default-tenant' },
         select: { id: true, name: true, slug: true, domain: true, status: true, logo: true, primaryColor: true, timezone: true, createdAt: true }
@@ -81,18 +81,12 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
   return (
     <html lang="es">
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `console.log('%c ✨ ESCALAFIN OS | AURUM CAPITAL HOLDING [ 777 | 11981 | 8887 | 520 ] ✨ ', 'background: #020617; color: #38bdf8; font-weight: bold; border: 1px solid #38bdf8; padding: 4px 8px; border-radius: 4px;');`
-          }}
-        />
-      </head>
-      <body className={inter.className} style={{
+      <body className="font-sans" style={{
         ['--primary' as any]: tenant?.primaryColor || '#2563eb',
         ['--primary-foreground' as any]: '#ffffff'
       }}>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[10000] focus:bg-white focus:p-3 focus:text-black">Saltar al contenido</a>
+        <MarketingAnalytics />
         <Providers tenant={tenant}>
           <MainLayout>
             {children}

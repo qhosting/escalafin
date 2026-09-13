@@ -1,18 +1,21 @@
 'use client';
 
+import { useSession } from 'next-auth/react';
+import { getDashboardHref } from '@/lib/navigation';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Monitor, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function ModeToggle() {
+  const { data: session } = useSession();
   const router = useRouter();
   const [isVisible, setIsVisible] = useState(true);
 
   const switchToDesktop = () => {
     document.cookie = 'escalafin-view-mode=desktop; max-age=2592000; path=/';
     toast.success('Cambiando a versión completa...');
-    router.push('/admin/dashboard');
+    router.push(getDashboardHref(session?.user?.role));
   };
 
   const switchToMobile = () => {

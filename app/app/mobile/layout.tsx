@@ -34,12 +34,12 @@ export default function MobileLayout({
   }
 
   if (!session) {
-    redirect('/auth/signin');
+    redirect('/auth/login');
   }
 
   // Check if user has mobile access (advisors and admins)
   if (!['ADMIN', 'ASESOR', 'SUPER_ADMIN'].includes(session.user.role)) {
-    redirect('/dashboard');
+    redirect('/cliente/dashboard');
   }
 
   return (
@@ -95,13 +95,13 @@ export default function MobileLayout({
                 Clientes
               </Button>
             </Link>
-            <Link href="/mobile/routes">
+            <Link href="/mobile/asesor/route">
               <Button variant="ghost" size="sm" className="whitespace-nowrap flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 Rutas
               </Button>
             </Link>
-            <Link href="/dashboard">
+            <Link href={session.user.role === 'ASESOR' ? '/asesor/dashboard' : session.user.role === 'SUPER_ADMIN' ? '/admin/saas' : '/admin/dashboard'}>
               <Button variant="ghost" size="sm" className="whitespace-nowrap flex items-center gap-2">
                 <Home className="h-4 w-4" />
                 Dashboard
@@ -116,22 +116,7 @@ export default function MobileLayout({
         {children}
       </main>
 
-      {/* Connection Status */}
-      <div className="fixed bottom-4 left-4 right-4">
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-2">
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-700">Conectado</span>
-              </div>
-              <div className="text-green-600">
-                {new Date().toLocaleTimeString('es-MX')}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+
     </div>
   );
 }

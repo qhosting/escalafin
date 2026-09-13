@@ -47,7 +47,7 @@ export async function PUT(
                 approvedAmount: approvedAmount ? parseFloat(approvedAmount) : null,
                 approvedTerm: approvedTerm ? parseInt(approvedTerm) : null,
                 interestRate: interestRate ? parseFloat(interestRate) : null,
-                reviewedById: session.user.id,
+                reviewedBy: session.user.id,
                 reviewedAt: new Date()
             },
             include: {

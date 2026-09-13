@@ -8,6 +8,8 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { storageService } from '@/lib/storage-service'
 import { prisma } from '@/lib/prisma'
+import { fileAccessWhere } from '@/lib/file-access'
+import { parsePagination } from '@/lib/pagination'
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,37 +21,12 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const clientId = searchParams.get('clientId')
     const category = searchParams.get('category')
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
-    const skip = (page - 1) * limit
-
-    // Construir filtros basados en rol del usuario
-    const userRole = session.user.role
-    let whereClause: any = {}
-
-    if (userRole === 'CLIENTE') {
-      // Los clientes solo ven sus propios archivos
-      whereClause.clientId = session.user.id
-    } else if (userRole === 'ASESOR') {
-      // Los asesores ven archivos de sus clientes asignados
-      whereClause.OR = [
-        { uploadedById: session.user.id },
-        { 
-          client: {
-            asesorId: session.user.id
-          }
-        }
-      ]
-    }
-    // Los admins ven todos los archivos (sin filtro adicional)
-
-    // Aplicar filtros adicionales
-    if (clientId) {
-      whereClause.clientId = clientId
-    }
-    if (category) {
-      whereClause.category = category
-    }
+    const { page, limit, skip } = parsePagination(searchParams, 10)
+    const whereClause = { AND: [
+      fileAccessWhere(session.user),
+      ...(clientId ? [{ clientId }] : []),
+      ...(category ? [{ category }] : []),
+    ] }
 
     // Obtener archivos con paginación
     const [files, totalCount] = await Promise.all([
@@ -120,6 +97,7 @@ export async function GET(req: NextRequest) {
     })
 
   } catch (error) {
+    if (error instanceof RangeError) return NextResponse.json({ error: error.message }, { status: 400 })
     console.error('Error al listar archivos:', error)
     return NextResponse.json(
       { error: 'Error interno del servidor' },

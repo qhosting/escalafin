@@ -65,12 +65,7 @@ describe('Tenant Isolation (getTenantPrisma)', () => {
         }));
     });
 
-    it('should return base prisma if no tenantId is provided', () => {
-        const consoleSpy = jest.spyOn(console, 'debug').mockImplementation();
-        // @ts-ignore
-        const fallbackPrisma = getTenantPrisma(null);
-
-        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('tenantId'));
-        consoleSpy.mockRestore();
+    it('should reject unscoped tenant prisma access', () => {
+        expect(() => getTenantPrisma(null)).toThrow('Tenant requerido');
     });
 });

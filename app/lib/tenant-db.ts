@@ -11,6 +11,13 @@ import { prisma } from '@/lib/prisma';
 // Tipo para las operaciones de query comunes
 type QueryArgs = { args: any; query: (args: any) => Promise<any> };
 
+function tenantUpdateData(data: any, tenantId: string) {
+    if (data?.tenant || (data?.tenantId !== undefined && data.tenantId !== tenantId)) {
+        throw new Error('No se permite cambiar la organización de un recurso');
+    }
+    return data;
+}
+
 /**
  * Crea handlers de query estándar para un modelo con tenantId
  */
@@ -77,12 +84,14 @@ const createTenantQueryHandlers = (tenantId: string) => ({
     async update({ args, query }: QueryArgs) {
         return query({
             ...args,
-            where: { ...args.where, tenantId }
+            where: { ...args.where, tenantId },
+            data: tenantUpdateData(args.data, tenantId)
         });
     },
     async updateMany({ args, query }: QueryArgs) {
         return query({
             ...args,
+            data: tenantUpdateData(args.data, tenantId),
             where: { ...args.where, tenantId }
         });
     },
@@ -102,7 +111,8 @@ const createTenantQueryHandlers = (tenantId: string) => ({
         return query({
             ...args,
             where: { ...args.where, tenantId },
-            create: { ...args.create, tenantId }
+            create: { ...args.create, tenantId },
+            update: tenantUpdateData(args.update, tenantId)
         });
     },
 });
@@ -113,9 +123,7 @@ const createTenantQueryHandlers = (tenantId: string) => ({
  */
 export const getTenantPrisma = (tenantId: string | null | undefined) => {
     if (!tenantId) {
-        // This is expected for SUPER_ADMIN users who operate across all tenants
-        console.debug('ℹ️ getTenantPrisma called without tenantId - returning unscoped prisma (expected for SUPER_ADMIN)');
-        return prisma;
+        throw new Error('Tenant requerido: las consultas globales deben usar prisma explícitamente');
     }
 
     const handlers = createTenantQueryHandlers(tenantId);
@@ -136,7 +144,7 @@ export const getTenantPrisma = (tenantId: string | null | undefined) => {
                             where: { key: (args.where as any).key, tenantId }
                         });
                     }
-                    return query(args);
+                    return query({ ...args, where: { ...args.where, tenantId } });
                 }
             },
             wahaConfig: handlers,
@@ -159,7 +167,7 @@ export const getTenantPrisma = (tenantId: string | null | undefined) => {
             subscription: {
                 async findMany({ args, query }: QueryArgs) {
                     args.where = { ...args.where, tenantId };
-                    return query(args);
+                    return query({ ...args, where: { ...args.where, tenantId } });
                 }
             }
         }
@@ -175,7 +183,7 @@ export const getTenantPrismaFromSlug = async (slug: string) => {
         select: { id: true }
     });
 
-    if (!tenant) return prisma;
+    if (!tenant) throw new Error('Organización no encontrada');
     return getTenantPrisma(tenant.id);
 };
 

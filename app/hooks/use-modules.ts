@@ -2,7 +2,8 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import useSWR from 'swr';
 import { UserRole } from '@prisma/client';
 
 interface ModulePermission {
@@ -45,52 +46,25 @@ interface UseModulesReturn {
   refreshModules: () => Promise<void>;
 }
 
+const EMPTY_MODULES: PWAModule[] = [];
+
 export function useModules(): UseModulesReturn {
   const { data: session, status } = useSession() || {};
-  const [modules, setModules] = useState<PWAModule[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const user = session?.user;
+  const { data, error: fetchError, isLoading, mutate } = useSWR<{ modules: PWAModule[] }>(
+    status === 'authenticated' && user ? ['/api/modules/permissions', user.id, user.tenantId, user.role] : null,
+    async ([url]: string[]) => {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error('No se pudieron cargar los permisos');
+      return response.json();
+    },
+    { dedupingInterval: 5000, keepPreviousData: false }
+  );
+  const modules = data?.modules ?? EMPTY_MODULES;
+  const loading = status === 'loading' || isLoading;
+  const error = fetchError?.message ?? null;
 
-  const fetchModules = async () => {
-    // Si no hay sesión y el estado no es loading, no mostrar loading
-    if (!session?.user?.role) {
-      if (status !== 'loading') {
-        setLoading(false);
-      }
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch('/api/modules/permissions');
-      if (!response.ok) {
-        throw new Error('Error fetching modules');
-      }
-      
-      const data = await response.json();
-      setModules(data.modules || []);
-    } catch (err) {
-      console.error('Error fetching modules:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-      // En caso de error, usar módulos por defecto para no bloquear la UI
-      setModules([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    // Solo ejecutar si la sesión está cargada o hay error
-    if (status === 'loading') {
-      return; // Esperar a que la sesión se cargue
-    }
-    
-    fetchModules();
-  }, [session?.user?.role, status]);
-
-  const isModuleEnabled = (moduleKey: string): boolean => {
+  const isModuleEnabled = useCallback((moduleKey: string): boolean => {
     if (!session?.user?.role) return false;
     
     const module = modules.find(m => m.moduleKey === moduleKey);
@@ -105,7 +79,7 @@ export function useModules(): UseModulesReturn {
     // Check role-specific permissions
     const rolePermission = module.rolePermissions.find(p => p.role === session.user.role);
     return rolePermission?.enabled ?? false;
-  };
+  }, [modules, session?.user?.role]);
 
   const hasPermission = (moduleKey: string, permission?: string): boolean => {
     if (!isModuleEnabled(moduleKey) || !session?.user?.role) return false;
@@ -132,7 +106,7 @@ export function useModules(): UseModulesReturn {
   };
 
   const refreshModules = async () => {
-    await fetchModules();
+    await mutate();
   };
 
   return {
