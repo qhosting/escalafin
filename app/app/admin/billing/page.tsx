@@ -454,15 +454,15 @@ export default function BillingPage() {
                                 <CardContent className="space-y-6">
                                     <div className="flex flex-col">
                                         <div className="flex items-baseline gap-1">
-                                            <span className="text-3xl font-black text-gray-900">${Number(plan.priceMonthly).toLocaleString()}</span>
-                                            <span className="text-sm text-gray-500 font-medium">/mes</span>
+                                            <span className="text-3xl font-black text-foreground">${Number(plan.priceMonthly).toLocaleString()}</span>
+                                            <span className="text-sm text-muted-foreground font-medium">/mes</span>
                                         </div>
                                         {plan.priceYearly && Number(plan.priceYearly) > 0 && (
                                             <div className="flex items-center gap-2 mt-1">
-                                                <Badge variant="outline" className="text-[10px] font-bold border-emerald-100 text-emerald-600 bg-emerald-50">
+                                                <Badge variant="outline" className="text-[10px] font-bold border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10">
                                                     Ahorra {Math.round(100 * (1 - (Number(plan.priceYearly) / (Number(plan.priceMonthly) * 12))))}% anual
                                                 </Badge>
-                                                <span className="text-[10px] text-gray-400 font-medium">
+                                                <span className="text-[10px] text-muted-foreground font-medium">
                                                     (${Math.round(Number(plan.priceYearly) / 12).toLocaleString()}/mes pagando anual)
                                                 </span>
                                             </div>
@@ -470,23 +470,23 @@ export default function BillingPage() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <div className="flex justify-between text-xs border-b pb-2">
-                                            <span className="text-gray-500">Usuarios</span>
-                                            <span className="font-bold">{JSON.parse(plan.limits).users === -1 ? 'Ilimitado' : JSON.parse(plan.limits).users}</span>
+                                        <div className="flex justify-between text-xs border-b border-border/60 pb-2">
+                                            <span className="text-muted-foreground">Usuarios</span>
+                                            <span className="font-bold text-foreground">{JSON.parse(plan.limits).users === -1 ? 'Ilimitado' : JSON.parse(plan.limits).users}</span>
                                         </div>
-                                        <div className="flex justify-between text-xs border-b pb-2">
-                                            <span className="text-gray-500">Préstamos/mes</span>
-                                            <span className="font-bold">{JSON.parse(plan.limits).loans === -1 ? 'Ilimitado' : JSON.parse(plan.limits).loans}</span>
+                                        <div className="flex justify-between text-xs border-b border-border/60 pb-2">
+                                            <span className="text-muted-foreground">Préstamos/mes</span>
+                                            <span className="font-bold text-foreground">{JSON.parse(plan.limits).loans === -1 ? 'Ilimitado' : JSON.parse(plan.limits).loans}</span>
                                         </div>
-                                        <div className="flex justify-between text-xs border-b pb-2">
-                                            <span className="text-gray-500">Clientes</span>
-                                            <span className="font-bold">{JSON.parse(plan.limits).clients === -1 ? 'Ilimitado' : JSON.parse(plan.limits).clients}</span>
+                                        <div className="flex justify-between text-xs border-b border-border/60 pb-2">
+                                            <span className="text-muted-foreground">Clientes</span>
+                                            <span className="font-bold text-foreground">{JSON.parse(plan.limits).clients === -1 ? 'Ilimitado' : JSON.parse(plan.limits).clients}</span>
                                         </div>
                                     </div>
 
                                     <div className="pt-2 flex flex-col gap-2">
                                         <Button
-                                            className="w-full font-bold bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-100"
+                                            className="w-full font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
                                             onClick={() => {
                                                 setSelectedPlan({
                                                     ...plan,
@@ -500,7 +500,7 @@ export default function BillingPage() {
                                         </Button>
                                         <Button
                                             variant="ghost"
-                                            className="w-full font-medium text-gray-500 hover:text-indigo-600 text-xs"
+                                            className="w-full font-medium text-muted-foreground hover:text-foreground text-xs"
                                             onClick={() => handleDuplicatePlan(plan)}
                                         >
                                             <Copy className="h-3 w-3 mr-2" /> Usar como Plantilla
@@ -513,10 +513,10 @@ export default function BillingPage() {
                 </TabsContent>
 
                 <TabsContent value="addons" className="space-y-6">
-                    <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <div className="flex justify-between items-center bg-muted/20 p-4 rounded-xl border border-border/80">
                         <div>
-                            <h3 className="font-bold text-gray-900">Marketplace de Módulos</h3>
-                            <p className="text-sm text-gray-500">Módulos adicionales que los tenants pueden comprar sobre su plan base.</p>
+                            <h3 className="font-bold text-foreground">Marketplace de Módulos</h3>
+                            <p className="text-sm text-muted-foreground">Módulos adicionales que los tenants pueden comprar sobre su plan base.</p>
                         </div>
                         <Button onClick={() => {
                             setNewAddon({ name: '', displayName: '', description: '', priceMonthly: 0, type: 'FEATURE', config: '{}' });
@@ -528,42 +528,42 @@ export default function BillingPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {addons?.map((addon: any) => (
-                            <Card key={addon.id} className="relative overflow-hidden group hover:shadow-lg transition-all border-dashed border-2 border-gray-100 hover:border-indigo-100">
+                            <Card key={addon.id} className="relative overflow-hidden group hover:shadow-lg transition-all border border-border/80 bg-card">
                                 <CardHeader className="pb-2">
                                     <div className="flex justify-between items-start">
                                         <div className="flex items-center gap-2">
-                                            <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
                                                 <LayoutGrid className="h-5 w-5" />
                                             </div>
                                             <div>
-                                                <CardTitle className="text-base font-bold">{addon.displayName}</CardTitle>
+                                                <CardTitle className="text-base font-bold text-foreground">{addon.displayName}</CardTitle>
                                                 <CardDescription className="text-xs font-mono">{addon.name}</CardDescription>
                                             </div>
                                         </div>
-                                        <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider">
+                                        <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider border-border/80">
                                             {addon.type}
                                         </Badge>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <p className="text-sm text-gray-500 h-10 line-clamp-2">{addon.description}</p>
+                                    <p className="text-sm text-muted-foreground h-10 line-clamp-2">{addon.description}</p>
 
                                     <div className="flex items-baseline gap-1">
-                                        <span className="text-2xl font-black text-indigo-600">${Number(addon.priceMonthly).toLocaleString()}</span>
-                                        <span className="text-xs text-gray-400">/mes</span>
+                                        <span className="text-2xl font-black text-primary">${Number(addon.priceMonthly).toLocaleString()}</span>
+                                        <span className="text-xs text-muted-foreground">/mes</span>
                                     </div>
 
-                                    <div className="flex justify-between items-center text-xs text-gray-400 pt-2 border-t border-gray-50">
+                                    <div className="flex justify-between items-center text-xs text-muted-foreground pt-2 border-t border-border/60">
                                         <span>Activo en {addon.activeCount || 0} orgs</span>
                                         <div className="flex gap-2">
-                                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
+                                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                                                 onClick={() => {
                                                     setSelectedAddon(addon);
                                                     setIsEditAddonOpen(true);
                                                 }}>
                                                 <PencilSquareIcon className="h-4 w-4" />
                                             </Button>
-                                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-red-400 hover:text-red-500"
+                                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive/70 hover:text-destructive"
                                                 onClick={() => handleDeleteAddon(addon.id)}>
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
@@ -573,93 +573,93 @@ export default function BillingPage() {
                             </Card>
                         ))}
                         {(!addons || addons.length === 0) && (
-                            <div className="col-span-full text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                <p className="text-gray-400 font-medium">No hay add-ons creados.</p>
+                            <div className="col-span-full text-center py-12 bg-muted/20 rounded-xl border border-dashed border-border">
+                                <p className="text-muted-foreground font-medium">No hay add-ons creados.</p>
                             </div>
                         )}
                     </div>
                 </TabsContent>
 
                 <TabsContent value="compare">
-                    <Card className="border-gray-100 shadow-xl overflow-hidden rounded-3xl">
+                    <Card className="border-border/80 bg-card shadow-xs overflow-hidden rounded-2xl">
                         <Table>
-                            <TableHeader className="bg-gray-50/50">
-                                <TableRow>
-                                    <TableHead className="w-[200px] font-black uppercase text-[10px] tracking-widest text-gray-400">Características</TableHead>
+                            <TableHeader className="bg-muted/40">
+                                <TableRow className="border-border/70">
+                                    <TableHead className="w-[200px] font-black uppercase text-[10px] tracking-widest text-muted-foreground">Características</TableHead>
                                     {plans?.filter((p: any) => p.isActive).map((plan: any) => (
                                         <TableHead key={plan.id} className="text-center min-w-[150px]">
                                             <div className="flex flex-col items-center py-2">
-                                                {plan.isPopular && <Badge className="mb-1 text-[8px] h-4 bg-indigo-600">POPULAR</Badge>}
-                                                <span className="font-black text-gray-900">{plan.displayName}</span>
-                                                <span className="text-[10px] text-gray-500 font-mono tracking-tighter">ID: {plan.name}</span>
+                                                {plan.isPopular && <Badge className="mb-1 text-[8px] h-4 bg-primary text-primary-foreground">POPULAR</Badge>}
+                                                <span className="font-bold text-foreground">{plan.displayName}</span>
+                                                <span className="text-[10px] text-muted-foreground font-mono tracking-tighter">ID: {plan.name}</span>
                                             </div>
                                         </TableHead>
                                     ))}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow>
-                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Precio Mensual</TableCell>
+                                <TableRow className="border-border/60">
+                                    <TableCell className="font-bold text-foreground bg-muted/20">Precio Mensual</TableCell>
                                     {plans?.filter((p: any) => p.isActive).map((plan: any) => (
-                                        <TableCell key={plan.id} className="text-center font-black text-indigo-600">
+                                        <TableCell key={plan.id} className="text-center font-black text-primary font-mono">
                                             ${Number(plan.priceMonthly).toLocaleString()}
                                         </TableCell>
                                     ))}
                                 </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Límite Usuarios</TableCell>
+                                <TableRow className="border-border/60">
+                                    <TableCell className="font-bold text-foreground bg-muted/20">Límite Usuarios</TableCell>
                                     {plans?.filter((p: any) => p.isActive).map((plan: any) => {
                                         const lim = JSON.parse(plan.limits).users;
                                         return (
-                                            <TableCell key={plan.id} className="text-center">
-                                                {lim === -1 ? <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">Ilimitado</Badge> : lim}
+                                            <TableCell key={plan.id} className="text-center text-foreground">
+                                                {lim === -1 ? <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">Ilimitado</Badge> : lim}
                                             </TableCell>
                                         );
                                     })}
                                 </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Límite Préstamos</TableCell>
+                                <TableRow className="border-border/60">
+                                    <TableCell className="font-bold text-foreground bg-muted/20">Límite Préstamos</TableCell>
                                     {plans?.filter((p: any) => p.isActive).map((plan: any) => {
                                         const lim = JSON.parse(plan.limits).loans;
                                         return (
-                                            <TableCell key={plan.id} className="text-center">
-                                                {lim === -1 ? <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">Ilimitado</Badge> : lim}
+                                            <TableCell key={plan.id} className="text-center text-foreground">
+                                                {lim === -1 ? <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">Ilimitado</Badge> : lim}
                                             </TableCell>
                                         );
                                     })}
                                 </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Límite Clientes</TableCell>
+                                <TableRow className="border-border/60">
+                                    <TableCell className="font-bold text-foreground bg-muted/20">Límite Clientes</TableCell>
                                     {plans?.filter((p: any) => p.isActive).map((plan: any) => {
                                         const lim = JSON.parse(plan.limits).clients;
                                         return (
-                                            <TableCell key={plan.id} className="text-center">
-                                                {lim === -1 ? <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">Ilimitado</Badge> : lim}
+                                            <TableCell key={plan.id} className="text-center text-foreground">
+                                                {lim === -1 ? <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">Ilimitado</Badge> : lim}
                                             </TableCell>
                                         );
                                     })}
                                 </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Storage (GB)</TableCell>
+                                <TableRow className="border-border/60">
+                                    <TableCell className="font-bold text-foreground bg-muted/20">Storage (GB)</TableCell>
                                     {plans?.filter((p: any) => p.isActive).map((plan: any) => {
                                         const lim = JSON.parse(plan.limits).storageGB || 5;
                                         return (
-                                            <TableCell key={plan.id} className="text-center">
+                                            <TableCell key={plan.id} className="text-center text-foreground">
                                                 {lim === -1 ? 'Ilimitado' : `${lim} GB`}
                                             </TableCell>
                                         );
                                     })}
                                 </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Días Trial</TableCell>
+                                <TableRow className="border-border/60">
+                                    <TableCell className="font-bold text-foreground bg-muted/20">Días Trial</TableCell>
                                     {plans?.filter((p: any) => p.isActive).map((plan: any) => (
-                                        <TableCell key={plan.id} className="text-center">
+                                        <TableCell key={plan.id} className="text-center text-foreground">
                                             {plan.trialDays} días
                                         </TableCell>
                                     ))}
                                 </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-bold text-gray-700 bg-gray-50/20">Configurable</TableCell>
+                                <TableRow className="border-border/60">
+                                    <TableCell className="font-bold text-foreground bg-muted/20">Configurable</TableCell>
                                     {plans?.filter((p: any) => p.isActive).map((plan: any) => (
                                         <TableCell key={plan.id} className="text-center">
                                             <Button variant="ghost" size="sm" onClick={() => {
@@ -681,10 +681,10 @@ export default function BillingPage() {
                 </TabsContent>
 
                 <TabsContent value="subscriptions">
-                    <Card className="border-gray-100 shadow-sm">
+                    <Card className="border-border/80 bg-card shadow-xs overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100">
+                                <thead className="bg-muted/40 text-muted-foreground font-medium border-b border-border/70 text-xs">
                                     <tr>
                                         <th className="px-6 py-4">Tenant / Organización</th>
                                         <th className="px-6 py-4">Plan Actual</th>
@@ -693,25 +693,25 @@ export default function BillingPage() {
                                         <th className="px-6 py-4 text-right">MRR</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody className="divide-y divide-border/60">
                                     {subsData?.subscriptions?.map((sub: any) => (
-                                        <tr key={sub.id} className="hover:bg-gray-50/50 transition-colors group">
+                                        <tr key={sub.id} className="hover:bg-muted/30 transition-colors group">
                                             <td className="px-6 py-4">
-                                                <div className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{sub.tenant.name}</div>
-                                                <div className="text-xs text-gray-500 font-mono">{sub.tenant.slug}</div>
+                                                <div className="font-bold text-foreground group-hover:text-primary transition-colors">{sub.tenant.name}</div>
+                                                <div className="text-xs text-muted-foreground font-mono">{sub.tenant.slug}</div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <Badge variant="outline" className="font-bold border-gray-200 text-gray-700">
+                                                <Badge variant="outline" className="font-semibold border-border/80 text-foreground">
                                                     {sub.plan.displayName}
                                                 </Badge>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <StatusBadge status={sub.status} />
                                             </td>
-                                            <td className="px-6 py-4 text-xs text-gray-500">
+                                            <td className="px-6 py-4 text-xs text-muted-foreground">
                                                 {format(new Date(sub.currentPeriodStart), 'd MMM', { locale: es })} - {format(new Date(sub.currentPeriodEnd), 'd MMM yyyy', { locale: es })}
                                             </td>
-                                            <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">
+                                            <td className="px-6 py-4 text-right font-mono font-bold text-foreground">
                                                 ${Number(sub.plan.priceMonthly).toLocaleString()}
                                             </td>
                                         </tr>
@@ -722,59 +722,59 @@ export default function BillingPage() {
                     </Card>
                 </TabsContent>
                 <TabsContent value="history">
-                    <Card className="border-gray-100 shadow-sm overflow-hidden">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
+                    <Card className="border-border/80 bg-card shadow-xs overflow-hidden">
+                        <div className="p-4 border-b border-border/70 flex justify-between items-center bg-muted/20">
                             <div>
-                                <h3 className="font-black text-gray-900 flex items-center gap-2">
-                                    <ClipboardList className="w-4 h-4 text-indigo-600" /> Registro de Auditoría: Planes
+                                <h3 className="font-bold text-foreground flex items-center gap-2 text-sm">
+                                    <ClipboardList className="w-4 h-4 text-primary" /> Registro de Auditoría: Planes
                                 </h3>
-                                <p className="text-xs text-gray-500 mt-0.5">Historial de creación, modificación y eliminación de planes de la plataforma.</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">Historial de creación, modificación y eliminación de planes de la plataforma.</p>
                             </div>
                         </div>
                         <div className="overflow-x-auto">
                             <Table>
-                                <TableHeader className="bg-gray-50/50">
-                                    <TableRow>
-                                        <TableHead className="w-[180px]">Fecha / Hora</TableHead>
-                                        <TableHead>Acción</TableHead>
-                                        <TableHead>Usuario</TableHead>
-                                        <TableHead>Recurso</TableHead>
-                                        <TableHead>Detalles</TableHead>
+                                <TableHeader className="bg-muted/40">
+                                    <TableRow className="border-border/70">
+                                        <TableHead className="w-[180px] text-xs font-semibold text-muted-foreground">Fecha / Hora</TableHead>
+                                        <TableHead className="text-xs font-semibold text-muted-foreground">Acción</TableHead>
+                                        <TableHead className="text-xs font-semibold text-muted-foreground">Usuario</TableHead>
+                                        <TableHead className="text-xs font-semibold text-muted-foreground">Recurso</TableHead>
+                                        <TableHead className="text-xs font-semibold text-muted-foreground">Detalles</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {auditLogs?.map((log: any) => (
-                                        <TableRow key={log.id} className="text-xs group hover:bg-gray-50/50">
-                                            <td className="px-4 py-3 font-mono text-gray-400 group-hover:text-indigo-600 transition-colors">
+                                        <TableRow key={log.id} className="text-xs group hover:bg-muted/30 border-border/60">
+                                            <td className="px-4 py-3 font-mono text-muted-foreground group-hover:text-primary transition-colors">
                                                 {format(new Date(log.timestamp), 'dd/MM/yyyy HH:mm:ss')}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <Badge variant="outline" className={`font-bold text-[10px] ${log.action.includes('CREATE') ? 'border-emerald-200 text-emerald-700 bg-emerald-50/50' :
-                                                    log.action.includes('DELETE') ? 'border-rose-200 text-rose-700 bg-rose-50/50' :
-                                                        'border-blue-200 text-blue-700 bg-blue-50/50'
+                                                <Badge variant="outline" className={`font-bold text-[10px] ${log.action.includes('CREATE') ? 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10' :
+                                                    log.action.includes('DELETE') ? 'border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/10' :
+                                                        'border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-500/10'
                                                     }`}>
                                                     {log.action}
                                                 </Badge>
                                             </td>
-                                            <td className="px-4 py-3 font-medium text-gray-700">
+                                            <td className="px-4 py-3 font-medium text-foreground">
                                                 {log.user?.firstName || log.userEmail}
                                             </td>
-                                            <td className="px-4 py-3 font-bold text-gray-900">
+                                            <td className="px-4 py-3 font-bold text-foreground">
                                                 {log.resourceId ? (
                                                     <div className="flex flex-col">
                                                         <span>{log.details ? JSON.parse(log.details).displayName : 'Plan'}</span>
-                                                        <span className="text-[10px] text-gray-400 font-mono tracking-tighter">ID: {log.resourceId}</span>
+                                                        <span className="text-[10px] text-muted-foreground font-mono tracking-tighter">ID: {log.resourceId}</span>
                                                     </div>
                                                 ) : 'Global'}
                                             </td>
-                                            <td className="px-4 py-3 text-gray-500 italic max-w-xs truncate">
+                                            <td className="px-4 py-3 text-muted-foreground italic max-w-xs truncate">
                                                 {log.details ? log.details : 'Sin detalles adicionales'}
                                             </td>
                                         </TableRow>
                                     ))}
                                     {(!auditLogs || auditLogs.length === 0) && (
                                         <TableRow>
-                                            <TableCell colSpan={5} className="text-center py-10 text-gray-400 italic">
+                                            <TableCell colSpan={5} className="text-center py-10 text-muted-foreground italic">
                                                 No se encontraron registros de auditoría para los planes.
                                             </TableCell>
                                         </TableRow>

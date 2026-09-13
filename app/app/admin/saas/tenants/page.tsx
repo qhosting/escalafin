@@ -304,41 +304,41 @@ export default function TenantsManagementPage() {
             </div>
 
             {/* 3. Tabla de Organizaciones */}
-            <Card className="border border-border/80 shadow-xs overflow-hidden">
+            <Card className="border border-border/80 bg-card shadow-xs overflow-hidden">
                 <Table>
                     <TableHeader className="bg-muted/40">
-                        <TableRow className="hover:bg-transparent">
-                            <TableHead className="text-xs">Organización</TableHead>
-                            <TableHead className="text-xs">Estado</TableHead>
-                            <TableHead className="text-xs">Plan</TableHead>
-                            <TableHead className="text-xs">WhatsApp</TableHead>
-                            <TableHead className="text-xs">Uso (U/P/C)</TableHead>
-                            <TableHead className="text-xs">Fecha Registro</TableHead>
-                            <TableHead className="text-right text-xs">Acciones</TableHead>
+                        <TableRow className="border-border/70 hover:bg-transparent">
+                            <TableHead className="text-xs font-semibold text-muted-foreground">Organización</TableHead>
+                            <TableHead className="text-xs font-semibold text-muted-foreground">Estado</TableHead>
+                            <TableHead className="text-xs font-semibold text-muted-foreground">Plan</TableHead>
+                            <TableHead className="text-xs font-semibold text-muted-foreground">WhatsApp</TableHead>
+                            <TableHead className="text-xs font-semibold text-muted-foreground">Uso (U/P/C)</TableHead>
+                            <TableHead className="text-xs font-semibold text-muted-foreground">Fecha Registro</TableHead>
+                            <TableHead className="text-right text-xs font-semibold text-muted-foreground">Acciones</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {filteredTenants?.map((tenant: any) => (
-                            <TableRow key={tenant.id} className="hover:bg-gray-50/50">
+                            <TableRow key={tenant.id} className="hover:bg-muted/40 border-border/60 transition-colors">
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         {tenant.logo && (
-                                            <img src={tenant.logo} alt={tenant.name} className="w-8 h-8 rounded object-contain border bg-white" />
+                                            <img src={tenant.logo} alt={tenant.name} className="w-8 h-8 rounded object-contain border border-border bg-white dark:bg-slate-900 p-0.5" />
                                         )}
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-gray-900">{tenant.name}</span>
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="font-semibold text-foreground text-sm tracking-tight">{tenant.name}</span>
                                             <div className="flex gap-2 items-center">
-                                                <span className="text-xs text-gray-500 font-mono">/{tenant.slug}</span>
+                                                <span className="text-xs text-muted-foreground font-mono">/{tenant.slug}</span>
                                                 {tenant.isDemo && (
-                                                    <Badge className="bg-amber-100 text-amber-700 h-4 border-none text-[8px] font-black tracking-widest">DEMO</Badge>
+                                                    <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 h-4 text-[8px] font-black tracking-widest">DEMO</Badge>
                                                 )}
                                             </div>
-                                            {tenant.domain && <span className="text-[10px] text-indigo-500 font-medium">{tenant.domain}</span>}
+                                            {tenant.domain && <span className="text-[10px] text-primary/80 font-medium">{tenant.domain}</span>}
                                         </div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant={tenant.status === 'ACTIVE' ? 'default' : 'destructive'} className={tenant.status === 'ACTIVE' ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}>
+                                    <Badge variant="outline" className={tenant.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25 font-semibold text-xs py-0.5' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25 font-semibold text-xs py-0.5'}>
                                         {tenant.status === 'ACTIVE' ? (
                                             <><CheckCircle2 className="h-3 w-3 mr-1" /> Activo</>
                                         ) : (
@@ -347,25 +347,25 @@ export default function TenantsManagementPage() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex flex-col">
-                                        <Badge variant="outline" className="w-fit text-indigo-700 border-indigo-200">
+                                    <div className="flex flex-col gap-1">
+                                        <Badge variant="outline" className="w-fit text-indigo-600 dark:text-indigo-400 border-indigo-500/30 bg-indigo-500/10 font-medium text-xs">
                                             {tenant.subscription?.plan?.displayName || 'Sin Plan'}
                                         </Badge>
                                         {tenant.subscription?.status === 'TRIALING' && (
-                                            <span className="text-[10px] text-amber-600 font-bold uppercase mt-1">Trial</span>
+                                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase">Trial</span>
                                         )}
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex flex-col gap-1">
                                         <div className="flex items-center gap-1.5">
-                                            <div className={`h-2 w-2 rounded-full ${tenant.whatsappStatus === 'ACTIVE' ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
-                                            <span className={`text-[11px] font-bold ${tenant.whatsappStatus === 'ACTIVE' ? 'text-green-700' : 'text-gray-500'}`}>
+                                            <div className={`h-2 w-2 rounded-full ${tenant.whatsappStatus === 'ACTIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground/40'}`} />
+                                            <span className={`text-[11px] font-bold ${tenant.whatsappStatus === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
                                                 {tenant.whatsappStatus === 'ACTIVE' ? 'VINCULADO' : 'NO VINCULADO'}
                                             </span>
                                         </div>
                                         {tenant.whatsappPhone && (
-                                            <div className="flex items-center text-[10px] text-gray-500 font-mono">
+                                            <div className="flex items-center text-[10px] text-muted-foreground font-mono">
                                                 <Phone className="h-2.5 w-2.5 mr-1" />
                                                 +{tenant.whatsappPhone}
                                             </div>
@@ -373,22 +373,31 @@ export default function TenantsManagementPage() {
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                                        <Users className="h-3 w-3" /> {tenant._count?.users || 0}
-                                        <CreditCard className="h-3 w-3 ml-2" /> {tenant._count?.loans || 0}
-                                        <Building2 className="h-3 w-3 ml-2" /> {tenant._count?.clients || 0}
+                                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                        <span className="flex items-center gap-1" title="Usuarios">
+                                            <Users className="h-3 w-3 text-muted-foreground/70" />
+                                            <span className="text-foreground font-medium">{tenant._count?.users || 0}</span>
+                                        </span>
+                                        <span className="flex items-center gap-1" title="Préstamos">
+                                            <CreditCard className="h-3 w-3 text-muted-foreground/70" />
+                                            <span className="text-foreground font-medium">{tenant._count?.loans || 0}</span>
+                                        </span>
+                                        <span className="flex items-center gap-1" title="Clientes">
+                                            <Building2 className="h-3 w-3 text-muted-foreground/70" />
+                                            <span className="text-foreground font-medium">{tenant._count?.clients || 0}</span>
+                                        </span>
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-gray-500 text-sm">
+                                <TableCell className="text-muted-foreground text-xs font-mono">
                                     {new Date(tenant.createdAt).toLocaleDateString()}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
+                                    <div className="flex justify-end gap-1.5">
                                         <Link href={`/admin/saas/tenants/${tenant.id}/users`}>
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                className="h-8 py-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                                                className="h-8 py-1 text-primary border-primary/30 hover:bg-primary/10 text-xs"
                                             >
                                                 <Users className="h-3 w-3 mr-1" /> Usuarios
                                             </Button>
@@ -396,7 +405,7 @@ export default function TenantsManagementPage() {
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            className="h-8 py-1"
+                                            className="h-8 py-1 border-border/80 text-foreground hover:bg-muted text-xs"
                                             onClick={() => handleEditTenant(tenant)}
                                         >
                                             <Edit2 className="h-3 w-3 mr-1" /> Editar
@@ -404,7 +413,7 @@ export default function TenantsManagementPage() {
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            className={`h-8 py-1 ${tenant.status === 'ACTIVE' ? 'text-red-500 hover:text-red-600 hover:bg-red-50' : 'text-green-500 hover:text-green-600 hover:bg-green-50'}`}
+                                            className={`h-8 py-1 text-xs ${tenant.status === 'ACTIVE' ? 'text-rose-600 dark:text-rose-400 hover:bg-rose-500/10' : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'}`}
                                             onClick={() => updateStatus(tenant.id, tenant.status)}
                                         >
                                             {tenant.status === 'ACTIVE' ? 'Suspender' : 'Activar'}
@@ -412,7 +421,7 @@ export default function TenantsManagementPage() {
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            className="h-8 py-1 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                            className="h-8 py-1 text-destructive/80 hover:text-destructive hover:bg-destructive/10 text-xs"
                                             onClick={() => {
                                                 setTenantToDelete(tenant);
                                                 setIsDeleteDialogOpen(true);
@@ -429,7 +438,7 @@ export default function TenantsManagementPage() {
                 </Table>
                 {filteredTenants?.length === 0 && (
                     <div className="text-center py-10">
-                        <p className="text-gray-500 italic">No se encontraron organizaciones con esos criterios.</p>
+                        <p className="text-muted-foreground italic text-sm">No se encontraron organizaciones con esos criterios.</p>
                     </div>
                 )}
             </Card>
@@ -529,7 +538,7 @@ export default function TenantsManagementPage() {
                                         checked={editingTenant.isDemo}
                                         onCheckedChange={(checked) => setEditingTenant({ ...editingTenant, isDemo: checked })}
                                     />
-                                    <span className="text-sm text-gray-500">{editingTenant.isDemo ? 'Excluir de ingresos' : 'Cuenta real'}</span>
+                                    <span className="text-sm text-muted-foreground">{editingTenant.isDemo ? 'Excluir de ingresos' : 'Cuenta real'}</span>
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
@@ -564,14 +573,14 @@ export default function TenantsManagementPage() {
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <AlertDialogContent className="border-red-100 bg-white">
+                <AlertDialogContent className="border-destructive/30 bg-card">
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+                        <AlertDialogTitle className="text-destructive flex items-center gap-2">
                             <AlertCircle className="h-5 w-5" />
                             ¿Eliminar organización permanentemente?
                         </AlertDialogTitle>
                         <AlertDialogDescription className="space-y-4 pt-2">
-                            <div className="bg-red-50 p-4 rounded-lg border border-red-100 text-red-700 text-sm">
+                            <div className="bg-destructive/10 p-4 rounded-lg border border-destructive/20 text-destructive text-sm">
                                 <strong>ADVERTENCIA CRÍTICA:</strong> Esta acción eliminará permanentemente la organización 
                                 <span className="font-bold underline ml-1">{tenantToDelete?.name}</span> y 
                                 <strong> TODA</strong> la información relacionada:
@@ -586,15 +595,15 @@ export default function TenantsManagementPage() {
                             </div>
                             
                             <div className="space-y-2">
-                                <Label htmlFor="confirm-slug" className="text-gray-700">
-                                    Para confirmar, escribe el slug de la organización: <span className="font-mono font-bold text-gray-900">{tenantToDelete?.slug}</span>
+                                <Label htmlFor="confirm-slug" className="text-foreground">
+                                    Para confirmar, escribe el slug de la organización: <span className="font-mono font-bold text-foreground">{tenantToDelete?.slug}</span>
                                 </Label>
                                 <Input
                                     id="confirm-slug"
                                     placeholder="Escribe el slug aquí..."
                                     value={deleteConfirmSlug}
                                     onChange={(e) => setDeleteConfirmSlug(e.target.value)}
-                                    className="border-red-200 focus:ring-red-500"
+                                    className="border-destructive/30 focus:ring-destructive bg-background text-foreground"
                                 />
                             </div>
                         </AlertDialogDescription>
@@ -610,7 +619,7 @@ export default function TenantsManagementPage() {
                             variant="destructive"
                             onClick={handleDeleteTenant}
                             disabled={isDeleting || deleteConfirmSlug !== tenantToDelete?.slug}
-                            className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                            className="bg-destructive hover:bg-destructive/90 disabled:opacity-50"
                         >
                             {isDeleting ? (
                                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Eliminando...</>

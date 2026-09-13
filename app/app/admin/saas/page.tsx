@@ -152,14 +152,14 @@ export default function SaaSOverviewV2() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Main Growth Chart */}
-                <Card className="lg:col-span-8 shadow-sm border-gray-100 overflow-hidden">
-                    <CardHeader className="border-b bg-gray-50/30">
+                <Card className="lg:col-span-8 shadow-xs border-border/80 bg-card overflow-hidden">
+                    <CardHeader className="border-b border-border/70 bg-muted/20">
                         <div className="flex items-center justify-between">
                             <div>
-                                <CardTitle className="text-lg">Crecimiento y Escala</CardTitle>
-                                <CardDescription>Histórico mensual de usuarios, préstamos y clientes activos.</CardDescription>
+                                <CardTitle className="text-lg text-foreground">Crecimiento y Escala</CardTitle>
+                                <CardDescription className="text-muted-foreground">Histórico mensual de usuarios, préstamos y clientes activos.</CardDescription>
                             </div>
-                            <Activity className="h-5 w-5 text-gray-400" />
+                            <Activity className="h-5 w-5 text-muted-foreground" />
                         </div>
                     </CardHeader>
                     <CardContent className="pt-6">
@@ -168,31 +168,33 @@ export default function SaaSOverviewV2() {
                                 <AreaChart data={stats.chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.1} />
+                                            <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2} />
                                             <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
                                         </linearGradient>
                                         <linearGradient id="colorLoans" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
+                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
                                             <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border/40" />
                                     <XAxis
                                         dataKey="month"
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fontSize: 12, fill: '#9ca3af' }}
+                                        tick={{ fontSize: 12, fill: 'currentColor' }}
+                                        className="text-muted-foreground"
                                         dy={10}
                                     />
                                     <YAxis
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fontSize: 12, fill: '#9ca3af' }}
+                                        tick={{ fontSize: 12, fill: 'currentColor' }}
+                                        className="text-muted-foreground"
                                     />
                                     <Tooltip
-                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                        contentStyle={{ borderRadius: '12px', backgroundColor: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.3)' }}
                                     />
-                                    <Area type="monotone" dataKey="usersCount" name="Usuarios" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
+                                    <Area type="monotone" dataKey="usersCount" name="Usuarios" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
                                     <Area type="monotone" dataKey="loansCount" name="Préstamos" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorLoans)" />
                                     <Area type="monotone" dataKey="clientsCount" name="Clientes" stroke="#f59e0b" strokeWidth={3} fill="none" />
                                 </AreaChart>
@@ -202,10 +204,10 @@ export default function SaaSOverviewV2() {
                 </Card>
 
                 {/* Subscriptions breakdown */}
-                <Card className="lg:col-span-4 shadow-sm border-gray-100">
-                    <CardHeader className="border-b bg-gray-50/30">
-                        <CardTitle className="text-lg">Incentivos y Mezcla</CardTitle>
-                        <CardDescription>Suscripciones activas por plan.</CardDescription>
+                <Card className="lg:col-span-4 shadow-xs border-border/80 bg-card">
+                    <CardHeader className="border-b border-border/70 bg-muted/20">
+                        <CardTitle className="text-lg text-foreground">Incentivos y Mezcla</CardTitle>
+                        <CardDescription className="text-muted-foreground">Suscripciones activas por plan.</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-6">
                         <div className="h-[250px] w-full">
@@ -224,7 +226,7 @@ export default function SaaSOverviewV2() {
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
-                                    <Tooltip />
+                                    <Tooltip contentStyle={{ borderRadius: '12px', backgroundColor: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
@@ -233,9 +235,9 @@ export default function SaaSOverviewV2() {
                                 <div key={entry.name} className="flex items-center justify-between text-sm">
                                     <div className="flex items-center gap-2">
                                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                                        <span className="text-gray-600 font-medium">{entry.name}</span>
+                                        <span className="text-muted-foreground font-medium">{entry.name}</span>
                                     </div>
-                                    <span className="font-bold text-gray-900">{entry.value}</span>
+                                    <span className="font-bold text-foreground">{entry.value}</span>
                                 </div>
                             ))}
                         </div>
@@ -245,36 +247,36 @@ export default function SaaSOverviewV2() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Recent Tenants */}
-                <Card className="lg:col-span-1 shadow-sm border-gray-100">
-                    <CardHeader className="border-b bg-gray-50/30">
-                        <CardTitle className="text-md flex items-center justify-between">
+                <Card className="lg:col-span-1 shadow-xs border-border/80 bg-card">
+                    <CardHeader className="border-b border-border/70 bg-muted/20">
+                        <CardTitle className="text-md text-foreground flex items-center justify-between">
                             Nuevos Despliegues
-                            <Layers className="h-4 w-4 text-gray-400" />
+                            <Layers className="h-4 w-4 text-muted-foreground" />
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <div className="divide-y divide-gray-50">
+                        <div className="divide-y divide-border/60">
                             {stats.recentActivity.map((activity: any) => (
-                                <div key={activity.id} className="p-4 hover:bg-gray-50/50 transition-colors group flex items-start gap-3">
-                                    <div className="mt-1 w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors lowercase font-bold text-xs ring-4 ring-white shadow-sm">
+                                <div key={activity.id} className="p-4 hover:bg-muted/30 transition-colors group flex items-start gap-3">
+                                    <div className="mt-1 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs ring-2 ring-border shadow-xs lowercase">
                                         {activity.tenant[0]}
                                     </div>
-                                    <div className="flex-1">
+                                    <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between">
-                                            <h4 className="text-sm font-bold text-gray-900">{activity.tenant}</h4>
-                                            <span className="text-[10px] text-gray-400">{new Date(activity.date).toLocaleDateString()}</span>
+                                            <h4 className="text-sm font-bold text-foreground truncate">{activity.tenant}</h4>
+                                            <span className="text-[10px] text-muted-foreground">{new Date(activity.date).toLocaleDateString()}</span>
                                         </div>
                                         <div className="flex items-center gap-2 mt-1">
                                             <Badge variant="secondary" className="text-[10px] py-0">{activity.plan}</Badge>
-                                            <span className="text-[10px] text-gray-400">Instancia Activa</span>
+                                            <span className="text-[10px] text-muted-foreground">Instancia Activa</span>
                                         </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <div className="p-3 bg-gray-50/50 border-t">
+                        <div className="p-3 bg-muted/20 border-t border-border/70">
                             <Link href="/admin/saas/tenants" className="w-full block">
-                                <Button variant="ghost" className="w-full text-xs text-indigo-600 font-bold hover:bg-indigo-50" size="sm">
+                                <Button variant="ghost" className="w-full text-xs text-primary font-bold hover:bg-primary/10" size="sm">
                                     Ver todos los Tenants
                                 </Button>
                             </Link>
@@ -283,59 +285,59 @@ export default function SaaSOverviewV2() {
                 </Card>
 
                 {/* Infrastructure Monitor */}
-                <Card className="lg:col-span-2 shadow-sm border-gray-100">
-                    <CardHeader className="border-b bg-gray-50/30">
-                        <CardTitle className="text-md flex items-center justify-between">
+                <Card className="lg:col-span-2 shadow-xs border-border/80 bg-card">
+                    <CardHeader className="border-b border-border/70 bg-muted/20">
+                        <CardTitle className="text-md text-foreground flex items-center justify-between">
                             Monitoreo de Infraestructura
-                            <Server className="h-4 w-4 text-gray-400" />
+                            <Server className="h-4 w-4 text-muted-foreground" />
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <div className="flex justify-between text-xs font-bold uppercase text-gray-400 tracking-wider">
+                                    <div className="flex justify-between text-xs font-bold uppercase text-muted-foreground tracking-wider">
                                         <span>Tamaño Base de Datos ({stats.infrastructure.dbSize})</span>
-                                        <span className="text-indigo-600">
+                                        <span className="text-primary font-mono">
                                             {((stats.infrastructure.dbBytes / (1024 * 1024 * 1024)) * 100).toFixed(1)}% 
-                                            <span className="text-[10px] text-gray-400 ml-1">de 1GB cuota</span>
+                                            <span className="text-[10px] text-muted-foreground ml-1">de 1GB cuota</span>
                                         </span>
                                     </div>
-                                    <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                                         <div 
-                                            className="h-full bg-indigo-500 rounded-full transition-all duration-1000" 
+                                            className="h-full bg-primary rounded-full transition-all duration-1000" 
                                             style={{ width: `${Math.min(100, (stats.infrastructure.dbBytes / (1024 * 1024 * 1024)) * 100)}%` }}
                                         ></div>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <div className="flex justify-between text-xs font-bold uppercase text-gray-400 tracking-wider">
+                                    <div className="flex justify-between text-xs font-bold uppercase text-muted-foreground tracking-wider">
                                         <span>Rendimiento API (Latencia DB)</span>
-                                        <span className={stats.infrastructure.dbLatency < 100 ? "text-emerald-600" : "text-amber-600"}>
+                                        <span className={stats.infrastructure.dbLatency < 100 ? "text-emerald-500 font-mono" : "text-amber-500 font-mono"}>
                                             {stats.infrastructure.dbLatency}ms
                                         </span>
                                     </div>
                                     <div className="flex items-end gap-1 h-8">
                                         {[40, 60, 30, 80, 50, 90, 45, 70, 60, 85, 40, 55].map((h, i) => (
-                                            <div key={i} className="flex-1 bg-emerald-100 group hover:bg-emerald-500 transition-colors h-full flex flex-col justify-end">
-                                                <div className="w-full bg-emerald-500 rounded-t" style={{ height: `${h}%` }}></div>
+                                            <div key={i} className="flex-1 bg-emerald-500/20 group hover:bg-emerald-500 transition-colors h-full flex flex-col justify-end rounded-t-sm">
+                                                <div className="w-full bg-emerald-500 rounded-t-sm" style={{ height: `${h}%` }}></div>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-indigo-900 rounded-xl p-6 text-white text-center relative overflow-hidden shadow-xl shadow-indigo-200">
+                            <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-950 rounded-xl p-6 text-white text-center relative overflow-hidden border border-indigo-500/20 shadow-xl">
                                 <GlobeAltIcon className="h-32 w-32 absolute -bottom-10 -right-10 opacity-10" />
-                                <h4 className="text-lg font-bold mb-2">Estado Proceso Node.js</h4>
-                                <p className="text-indigo-200 text-xs leading-relaxed mb-4">Memoria Heap: {stats.infrastructure.memoryUsage.percentUsed}% utilizada ({stats.infrastructure.memoryUsage.heapUsed.toFixed(0)} MB)</p>
+                                <h4 className="text-lg font-bold mb-2 text-white">Estado Proceso Node.js</h4>
+                                <p className="text-slate-300 text-xs leading-relaxed mb-4">Memoria Heap: {stats.infrastructure.memoryUsage.percentUsed}% utilizada ({stats.infrastructure.memoryUsage.heapUsed.toFixed(0)} MB)</p>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-indigo-800/50 p-3 rounded-lg border border-indigo-700">
-                                        <p className="text-[10px] uppercase font-bold text-indigo-300">Latencia Redis</p>
-                                        <p className="text-xl font-black">{stats.infrastructure.redisLatency}ms</p>
+                                    <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700/60">
+                                        <p className="text-[10px] uppercase font-bold text-slate-400">Latencia Redis</p>
+                                        <p className="text-xl font-black text-white">{stats.infrastructure.redisLatency}ms</p>
                                     </div>
-                                    <div className="bg-indigo-800/50 p-3 rounded-lg border border-indigo-700">
-                                        <p className="text-[10px] uppercase font-bold text-indigo-300">Uptime Total</p>
-                                        <p className="text-xl font-black">{(stats.infrastructure.uptime / 3600).toFixed(1)}h</p>
+                                    <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700/60">
+                                        <p className="text-[10px] uppercase font-bold text-slate-400">Uptime Total</p>
+                                        <p className="text-xl font-black text-white">{(stats.infrastructure.uptime / 3600).toFixed(1)}h</p>
                                     </div>
                                 </div>
                             </div>
