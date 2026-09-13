@@ -99,17 +99,7 @@ export default function BillingPage() {
     });
 
     if (plansLoading || subsLoading || addonsLoading) {
-        return (
-            <div className="space-y-8 p-1">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div>
-                        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Billing & Monetización</h1>
-                        <p className="text-gray-500 mt-1">Gestión centralizada de precios, planes y suscripciones globales.</p>
-                    </div>
-                </div>
-                <DashboardSkeleton />
-            </div>
-        );
+        return <DashboardSkeleton />;
     }
 
     const handleUpdatePlan = async (e: React.FormEvent) => {
@@ -268,80 +258,157 @@ export default function BillingPage() {
 
 
     return (
-        <div className="space-y-8 p-1">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">Billing & Monetización</h1>
-                    <p className="text-gray-500 mt-1">Gestión centralizada de precios, planes y suscripciones globales.</p>
+        <div className="space-y-6 animate-in fade-in duration-300">
+            {/* 1. Toolbar Ejecutivo de Facturación y Monetización */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border/80 shadow-xs">
+                <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/25 text-indigo-700 dark:text-indigo-400 text-xs font-semibold">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                        </span>
+                        <span>Motor de Cobros &bull; Facturación Multi-Tenant</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs text-muted-foreground hidden md:inline-flex font-mono">
+                        Stripe &bull; SPEI &bull; Tarjeta
+                    </Badge>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => { mutatePlans(); mutateSubs(); }}>
-                        <ArrowPathIcon className="h-4 w-4 mr-2" /> Actualizar
+
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => { mutatePlans(); mutateSubs(); mutateAddons(); }}
+                        className="h-8 gap-1.5 text-xs font-medium"
+                    >
+                        <ArrowPathIcon className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Actualizar</span>
                     </Button>
-                    <Button className="bg-indigo-600 hover:bg-indigo-700" size="sm" onClick={() => setIsCreateOpen(true)}>
-                        <PlusIcon className="h-4 w-4 mr-2" /> Crear Plan
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsCreateAddonOpen(true)}
+                        className="h-8 gap-1.5 text-xs font-medium"
+                    >
+                        <PlusIcon className="h-3.5 w-3.5" />
+                        <span>Nuevo Add-on</span>
+                    </Button>
+                    <Button
+                        size="sm"
+                        onClick={() => setIsCreateOpen(true)}
+                        className="h-8 gap-1.5 text-xs font-medium bg-primary text-primary-foreground"
+                    >
+                        <PlusIcon className="h-3.5 w-3.5" />
+                        <span>Crear Plan</span>
                     </Button>
                 </div>
             </div>
 
-            {/* KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="shadow-sm border-gray-100 bg-gradient-to-br from-indigo-50 to-white">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-indigo-900 uppercase tracking-wider">MRR Actual</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-black text-indigo-600">
+            {/* 2. KPIs de Alta Densidad */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="border border-border/80 shadow-xs hover:border-primary/40 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">MRR Mensual</p>
+                            <p className="text-2xl font-bold tracking-tight text-foreground">
                                 ${(subsData?.totalMRR || 0).toLocaleString()}
-                            </span>
-                            <span className="text-xs font-bold text-indigo-400">MXN/mes</span>
+                            </p>
+                            <p className="text-[11px] text-muted-foreground flex items-center gap-1 font-mono">
+                                <TrendingUp className="h-3 w-3 text-emerald-500" />
+                                MXN / mes recurrente
+                            </p>
+                        </div>
+                        <div className="h-11 w-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                            <TrendingUp className="h-5 w-5" />
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="shadow-sm border-gray-100">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wider">Suscripciones Activas</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-black text-gray-900">
+
+                <Card className="border border-border/80 shadow-xs hover:border-primary/40 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">Suscripciones Activas</p>
+                            <p className="text-2xl font-bold tracking-tight text-foreground">
                                 {subsData?.activeSubCount || 0}
-                            </span>
-                            <span className="text-xs font-bold text-gray-400">de {subsData?.subscriptions?.length || 0} total</span>
+                            </p>
+                            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                de {subsData?.subscriptions?.length || 0} registradas
+                            </p>
+                        </div>
+                        <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle2 className="h-5 w-5" />
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="shadow-sm border-gray-100">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wider">Plan Más Popular</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-xl font-bold text-gray-900">
-                                {plans?.find((p: any) => p.isPopular)?.displayName || 'N/A'}
-                            </span>
+
+                <Card className="border border-border/80 shadow-xs hover:border-primary/40 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">Plan Más Popular</p>
+                            <p className="text-xl font-bold tracking-tight text-foreground truncate max-w-[170px]">
+                                {plans?.find((p: any) => p.isPopular)?.displayName || 'Plan Estándar'}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <LayoutGrid className="h-3 w-3 text-amber-500" />
+                                Mayor conversión SaaS
+                            </p>
+                        </div>
+                        <div className="h-11 w-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                            <LayoutGrid className="h-5 w-5" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border border-border/80 shadow-xs hover:border-primary/40 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">Módulos & Add-ons</p>
+                            <p className="text-2xl font-bold tracking-tight text-foreground">
+                                {addons?.length || 0} Disponibles
+                            </p>
+                            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <PlusIcon className="h-3 w-3 text-primary" />
+                                WhatsApp, Storage, IA
+                            </p>
+                        </div>
+                        <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                            <PlusIcon className="h-5 w-5" />
                         </div>
                     </CardContent>
                 </Card>
             </div>
 
-            <Tabs defaultValue="plans" className="space-y-6">
-                <TabsList className="bg-gray-100 p-1 rounded-xl">
-                    <TabsTrigger value="plans" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
-                        <LayoutGrid className="w-4 h-4" /> Planes
+            <Tabs defaultValue="plans" className="space-y-4">
+                <TabsList className="h-10 bg-muted/60 p-1 rounded-xl border border-border/60">
+                    <TabsTrigger value="plans" className="gap-2 rounded-lg text-xs font-medium">
+                        <LayoutGrid className="w-3.5 h-3.5" />
+                        <span>Planes</span>
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 ml-0.5">
+                            {plans?.length || 0}
+                        </Badge>
                     </TabsTrigger>
-                    <TabsTrigger value="addons" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
-                        <PlusIcon className="w-4 h-4" /> Add-ons
+                    <TabsTrigger value="addons" className="gap-2 rounded-lg text-xs font-medium">
+                        <PlusIcon className="w-3.5 h-3.5" />
+                        <span>Add-ons</span>
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 ml-0.5">
+                            {addons?.length || 0}
+                        </Badge>
                     </TabsTrigger>
-                    <TabsTrigger value="compare" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
-                        <TableIcon className="w-4 h-4" /> Comparativo
+                    <TabsTrigger value="compare" className="gap-2 rounded-lg text-xs font-medium">
+                        <TableIcon className="w-3.5 h-3.5" />
+                        <span>Comparativo</span>
                     </TabsTrigger>
-                    <TabsTrigger value="subscriptions" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" /> Suscripciones
+                    <TabsTrigger value="subscriptions" className="gap-2 rounded-lg text-xs font-medium">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        <span>Suscripciones</span>
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 ml-0.5">
+                            {subsData?.subscriptions?.length || 0}
+                        </Badge>
                     </TabsTrigger>
-                    <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
-                        <History className="w-4 h-4" /> Auditoría
+                    <TabsTrigger value="history" className="gap-2 rounded-lg text-xs font-medium">
+                        <History className="w-3.5 h-3.5" />
+                        <span>Auditoría</span>
                     </TabsTrigger>
                 </TabsList>
 

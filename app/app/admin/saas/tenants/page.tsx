@@ -188,47 +188,133 @@ export default function TenantsManagementPage() {
     };
 
     if (isLoading) {
-        return (
-            <div className="space-y-6">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Gestión de Tenants</h1>
-                    <p className="text-gray-500">Administra todas las organizaciones registradas y su estado de facturación.</p>
-                </div>
-                <ClientListSkeleton rows={8} />
-            </div>
-        );
+        return <ClientListSkeleton rows={8} />;
     }
 
+    const totalTenants = tenants?.length || 0;
+    const activeTenantsCount = tenants?.filter((t: any) => t.status === 'ACTIVE').length || 0;
+    const waConnectedCount = tenants?.filter((t: any) => t.whatsappStatus === 'ACTIVE').length || 0;
+    const demoCount = tenants?.filter((t: any) => t.isDemo).length || 0;
+
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Gestión de Tenants</h1>
-                    <p className="text-gray-500">Administra todas las organizaciones registradas y su estado de facturación.</p>
+        <div className="space-y-6 animate-in fade-in duration-300">
+            {/* 1. Toolbar de Control y Búsqueda */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border/80 shadow-xs">
+                <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-semibold">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                        <span>Ecosistema Multi-Tenant &bull; Aislamiento PostgreSQL</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs text-muted-foreground hidden md:inline-flex">
+                        Row-Level Security Activo
+                    </Badge>
                 </div>
-                <div className="relative w-full md:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Buscar por nombre o slug..."
-                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+
+                <div className="flex items-center gap-2">
+                    <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                        <Input
+                            placeholder="Buscar por nombre o slug..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="h-8 pl-8 text-xs bg-background"
+                        />
+                    </div>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => mutate()}
+                        className="h-8 gap-1.5 text-xs font-medium"
+                    >
+                        <Zap className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Actualizar</span>
+                    </Button>
                 </div>
             </div>
 
-            <Card className="border-gray-200 shadow-sm overflow-hidden">
+            {/* 2. KPIs de Organizaciones */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="border border-border/80 shadow-xs hover:border-primary/40 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">Total Organizaciones</p>
+                            <p className="text-2xl font-bold tracking-tight text-foreground">{totalTenants}</p>
+                            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <Building2 className="h-3 w-3 text-primary" />
+                                Base de clientes SaaS
+                            </p>
+                        </div>
+                        <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                            <Building2 className="h-5 w-5" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border border-border/80 shadow-xs hover:border-primary/40 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">Tenants Activos</p>
+                            <p className="text-2xl font-bold tracking-tight text-foreground">{activeTenantsCount}</p>
+                            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                {totalTenants > 0 ? Math.round((activeTenantsCount / totalTenants) * 100) : 0}% de disponibilidad
+                            </p>
+                        </div>
+                        <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle2 className="h-5 w-5" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border border-border/80 shadow-xs hover:border-primary/40 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">WhatsApp Conectado</p>
+                            <p className="text-2xl font-bold tracking-tight text-foreground">{waConnectedCount}</p>
+                            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <MessageCircle className="h-3 w-3 text-emerald-500" />
+                                Canales Meta / Baileys
+                            </p>
+                        </div>
+                        <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                            <MessageCircle className="h-5 w-5" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border border-border/80 shadow-xs hover:border-primary/40 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">Entornos Demo / Trial</p>
+                            <p className="text-2xl font-bold tracking-tight text-foreground">{demoCount}</p>
+                            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                <Zap className="h-3 w-3 text-amber-500" />
+                                Cuentas de evaluación
+                            </p>
+                        </div>
+                        <div className="h-11 w-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                            <Zap className="h-5 w-5" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* 3. Tabla de Organizaciones */}
+            <Card className="border border-border/80 shadow-xs overflow-hidden">
                 <Table>
-                    <TableHeader className="bg-gray-50">
-                        <TableRow>
-                            <TableHead>Organización</TableHead>
-                            <TableHead>Estado</TableHead>
-                            <TableHead>Plan</TableHead>
-                            <TableHead>WhatsApp</TableHead>
-                            <TableHead>Uso (U/C/P)</TableHead>
-                            <TableHead>Fecha Registro</TableHead>
-                            <TableHead className="text-right">Acciones</TableHead>
+                    <TableHeader className="bg-muted/40">
+                        <TableRow className="hover:bg-transparent">
+                            <TableHead className="text-xs">Organización</TableHead>
+                            <TableHead className="text-xs">Estado</TableHead>
+                            <TableHead className="text-xs">Plan</TableHead>
+                            <TableHead className="text-xs">WhatsApp</TableHead>
+                            <TableHead className="text-xs">Uso (U/P/C)</TableHead>
+                            <TableHead className="text-xs">Fecha Registro</TableHead>
+                            <TableHead className="text-right text-xs">Acciones</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

@@ -68,29 +68,37 @@ export default function SaaSOverviewV2() {
     }));
 
     return (
-        <div className="space-y-8 p-1">
-            {/* Header Estratégico */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline" className="text-indigo-600 border-indigo-200 bg-indigo-50 font-bold px-3 py-0.5">PLATAFORMA</Badge>
-                        <span className="text-xs text-gray-400 font-mono">Build v2.1.0-SaaS</span>
+        <div className="space-y-6 animate-in fade-in duration-300">
+            {/* 1. Toolbar Ejecutivo del Command Center SaaS */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border/80 shadow-xs">
+                <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span>Red SaaS Operativa &bull; Multi-Tenant Core</span>
                     </div>
-                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Centro de Comando SaaS</h1>
-                    <p className="text-gray-500 max-w-2xl mt-1">Visión global de EscalaFin: salud de red, monetización y métricas de escala de todos los tenants.</p>
+                    <Badge variant="outline" className="text-xs text-muted-foreground hidden md:inline-flex font-mono">
+                        PostgreSQL 17.10 &bull; Redis Cache
+                    </Badge>
                 </div>
-                <div className="flex items-center gap-3">
+
+                <div className="flex items-center gap-2">
                     <Link href="/admin/saas/settings">
-                        <Button variant="outline" className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50">
-                            <Settings className="w-4 h-4" /> Configuración Global
+                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs font-medium">
+                            <Settings className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Configuración</span>
                         </Button>
                     </Link>
-                    <Button variant="outline" className="gap-2">
-                        <Activity className="w-4 h-4" /> Estado del Sistema
+                    <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs font-medium">
+                        <Activity className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Telemetría</span>
                     </Button>
                     <Link href="/admin/billing">
-                        <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100 font-bold">
-                            <ArrowTrendingUpIcon className="h-4 w-4 mr-2" /> Facturación y Crecimiento
+                        <Button size="sm" className="h-8 gap-1.5 text-xs font-medium bg-primary text-primary-foreground">
+                            <ArrowTrendingUpIcon className="h-3.5 w-3.5" />
+                            <span>Facturación</span>
                         </Button>
                     </Link>
                 </div>
@@ -341,29 +349,29 @@ export default function SaaSOverviewV2() {
 
 function ModernStatCard({ title, value, unit, icon, color, trend }: any) {
     const colorClasses = {
-        indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-        emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-        amber: 'bg-amber-50 text-amber-600 border-amber-100',
-        rose: 'bg-rose-50 text-rose-600 border-rose-100',
-    }[color as 'indigo' | 'emerald' | 'amber' | 'rose'];
+        indigo: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+        emerald: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+        amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+        rose: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+    }[color as 'indigo' | 'emerald' | 'amber' | 'rose'] || 'bg-primary/10 text-primary border-primary/20';
 
     return (
-        <Card className="shadow-sm border-gray-100 hover:shadow-lg hover:shadow-indigo-50 transition-all duration-300 group border-b-4 border-b-transparent hover:border-b-indigo-500">
-            <CardContent className="p-6">
+        <Card className="border border-border/80 shadow-xs hover:border-primary/40 hover:shadow-md transition-all duration-200 group">
+            <CardContent className="p-4 sm:p-5">
                 <div className="flex justify-between items-start">
-                    <div className={`p-3 rounded-2xl border ${colorClasses}`}>
+                    <div className={`p-2.5 rounded-xl border ${colorClasses}`}>
                         {icon}
                     </div>
                 </div>
-                <div className="mt-5">
-                    <p className="text-xs font-bold uppercase text-gray-400 tracking-widest">{title}</p>
-                    <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-3xl font-black text-gray-900 tracking-tight">{value}</span>
-                        <span className="text-sm font-bold text-gray-400">{unit}</span>
+                <div className="mt-4">
+                    <p className="text-[11px] font-semibold uppercase text-muted-foreground tracking-wider">{title}</p>
+                    <div className="flex items-baseline gap-1.5 mt-1">
+                        <span className="text-2xl font-bold text-foreground tracking-tight">{value}</span>
+                        <span className="text-xs font-medium text-muted-foreground">{unit}</span>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full">{trend}</span>
-                        <ArrowTrendingUpIcon className="h-4 w-4 text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between">
+                        <span className="text-[11px] font-medium text-muted-foreground">{trend}</span>
+                        <ArrowTrendingUpIcon className="h-3.5 w-3.5 text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                 </div>
             </CardContent>
