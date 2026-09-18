@@ -10,48 +10,28 @@ import { UsageTracker } from '@/lib/billing/usage-tracker';
 import { getTenantPrisma } from '@/lib/tenant-db';
 import { AuditLogger } from '@/lib/audit';
 
-// Test simple endpoint
+// User management API endpoint
 export async function GET(request: NextRequest) {
-  console.log('🔍 Admin users endpoint called');
-
   try {
-    // First test without auth to see if we can reach the endpoint
-    console.log('📡 Testing basic endpoint functionality');
-
-    // Simple test - return basic info
-    const testResponse = {
-      message: 'Admin users endpoint is working',
-      timestamp: new Date().toISOString(),
-      path: '/api/admin/users'
-    };
-
-    console.log('✅ Basic endpoint test successful');
-
-    // Now try auth
     const session = await getServerSession(authOptions);
-    console.log('🔐 Session check:', !!session);
 
     if (!session?.user) {
-      console.log('❌ No session found');
-      return NextResponse.json({
-        error: 'No autorizado - se requiere autenticación',
-        ...testResponse
-      }, { status: 401 });
+      return NextResponse.json(
+        { error: 'No autorizado - se requiere autenticación' },
+        { status: 401 }
+      );
     }
 
-    if (session.user.role !== UserRole.ADMIN) {
-      console.log('❌ Not admin role:', session.user.role);
-      return NextResponse.json({
-        error: 'No autorizado - se requiere rol de administrador',
-        currentRole: session.user.role,
-        ...testResponse
-      }, { status: 403 });
+    if (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json(
+        { error: 'No autorizado - se requiere rol de administrador' },
+        { status: 403 }
+      );
     }
 
     const tenantId = session.user.tenantId;
     const tenantPrisma = getTenantPrisma(tenantId);
 
-    console.log('🔍 Fetching users from database for tenant:', tenantId);
     const users = await tenantPrisma.user.findMany({
       select: {
         id: true,
@@ -73,11 +53,9 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log(`✅ Retrieved ${users.length} users successfully`);
     return NextResponse.json({
       users,
       count: users.length,
-      ...testResponse
     });
   } catch (error) {
     console.error('❌ Error fetching users:', error);
@@ -85,7 +63,6 @@ export async function GET(request: NextRequest) {
       {
         error: 'Error al cargar usuarios',
         details: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
       },
       { status: 500 }
     );
@@ -95,7 +72,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || session.user.role !== UserRole.ADMIN) {
+    if (!session?.user || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 

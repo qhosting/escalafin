@@ -139,7 +139,7 @@ export function EnhancedAdminDashboard() {
     },
     {
       title: 'Pagos Este Mes',
-      value: loadingStats ? '...' : `$${(stats?.paymentsThisMonth || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: loadingStats ? '...' : `$${(stats?.paymentsThisMonth || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 })}`,
       change: loadingStats ? '...' : (stats?.paymentGrowth ? `${stats.paymentGrowth > 0 ? '+' : ''}${stats.paymentGrowth}% hoy` : '0% hoy'),
       icon: DollarSign,
       color: 'text-emerald-600',
@@ -148,7 +148,7 @@ export function EnhancedAdminDashboard() {
     },
     {
       title: 'Cartera Total',
-      value: loadingStats ? '...' : `$${(stats?.totalPortfolio || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: loadingStats ? '...' : `$${(stats?.totalPortfolio || 0).toLocaleString('es-MX', { maximumFractionDigits: 0 })}`,
       change: loadingStats ? '...' : (stats?.loanGrowth ? `${stats.loanGrowth > 0 ? '+' : ''}${stats.loanGrowth}%` : '0%'),
       icon: TrendingUp,
       color: 'text-purple-600',

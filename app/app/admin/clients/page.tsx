@@ -156,7 +156,7 @@ export default function ClientsPage() {
 
       // Métricas de cartera
       const totalClients = data.pagination?.totalCount || 0;
-      const activeClients = uppercaseClients.filter((c: Client) => c.status === 'ACTIVE').length;
+      const activeClients = data.stats?.activeClients ?? uppercaseClients.filter((c: Client) => c.status === 'ACTIVE').length;
       const totalLoans = uppercaseClients.reduce((acc: number, c: Client) => acc + (c.loans?.length || 0), 0);
       const avgCreditScore = data.clients?.length > 0 ? 
         data.clients.reduce((acc: number, c: Client) => acc + (c.creditScore || 0), 0) / data.clients.length : 0;
@@ -178,15 +178,7 @@ export default function ClientsPage() {
     }
   };
 
-  const filteredClients = clients.filter(client => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      (client.firstName?.toLowerCase() || '').includes(searchLower) ||
-      (client.lastName?.toLowerCase() || '').includes(searchLower) ||
-      (client.email?.toLowerCase() || '').includes(searchLower) ||
-      (client.phone || '').includes(searchTerm)
-    );
-  });
+  const filteredClients = clients;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -249,7 +241,9 @@ export default function ClientsPage() {
 
   const formatCleanPhone = (phone: string) => {
     if (!phone) return '';
-    return phone.replace(/\D/g, '');
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length === 10) return `52${digits}`;
+    return digits;
   };
 
   return (
@@ -453,12 +447,18 @@ export default function ClientsPage() {
             <Input
               placeholder="BUSCAR POR NOMBRE, TELÉFONO O CORREO..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
+              onChange={(e) => {
+                setSearchTerm(e.target.value.toUpperCase());
+                setCurrentPage(1);
+              }}
               className="pl-10 pr-9 h-11 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 rounded-xl uppercase text-xs font-semibold focus-visible:ring-primary shadow-2xs"
             />
             {searchTerm && (
               <button
-                onClick={() => setSearchTerm('')}
+                onClick={() => {
+                  setSearchTerm('');
+                  setCurrentPage(1);
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 cursor-pointer"
                 aria-label="Limpiar búsqueda"
               >

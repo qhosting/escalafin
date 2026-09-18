@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -110,6 +110,21 @@ export default function NewClientPage() {
   const [newCollateral, setNewCollateral] = useState('');
   const [clientPhoto, setClientPhoto] = useState<string | null>(null);
   const [vaultDocs, setVaultDocs] = useState<DocumentSlot[]>([]);
+  const [asesores, setAsesores] = useState<Array<{ id: string; firstName: string; lastName: string }>>([]);
+
+  useEffect(() => {
+    if (session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN') {
+      fetch('/api/admin/users')
+        .then(res => res.json())
+        .then(data => {
+          if (data.users) {
+            const activeAsesores = data.users.filter((u: any) => u.role === 'ASESOR' && u.status === 'ACTIVE');
+            setAsesores(activeAsesores);
+          }
+        })
+        .catch(err => console.error('Error loading asesores:', err));
+    }
+  }, [session]);
 
   const [formData, setFormData] = useState<ClientFormData>({
     firstName: '',
@@ -155,6 +170,14 @@ const UPPERCASE_FIELDS = new Set<keyof ClientFormData>([
 ]);
 
   const handleInputChange = (field: keyof ClientFormData, value: string) => {
+    if (field === 'phone' || field === 'guarantorPhone') {
+      const cleanDigits = value.replace(/\D/g, '').slice(0, 10);
+      setFormData(prev => ({
+        ...prev,
+        [field]: cleanDigits
+      }));
+      return;
+    }
     const finalValue = UPPERCASE_FIELDS.has(field) ? value.toUpperCase() : value;
     setFormData(prev => ({
       ...prev,
@@ -201,6 +224,7 @@ const UPPERCASE_FIELDS = new Set<keyof ClientFormData>([
     try {
       const clientData = {
         ...formData,
+        asesorId: formData.asesorId && formData.asesorId !== 'none' ? formData.asesorId : undefined,
         guarantor: formData.guarantorFullName ? {
           fullName: formData.guarantorFullName,
           address: formData.guarantorAddress,
@@ -383,11 +407,7 @@ const UPPERCASE_FIELDS = new Set<keyof ClientFormData>([
                   <TabsTrigger 
                     key={step.id}
                     value={step.id}
-                    className={`flex-1 min-w-[130px] sm:min-w-0 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center sm:justify-start gap-2.5 transition-all text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/60 ${
-                      isActive 
-                        ? 'bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-sm shadow-blue-500/20 scale-[1.01]' 
-                        : ''
-                    }`}
+                    className="flex-1 min-w-[130px] sm:min-w-0 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center sm:justify-start gap-2.5 transition-all text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/60 data-[state=active]:bg-blue-600 data-[state=active]:text-white dark:data-[state=active]:bg-blue-600 dark:data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=active]:shadow-blue-500/20 data-[state=active]:scale-[1.01]"
                   >
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
                       isActive 
@@ -506,27 +526,53 @@ const UPPERCASE_FIELDS = new Set<keyof ClientFormData>([
                   </div>
                 </div>
 
-                <div className="space-y-1.5 max-w-sm">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="dateOfBirth" className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                      Fecha de Nacimiento
-                    </Label>
-                    {clientAge !== null && (
-                      <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-lg border border-blue-200 dark:border-blue-900/50">
-                        {clientAge} años cumplidos
-                      </span>
-                    )}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="dateOfBirth" className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                        Fecha de Nacimiento
+                      </Label>
+                      {clientAge !== null && (
+                        <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-lg border border-blue-200 dark:border-blue-900/50">
+                          {clientAge} años cumplidos
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      <Input
+                        id="dateOfBirth"
+                        type="date"
+                        value={formData.dateOfBirth}
+                        onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                        className="pl-9 h-11 bg-white dark:bg-gray-950/50 border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus-visible:ring-primary shadow-2xs"
+                      />
+                    </div>
                   </div>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      value={formData.dateOfBirth}
-                      onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                      className="pl-9 h-11 bg-white dark:bg-gray-950/50 border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold focus-visible:ring-primary shadow-2xs"
-                    />
-                  </div>
+
+                  {(session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN') && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="asesorId" className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                        Asesor Asignado
+                      </Label>
+                      <Select
+                        value={formData.asesorId || 'none'}
+                        onValueChange={(val) => handleInputChange('asesorId', val)}
+                      >
+                        <SelectTrigger className="h-11 bg-white dark:bg-gray-950/50 border-gray-200 dark:border-gray-800 rounded-xl text-xs font-semibold shadow-2xs">
+                          <SelectValue placeholder="Seleccionar asesor (opcional)" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="none" className="text-xs font-semibold">Sin Asesor Asignado</SelectItem>
+                          {asesores.map(a => (
+                            <SelectItem key={a.id} value={a.id} className="text-xs font-semibold">
+                              {a.firstName} {a.lastName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -968,7 +1014,7 @@ const UPPERCASE_FIELDS = new Set<keyof ClientFormData>([
                       onChange={(e) => setNewCollateral(e.target.value.toUpperCase())}
                       placeholder="EJ. PANTALLA SMART TV LG 55 PULGADAS MOD 2024"
                       className="h-11 bg-white dark:bg-gray-950/50 border-gray-200 dark:border-gray-800 rounded-xl uppercase text-xs font-semibold focus-visible:ring-primary shadow-2xs"
-                      onKeyPress={(e) => {
+                      onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
                           handleAddCollateral();

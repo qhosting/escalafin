@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       whereClause.asesorId = asesorId;
     }
 
-    const [clients, totalCount, stats] = await Promise.all([
+    const [clients, totalCount, activeClientsCount, stats] = await Promise.all([
       tenantPrisma.client.findMany({
         where: whereClause,
         include: {
@@ -105,6 +105,7 @@ export async function GET(request: NextRequest) {
         take: limit
       }),
       tenantPrisma.client.count({ where: whereClause }),
+      tenantPrisma.client.count({ where: { ...whereClause, status: 'ACTIVE' } }),
       tenantPrisma.loan.aggregate({
         where: { 
           status: { in: ['ACTIVE', 'DEFAULTED'] },
@@ -132,20 +133,6 @@ export async function GET(request: NextRequest) {
       } : client.asesor
     }));
 
-    // Sincronización silenciosa en base de datos para convertir registros existentes a MAYÚSCULAS
-    (async () => {
-      try {
-        await (tenantPrisma as any).$executeRawUnsafe(`
-          UPDATE clients 
-          SET "firstName" = UPPER("firstName"), 
-              "lastName" = UPPER("lastName") 
-          WHERE "firstName" != UPPER("firstName") OR "lastName" != UPPER("lastName");
-        `);
-      } catch (e) {
-        // Fallback silencioso
-      }
-    })().catch(() => {});
-
     return NextResponse.json({
       clients: formattedClients,
       pagination: {
@@ -155,7 +142,8 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(totalCount / limit)
       },
       stats: {
-        totalPortfolio: Number(stats._sum?.balanceRemaining || 0)
+        totalPortfolio: Number(stats._sum?.balanceRemaining || 0),
+        activeClients: activeClientsCount
       }
     });
 

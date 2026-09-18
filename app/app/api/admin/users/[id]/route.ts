@@ -3,10 +3,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
 import { UserRole, UserStatus } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 import { UsageTracker } from '@/lib/billing/usage-tracker';
 import { AuditLogger } from '@/lib/audit';
+import { getTenantPrisma } from '@/lib/tenant-db';
 
 export async function PATCH(
   request: NextRequest,
@@ -14,15 +15,18 @@ export async function PATCH(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || session.user.role !== UserRole.ADMIN) {
+    if (!session?.user || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { status, firstName, lastName, phone, role } = body;
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
 
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
+    const body = await request.json();
+    const { status, firstName, lastName, phone, role, password } = body;
+
+    // Check if user exists within tenant
+    const existingUser = await tenantPrisma.user.findUnique({
       where: { id: params.id }
     });
 
@@ -31,10 +35,7 @@ export async function PATCH(
     }
 
     // Prevent changing admin status or role of other admins if not super admin
-    // (In this case, we only have ADMIN role in context, so we prevent editing admins)
-    if (existingUser.role === UserRole.ADMIN && existingUser.id !== session.user.id) {
-      // Only allow self-editing for basic info if needed, but here we follow the existing pattern
-      // of protecting admins.
+    if (session.user.role !== UserRole.SUPER_ADMIN && existingUser.role === UserRole.ADMIN && existingUser.id !== session.user.id) {
       return NextResponse.json(
         { error: 'No se puede modificar la configuración de otros administradores' },
         { status: 403 }
@@ -51,9 +52,20 @@ export async function PATCH(
     if (lastName) updateData.lastName = lastName;
     if (phone !== undefined) updateData.phone = phone;
     if (role && role !== UserRole.SUPER_ADMIN) updateData.role = role as UserRole;
+    
+    // Hash new password if provided
+    if (password && password.trim().length > 0) {
+      if (password.length < 6) {
+        return NextResponse.json(
+          { error: 'La contraseña debe tener al menos 6 caracteres' },
+          { status: 400 }
+        );
+      }
+      updateData.password = await bcrypt.hash(password, 10);
+    }
 
     // Update user
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await tenantPrisma.user.update({
       where: { id: params.id },
       data: updateData,
       select: {
@@ -70,13 +82,13 @@ export async function PATCH(
     // Audit log
     await AuditLogger.quickLog(request, 'USER_UPDATE', {
       userEmail: updatedUser.email,
-      updates: body
+      updates: { ...body, password: password ? '***' : undefined }
     }, 'User', updatedUser.id, session);
 
     return NextResponse.json({
       success: true,
       user: updatedUser,
-      message: 'Estado actualizado exitosamente'
+      message: 'Usuario actualizado exitosamente'
     });
 
   } catch (error) {
@@ -94,12 +106,15 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || session.user.role !== UserRole.ADMIN) {
+    if (!session?.user || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
+    const tenantId = session.user.tenantId;
+    const tenantPrisma = getTenantPrisma(tenantId);
+
+    // Check if user exists within tenant
+    const existingUser = await tenantPrisma.user.findUnique({
       where: { id: params.id },
       include: {
         clientsAssigned: true,
@@ -119,8 +134,8 @@ export async function DELETE(
       );
     }
 
-    // Prevent deleting admin
-    if (existingUser.role === UserRole.ADMIN) {
+    // Prevent deleting admin unless super admin
+    if (session.user.role !== UserRole.SUPER_ADMIN && existingUser.role === UserRole.ADMIN) {
       return NextResponse.json(
         { error: 'No se pueden eliminar administradores' },
         { status: 400 }
@@ -143,13 +158,13 @@ export async function DELETE(
     }
 
     // Delete user
-    await prisma.user.delete({
+    await tenantPrisma.user.delete({
       where: { id: params.id }
     });
 
     // 📉 Decrementar uso en SaaS
-    if (session.user.tenantId) {
-      await UsageTracker.decrementUsage(session.user.tenantId, 'usersCount');
+    if (tenantId) {
+      await UsageTracker.decrementUsage(tenantId, 'usersCount');
     }
 
     // Audit log

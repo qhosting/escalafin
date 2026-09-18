@@ -148,14 +148,14 @@ export async function GET() {
     const recentActivities = [
       ...recentPayments.map(p => ({
         action: 'Pago procesado',
-        details: `$${Number(p.amount).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} - Cliente: ${p.loan?.client?.firstName || ''} ${p.loan?.client?.lastName || ''}`,
+        details: `$${Number(p.amount).toLocaleString('es-MX', { maximumFractionDigits: 0 })} - Cliente: ${p.loan?.client?.firstName || ''} ${p.loan?.client?.lastName || ''}`,
         time: p.createdAt.toISOString(),
         status: 'success',
         moduleKey: 'payment_history'
       })),
       ...recentLoans.map(l => ({
         action: 'Nuevo préstamo creado',
-        details: `$${Number(l.principalAmount).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} - Cliente: ${l.client?.firstName || ''} ${l.client?.lastName || ''}`,
+        details: `$${Number(l.principalAmount).toLocaleString('es-MX', { maximumFractionDigits: 0 })} - Cliente: ${l.client?.firstName || ''} ${l.client?.lastName || ''}`,
         time: l.createdAt.toISOString(),
         status: 'info',
         moduleKey: 'loan_create'
