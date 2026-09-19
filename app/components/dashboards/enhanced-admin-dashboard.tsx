@@ -10,6 +10,7 @@ import { ModuleWrapper } from '@/components/ui/module-wrapper';
 import { useModules } from '@/hooks/use-modules';
 import { QuickModuleToggle } from '@/components/admin/quick-module-toggle';
 import { SubscriptionBanner } from '@/components/admin/subscription-banner';
+import { useMobileSimulator } from '@/hooks/use-mobile-simulator';
 import {
   Building2,
   Users,
@@ -79,6 +80,7 @@ export function EnhancedAdminDashboard() {
   const { modules, loading: modulesLoading } = useModules();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
+  const { open: openMobileSimulator } = useMobileSimulator();
 
   // Cargar estadísticas reales desde la API
   useEffect(() => {
@@ -381,6 +383,16 @@ export function EnhancedAdminDashboard() {
               <p className="text-xs font-bold text-orange-700/60 tracking-tight">Ejecución masiva de cargos y cierres operativos del sistema.</p>
             </div>
             <div className="flex items-center gap-3">
+               <Button
+                 variant="outline"
+                 size="sm"
+                 onClick={() => openMobileSimulator()}
+                 className="gap-2 bg-white dark:bg-slate-900 border-orange-200 dark:border-orange-800/60 hover:bg-orange-100/50 dark:hover:bg-orange-950/30 text-orange-900 dark:text-orange-300 font-bold rounded-xl text-xs h-9 px-3"
+                 title="Ver cómo se visualiza este dashboard en un smartphone"
+               >
+                 <Smartphone className="h-4 w-4 text-orange-600" />
+                 <span>Ver en Modo Móvil</span>
+               </Button>
                <CierrePenalizaciones />
             </div>
           </div>

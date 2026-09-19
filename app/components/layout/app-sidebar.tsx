@@ -506,10 +506,20 @@ function SidebarLink({
   dense?: boolean;
   onNavigate?: () => void;
 }) {
+  const handleClick = (e: React.MouseEvent) => {
+    if (href === '#modo-movil') {
+      e.preventDefault();
+      useMobileSimulator.getState().open();
+      if (onNavigate) onNavigate();
+      return;
+    }
+    if (onNavigate) onNavigate();
+  };
+
   const link = (
     <Link
       href={href}
-      onClick={onNavigate}
+      onClick={handleClick}
       aria-current={active ? 'page' : undefined}
       className={cn(
         'flex items-center rounded-xl transition-all duration-200 relative group ef-sidebar-shimmer-hover',

@@ -35,6 +35,7 @@ import {
   UserPlus,
   Users,
   Wrench,
+  Smartphone,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -123,6 +124,7 @@ const SUPER_ADMIN_NAV: NavSection[] = [
         title: 'Usuarios Globales',
         items: [
           { title: 'Super Admins', icon: ShieldCheck, href: '/admin/super-users', primary: true },
+          { title: 'Modo Móvil', icon: Smartphone, href: '#modo-movil', badge: 'Simulador' },
         ],
       },
     ],
@@ -247,6 +249,12 @@ const ADMIN_NAV: NavSection[] = [
         title: 'Integraciones',
         items: [
           { title: 'APIs Externas', icon: Globe, href: '/admin/whatsapp/config', moduleKey: 'api_integration' },
+        ],
+      },
+      {
+        title: 'Herramientas',
+        items: [
+          { title: 'Modo Móvil', icon: Smartphone, href: '#modo-movil', badge: 'Simulador' },
         ],
       },
     ],
