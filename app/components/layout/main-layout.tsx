@@ -9,6 +9,8 @@ import { MobileSidebar } from './mobile-sidebar';
 import { BottomNavbar } from './bottom-navbar';
 import { OfflineBanner } from '@/components/pwa/offline-banner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobileSimulator } from '@/hooks/use-mobile-simulator';
+import { MobileSimulatorModal } from './mobile-simulator-modal';
 import { isPublicPage } from '@/lib/public-pages';
 import { cn } from '@/lib/utils';
 
@@ -33,7 +35,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       setSidebarCollapsed(saved === 'true');
     }
 
-    // Atajo de teclado: Ctrl+B o ⌘+B para colapsar/expandir menú lateral
+    // Atajo de teclado: Ctrl+B o ⌘+B para colapsar/expandir menú lateral, Ctrl+M para Modo Móvil
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest('input, textarea, select, [contenteditable="true"]')) return;
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
@@ -43,6 +45,10 @@ export function MainLayout({ children }: MainLayoutProps) {
           try { localStorage.setItem('escalafin_sidebar_collapsed', String(next)); } catch {}
           return next;
         });
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        useMobileSimulator.getState().toggle();
       }
     };
 
@@ -132,6 +138,9 @@ export function MainLayout({ children }: MainLayoutProps) {
           </div>
         </main>
       </div>
+
+      {/* 3. SIMULADOR DE MODO MÓVIL INTERACTIVO */}
+      {mounted && <MobileSimulatorModal />}
     </div>
   );
 }

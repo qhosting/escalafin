@@ -13,7 +13,9 @@ import {
   LogOut,
   User,
   RefreshCw,
+  Smartphone,
 } from 'lucide-react';
+import { useMobileSimulator } from '@/hooks/use-mobile-simulator';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -81,6 +83,7 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
   const { data: session } = useSession() || {};
   const { isModuleEnabled } = useModules();
   const { tenant } = useTenant();
+  const { open: openMobileSimulator } = useMobileSimulator();
 
   const isMobileVariant = variant === 'mobile';
   const userRole = (session as any)?.user?.role as string | undefined;
@@ -438,6 +441,21 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
                   <span>Mi Perfil</span>
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer font-medium text-xs"
+                onClick={() => {
+                  if (onNavigate) onNavigate();
+                  openMobileSimulator();
+                }}
+              >
+                <Smartphone className="mr-2 h-4 w-4 text-primary" />
+                <div className="flex items-center justify-between w-full">
+                  <span>Modo Móvil</span>
+                  <Badge variant="secondary" className="text-[9px] px-1 py-0 h-3.5 bg-primary/10 text-primary font-normal">
+                    Simular
+                  </Badge>
+                </div>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="cursor-pointer text-red-600 dark:text-red-400 font-medium text-xs"
@@ -451,8 +469,16 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
 
           {!isCollapsed && (
             <div className="mt-1 pt-1.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between px-2 text-[9px] text-slate-400 font-mono">
+              <button
+                type="button"
+                onClick={() => openMobileSimulator()}
+                className="flex items-center gap-1 text-primary hover:text-primary/80 transition-colors cursor-pointer font-sans text-[10px] font-semibold"
+                title="Abrir simulador móvil"
+              >
+                <Smartphone className="h-3 w-3" />
+                <span>Vista Móvil</span>
+              </button>
               <span>v3.5.0</span>
-              <span>BUILD 2026</span>
             </div>
           )}
         </div>

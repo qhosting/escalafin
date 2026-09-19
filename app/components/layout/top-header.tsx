@@ -12,7 +12,8 @@ import {
   LogOut,
   ChevronRight,
   Building2,
-  Sparkles
+  Sparkles,
+  Smartphone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,7 @@ import { GlobalSearch } from './global-search';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { useTenant } from '@/components/providers/tenant-provider';
 import { ModuleWrapper } from '@/components/ui/module-wrapper';
+import { useMobileSimulator } from '@/hooks/use-mobile-simulator';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -88,6 +90,7 @@ export function TopHeader({ collapsed, onToggle, className }: TopHeaderProps) {
   const { data: session } = useSession() || {};
   const { tenant } = useTenant();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { open: openMobileSimulator } = useMobileSimulator();
 
   const userRole = (session as any)?.user?.role;
 
@@ -203,6 +206,18 @@ export function TopHeader({ collapsed, onToggle, className }: TopHeaderProps) {
           </div>
         )}
 
+        {/* Botón Modo Móvil */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 px-2 md:px-2.5 gap-1.5 border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 hover:bg-primary/10 hover:border-primary/30 hover:text-primary text-gray-700 dark:text-gray-300 rounded-lg text-xs transition-colors"
+          onClick={() => openMobileSimulator()}
+          title="Ver cómo se visualiza en dispositivo móvil"
+        >
+          <Smartphone className="h-3.5 w-3.5 text-primary shrink-0" />
+          <span className="hidden sm:inline font-medium">Modo Móvil</span>
+        </Button>
+
         {/* Toggle Modo Oscuro / Claro */}
         <ThemeToggle />
 
@@ -256,6 +271,19 @@ export function TopHeader({ collapsed, onToggle, className }: TopHeaderProps) {
                 <User className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                 <span>Mi Perfil</span>
               </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              className="cursor-pointer text-xs"
+              onClick={() => openMobileSimulator()}
+            >
+              <Smartphone className="mr-2 h-3.5 w-3.5 text-primary" />
+              <div className="flex items-center justify-between w-full">
+                <span>Modo Móvil</span>
+                <Badge variant="secondary" className="text-[9px] px-1 py-0 h-3.5 font-normal bg-primary/10 text-primary">
+                  Simulador
+                </Badge>
+              </div>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
