@@ -6,10 +6,9 @@
  * para asesores y cobradores con priorización inteligente por mora.
  */
 
-import { PrismaClient, RouteStatus } from '@prisma/client';
+import { RouteStatus } from '@prisma/client';
 import { predictiveCollectionService } from './predictive-collection-service';
-
-const prisma = new PrismaClient();
+import { prisma } from './db';
 
 // ============================================
 // TIPOS

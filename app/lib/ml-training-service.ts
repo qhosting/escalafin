@@ -8,9 +8,7 @@
  * - Activación de nuevas versiones del modelo
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from './db';
 
 // Tipos para el modelo
 export interface ModelWeights {

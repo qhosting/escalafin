@@ -1,8 +1,7 @@
 
-import { PrismaClient, Client, Loan, Payment, CreditScore } from '@prisma/client';
+import { Client, Loan, Payment, CreditScore } from '@prisma/client';
 import { mlTrainingService, ModelWeights } from './ml-training-service';
-
-const prisma = new PrismaClient();
+import { prisma } from './db';
 
 interface ScoringInput {
   client: Client & {

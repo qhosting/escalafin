@@ -141,8 +141,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role;
         token.tenantId = user.tenantId;
-        token.tenantSlug = (user as any).tenant?.slug;
-        token.tenantName = (user as any).tenantName;
+        token.tenantSlug = (user as any).tenantSlug ?? (user as any).tenant?.slug ?? null;
+        token.tenantName = (user as any).tenantName ?? (user as any).tenant?.name ?? null;
       }
       return token;
     },

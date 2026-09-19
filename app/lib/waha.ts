@@ -1,9 +1,7 @@
 
 import axios, { AxiosResponse } from 'axios';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './db';
 import { getTenantPrisma } from './tenant-db';
-
-const prisma = new PrismaClient();
 
 interface WahaSession {
   sessionId: string;

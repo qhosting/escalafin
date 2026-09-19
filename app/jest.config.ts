@@ -61,6 +61,7 @@ const customJestConfig: Config = {
         '/dist/',
         '/coverage/',
     ],
+    modulePathIgnorePatterns: ['<rootDir>/.next/'],
 
     // Transform
     transform: {

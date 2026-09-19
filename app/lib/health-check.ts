@@ -4,10 +4,8 @@
  * Monitoreo del estado del sistema y sus dependencias
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './db';
 import { redisCache } from './redis-cache';
-
-const prisma = new PrismaClient();
 
 export interface HealthCheckResult {
     status: 'healthy' | 'degraded' | 'unhealthy';

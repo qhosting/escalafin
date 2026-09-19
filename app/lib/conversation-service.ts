@@ -8,13 +8,12 @@
  * - Respuestas automáticas
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './db';
 // Tipos temporales para evitar errores de compilación si el cliente de Prisma no está sincronizado
 type ConversationStatus = any;
 type MessageDirection = any;
 import { WahaService } from './waha';
 
-const prisma = new PrismaClient();
 const wahaService = new WahaService();
 
 export interface IncomingMessage {

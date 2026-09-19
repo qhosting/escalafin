@@ -43,34 +43,19 @@ export class RateLimiter {
         resetTime: number;
     }> {
         const key = this.config.keyGenerator!(req);
+        const windowSeconds = Math.max(1, Math.ceil(this.config.windowMs / 1000));
         const now = Date.now();
-        const windowMs = this.config.windowMs;
 
         try {
-            // Obtener contador actual
-            const data = await redisCache.get<{
-                count: number;
-                resetTime: number;
-            }>(key);
+            await redisCache.connect();
+            const count = await redisCache.increment(key);
 
-            let count = 0;
-            let resetTime = now + windowMs;
-
-            if (data) {
-                // Si la ventana aún no ha expirado
-                if (data.resetTime > now) {
-                    count = data.count;
-                    resetTime = data.resetTime;
-                }
+            if (count === 1) {
+                await redisCache.expire(key, windowSeconds);
             }
 
-            // Incrementar contador
-            count++;
-
-            // Guardar en Redis
-            const ttlSeconds = Math.ceil((resetTime - now) / 1000);
-            await redisCache.set(key, { count, resetTime }, ttlSeconds);
-
+            const currentTtl = await redisCache.ttl(key);
+            const resetTime = now + (currentTtl > 0 ? currentTtl * 1000 : this.config.windowMs);
             const allowed = count <= this.config.maxRequests;
             const remaining = Math.max(0, this.config.maxRequests - count);
 
@@ -81,11 +66,11 @@ export class RateLimiter {
             };
         } catch (error) {
             console.error('Rate limiter error:', error);
-            // En caso de error, permitir la request
+            // En caso de error, permitir la request (fail-open)
             return {
                 allowed: true,
                 remaining: this.config.maxRequests,
-                resetTime: now + windowMs,
+                resetTime: now + this.config.windowMs,
             };
         }
     }

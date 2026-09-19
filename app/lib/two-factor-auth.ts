@@ -6,10 +6,8 @@
 
 // @ts-ignore
 import { generateSecret, verifySync, generateURI } from 'otplib';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './db';
 import QRCode from 'qrcode';
-
-const prisma = new PrismaClient();
 
 export class TwoFactorAuthService {
     private readonly appName = 'EscalaFin';

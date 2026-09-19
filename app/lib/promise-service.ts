@@ -6,9 +6,8 @@
  * Incluye recordatorios automáticos y análisis de cumplimiento.
  */
 
-import { PrismaClient, PromiseStatus } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { PromiseStatus } from '@prisma/client';
+import { prisma } from './db';
 
 // ============================================
 // TIPOS

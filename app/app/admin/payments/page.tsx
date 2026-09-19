@@ -92,7 +92,7 @@ export default function PaymentsPage() {
 
   const fetchAdvisors = useCallback(async () => {
     // Solo los administradores pueden ver la lista completa de asesores
-    if (session?.user?.role !== 'ADMIN') return;
+    if (session?.user?.role !== 'ADMIN' && session?.user?.role !== 'SUPER_ADMIN') return;
     
     try {
       const res = await fetch('/api/admin/users');

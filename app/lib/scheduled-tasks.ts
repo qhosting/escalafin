@@ -1,8 +1,5 @@
-
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './db';
 import { WhatsAppNotificationService } from './whatsapp-notification';
-
-const prisma = new PrismaClient();
 
 export class ScheduledTasksService {
   private whatsappService: WhatsAppNotificationService;

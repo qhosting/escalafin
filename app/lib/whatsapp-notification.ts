@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './db';
 import WahaService from './waha';
 import { getTenantPrisma } from './tenant-db';
 import { ConductsefTimeGuard } from './condusef-time-guard';
-
-const prisma = new PrismaClient();
 
 interface NotificationOptions {
   scheduleFor?: Date;

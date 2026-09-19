@@ -3,24 +3,7 @@
  * Caché Redis/Memory, fetch deduplicación, helpers financieros
  */
 
-// ─── Redis Client (singleton) ────────────────────────────────────────────────
-let redisClient: any = null;
-
-function getRedis(): any {
-  if (!process.env.REDIS_URL) return null;
-  if (redisClient) return redisClient;
-  try {
-    const { Redis } = require('ioredis');
-    redisClient = new Redis(process.env.REDIS_URL, {
-      maxRetriesPerRequest: 2,
-      connectTimeout: 3000,
-      lazyConnect: true,
-    });
-    return redisClient;
-  } catch {
-    return null;
-  }
-}
+import { redisCache } from './redis-cache';
 
 // ─── In-Memory Fallback Cache ────────────────────────────────────────────────
 const memoryCache = new Map<string, { value: unknown; expiresAt: number }>();
@@ -32,11 +15,14 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
   if (mem && mem.expiresAt > Date.now()) return mem.value as T;
 
   // Try Redis
-  const redis = getRedis();
-  if (!redis) return null;
   try {
-    const val = await redis.get(key);
-    return val ? (JSON.parse(val) as T) : null;
+    const val = await redisCache.get<T>(key);
+    if (val !== null) {
+      // populate memory cache
+      memoryCache.set(key, { value: val, expiresAt: Date.now() + 30000 });
+      return val;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -51,10 +37,8 @@ export async function cacheSet<T>(
   memoryCache.set(key, { value, expiresAt: Date.now() + ttlSeconds * 1000 });
 
   // Set Redis
-  const redis = getRedis();
-  if (!redis) return;
   try {
-    await redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+    await redisCache.set(key, value, ttlSeconds);
   } catch {
     // Silently fail — memory cache still serves
   }
@@ -66,11 +50,9 @@ export async function cacheDel(pattern: string): Promise<void> {
     if (key.startsWith(pattern)) memoryCache.delete(key);
   }
 
-  const redis = getRedis();
-  if (!redis) return;
+  // Clear Redis
   try {
-    const keys = await redis.keys(`${pattern}*`);
-    if (keys.length > 0) await redis.del(...keys);
+    await redisCache.invalidatePattern(`${pattern}*`);
   } catch {
     // Silently fail
   }

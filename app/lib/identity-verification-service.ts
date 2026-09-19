@@ -9,9 +9,8 @@
  * - Histórico de verificaciones
  */
 
-import { PrismaClient, VerificationStatus } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { VerificationStatus } from '@prisma/client';
+import { prisma } from './db';
 
 // ============================================
 // TIPOS
