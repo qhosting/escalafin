@@ -315,7 +315,7 @@ export function UserManagement({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 sm:pb-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Link href="/admin/dashboard">
@@ -353,47 +353,55 @@ export function UserManagement({
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Shield className="h-8 w-8 text-red-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Administradores</p>
-                <p className="text-2xl font-bold">{users.filter(u => u.role === 'ADMIN').length}</p>
+          <CardContent className="p-3.5 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 rounded-lg bg-red-50 dark:bg-red-950/40">
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Admins</p>
+                <p className="text-lg sm:text-2xl font-bold">{users.filter(u => u.role === 'ADMIN').length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <User className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Asesores</p>
-                <p className="text-2xl font-bold">{users.filter(u => u.role === 'ASESOR').length}</p>
+          <CardContent className="p-3.5 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/40">
+                <User className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Asesores</p>
+                <p className="text-lg sm:text-2xl font-bold">{users.filter(u => u.role === 'ASESOR').length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Clientes</p>
-                <p className="text-2xl font-bold">{users.filter(u => u.role === 'CLIENTE').length}</p>
+          <CardContent className="p-3.5 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Clientes</p>
+                <p className="text-lg sm:text-2xl font-bold">{users.filter(u => u.role === 'CLIENTE').length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Usuarios</p>
-                <p className="text-2xl font-bold">{users.length}</p>
+          <CardContent className="p-3.5 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 rounded-lg bg-purple-50 dark:bg-purple-950/40">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total</p>
+                <p className="text-lg sm:text-2xl font-bold">{users.length}</p>
               </div>
             </div>
           </CardContent>
@@ -402,14 +410,14 @@ export function UserManagement({
 
       {/* Users Table */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Usuarios del Sistema ({filteredUsers.length})
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Users className="w-5 h-5 text-cyan-600" />
+            <span>Usuarios del Sistema ({filteredUsers.length})</span>
           </CardTitle>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <UserPlus className="w-4 h-4 mr-2" />
                 Crear Usuario
               </Button>
@@ -455,12 +463,14 @@ export function UserManagement({
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="+52 555 000 0000"
                   />
                 </div>
                 <div>
                   <Label htmlFor="role">Rol</Label>
-                  <Select value={formData.role} onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}>
+                  <Select
+                    value={formData.role}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -474,56 +484,14 @@ export function UserManagement({
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="password">Contraseña</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                      required
-                      minLength={6}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={formData.confirmPassword}
-                      onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      required
-                      minLength={6}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
+                  <Label htmlFor="password">Contraseña Temporal</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    required
+                  />
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
                   <Button
@@ -548,17 +516,17 @@ export function UserManagement({
               <p className="text-gray-500">No se encontraron usuarios</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {filteredUsers.map((user) => (
-                <div key={user.id} className="border rounded-lg p-4 hover:shadow-sm transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-gray-600" />
+                <div key={user.id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-4 hover:shadow-sm transition-shadow bg-white dark:bg-slate-900/50">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
+                        <User className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <h4 className="font-semibold text-gray-900">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm sm:text-base truncate max-w-[200px] sm:max-w-none">
                             {user.firstName} {user.lastName}
                           </h4>
                           <Badge className={roleConfig[user.role as keyof typeof roleConfig]?.color || 'bg-gray-100 text-gray-800'}>
@@ -568,62 +536,69 @@ export function UserManagement({
                             {statusConfig[user.status as keyof typeof statusConfig]?.label || user.status}
                           </Badge>
                         </div>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
-                          <div className="flex items-center gap-1">
-                            <Mail className="w-3 h-3" />
-                            {user.email}
+                        <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <Mail className="w-3.5 h-3.5 flex-shrink-0 text-slate-400" />
+                            <span className="truncate max-w-[180px] sm:max-w-none">{user.email}</span>
                           </div>
                           {user.phone && (
-                            <div className="flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              {user.phone}
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <Phone className="w-3.5 h-3.5 flex-shrink-0 text-slate-400" />
+                              <span>{user.phone}</span>
                             </div>
                           )}
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            Registrado: {formatDate(user.createdAt)}
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-slate-400" />
+                            <span>Registrado: {formatDate(user.createdAt)}</span>
                           </div>
                           {user.role === 'ASESOR' && user._count && (
-                            <div className="flex items-center gap-1">
-                              <Users className="w-3 h-3" />
-                              {user._count.clientsAssigned} clientes
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <Users className="w-3.5 h-3.5 flex-shrink-0 text-slate-400" />
+                              <span>{user._count.clientsAssigned} clientes</span>
                             </div>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {((session?.user?.role as string) === 'SUPER_ADMIN' || user.role !== 'ADMIN') && (
-                        <Select value={user.status} onValueChange={(value) => handleStatusChange(user.id, value)}>
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="ACTIVE">Activo</SelectItem>
-                            <SelectItem value="INACTIVE">Inactivo</SelectItem>
-                            <SelectItem value="SUSPENDED">Suspendido</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                      {((session?.user?.role as string) === 'SUPER_ADMIN' || (user.role !== 'ADMIN' && user.id !== session?.user?.id)) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditClick(user)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      )}
-                      {((session?.user?.role as string) === 'SUPER_ADMIN' || (user.role !== 'ADMIN' && user.id !== session?.user?.id)) && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteUser(user.id, `${user.firstName} ${user.lastName}`)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
+                    {(((session?.user?.role as string) === 'SUPER_ADMIN' || user.role !== 'ADMIN') ||
+                      ((session?.user?.role as string) === 'SUPER_ADMIN' || (user.role !== 'ADMIN' && user.id !== session?.user?.id))) && (
+                      <div className="flex items-center justify-end gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/80">
+                        {((session?.user?.role as string) === 'SUPER_ADMIN' || user.role !== 'ADMIN') && (
+                          <Select value={user.status} onValueChange={(value) => handleStatusChange(user.id, value)}>
+                            <SelectTrigger className="h-8 text-xs w-28 sm:w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ACTIVE">Activo</SelectItem>
+                              <SelectItem value="INACTIVE">Inactivo</SelectItem>
+                              <SelectItem value="SUSPENDED">Suspendido</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                        {((session?.user?.role as string) === 'SUPER_ADMIN' || (user.role !== 'ADMIN' && user.id !== session?.user?.id)) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleEditClick(user)}
+                            title="Editar usuario"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                        {((session?.user?.role as string) === 'SUPER_ADMIN' || (user.role !== 'ADMIN' && user.id !== session?.user?.id)) && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleDeleteUser(user.id, `${user.firstName} ${user.lastName}`)}
+                            title="Eliminar usuario"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
