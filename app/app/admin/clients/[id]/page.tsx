@@ -168,150 +168,176 @@ export default function ClientDetailPage() {
   const age = calculateAge(client.dateOfBirth);
 
   return (
-    <div className="space-y-6 text-left pb-20 max-w-7xl mx-auto">
-      {/* ── HEADER SUPERIOR ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
-        <div className="flex items-center gap-4">
+    <div className="space-y-4 sm:space-y-6 text-left pb-36 md:pb-20 max-w-7xl mx-auto px-1 sm:px-0 overflow-x-hidden">
+      {/* ── HEADER SUPERIOR RESPONSIVO MÓVIL / PWA / DESKTOP ── */}
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col gap-4">
+        {/* Fila 1: Botón Volver + Badge en Móvil */}
+        <div className="flex items-center justify-between sm:hidden w-full pb-1 border-b border-slate-100 dark:border-slate-800/80">
           <Link href="/admin/clients">
-            <Button variant="outline" size="icon" className="rounded-2xl h-11 w-11 shrink-0">
-              <ArrowLeft className="h-5 w-5" />
+            <Button variant="outline" size="icon" className="rounded-xl h-9 w-9 shrink-0">
+              <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          
-          <ClientProfileImage clientId={client.id} currentImage={client.profileImage} clientName={`${client.firstName || ''}`} size="lg" />
-          
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
-                {client.firstName} {client.lastName}
-              </h1>
-              <Badge className={cn('uppercase text-[10px] font-black rounded-full px-2.5 py-0.5 border-0',
-                client.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' :
-                client.status === 'BLACKLISTED' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' :
-                'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-              )}>
-                {client.status === 'ACTIVE' ? 'Activo' : client.status === 'BLACKLISTED' ? 'Lista Negra' : client.status}
-              </Badge>
-            </div>
+          <Badge className={cn('uppercase text-[10px] font-black rounded-full px-2.5 py-0.5 border-0',
+            client.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' :
+            client.status === 'BLACKLISTED' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' :
+            'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+          )}>
+            {client.status === 'ACTIVE' ? 'Activo' : client.status === 'BLACKLISTED' ? 'Lista Negra' : client.status}
+          </Badge>
+        </div>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-slate-500 font-medium">
-              {client.phone && (
-                <a href={`tel:${client.phone}`} className="flex items-center gap-1 hover:text-blue-600 font-semibold">
-                  <Phone className="h-3.5 w-3.5 text-slate-400" /> {client.phone}
-                </a>
-              )}
-              {client.email && (
-                <a href={`mailto:${client.email}`} className="flex items-center gap-1 hover:text-blue-600 font-semibold">
-                  <Mail className="h-3.5 w-3.5 text-slate-400" /> {client.email}
-                </a>
-              )}
-              {client.asesor && (
-                <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold uppercase">
-                  <UserCheck className="h-3.5 w-3.5" /> Asesor: {client.asesor.firstName} {client.asesor.lastName}
-                </span>
-              )}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <Link href="/admin/clients" className="hidden sm:block">
+              <Button variant="outline" size="icon" className="rounded-2xl h-11 w-11 shrink-0">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            
+            <div className="shrink-0">
+              <ClientProfileImage 
+                clientId={client.id} 
+                currentImage={client.profileImage} 
+                clientName={`${client.firstName || ''}`} 
+                size="md"
+                className="w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 shadow-sm"
+              />
+            </div>
+            
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase break-words">
+                  {client.firstName} {client.lastName}
+                </h1>
+                <Badge className={cn('hidden sm:inline-flex uppercase text-[10px] font-black rounded-full px-2.5 py-0.5 border-0 shrink-0',
+                  client.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' :
+                  client.status === 'BLACKLISTED' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' :
+                  'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                )}>
+                  {client.status === 'ACTIVE' ? 'Activo' : client.status === 'BLACKLISTED' ? 'Lista Negra' : client.status}
+                </Badge>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-slate-500 font-medium">
+                {client.phone && (
+                  <a href={`tel:${client.phone}`} className="flex items-center gap-1 hover:text-blue-600 font-semibold truncate">
+                    <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" /> {client.phone}
+                  </a>
+                )}
+                {client.email && (
+                  <a href={`mailto:${client.email}`} className="flex items-center gap-1 hover:text-blue-600 font-semibold truncate">
+                    <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" /> {client.email}
+                  </a>
+                )}
+                {client.asesor && (
+                  <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold uppercase truncate">
+                    <UserCheck className="h-3.5 w-3.5 shrink-0" /> Asesor: {client.asesor.firstName} {client.asesor.lastName}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <GPSCheckIn clientId={client.id} />
-          <Link href={`/admin/clients/${client.id}/edit`}>
-            <Button variant="default" size="sm" className="rounded-2xl h-11 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-500/20">
-              <Edit className="h-4 w-4 mr-2" /> Editar Cliente
-            </Button>
-          </Link>
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+            <GPSCheckIn clientId={client.id} />
+            <Link href={`/admin/clients/${client.id}/edit`} className="w-full sm:w-auto">
+              <Button variant="default" size="sm" className="rounded-xl sm:rounded-2xl h-10 sm:h-11 w-full px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-500/20 text-xs sm:text-sm">
+                <Edit className="h-4 w-4 mr-1.5 shrink-0" /> Editar
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* ── TARJETAS DE ESTADÍSTICAS ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="rounded-2xl border-slate-200 dark:border-slate-800 shadow-xs bg-slate-50/50 dark:bg-slate-900/50">
-          <CardContent className="p-4 space-y-1">
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-1">
-              <CreditCard className="h-3.5 w-3.5 text-blue-500" /> Total Créditos
+      {/* ── TARJETAS DE ESTADÍSTICAS COMPACTAS ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+        <Card className="rounded-xl sm:rounded-2xl border-slate-200 dark:border-slate-800 shadow-xs bg-slate-50/50 dark:bg-slate-900/50">
+          <CardContent className="p-3 sm:p-4 space-y-0.5 sm:space-y-1">
+            <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-wider sm:tracking-widest flex items-center gap-1 truncate">
+              <CreditCard className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-blue-500 shrink-0" /> Total Créditos
             </p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{totalLoans}</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{totalLoans}</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-slate-200 dark:border-slate-800 shadow-xs bg-slate-50/50 dark:bg-slate-900/50">
-          <CardContent className="p-4 space-y-1">
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest flex items-center gap-1">
-              <DollarSign className="h-3.5 w-3.5 text-indigo-500" /> Monto Prestado
+        <Card className="rounded-xl sm:rounded-2xl border-slate-200 dark:border-slate-800 shadow-xs bg-slate-50/50 dark:bg-slate-900/50">
+          <CardContent className="p-3 sm:p-4 space-y-0.5 sm:space-y-1">
+            <p className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-wider sm:tracking-widest flex items-center gap-1 truncate">
+              <DollarSign className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-indigo-500 shrink-0" /> Monto Prestado
             </p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{formatCurrency(totalBorrowed)}</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{formatCurrency(totalBorrowed)}</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-slate-200 dark:border-slate-800 shadow-xs bg-orange-50/40 dark:bg-orange-950/20 border-orange-200/50">
-          <CardContent className="p-4 space-y-1">
-            <p className="text-[10px] font-black uppercase text-orange-600 dark:text-orange-400 tracking-widest flex items-center gap-1">
-              <TrendingUp className="h-3.5 w-3.5" /> Saldo Pendiente
+        <Card className="rounded-xl sm:rounded-2xl border-slate-200 dark:border-slate-800 shadow-xs bg-orange-50/40 dark:bg-orange-950/20 border-orange-200/50">
+          <CardContent className="p-3 sm:p-4 space-y-0.5 sm:space-y-1">
+            <p className="text-[9px] sm:text-[10px] font-black uppercase text-orange-600 dark:text-orange-400 tracking-wider sm:tracking-widest flex items-center gap-1 truncate">
+              <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-orange-500 shrink-0" /> Saldo Pendiente
             </p>
-            <p className="text-2xl font-black text-orange-600 dark:text-orange-400">{formatCurrency(totalBalance)}</p>
+            <p className="text-xl sm:text-2xl font-black text-orange-600 dark:text-orange-400">{formatCurrency(totalBalance)}</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-slate-200 dark:border-slate-800 shadow-xs bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200/50">
-          <CardContent className="p-4 space-y-1">
-            <p className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-widest flex items-center gap-1">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Total Pagado
+        <Card className="rounded-xl sm:rounded-2xl border-slate-200 dark:border-slate-800 shadow-xs bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200/50">
+          <CardContent className="p-3 sm:p-4 space-y-0.5 sm:space-y-1">
+            <p className="text-[9px] sm:text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider sm:tracking-widest flex items-center gap-1 truncate">
+              <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-emerald-500 shrink-0" /> Total Pagado
             </p>
-            <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(totalPaid)}</p>
+            <p className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(totalPaid)}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* ── SISTEMA DE PESTAÑAS ESTRUCTURADAS (1:1 CON EDITAR CLIENTE) ── */}
-      <Tabs defaultValue="general" className="space-y-6">
-        <Card className="border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl overflow-hidden p-1.5 bg-slate-100/70 dark:bg-slate-900/60">
-          <TabsList className="grid grid-cols-2 md:grid-cols-6 gap-1.5 bg-transparent h-auto p-0">
+      {/* ── SISTEMA DE PESTAÑAS RESPONSIVO (HORIZONTAL SWIPE EN MÓVIL / PWA) ── */}
+      <Tabs defaultValue="general" className="space-y-4 sm:space-y-6">
+        <Card className="border border-slate-200 dark:border-slate-800 shadow-xs rounded-2xl overflow-hidden p-1 bg-slate-100/70 dark:bg-slate-900/60">
+          <TabsList className="flex md:grid md:grid-cols-6 overflow-x-auto no-scrollbar gap-1 sm:gap-1.5 bg-transparent h-auto p-0 w-full justify-start md:justify-stretch">
             <TabsTrigger 
               value="general" 
-              className="py-3 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-blue-600 data-[state=active]:text-white dark:data-[state=active]:bg-blue-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/30 data-[state=active]:scale-[1.02]"
+              className="shrink-0 whitespace-nowrap py-2 sm:py-2.5 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-blue-600 data-[state=active]:text-white dark:data-[state=active]:bg-blue-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/30"
             >
-              <User className="h-4 w-4" />
+              <User className="h-3.5 w-3.5 shrink-0" />
               <span>1. General</span>
             </TabsTrigger>
 
             <TabsTrigger 
               value="address" 
-              className="py-3 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-red-600 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 data-[state=active]:scale-[1.02]"
+              className="shrink-0 whitespace-nowrap py-2 sm:py-2.5 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-red-600 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30"
             >
-              <MapPin className="h-4 w-4" />
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
               <span>2. Domicilio</span>
             </TabsTrigger>
 
             <TabsTrigger 
               value="financial" 
-              className="py-3 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-indigo-600 data-[state=active]:text-white dark:data-[state=active]:bg-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-indigo-500/30 data-[state=active]:scale-[1.02]"
+              className="shrink-0 whitespace-nowrap py-2 sm:py-2.5 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-indigo-600 data-[state=active]:text-white dark:data-[state=active]:bg-indigo-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-indigo-500/30"
             >
-              <Briefcase className="h-4 w-4" />
+              <Briefcase className="h-3.5 w-3.5 shrink-0" />
               <span>3. Financiera</span>
             </TabsTrigger>
 
             <TabsTrigger 
               value="guarantor" 
-              className="py-3 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-purple-600 data-[state=active]:text-white dark:data-[state=active]:bg-purple-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-purple-500/30 data-[state=active]:scale-[1.02]"
+              className="shrink-0 whitespace-nowrap py-2 sm:py-2.5 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-purple-600 data-[state=active]:text-white dark:data-[state=active]:bg-purple-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-purple-500/30"
             >
-              <UserCheck className="h-4 w-4" />
+              <UserCheck className="h-3.5 w-3.5 shrink-0" />
               <span>4. Aval & Bienes</span>
             </TabsTrigger>
 
             <TabsTrigger 
               value="loans" 
-              className="py-3 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-emerald-600 data-[state=active]:text-white dark:data-[state=active]:bg-emerald-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-emerald-500/30 data-[state=active]:scale-[1.02]"
+              className="shrink-0 whitespace-nowrap py-2 sm:py-2.5 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-emerald-600 data-[state=active]:text-white dark:data-[state=active]:bg-emerald-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-emerald-500/30"
             >
-              <CreditCard className="h-4 w-4" />
+              <CreditCard className="h-3.5 w-3.5 shrink-0" />
               <span>5. Créditos ({totalLoans})</span>
             </TabsTrigger>
 
             <TabsTrigger 
               value="refs" 
-              className="py-3 px-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-amber-600 data-[state=active]:text-white dark:data-[state=active]:bg-amber-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-amber-500/30 data-[state=active]:scale-[1.02]"
+              className="shrink-0 whitespace-nowrap py-2 sm:py-2.5 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 data-[state=active]:bg-amber-600 data-[state=active]:text-white dark:data-[state=active]:bg-amber-600 dark:data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-amber-500/30"
             >
-              <FileText className="h-4 w-4" />
+              <FileText className="h-3.5 w-3.5 shrink-0" />
               <span>6. Referencias</span>
             </TabsTrigger>
           </TabsList>

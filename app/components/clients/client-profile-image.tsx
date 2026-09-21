@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { Camera, Trash2, Upload, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface ClientProfileImageProps {
   clientId: string;
@@ -14,6 +15,7 @@ interface ClientProfileImageProps {
   clientName: string;
   editable?: boolean;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
   onImageUpdate?: (newImagePath: string | null) => void;
 }
 
@@ -30,6 +32,7 @@ export function ClientProfileImage({
   clientName,
   editable = false,
   size = 'md',
+  className,
   onImageUpdate,
 }: ClientProfileImageProps) {
   const { data: session } = useSession() || {};
@@ -153,7 +156,7 @@ export function ClientProfileImage({
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Contenedor de la imagen */}
-      <div className={`relative ${sizeClasses[size]} rounded-full overflow-hidden bg-muted border-2 border-border`}>
+      <div className={cn("relative rounded-full overflow-hidden bg-muted border-2 border-border shrink-0", sizeClasses[size], className)}>
         {imageUrl ? (
           <Image
             src={imageUrl}

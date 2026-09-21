@@ -163,29 +163,42 @@
 }
 
 /* 
-  PWA text scaling for standard readability 
-  Uniformly increases text size and REM units when installed as a mobile app
+  PWA & Mobile UI Optimization
+  Mantiene la escala estándar de 16px para preservar las proporciones exactas de Tailwind y evitar desbordamientos
 */
 @media screen and (max-width: 768px) {
   html {
     font-size: 16px;
+    -webkit-text-size-adjust: 100%;
   }
-  
-  h1 { @apply text-3xl font-black; }
-  h2 { @apply text-2xl font-black; }
-  p { @apply text-base; }
 }
 
 @media screen and (max-width: 768px) and (display-mode: standalone) {
   html {
-    font-size: 17.5px !important;
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
   }
   
-  /* Aumentar padding global en modo PWA para evitar cortes con bordes redondos */
   body {
     @apply antialiased;
     text-rendering: optimizeLegibility;
+    overscroll-behavior-y: none;
   }
+}
+
+/* Prevenir desbordamiento horizontal en móviles y WebViews de Android APK */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Ocultar barra de scroll en navegación por pestañas y barras táctiles */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 /* Respect user motion preferences throughout the application. */
 @media (prefers-reduced-motion: reduce) {

@@ -82,7 +82,7 @@ export function BottomNavbar() {
                                 
                                 {/* Etiqueta de texto micro-trackeada */}
                                 <span className={cn(
-                                    "text-[9px] font-black uppercase tracking-widest mt-0.5 transition-all duration-300",
+                                    "text-[9px] font-black uppercase tracking-wider mt-0.5 transition-all duration-300 truncate max-w-[56px] text-center",
                                     active ? "text-cyan-700 dark:text-cyan-300 font-black" : "text-slate-400 dark:text-slate-500"
                                 )}>
                                     {item.label}
