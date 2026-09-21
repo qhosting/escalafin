@@ -24,8 +24,8 @@ export default function PWAHomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Auto-redirect based on user role after 3 seconds
-    if (session?.user) {
+    // Auto-redirect based on user role after 3 seconds (SuperAdmin no se redirige automáticamente)
+    if (session?.user && session.user.role !== 'SUPER_ADMIN') {
       const timer = setTimeout(() => {
         switch (session.user.role) {
           case 'CLIENTE':
@@ -124,7 +124,8 @@ export default function PWAHomePage() {
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {pwaOptions.map((option, index) => {
             const Icon = option.icon;
-            const canAccess = session?.user?.role === 'ADMIN' || 
+            const canAccess = session?.user?.role === 'SUPER_ADMIN' ||
+                            session?.user?.role === 'ADMIN' || 
                             session?.user?.role === option.role;
 
             return (

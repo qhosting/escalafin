@@ -43,12 +43,14 @@ interface MobileSimulatorState {
   device: SimulatedDevice;
   isLandscape: boolean;
   zoom: number;
-  open: (device?: SimulatedDevice) => void;
+  targetPath: string | null;
+  open: (device?: SimulatedDevice, initialPath?: string) => void;
   close: () => void;
   toggle: () => void;
   setDevice: (device: SimulatedDevice) => void;
   toggleOrientation: () => void;
   setZoom: (zoom: number) => void;
+  setTargetPath: (path: string | null) => void;
 }
 
 export const useMobileSimulator = create<MobileSimulatorState>((set) => ({
@@ -56,10 +58,17 @@ export const useMobileSimulator = create<MobileSimulatorState>((set) => ({
   device: 'iphone',
   isLandscape: false,
   zoom: 0.88,
-  open: (device) => set({ isOpen: true, ...(device ? { device } : {}) }),
+  targetPath: null,
+  open: (device, initialPath) =>
+    set({
+      isOpen: true,
+      ...(device ? { device } : {}),
+      ...(initialPath !== undefined ? { targetPath: initialPath } : {}),
+    }),
   close: () => set({ isOpen: false }),
   toggle: () => set((state) => ({ isOpen: !state.isOpen })),
   setDevice: (device) => set({ device }),
   toggleOrientation: () => set((state) => ({ isLandscape: !state.isLandscape })),
   setZoom: (zoom) => set({ zoom }),
+  setTargetPath: (path) => set({ targetPath: path }),
 }));

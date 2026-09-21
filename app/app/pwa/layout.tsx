@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { BottomNavBar } from '@/components/pwa/bottom-nav-bar';
 import { ModeToggle } from '@/components/pwa/mode-toggle';
 import { OfflineIndicator } from '@/components/pwa/offline-indicator';
+import { IntrapersonaBanner } from '@/components/pwa/intrapersona-banner';
 import { GenericSpinner } from '@/components/layout/loading-variants';
 
 export default function PWALayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,7 @@ export default function PWALayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+      <IntrapersonaBanner />
       <OfflineIndicator />
       {/* Main content area with bottom padding for nav bar */}
       <main className="flex-1 pb-20 overflow-auto">

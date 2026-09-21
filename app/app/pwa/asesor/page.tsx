@@ -76,7 +76,7 @@ export default function AsesorPWAPage() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login?callbackUrl=/pwa/asesor');
-    } else if (session?.user && !['ASESOR', 'ADMIN'].includes(session.user.role)) {
+    } else if (session?.user && !['ASESOR', 'ADMIN', 'SUPER_ADMIN'].includes(session.user.role)) {
       router.push('/');
     }
   }, [session, status, router]);
@@ -85,8 +85,9 @@ export default function AsesorPWAPage() {
   const [storage, setStorage] = useState<PWAStorage | null>(null);
 
   useEffect(() => {
-    if (session?.user?.tenantId) {
-      setStorage(new PWAStorage(session.user.tenantId));
+    if (session?.user) {
+      const tenantId = session.user.tenantId || 'global';
+      setStorage(new PWAStorage(tenantId));
     }
   }, [session]);
 

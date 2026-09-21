@@ -49,6 +49,19 @@ export default withAuth(
       );
     }
 
+    // 🛡️ SEGURIDAD: Bloqueo de peticiones con Server Actions inválidas / escaneos
+    // Previene el error en Next.js standalone: "Failed to find Server Action... Cannot read properties of undefined (reading 'workers')"
+    if (req.headers.has('next-action')) {
+      const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || req.ip || 'desconocida';
+      console.warn(`🛡️ SEGURIDAD: Petición con Next-Action rechazada desde IP: ${clientIp} en [${pathname}]`);
+      return new NextResponse(
+        JSON.stringify({ 
+          error: 'Acción de servidor no válida o despliegue desactualizado', 
+          code: 'INVALID_SERVER_ACTION' 
+        }),
+        { status: 404, headers: { 'content-type': 'application/json' } }
+      );
+    }
 
     let tenantSlug = 'default-tenant';
 

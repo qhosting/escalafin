@@ -11,6 +11,16 @@ declare module 'next-auth' {
       tenantId: string | null;
       tenantSlug: string | null;
       tenantName: string | null;
+      isImpersonating?: boolean;
+      originalUser?: {
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+        tenantId: string | null;
+        tenantSlug: string | null;
+        tenantName: string | null;
+      } | null;
     };
   }
 
@@ -30,5 +40,15 @@ declare module 'next-auth/jwt' {
     tenantId: string | null;
     tenantSlug: string | null;
     tenantName: string | null;
+    isImpersonating?: boolean;
+    originalUser?: {
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+      tenantId: string | null;
+      tenantSlug: string | null;
+      tenantName: string | null;
+    } | null;
   }
 }

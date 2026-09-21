@@ -37,7 +37,17 @@ export function BottomNavBar() {
   const pathname = usePathname();
   const role = session?.user?.role || '';
 
-  const items = NAV_ITEMS.filter(item => item.roles.includes(role));
+  // Para SUPER_ADMIN, adaptar los items según el portal que esté visualizando
+  let activeRole = role;
+  if (role === 'SUPER_ADMIN') {
+    if (pathname.startsWith('/pwa/asesor') || pathname.startsWith('/mobile')) {
+      activeRole = 'ASESOR';
+    } else if (pathname.startsWith('/pwa/client') || pathname.startsWith('/cliente')) {
+      activeRole = 'CLIENTE';
+    }
+  }
+
+  const items = NAV_ITEMS.filter(item => item.roles.includes(activeRole));
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-700 safe-area-bottom">

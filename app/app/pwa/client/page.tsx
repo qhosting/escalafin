@@ -67,7 +67,7 @@ export default function ClientPWAPage() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login?callbackUrl=/pwa/client');
-    } else if (session?.user && session.user.role !== 'CLIENTE') {
+    } else if (session?.user && !['CLIENTE', 'SUPER_ADMIN'].includes(session.user.role)) {
       router.push('/');
     }
   }, [session, status, router]);

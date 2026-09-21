@@ -137,13 +137,81 @@ export const authOptions: NextAuthOptions = {
     updateAge: 24 * 60 * 60, // 24 horas
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session: updateData }) {
       if (user) {
         token.role = user.role;
         token.tenantId = user.tenantId;
         token.tenantSlug = (user as any).tenantSlug ?? (user as any).tenant?.slug ?? null;
         token.tenantName = (user as any).tenantName ?? (user as any).tenant?.name ?? null;
       }
+
+      // 🎭 Soporte para Intrapersona / Suplantación segura por SuperAdmin
+      if (trigger === 'update' && updateData) {
+        if (updateData.action === 'impersonate' && updateData.targetUserId) {
+          // Solo si el usuario original o actual es SUPER_ADMIN
+          const isSuperAdmin = (token.originalUser as any)?.role === 'SUPER_ADMIN' || token.role === 'SUPER_ADMIN';
+          if (isSuperAdmin) {
+            const targetUser = await prisma.user.findUnique({
+              where: { id: updateData.targetUserId },
+              include: { tenant: true },
+            });
+
+            if (targetUser && targetUser.status === 'ACTIVE') {
+              // Guardar identidad original si no se ha guardado aún
+              if (!token.originalUser) {
+                token.originalUser = {
+                  id: token.sub!,
+                  email: (token.email as string) || '',
+                  name: (token.name as string) || '',
+                  role: token.role as string,
+                  tenantId: (token.tenantId as string | null) ?? null,
+                  tenantSlug: (token.tenantSlug as string | null) ?? null,
+                  tenantName: (token.tenantName as string | null) ?? null,
+                };
+              }
+
+              // Asumir identidad del usuario objetivo
+              token.sub = targetUser.id;
+              token.email = targetUser.email;
+              token.name = `${targetUser.firstName} ${targetUser.lastName}`;
+              token.role = targetUser.role;
+              token.tenantId = targetUser.tenantId;
+              token.tenantSlug = targetUser.tenant?.slug ?? null;
+              token.tenantName = targetUser.tenant?.name ?? null;
+              token.isImpersonating = true;
+
+              await AuditLogger.quickLog(
+                null,
+                'LOGIN',
+                {
+                  method: 'impersonation',
+                  impersonatedBy: token.originalUser.id,
+                  targetUser: targetUser.email,
+                  role: targetUser.role,
+                },
+                'Auth',
+                targetUser.id,
+                { user: targetUser }
+              ).catch(() => {});
+            }
+          }
+        } else if (updateData.action === 'stopImpersonate') {
+          // Restaurar sesión del SuperAdmin original
+          if (token.originalUser) {
+            const orig = token.originalUser as any;
+            token.sub = orig.id;
+            token.email = orig.email;
+            token.name = orig.name;
+            token.role = orig.role;
+            token.tenantId = orig.tenantId;
+            token.tenantSlug = orig.tenantSlug;
+            token.tenantName = orig.tenantName;
+            delete token.originalUser;
+            delete token.isImpersonating;
+          }
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -153,6 +221,8 @@ export const authOptions: NextAuthOptions = {
         session.user.tenantId = token.tenantId as string | null;
         session.user.tenantSlug = token.tenantSlug as string | null;
         session.user.tenantName = token.tenantName as string | null;
+        session.user.isImpersonating = !!token.isImpersonating;
+        session.user.originalUser = token.originalUser || null;
       }
       return session;
     },
