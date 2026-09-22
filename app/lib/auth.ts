@@ -4,8 +4,13 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/db';
 import { UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { AuditLogger } from './audit';
 import { RateLimiter } from './rate-limit';
+
+function computeImpersonationSignature(superAdminId: string, targetUserId: string, secret: string) {
+  return crypto.createHmac('sha256', secret).update(`${superAdminId}:${targetUserId}`).digest('hex');
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -145,58 +150,114 @@ export const authOptions: NextAuthOptions = {
         token.tenantName = (user as any).tenantName ?? (user as any).tenant?.name ?? null;
       }
 
+      // 🛡️ Verificación continua de integridad y caducidad de intrapersona
+      if (token.isImpersonating && token.originalUser) {
+        const secret = process.env.NEXTAUTH_SECRET || 'escalafin-auth-fallback-secret-2026';
+        const MAX_TTL_MS = 4 * 60 * 60 * 1000; // 4 horas máximo de suplantación
+        const isExpired = token.impersonatedAt && (Date.now() - (token.impersonatedAt as number) > MAX_TTL_MS);
+        const expectedSig = computeImpersonationSignature(token.originalUser.id, token.sub!, secret);
+        const isSignatureInvalid = token.impersonationSig && token.impersonationSig !== expectedSig;
+
+        if (isExpired || isSignatureInvalid) {
+          console.warn('🛡️ SEGURIDAD: Sesión de intrapersona expirada o firma adulterada. Revirtiendo a SuperAdmin...');
+          const orig = token.originalUser as any;
+          token.sub = orig.id;
+          token.email = orig.email;
+          token.name = orig.name;
+          token.role = orig.role;
+          token.tenantId = orig.tenantId;
+          token.tenantSlug = orig.tenantSlug;
+          token.tenantName = orig.tenantName;
+          delete token.originalUser;
+          delete token.isImpersonating;
+          delete token.impersonationSig;
+          delete token.impersonatedAt;
+        }
+      }
+
       // 🎭 Soporte para Intrapersona / Suplantación segura por SuperAdmin
       if (trigger === 'update' && updateData) {
         if (updateData.action === 'impersonate' && updateData.targetUserId) {
-          // Solo si el usuario original o actual es SUPER_ADMIN
-          const isSuperAdmin = (token.originalUser as any)?.role === 'SUPER_ADMIN' || token.role === 'SUPER_ADMIN';
-          if (isSuperAdmin) {
-            const targetUser = await prisma.user.findUnique({
-              where: { id: updateData.targetUserId },
-              include: { tenant: true },
-            });
-
-            if (targetUser && targetUser.status === 'ACTIVE') {
-              // Guardar identidad original si no se ha guardado aún
-              if (!token.originalUser) {
-                token.originalUser = {
-                  id: token.sub!,
-                  email: (token.email as string) || '',
-                  name: (token.name as string) || '',
-                  role: token.role as string,
-                  tenantId: (token.tenantId as string | null) ?? null,
-                  tenantSlug: (token.tenantSlug as string | null) ?? null,
-                  tenantName: (token.tenantName as string | null) ?? null,
-                };
-              }
-
-              // Asumir identidad del usuario objetivo
-              token.sub = targetUser.id;
-              token.email = targetUser.email;
-              token.name = `${targetUser.firstName} ${targetUser.lastName}`;
-              token.role = targetUser.role;
-              token.tenantId = targetUser.tenantId;
-              token.tenantSlug = targetUser.tenant?.slug ?? null;
-              token.tenantName = targetUser.tenant?.name ?? null;
-              token.isImpersonating = true;
-
-              await AuditLogger.quickLog(
-                null,
-                'LOGIN',
-                {
-                  method: 'impersonation',
-                  impersonatedBy: token.originalUser.id,
-                  targetUser: targetUser.email,
-                  role: targetUser.role,
+          const targetId = String(updateData.targetUserId).trim();
+          
+          // 1. Sanitización de identificador para prevenir inyecciones
+          if (/^[a-zA-Z0-9_-]{8,64}$/.test(targetId)) {
+            const requesterId = token.originalUser?.id || token.sub;
+            if (requesterId) {
+              // 2. Validación estricta en base de datos: el solicitante REAL debe ser SUPER_ADMIN y estar ACTIVO
+              const superAdminUser = await prisma.user.findUnique({
+                where: { id: requesterId },
+                select: {
+                  id: true,
+                  role: true,
+                  status: true,
+                  email: true,
+                  firstName: true,
+                  lastName: true,
+                  tenantId: true,
+                  tenant: { select: { slug: true, name: true } },
                 },
-                'Auth',
-                targetUser.id,
-                { user: targetUser }
-              ).catch(() => {});
+              });
+
+              if (superAdminUser && superAdminUser.role === UserRole.SUPER_ADMIN && superAdminUser.status === 'ACTIVE') {
+                // 3. Prohibir auto-suplantación
+                if (targetId !== superAdminUser.id) {
+                  const targetUser = await prisma.user.findUnique({
+                    where: { id: targetId },
+                    include: { tenant: true },
+                  });
+
+                  // 4. El usuario objetivo debe existir, estar activo y NO ser otro SuperAdmin
+                  if (targetUser && targetUser.status === 'ACTIVE' && targetUser.role !== UserRole.SUPER_ADMIN) {
+                    if (!token.originalUser) {
+                      token.originalUser = {
+                        id: superAdminUser.id,
+                        email: superAdminUser.email,
+                        name: `${superAdminUser.firstName} ${superAdminUser.lastName}`,
+                        role: superAdminUser.role,
+                        tenantId: superAdminUser.tenantId,
+                        tenantSlug: superAdminUser.tenant?.slug ?? null,
+                        tenantName: superAdminUser.tenant?.name ?? null,
+                      };
+                    }
+
+                    const secret = process.env.NEXTAUTH_SECRET || 'escalafin-auth-fallback-secret-2026';
+                    token.sub = targetUser.id;
+                    token.email = targetUser.email;
+                    token.name = `${targetUser.firstName} ${targetUser.lastName}`;
+                    token.role = targetUser.role;
+                    token.tenantId = targetUser.tenantId;
+                    token.tenantSlug = targetUser.tenant?.slug ?? null;
+                    token.tenantName = targetUser.tenant?.name ?? null;
+                    token.isImpersonating = true;
+                    token.impersonatedAt = Date.now();
+                    token.impersonationSig = computeImpersonationSignature(superAdminUser.id, targetUser.id, secret);
+
+                    await AuditLogger.quickLog(
+                      null,
+                      'LOGIN',
+                      {
+                        method: 'impersonation_activated',
+                        superAdminId: superAdminUser.id,
+                        superAdminEmail: superAdminUser.email,
+                        targetUserId: targetUser.id,
+                        targetUserEmail: targetUser.email,
+                        targetRole: targetUser.role,
+                        tenantId: targetUser.tenantId,
+                      },
+                      'Security',
+                      targetUser.id,
+                      { user: targetUser }
+                    ).catch(() => {});
+                  }
+                }
+              } else {
+                console.warn('🛡️ ALERTA DE SEGURIDAD: Intento de intrapersona rechazado por credenciales insuficientes');
+              }
             }
           }
         } else if (updateData.action === 'stopImpersonate') {
-          // Restaurar sesión del SuperAdmin original
+          // Restaurar sesión del SuperAdmin original de forma atómica y limpiar tokens
           if (token.originalUser) {
             const orig = token.originalUser as any;
             token.sub = orig.id;
@@ -208,6 +269,8 @@ export const authOptions: NextAuthOptions = {
             token.tenantName = orig.tenantName;
             delete token.originalUser;
             delete token.isImpersonating;
+            delete token.impersonationSig;
+            delete token.impersonatedAt;
           }
         }
       }
@@ -265,6 +328,18 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/auth/login',
+  },
+  useSecureCookies: process.env.NODE_ENV === 'production',
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
   debug: false,
   secret: process.env.NEXTAUTH_SECRET,

@@ -8,6 +8,7 @@ import { TopHeader } from './top-header';
 import { MobileSidebar } from './mobile-sidebar';
 import { BottomNavbar } from './bottom-navbar';
 import { OfflineBanner } from '@/components/pwa/offline-banner';
+import { IntrapersonaBanner } from '@/components/pwa/intrapersona-banner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMobileSimulator } from '@/hooks/use-mobile-simulator';
 import { MobileSimulatorModal } from './mobile-simulator-modal';
@@ -117,6 +118,8 @@ export function MainLayout({ children }: MainLayoutProps) {
         "flex-1 flex flex-col min-w-0 transition-all duration-300",
         session && !isMobile && (sidebarCollapsed ? "md:pl-[68px]" : "md:pl-64")
       )}>
+        <IntrapersonaBanner />
+
         {/* Top Header con Breadcrumbs y Utilidades en Desktop */}
         {mounted && session && !isMobile && (
           <TopHeader

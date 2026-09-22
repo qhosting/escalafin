@@ -41,6 +41,8 @@ declare module 'next-auth/jwt' {
     tenantSlug: string | null;
     tenantName: string | null;
     isImpersonating?: boolean;
+    impersonationSig?: string;
+    impersonatedAt?: number;
     originalUser?: {
       id: string;
       email: string;
