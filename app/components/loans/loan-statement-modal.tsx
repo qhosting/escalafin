@@ -73,6 +73,9 @@ export function LoanStatementModal({
     const paidTotal = Math.max(0, principal - balance);
     const progressPercent = principal > 0 ? Math.min(100, Math.max(0, (paidTotal / principal) * 100)) : 0;
     const nextPayment = loan.amortizationSchedule?.find(s => !s.isPaid);
+    const nextPaymentAmount = nextPayment 
+        ? (Number(nextPayment.totalPayment) || ((Number(nextPayment.principalPayment) || 0) + (Number(nextPayment.interestPayment) || 0)) || Number((loan as any).monthlyPayment || 0))
+        : 0;
 
     const handleDownloadPDF = async () => {
         try {
@@ -128,7 +131,7 @@ export function LoanStatementModal({
 
         if (nextPayment) {
             message += `🗓️ *Próximo Pago:* ${format(new Date(nextPayment.paymentDate), 'dd/MM/yyyy')}\n`;
-            message += `💰 *Monto a Pagar:* ${formatCurrency(Number(nextPayment.totalPayment))}\n\n`;
+            message += `💰 *Monto a Pagar:* ${formatCurrency(nextPaymentAmount)}\n\n`;
         }
 
         message += `Cualquier duda o aclaración estamos a tus órdenes.`;
@@ -145,16 +148,16 @@ export function LoanStatementModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="w-full sm:max-w-[620px] max-h-[92vh] flex flex-col rounded-[2.5rem] p-0 sm:p-0 overflow-hidden border-0 shadow-2xl bg-white dark:bg-slate-950">
+            <DialogContent className="w-full sm:max-w-[620px] max-h-[92vh] flex flex-col rounded-[2.5rem] p-0 sm:p-0 overflow-hidden border-0 shadow-2xl bg-white dark:bg-slate-950 z-[160]">
                 {/* Header Banner */}
-                <DialogHeader className="shrink-0 p-6 sm:p-8 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 text-white relative">
+                <DialogHeader className="shrink-0 p-5 sm:p-8 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 text-white relative">
                     <div className="absolute top-[-20%] right-[-10%] w-60 h-60 bg-blue-500/10 rounded-full blur-3xl" />
-                    <div className="flex items-center gap-4 mb-2 relative z-10">
-                        <div className="bg-blue-600/30 p-3.5 rounded-2xl backdrop-blur-md border border-blue-400/20">
-                           <FileText className="h-7 w-7 text-blue-300" />
+                    <div className="flex items-center gap-3 sm:gap-4 mb-1 relative z-10">
+                        <div className="bg-blue-600/30 p-2.5 sm:p-3.5 rounded-2xl backdrop-blur-md border border-blue-400/20 shrink-0">
+                           <FileText className="h-6 w-6 sm:h-7 sm:w-7 text-blue-300" />
                         </div>
-                        <div className="space-y-1">
-                           <DialogTitle className="text-2xl font-black tracking-tight leading-none uppercase italic">Estado de Cuenta</DialogTitle>
+                        <div className="space-y-0.5 sm:space-y-1">
+                           <DialogTitle className="text-xl sm:text-2xl font-black tracking-tight leading-none uppercase italic !text-white text-white">Estado de Cuenta</DialogTitle>
                            <DialogDescription className="text-blue-200 text-xs font-semibold opacity-90">
                               Resumen financiero oficial del préstamo <span className="text-white font-bold">#{formatShortLoanNumber(loan.loanNumber)}</span>
                            </DialogDescription>
@@ -162,9 +165,9 @@ export function LoanStatementModal({
                     </div>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-white dark:bg-gray-950">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 bg-white dark:bg-gray-950 pb-8 sm:pb-6">
                     {/* Tarjeta de Resumen Financiero */}
-                    <Card className="border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 rounded-3xl p-6 shadow-sm">
+                    <Card className="border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 rounded-3xl p-4 sm:p-6 shadow-sm">
                         <div className="grid grid-cols-2 gap-4 mb-4">
                             <div className="space-y-1">
                                 <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest block">Acreditado</span>
@@ -205,14 +208,14 @@ export function LoanStatementModal({
                                     </span>
                                 </div>
                                 <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 font-bold text-xs rounded-xl">
-                                    {formatCurrency(Number(nextPayment.totalPayment))}
+                                    {formatCurrency(nextPaymentAmount)}
                                 </Badge>
                             </div>
                         )}
                     </Card>
 
                     {/* Botones de Acción */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                         <Button
                             variant="outline"
                             className="h-24 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-200 shadow-sm transition-all group bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"

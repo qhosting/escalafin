@@ -127,6 +127,7 @@ export async function GET(request: NextRequest) {
               paymentDate: true,
               principalPayment: true,
               interestPayment: true,
+              totalPayment: true,
               isPaid: true
             },
             orderBy: { paymentNumber: 'asc' }
