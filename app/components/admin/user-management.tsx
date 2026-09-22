@@ -352,62 +352,6 @@ export function UserManagement({
         </Select>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card>
-          <CardContent className="p-3.5 sm:p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 sm:p-2.5 rounded-lg bg-red-50 dark:bg-red-950/40">
-                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Admins</p>
-                <p className="text-lg sm:text-2xl font-bold">{users.filter(u => u.role === 'ADMIN').length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3.5 sm:p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 sm:p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/40">
-                <User className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Asesores</p>
-                <p className="text-lg sm:text-2xl font-bold">{users.filter(u => u.role === 'ASESOR').length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3.5 sm:p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 sm:p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Clientes</p>
-                <p className="text-lg sm:text-2xl font-bold">{users.filter(u => u.role === 'CLIENTE').length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3.5 sm:p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 sm:p-2.5 rounded-lg bg-purple-50 dark:bg-purple-950/40">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Total</p>
-                <p className="text-lg sm:text-2xl font-bold">{users.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Users Table */}
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4">
