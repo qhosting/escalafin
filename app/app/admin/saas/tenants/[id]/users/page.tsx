@@ -58,9 +58,11 @@ import {
     RefreshCw,
     Search,
     X,
+    UserCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -110,6 +112,11 @@ export default function TenantUsersPage() {
         fetcher
     );
 
+    const { data: session, update } = useSession();
+    const isSuperAdmin = (session?.user?.role as string) === 'SUPER_ADMIN' || (session?.user as any)?.originalUser?.role === 'SUPER_ADMIN';
+    const [impersonateTarget, setImpersonateTarget] = useState<any>(null);
+    const [impersonatingLoading, setImpersonatingLoading] = useState(false);
+
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isResetPwDialogOpen, setIsResetPwDialogOpen] = useState(false);
@@ -120,6 +127,41 @@ export default function TenantUsersPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('ALL');
     const [statusFilter, setStatusFilter] = useState('ALL');
+
+    const handleConfirmImpersonate = async () => {
+        if (!impersonateTarget) return;
+        try {
+            setImpersonatingLoading(true);
+            const res = await fetch('/api/admin/impersonate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'impersonate',
+                    targetUserId: impersonateTarget.id,
+                }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || 'Error al iniciar intrapersona');
+            }
+
+            await update({ action: 'impersonate', targetUserId: impersonateTarget.id });
+            toast.success(`Modo Intrapersona activado como ${impersonateTarget.firstName} ${impersonateTarget.lastName}`);
+            setImpersonateTarget(null);
+
+            if (data.redirectUrl) {
+                window.location.href = data.redirectUrl;
+            } else {
+                window.location.reload();
+            }
+        } catch (error: any) {
+            console.error('Error al iniciar intrapersona:', error);
+            toast.error(error.message || 'Error al iniciar intrapersona');
+        } finally {
+            setImpersonatingLoading(false);
+        }
+    };
 
     const [newUser, setNewUser] = useState({
         email: '',
@@ -580,6 +622,18 @@ export default function TenantUsersPage() {
                                         </TableCell>
                                         <TableCell className="py-2.5 text-right">
                                             <div className="flex items-center justify-end gap-1">
+                                                {isSuperAdmin && user.id !== session?.user?.id && user.status === 'ACTIVE' && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="h-7 px-2 text-[11px] font-bold gap-1 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-300 dark:border-amber-800 rounded-lg transition-all shadow-2xs active:scale-95"
+                                                        title={`Iniciar sesión intrapersona como ${user.firstName} ${user.lastName}`}
+                                                        onClick={() => setImpersonateTarget(user)}
+                                                    >
+                                                        <UserCheck className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                                                        <span className="hidden xl:inline">Intrapersona</span>
+                                                    </Button>
+                                                )}
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
@@ -914,6 +968,64 @@ export default function TenantUsersPage() {
                             Guardar Cambios
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Intrapersona Confirmation Dialog */}
+            <Dialog open={!!impersonateTarget} onOpenChange={(open) => !open && setImpersonateTarget(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-amber-900 dark:text-amber-300">
+                            <UserCheck className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                            <span>Iniciar Modo Intrapersona</span>
+                        </DialogTitle>
+                    </DialogHeader>
+                    {impersonateTarget && (
+                        <div className="space-y-4 text-sm text-gray-600 dark:text-gray-300">
+                            <p>
+                                ¿Deseas iniciar sesión temporalmente con el perfil de{' '}
+                                <strong className="text-gray-900 dark:text-white font-black">
+                                    {impersonateTarget.firstName} {impersonateTarget.lastName}
+                                </strong>{' '}
+                                ({roleConfig[impersonateTarget.role]?.label || impersonateTarget.role}) de este inquilino?
+                            </p>
+                            <div className="p-3.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl text-xs space-y-1.5 text-amber-900 dark:text-amber-300">
+                                <div className="font-bold flex items-center gap-1.5 text-amber-950 dark:text-amber-200">
+                                    <Shield className="w-4 h-4 text-amber-600" />
+                                    <span>Seguridad y Auditoría Activa</span>
+                                </div>
+                                <p className="text-[11px] text-amber-800/90 dark:text-amber-400 leading-relaxed">
+                                    Todas las acciones quedarán auditadas bajo tu ID de Super Admin. La sesión cuenta con firma criptográfica HMAC y expiración automática. Podrás volver a tu cuenta en cualquier momento con el botón «Salir de Intrapersona».
+                                </p>
+                            </div>
+                            <DialogFooter className="gap-2 sm:gap-0 pt-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={impersonatingLoading}
+                                    onClick={() => setImpersonateTarget(null)}
+                                    className="text-xs h-8"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    disabled={impersonatingLoading}
+                                    onClick={handleConfirmImpersonate}
+                                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold gap-1.5 text-xs h-8"
+                                >
+                                    {impersonatingLoading ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : (
+                                        <UserCheck className="w-3.5 h-3.5" />
+                                    )}
+                                    <span>Confirmar e Iniciar</span>
+                                </Button>
+                            </DialogFooter>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>
