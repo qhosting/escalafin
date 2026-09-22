@@ -166,11 +166,12 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
       <aside
         className={cn(
           'flex flex-col h-full bg-white dark:bg-[#030914] text-slate-900 dark:text-slate-100 border-r border-slate-200/80 dark:border-white/5 relative select-none shadow-xl shadow-black/5 dark:shadow-black/40',
+          isMobileVariant ? 'w-full border-r-0 shadow-none' : undefined,
           !isMobileVariant && 'transition-[width] duration-200'
         )}
         style={
           isMobileVariant
-            ? undefined
+            ? { width: '100%' }
             : { width: isCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED }
         }
         aria-label="Navegación principal"
