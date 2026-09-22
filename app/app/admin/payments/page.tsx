@@ -155,7 +155,12 @@ export default function PaymentsPage() {
   }, []);
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
+    new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(Math.round(Number(amount) || 0));
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -283,45 +288,40 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 pb-12">
-      {/* Header Premium - Sin cajas de resumen como se solicitó */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-4">
-        <div className="space-y-1">
-          <Badge className="bg-blue-600/10 text-blue-700 hover:bg-blue-600/10 border-0 font-black text-[11px] uppercase tracking-wider px-3 mb-2">
-            Finanzas & Control
-          </Badge>
-          <h1 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight leading-none">
-            Gestión de <span className="text-blue-600">Cobros</span>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+            Gestión de Cobros
           </h1>
-          <p className="text-base md:text-lg text-gray-500 font-medium">
-            Historial detallado y filtros avanzados de recaudación.
+          <p className="text-xs sm:text-sm text-gray-500">
+            Historial de recaudación y registro de pagos
           </p>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild className="h-9 sm:h-10 px-4 rounded-xl font-bold text-xs bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm shadow-primary/20 active:scale-95 transition-all">
+            <Link href="/admin/payments/new">
+              <Plus className="h-4 w-4 mr-1.5" />
+              Registrar Pago
+            </Link>
+          </Button>
           <Button 
             variant="outline" 
-            size="lg" 
-            className="h-14 rounded-2xl font-black bg-white dark:bg-gray-900 shadow-sm px-6 border-gray-200"
+            className="h-9 sm:h-10 px-3.5 rounded-xl font-semibold text-xs bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 shadow-2xs hover:bg-gray-50 dark:hover:bg-gray-800"
             onClick={handleDownloadPDF}
             disabled={filteredPayments.length === 0}
           >
-            <Download className="h-5 w-5 mr-2" />
+            <Download className="h-4 w-4 mr-1.5" />
             PDF
           </Button>
           <Button 
             variant="outline" 
-            size="lg" 
-            className="h-14 rounded-2xl font-black bg-green-50 text-green-700 hover:bg-green-100 shadow-sm px-6 border-green-200"
+            className="h-9 sm:h-10 px-3.5 rounded-xl font-semibold text-xs bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-800 shadow-2xs"
             onClick={handleShareWhatsApp}
             disabled={filteredPayments.length === 0}
           >
-            <Share2 className="h-5 w-5 mr-2" />
+            <Share2 className="h-4 w-4 mr-1.5" />
             WhatsApp
-          </Button>
-          <Button asChild size="lg" className="h-14 px-8 rounded-2xl font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95 transition-all">
-            <Link href="/admin/payments/new">
-              <Plus className="h-5 w-5 mr-2" />
-              Registrar Pago
-            </Link>
           </Button>
         </div>
       </div>
@@ -398,13 +398,13 @@ export default function PaymentsPage() {
         </CardContent>
       </Card>
 
-      {/* Historial con Texto más grande y optimizado */}
+      {/* Historial */}
       <Tabs defaultValue="payments" className="w-full">
-        <TabsList className="bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl mb-4 h-14">
-          <TabsTrigger value="payments" className="rounded-xl px-8 h-12 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">
+        <TabsList className="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-4 h-11">
+          <TabsTrigger value="payments" className="rounded-lg px-4 sm:px-6 h-9 font-semibold text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Historial de Cobros
           </TabsTrigger>
-          <TabsTrigger value="spei" className="rounded-xl px-8 h-12 font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="spei" className="rounded-lg px-4 sm:px-6 h-9 font-semibold text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Registro SPEI
           </TabsTrigger>
         </TabsList>
@@ -450,14 +450,14 @@ export default function PaymentsPage() {
                       </TableRow>
                     ) : (
                       filteredPayments.map((payment) => (
-                        <TableRow key={payment.id} className="h-24 hover:bg-gray-50 dark:hover:bg-gray-900/50 border-b border-gray-100 dark:border-gray-800 group">
+                        <TableRow key={payment.id} className="h-16 hover:bg-gray-50 dark:hover:bg-gray-900/50 border-b border-gray-100 dark:border-gray-800 group">
                           <TableCell className="pl-6">
-                            <div className="space-y-1">
-                              <p className="text-lg font-black text-gray-900 dark:text-gray-100 leading-tight">
+                            <div className="space-y-0.5">
+                              <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight">
                                 {payment.loan?.client?.firstName} {payment.loan?.client?.lastName}
                               </p>
                               <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded leading-none">
+                                <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded leading-none">
                                   {payment.loan?.loanNumber || 'TICKET'}
                                 </span>
                                 <span className="text-xs text-gray-400 font-mono">
@@ -467,23 +467,23 @@ export default function PaymentsPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <p className="text-2xl font-black text-blue-700 tracking-tighter">
+                            <p className="text-base font-black text-blue-700 dark:text-blue-400">
                               {formatCurrency(payment.amount)}
                             </p>
                           </TableCell>
                           <TableCell>
-                            <div className="space-y-2">
+                            <div className="space-y-1">
                               {getStatusBadge(payment.status)}
-                              <div className="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase ml-1">
+                              <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500 uppercase">
                                 {getMethodIcon(payment.paymentMethod)}
                                 {payment.paymentMethod === 'CASH' ? 'Efectivo' : 'Depósito/SPEI'}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2 text-sm font-bold text-gray-600 dark:text-gray-400">
-                              <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                                <UserIcon className="h-4 w-4 text-blue-600" />
+                            <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                              <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                                <UserIcon className="h-3.5 w-3.5 text-blue-600" />
                               </div>
                               {payment.loan?.client?.asesor 
                                 ? `${payment.loan.client.asesor.firstName}` 
@@ -491,15 +491,15 @@ export default function PaymentsPage() {
                             </div>
                           </TableCell>
                           <TableCell className="pr-6 text-right">
-                            <div className="space-y-1">
-                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                            <div className="space-y-0.5">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                 {new Intl.DateTimeFormat('es-MX', { 
                                   timeZone: 'America/Mexico_City', 
                                   day: 'numeric', 
                                   month: 'short' 
                                 }).format(new Date(payment.paymentDate))}
                               </p>
-                              <p className="text-xs text-gray-400 uppercase font-bold">
+                              <p className="text-[11px] text-gray-400 uppercase font-medium">
                                 {new Intl.DateTimeFormat('es-MX', { 
                                   timeZone: 'America/Mexico_City', 
                                   year: 'numeric' 
@@ -513,9 +513,9 @@ export default function PaymentsPage() {
                     
                     {/* Fila de Total */}
                     {!loading && filteredPayments.length > 0 && (
-                      <TableRow className="h-24 bg-blue-50/30 dark:bg-blue-900/10 border-t-2 border-blue-100">
+                      <TableRow className="h-16 bg-blue-50/30 dark:bg-blue-900/10 border-t-2 border-blue-100">
                         <TableCell className="pl-6">
-                          <p className="text-xl font-black text-gray-900 dark:text-gray-100 uppercase tracking-widest">
+                          <p className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider">
                             Total Recaudado
                           </p>
                           <p className="text-[10px] font-bold text-gray-500">
@@ -523,12 +523,12 @@ export default function PaymentsPage() {
                           </p>
                         </TableCell>
                         <TableCell>
-                          <p className="text-3xl font-black text-blue-700 tracking-tighter">
+                          <p className="text-xl font-black text-blue-700 dark:text-blue-400">
                             {formatCurrency(totalFiltered)}
                           </p>
                         </TableCell>
                         <TableCell colSpan={3} className="pr-6 text-right">
-                           <Badge className="bg-blue-600 text-white border-0 font-black text-xs px-4 py-2 rounded-full shadow-lg shadow-blue-500/20">
+                           <Badge className="bg-blue-600 text-white border-0 font-bold text-[11px] px-3 py-1 rounded-full shadow-md shadow-blue-500/20">
                              BALANCE DE FILTRO
                            </Badge>
                         </TableCell>
@@ -622,8 +622,8 @@ function SpeiManualForm({ onSuccess }: { onSuccess: () => void }) {
                 id="amount"
                 type="number"
                 min="1"
-                step="0.01"
-                placeholder="0.00"
+                step="1"
+                placeholder="0"
                 className="h-14 rounded-2xl bg-gray-50 border-gray-100 font-black text-2xl text-blue-700"
                 value={form.amount}
                 onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
