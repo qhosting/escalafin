@@ -292,7 +292,7 @@ export function NotificationCenter() {
                 Limpiar
               </button>
               <Link
-                href="/notificaciones"
+                href="/notifications"
                 className="text-[11px] text-primary font-semibold flex items-center gap-1"
                 onClick={() => setOpen(false)}
               >

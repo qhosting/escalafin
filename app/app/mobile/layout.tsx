@@ -17,7 +17,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { IntrapersonaBanner } from '@/components/pwa/intrapersona-banner';
 
 export default function MobileLayout({
   children,
@@ -35,17 +34,16 @@ export default function MobileLayout({
   }
 
   if (!session) {
-    redirect('/auth/login');
+    redirect('/auth/signin');
   }
 
   // Check if user has mobile access (advisors and admins)
   if (!['ADMIN', 'ASESOR', 'SUPER_ADMIN'].includes(session.user.role)) {
-    redirect('/cliente/dashboard');
+    redirect('/dashboard');
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <IntrapersonaBanner />
       {/* Mobile Header */}
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
@@ -56,7 +54,7 @@ export default function MobileLayout({
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  EscalaFin Mobile
+                  InverPlus Mobile
                 </h1>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">
@@ -97,13 +95,13 @@ export default function MobileLayout({
                 Clientes
               </Button>
             </Link>
-            <Link href="/mobile/asesor/route">
+            <Link href="/asesor/routes">
               <Button variant="ghost" size="sm" className="whitespace-nowrap flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 Rutas
               </Button>
             </Link>
-            <Link href={session.user.role === 'ASESOR' ? '/asesor/dashboard' : session.user.role === 'SUPER_ADMIN' ? '/admin/saas' : '/admin/dashboard'}>
+            <Link href="/mobile/dashboard">
               <Button variant="ghost" size="sm" className="whitespace-nowrap flex items-center gap-2">
                 <Home className="h-4 w-4" />
                 Dashboard
@@ -118,7 +116,22 @@ export default function MobileLayout({
         {children}
       </main>
 
-
+      {/* Connection Status */}
+      <div className="fixed bottom-4 left-4 right-4">
+        <Card className="bg-green-50 border-green-200">
+          <CardContent className="p-2">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-green-700">Conectado</span>
+              </div>
+              <div className="text-green-600">
+                {new Date().toLocaleTimeString('es-MX')}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

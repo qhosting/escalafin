@@ -13,9 +13,7 @@ import {
   LogOut,
   User,
   RefreshCw,
-  Smartphone,
 } from 'lucide-react';
-import { useMobileSimulator } from '@/hooks/use-mobile-simulator';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -83,7 +81,6 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
   const { data: session } = useSession() || {};
   const { isModuleEnabled } = useModules();
   const { tenant } = useTenant();
-  const { open: openMobileSimulator } = useMobileSimulator();
 
   const isMobileVariant = variant === 'mobile';
   const userRole = (session as any)?.user?.role as string | undefined;
@@ -148,8 +145,8 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
       className="flex items-center gap-2 min-w-0 hover:opacity-90 transition-opacity"
     >
       <Image
-        src={(tenant as any)?.logo || '/logoescalafin.png'}
-        alt={`${(tenant as any)?.name || 'EscalaFin'} Logo`}
+        src={(tenant as any)?.logo || '/logo.svg'}
+        alt={`${(tenant as any)?.name || 'InverPlus'} Logo`}
         width={isCollapsed ? 32 : 132}
         height={32}
         className="object-contain shrink-0"
@@ -166,12 +163,11 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
       <aside
         className={cn(
           'flex flex-col h-full bg-white dark:bg-[#030914] text-slate-900 dark:text-slate-100 border-r border-slate-200/80 dark:border-white/5 relative select-none shadow-xl shadow-black/5 dark:shadow-black/40',
-          isMobileVariant ? 'w-full border-r-0 shadow-none' : undefined,
           !isMobileVariant && 'transition-[width] duration-200'
         )}
         style={
           isMobileVariant
-            ? { width: '100%' }
+            ? undefined
             : { width: isCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED }
         }
         aria-label="Navegación principal"
@@ -316,10 +312,10 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
                       onClick={() => toggleSection(section.title)}
                       aria-expanded={isOpen}
                       className={cn(
-                        'flex items-center justify-between w-full px-3 h-9 rounded-xl text-xs font-medium transition-all duration-200 relative group ef-sidebar-shimmer-hover',
+                        'flex items-center justify-between w-full px-3 h-9 rounded-xl text-xs font-bold transition-all duration-200 relative group ef-sidebar-shimmer-hover antialiased',
                         sectionActive
-                          ? 'bg-gradient-to-r from-cyan-500/10 via-blue-600/5 to-transparent text-cyan-900 dark:text-cyan-200 font-semibold'
-                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
+                          ? 'bg-gradient-to-r from-cyan-500/15 via-blue-600/10 to-transparent text-cyan-950 dark:text-cyan-200 font-extrabold shadow-2xs'
+                          : 'text-slate-800 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-white/[0.08] hover:text-slate-950 dark:hover:text-white'
                       )}
                     >
                       <div
@@ -327,25 +323,25 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
                           'absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full transition-all duration-300',
                           sectionActive
                             ? 'h-6 bg-gradient-to-b from-cyan-400 via-blue-500 to-emerald-400 shadow-[0_0_8px_rgba(0,180,216,0.6)]'
-                            : 'h-0 bg-slate-300 dark:bg-white/20 group-hover:h-3.5'
+                            : 'h-0 bg-slate-400 dark:bg-white/30 group-hover:h-3.5'
                         )}
                       />
                       <span className="flex items-center gap-2.5 min-w-0">
-                        <div className={cn("ef-sidebar-icon-morph shrink-0", sectionActive ? "text-cyan-600 dark:text-cyan-400" : "text-slate-400")}>
+                        <div className={cn("ef-sidebar-icon-morph shrink-0 transition-colors", sectionActive ? "text-cyan-600 dark:text-cyan-400" : "text-slate-500 dark:text-slate-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-300")}>
                           <section.icon className="h-4 w-4" />
                         </div>
-                        <span className="truncate group-hover:translate-x-0.5 transition-transform">{section.title}</span>
+                        <span className="truncate tracking-tight group-hover:translate-x-0.5 transition-transform">{section.title}</span>
                       </span>
                       <ChevronDown
-                        className={cn('h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200', isOpen && 'rotate-180 text-cyan-600 dark:text-cyan-300')}
+                        className={cn('h-3.5 w-3.5 shrink-0 text-slate-500 dark:text-slate-400 transition-transform duration-200 group-hover:text-slate-800 dark:group-hover:text-slate-200', isOpen && 'rotate-180 text-cyan-600 dark:text-cyan-300')}
                       />
                     </button>
 
                     {isOpen && (
-                      <div className="mt-1 ml-4 pl-3 border-l border-slate-200 dark:border-white/5 space-y-2 pb-1">
+                      <div className="mt-1 ml-4 pl-3 border-l-2 border-slate-200/80 dark:border-white/10 space-y-2 pb-1">
                         {section.groups.map((group) => (
                           <div key={group.title} className="space-y-0.5">
-                            <p className="px-2 pt-1 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                            <p className="px-2 pt-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-600 dark:text-slate-400">
                               {group.title}
                             </p>
                             {group.items.map((item) => (
@@ -442,21 +438,6 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
                   <span>Mi Perfil</span>
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer font-medium text-xs"
-                onClick={() => {
-                  if (onNavigate) onNavigate();
-                  openMobileSimulator();
-                }}
-              >
-                <Smartphone className="mr-2 h-4 w-4 text-primary" />
-                <div className="flex items-center justify-between w-full">
-                  <span>Modo Móvil</span>
-                  <Badge variant="secondary" className="text-[9px] px-1 py-0 h-3.5 bg-primary/10 text-primary font-normal">
-                    Simular
-                  </Badge>
-                </div>
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="cursor-pointer text-red-600 dark:text-red-400 font-medium text-xs"
@@ -470,16 +451,8 @@ export function AppSidebar({ collapsed = false, onToggle, variant = 'desktop', o
 
           {!isCollapsed && (
             <div className="mt-1 pt-1.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between px-2 text-[9px] text-slate-400 font-mono">
-              <button
-                type="button"
-                onClick={() => openMobileSimulator()}
-                className="flex items-center gap-1 text-primary hover:text-primary/80 transition-colors cursor-pointer font-sans text-[10px] font-semibold"
-                title="Abrir simulador móvil"
-              >
-                <Smartphone className="h-3 w-3" />
-                <span>Vista Móvil</span>
-              </button>
               <span>v3.5.0</span>
+              <span>BUILD 2026</span>
             </div>
           )}
         </div>
@@ -507,28 +480,18 @@ function SidebarLink({
   dense?: boolean;
   onNavigate?: () => void;
 }) {
-  const handleClick = (e: React.MouseEvent) => {
-    if (href === '#modo-movil') {
-      e.preventDefault();
-      useMobileSimulator.getState().open();
-      if (onNavigate) onNavigate();
-      return;
-    }
-    if (onNavigate) onNavigate();
-  };
-
   const link = (
     <Link
       href={href}
-      onClick={handleClick}
+      onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'flex items-center rounded-xl transition-all duration-200 relative group ef-sidebar-shimmer-hover',
+        'flex items-center rounded-xl transition-all duration-200 relative group ef-sidebar-shimmer-hover antialiased',
         collapsed ? 'justify-center h-10' : 'gap-3 px-3',
-        dense ? 'h-8 text-xs' : 'h-10 text-xs font-semibold',
+        dense ? 'h-8 text-xs font-bold' : 'h-10 text-xs font-extrabold',
         active
-          ? 'bg-gradient-to-r from-cyan-500/15 via-blue-600/10 to-emerald-500/5 text-cyan-900 dark:text-cyan-200 font-bold ef-sidebar-active-glow shadow-xs'
-          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white'
+          ? 'bg-gradient-to-r from-cyan-500/20 via-blue-600/15 to-emerald-500/10 text-cyan-950 dark:text-cyan-100 font-black ef-sidebar-active-glow shadow-xs border border-cyan-500/25'
+          : 'text-slate-800 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-white/[0.08] hover:text-slate-950 dark:hover:text-white'
       )}
     >
       {/* Indicador elástico lateral */}
@@ -537,23 +500,23 @@ function SidebarLink({
           'absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full transition-all duration-300',
           active
             ? 'h-6 bg-gradient-to-b from-cyan-400 via-blue-500 to-emerald-400 shadow-[0_0_8px_rgba(0,180,216,0.6)]'
-            : 'h-0 bg-slate-300 dark:bg-white/20 group-hover:h-3.5'
+            : 'h-0 bg-slate-400 dark:bg-white/30 group-hover:h-3.5'
         )}
       />
 
       <div
         className={cn(
           'ef-sidebar-icon-morph shrink-0 transition-transform duration-300',
-          active ? 'text-cyan-600 dark:text-cyan-400 scale-110 drop-shadow-[0_0_6px_rgba(0,180,216,0.4)]' : 'text-slate-400 group-hover:scale-110'
+          active ? 'text-cyan-600 dark:text-cyan-400 scale-110 drop-shadow-[0_0_6px_rgba(0,180,216,0.4)]' : 'text-slate-500 dark:text-slate-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-300 group-hover:scale-110'
         )}
       >
-        <Icon className={cn('shrink-0', dense ? 'h-4 w-4' : 'h-5 w-5')} />
+        <Icon className={cn('shrink-0 stroke-[2.2px]', dense ? 'h-4 w-4' : 'h-5 w-5')} />
       </div>
 
-      {!collapsed && <span className="truncate group-hover:translate-x-0.5 transition-transform">{title}</span>}
+      {!collapsed && <span className="truncate tracking-tight group-hover:translate-x-0.5 transition-transform">{title}</span>}
 
       {!collapsed && badge && (
-        <Badge variant={active ? "default" : "secondary"} className={cn("ml-auto text-[9px] px-1.5 h-4 font-bold", active && "bg-cyan-600")}>
+        <Badge variant={active ? "default" : "secondary"} className={cn("ml-auto text-[10px] px-1.5 h-4 font-black uppercase tracking-wider", active && "bg-cyan-600 text-white")}>
           {badge}
         </Badge>
       )}

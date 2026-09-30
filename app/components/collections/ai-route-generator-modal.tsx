@@ -68,7 +68,7 @@ export default function AIRouteGeneratorModal({
   const fetchAdvisors = async () => {
     try {
       setIsLoadingAdvisors(true);
-      const res = await fetch('/api/users?role=ASESOR');
+      const res = await fetch('/api/admin/users?role=ASESOR');
       if (res.ok) {
         const data = await res.json();
         const advisorList = Array.isArray(data) ? data : data.users || [];

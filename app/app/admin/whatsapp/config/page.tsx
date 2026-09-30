@@ -21,7 +21,7 @@ export default function WhatsAppConfigPage() {
     }
 
     if (session.user.role !== 'ADMIN') {
-      router.push('/dashboard');
+      router.push('/admin/dashboard');
       return;
     }
   }, [session, status, router]);

@@ -33,7 +33,7 @@ export function MobileClientDashboard() {
     fetchData();
   }, []);
 
-  const nextPayment = data?.activeLoans?.[0]?.nextPayment;
+  const nextPayment = data?.summary?.nextPayment || data?.activeLoans?.[0]?.nextPayment;
 
   return (
     <div className="flex flex-col gap-6 pb-24">

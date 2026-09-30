@@ -71,7 +71,7 @@ export function StorageConfig() {
   } | null>(null)
 
   // Solo admins pueden acceder a esta configuración
-  if (session?.user?.role !== 'ADMIN' && session?.user?.role !== 'SUPER_ADMIN') {
+  if (!['ADMIN', 'SUPER_ADMIN'].includes(session?.user?.role || '')) {
     return (
       <Card>
         <CardContent className="p-6 text-center">

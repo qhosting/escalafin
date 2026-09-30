@@ -9,7 +9,7 @@ import { getStorageConfig, validateStorageConfig } from '@/lib/storage-config'
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+    if (!session?.user?.id || !['ADMIN', 'SUPER_ADMIN'].includes(session.user.role)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+    if (!session?.user?.id || !['ADMIN', 'SUPER_ADMIN'].includes(session.user.role)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
@@ -68,9 +68,9 @@ export async function POST(req: NextRequest) {
         maxSize: 10
       },
       s3: settings.s3 || {
-        bucketName: 'escalafin-uploads',
+        bucketName: 'inverplus-uploads',
         region: 'us-east-1',
-        folderPrefix: 'escalafin-mvp/',
+        folderPrefix: 'inverplus-mvp/',
         maxSize: 10
       }
     }
