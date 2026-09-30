@@ -21,10 +21,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
 
-        const tenantId = session.user.tenantId;
-        if (!tenantId) {
-            return NextResponse.json({ error: 'Tenant no encontrado' }, { status: 400 });
-        }
+        const tenantId = session.user.tenantId || undefined;
 
         const tenantPrisma = getTenantPrisma(tenantId);
         const { searchParams } = new URL(request.url);

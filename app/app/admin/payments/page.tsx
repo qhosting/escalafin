@@ -44,6 +44,7 @@ import { LoanTableSkeleton } from '@/components/ui/skeletons';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { BulkPaymentTab } from '@/components/payments/bulk-payment-tab';
 
 export const dynamic = 'force-dynamic';
 
@@ -404,7 +405,7 @@ export default function PaymentsPage() {
           <TabsTrigger value="payments" className="rounded-lg px-4 sm:px-6 h-9 font-semibold text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Historial de Cobros
           </TabsTrigger>
-          <TabsTrigger value="spei" className="rounded-lg px-4 sm:px-6 h-9 font-semibold text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="bulk" className="rounded-lg px-4 sm:px-6 h-9 font-semibold text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300">`r`n            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />`r`n            Abono Masivo`r`n          </TabsTrigger>`r`n          <TabsTrigger value="spei" className="rounded-lg px-4 sm:px-6 h-9 font-semibold text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Registro SPEI
           </TabsTrigger>
         </TabsList>
@@ -539,6 +540,10 @@ export default function PaymentsPage() {
               )}
             </div>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="bulk">
+          <BulkPaymentTab advisors={advisors} onPaymentSuccess={fetchPayments} />
         </TabsContent>
 
         <TabsContent value="spei">
