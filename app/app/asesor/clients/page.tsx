@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export default function AsesorClientsPage() {
   return (
-    <AuthWrapper allowedRoles={['ASESOR', 'ADMIN']}>
+    <AuthWrapper allowedRoles={['ASESOR', 'ADMIN', 'SUPER_ADMIN']}>
       <div>
         <div>
           <ClientList userRole="ASESOR" />

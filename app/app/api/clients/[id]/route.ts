@@ -29,7 +29,15 @@ export async function GET(
     // Verificar permisos de rol
     let whereClause: any = { id: clientId };
     if (session.user.role === 'ASESOR') {
-      whereClause.asesorId = session.user.id;
+      const assignedCount = await (tenantPrisma.client as any).count({
+        where: { asesorId: session.user.id }
+      });
+      if (assignedCount > 0) {
+        whereClause.OR = [
+          { asesorId: session.user.id },
+          { asesorId: null }
+        ];
+      }
     }
 
     const client = await (tenantPrisma.client as any).findFirst({
@@ -130,29 +138,10 @@ export async function GET(
       take: 10
     });
 
-    const sanitizedClient = {
+    return NextResponse.json({
       ...client,
-      firstName: (client.firstName || '').toUpperCase(),
-      lastName: (client.lastName || '').toUpperCase(),
-      address: client.address ? client.address.toUpperCase() : client.address,
-      city: client.city ? client.city.toUpperCase() : client.city,
-      state: client.state ? client.state.toUpperCase() : client.state,
-      employerName: client.employerName ? client.employerName.toUpperCase() : client.employerName,
-      workAddress: client.workAddress ? client.workAddress.toUpperCase() : client.workAddress,
-      bankName: client.bankName ? client.bankName.toUpperCase() : client.bankName,
-      guarantor: client.guarantor ? {
-        ...client.guarantor,
-        fullName: (client.guarantor.fullName || '').toUpperCase(),
-        address: client.guarantor.address ? client.guarantor.address.toUpperCase() : client.guarantor.address,
-      } : client.guarantor,
-      collaterals: client.collaterals?.map((c: any) => ({
-        ...c,
-        description: (c.description || '').toUpperCase()
-      })) || [],
       auditLogs
-    };
-
-    return NextResponse.json(sanitizedClient);
+    });
 
   } catch (error: any) {
     console.error('Error fetching client:', error);
@@ -244,22 +233,22 @@ export async function PATCH(
     const updatedClient = await (tenantPrisma.client as any).update({
       where: { id: clientId },
       data: {
-        firstName: firstName ? firstName.toUpperCase().trim() : existingClient.firstName,
-        lastName: lastName ? lastName.toUpperCase().trim() : existingClient.lastName,
+        firstName: firstName || existingClient.firstName,
+        lastName: lastName || existingClient.lastName,
         email: email || existingClient.email,
         phone: phone || existingClient.phone,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : existingClient.dateOfBirth,
-        address: address ? address.toUpperCase().trim() : existingClient.address,
-        city: city ? city.toUpperCase().trim() : existingClient.city,
-        state: state ? state.toUpperCase().trim() : existingClient.state,
+        address: address || existingClient.address,
+        city: city || existingClient.city,
+        state: state || existingClient.state,
         postalCode: postalCode || existingClient.postalCode,
         monthlyIncome: monthlyIncome ? parseFloat(monthlyIncome) : existingClient.monthlyIncome,
         employmentType: employmentType as any || existingClient.employmentType,
-        employerName: employerName ? employerName.toUpperCase().trim() : existingClient.employerName,
-        workAddress: workAddress ? workAddress.toUpperCase().trim() : existingClient.workAddress,
+        employerName: employerName || existingClient.employerName,
+        workAddress: workAddress || existingClient.workAddress,
         yearsEmployed: yearsEmployed ? parseInt(yearsEmployed) : existingClient.yearsEmployed,
         creditScore: creditScore ? parseInt(creditScore) : existingClient.creditScore,
-        bankName: bankName ? bankName.toUpperCase().trim() : existingClient.bankName,
+        bankName: bankName || existingClient.bankName,
         accountNumber: accountNumber || existingClient.accountNumber,
         status: status as any || existingClient.status,
         asesorId: finalAsesorId,
@@ -269,8 +258,8 @@ export async function PATCH(
           guarantor === null ? (existingClient.guarantor ? { delete: true } : undefined) : {
             upsert: {
               create: {
-                fullName: guarantor.fullName ? guarantor.fullName.toUpperCase().trim() : '',
-                address: guarantor.address ? guarantor.address.toUpperCase().trim() : '',
+                fullName: guarantor.fullName,
+                address: guarantor.address || '',
                 phone: guarantor.phone || '',
                 relationship: guarantor.relationship || 'OTHER',
                 latitude: guarantor.latitude ? parseFloat(guarantor.latitude) : null,
@@ -278,8 +267,8 @@ export async function PATCH(
                 tenantId: existingClient.tenantId
               },
               update: {
-                fullName: guarantor.fullName ? guarantor.fullName.toUpperCase().trim() : (existingClient.guarantor as any)?.fullName,
-                address: guarantor.address ? guarantor.address.toUpperCase().trim() : (existingClient.guarantor as any)?.address,
+                fullName: guarantor.fullName,
+                address: guarantor.address || '',
                 phone: guarantor.phone || '',
                 relationship: guarantor.relationship || 'OTHER',
                 latitude: guarantor.latitude ? parseFloat(guarantor.latitude) : (existingClient.guarantor as any)?.latitude,
@@ -291,7 +280,7 @@ export async function PATCH(
         collaterals: collaterals !== undefined ? {
           deleteMany: {},
           create: collaterals.map((description: string) => ({
-            description: description.toUpperCase().trim(),
+            description,
             tenantId: existingClient.tenantId
           }))
         } : undefined,

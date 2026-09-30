@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Users, Phone, Mail, MapPin, Plus, Search } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { toast } from 'react-hot-toast';
-import Link from 'next/link';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 interface Client {
   id: string;
@@ -53,7 +53,7 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
         name: c.firstName && c.lastName ? `${c.firstName} ${c.lastName}` : (c.name || 'Sin nombre'),
         documentNumber: c.accountNumber || 'N/A', // Using accountNumber as documentNumber placeholder
         totalLoans: c.loans?.length || 0,
-        totalAmount: c.loans?.reduce((acc: number, l: any) => acc + (l.balanceRemaining || 0), 0) || 0
+        totalAmount: c.loans?.reduce((acc: number, l: any) => acc + (Number(l.balanceRemaining) || 0), 0) || 0
       }));
 
       setClients(transformedClients);
@@ -140,7 +140,7 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {clients.filter(c => c.status === 'ACTIVO').length}
+                  {clients.filter(c => ['ACTIVE', 'ACTIVO'].includes(c.status)).length}
                 </p>
                 <p className="text-sm text-gray-600">Clientes Activos</p>
               </div>
@@ -156,7 +156,7 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${clients.reduce((sum, c) => sum + c.totalAmount, 0).toLocaleString()}
+                  ${clients.reduce((sum, c) => sum + (Number(c.totalAmount) || 0), 0).toLocaleString('es-MX')}
                 </p>
                 <p className="text-sm text-gray-600">Cartera Total</p>
               </div>
@@ -199,11 +199,11 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
                           <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none group-hover:text-blue-600 transition-colors">{client.name}</h3>
                           <Badge className={cn(
                             "text-[10px] font-black uppercase tracking-widest px-2.5 h-6 rounded-lg",
-                            client.status === 'ACTIVO' 
+                            ['ACTIVE', 'ACTIVO'].includes(client.status) 
                               ? "bg-green-100 text-green-700 hover:bg-green-100" 
                               : "bg-gray-100 text-gray-600 hover:bg-gray-100"
                           )}>
-                            {client.status}
+                            {client.status === 'ACTIVE' ? 'ACTIVO' : client.status}
                           </Badge>
                         </div>
                         <div className="flex flex-col gap-1.5 mt-3">
@@ -223,13 +223,13 @@ export function ClientList({ userRole = 'ADMIN' }: ClientListProps) {
                       <div className="text-left md:text-right space-y-1">
                         <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Saldo Pendiente</p>
                         <p className="text-2xl font-black text-blue-600 dark:text-blue-400 leading-none">
-                          ${client.totalAmount.toLocaleString()}
+                          ${(Number(client.totalAmount) || 0).toLocaleString('es-MX')}
                         </p>
                         <p className="text-xs font-bold text-gray-400">
                           {client.totalLoans} préstamos activos
                         </p>
                       </div>
-                      <Link href={`/${userRole?.toLowerCase() || 'admin'}/clients/${client.id}`} className="md:ml-4">
+                      <Link href={`/admin/clients/${client.id}`} className="md:ml-4">
                         <Button 
                           variant="secondary" 
                           className="h-14 px-6 rounded-2xl font-black uppercase tracking-widest text-xs bg-gray-50 dark:bg-gray-800 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
